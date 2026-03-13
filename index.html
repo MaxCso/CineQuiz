@@ -4,1053 +4,968 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>CinéQuiz</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1c1c28;
-    --gold: #f5c842;
-    --gold2: #e8a800;
-    --red: #e8344a;
-    --green: #2ecc71;
-    --blue: #4a9eff;
-    --text: #f0f0f0;
-    --muted: #6b6b80;
-    --border: rgba(255,255,255,0.07);
-  }
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28;
+  --gold:#f5c842; --gold2:#e8a800; --red:#e8344a; --green:#2ecc71;
+  --blue:#4a9eff; --text:#f0f0f0; --muted:#6b6b80; --border:rgba(255,255,255,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#060609;color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden;}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:50px;border:1.5px solid rgba(255,255,255,0.08);overflow:hidden;position:relative;box-shadow:0 0 100px rgba(245,200,66,0.06),0 60px 120px rgba(0,0,0,0.8);}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.3s ease;overflow-y:auto;}
+.screen.active{opacity:1;pointer-events:all;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* ══ HOME ══ */
+#home{padding:52px 26px 32px;gap:0;}
+.home-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.home-logo{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:3px;line-height:1;background:linear-gradient(135deg,var(--gold) 0%,#fff8e0 50%,var(--gold2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-right{display:flex;gap:10px;align-items:center;}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:transform 0.2s,background 0.2s;}
+.icon-btn:active{transform:scale(0.9);}
+.icon-btn.sound-off{opacity:0.45;}
 
-  body {
-    background: #060609;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-  }
+.xp-widget{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:16px 20px;margin-bottom:14px;}
+.xp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.xp-lvname{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+.xp-next-lbl{font-size:11px;color:var(--muted);}
+.xp-bar-bg{background:var(--surface2);border-radius:5px;height:6px;overflow:hidden;}
+.xp-bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width 1s cubic-bezier(0.4,0,0.2,1);}
+.xp-sub{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted);}
+.stats-row{display:flex;gap:10px;margin-bottom:14px;}
+.stat-mini{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:11px 8px;text-align:center;}
+.stat-mini-val{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;}
+.sv-fire{color:#ff6b35;}.sv-gold{color:var(--gold);}.sv-green{color:var(--green);}
+.stat-mini-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.section-hd{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.badges-scroll{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none;}
+.badges-scroll::-webkit-scrollbar{display:none;}
+.badge-chip{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:9px 13px;text-align:center;min-width:68px;}
+.badge-chip.unlocked{border-color:rgba(245,200,66,0.3);background:rgba(245,200,66,0.05);}
+.badge-chip.locked{opacity:0.35;filter:grayscale(1);}
+.badge-icon{font-size:22px;margin-bottom:3px;}
+.badge-name{font-size:10px;color:var(--muted);}
+.badge-chip.unlocked .badge-name{color:var(--gold);}
+.mode-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.mode-tab{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:11px 6px;text-align:center;cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);transition:all 0.2s;font-family:'DM Sans',sans-serif;line-height:1.3;}
+.mode-tab .tab-icon{font-size:20px;display:block;margin-bottom:4px;}
+.mode-tab.sel-mode{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,0.08);}
+.mode-tab:active{transform:scale(0.95);}
+.diff-row{display:flex;gap:8px;margin-bottom:16px;}
+.diff-btn{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:13px;padding:9px 5px;text-align:center;cursor:pointer;font-size:11px;font-weight:500;color:var(--muted);transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.diff-btn.sel-easy{border-color:var(--green);color:var(--green);background:rgba(46,204,113,0.08);}
+.diff-btn.sel-medium{border-color:#f39c12;color:#f39c12;background:rgba(243,156,18,0.08);}
+.diff-btn.sel-hard{border-color:var(--red);color:var(--red);background:rgba(232,52,74,0.08);}
+.diff-btn:active{transform:scale(0.95);}
+.play-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:20px;padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;box-shadow:0 8px 32px rgba(245,200,66,0.28);transition:transform 0.15s,box-shadow 0.15s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.play-btn:active{transform:scale(0.97);box-shadow:0 4px 15px rgba(245,200,66,0.15);}
 
-  .phone {
-    width: 390px;
-    height: 844px;
-    background: var(--bg);
-    border-radius: 50px;
-    border: 1.5px solid rgba(255,255,255,0.08);
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 100px rgba(245,200,66,0.06), 0 60px 120px rgba(0,0,0,0.8);
-  }
+/* ══ PROFILE ══ */
+#profile{padding:52px 26px 32px;}
+.back-btn{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:22px;background:none;border:none;font-family:'DM Sans',sans-serif;}
+.profile-hero{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:14px;text-align:center;}
+.profile-avatar{font-size:52px;margin-bottom:7px;}
+.profile-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;}
+.profile-title{font-size:13px;color:var(--gold);margin-top:2px;}
+.stats-full-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+.stat-full-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;}
+.stat-full-val{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--gold);}
+.stat-full-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.hist-icon{font-size:20px;}.hist-info{flex:1;}
+.hist-score{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--gold);}
+.hist-detail{font-size:11px;color:var(--muted);margin-top:1px;}
+.hist-date{font-size:11px;color:var(--muted);}
 
-  .screen {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-  .screen.active { opacity: 1; pointer-events: all; }
+/* ══ LOADING ══ */
+#loading{align-items:center;justify-content:center;gap:18px;}
+.loader-film{font-size:60px;animation:filmBob 1.4s ease infinite;}
+@keyframes filmBob{0%,100%{transform:rotate(-8deg) scale(1);}50%{transform:rotate(8deg) scale(1.08);}}
+.loader-text{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);letter-spacing:3px;}
+.loader-dots span{display:inline-block;width:7px;height:7px;background:var(--gold);border-radius:50%;margin:0 3px;animation:ldot 1.2s ease infinite;}
+.load-step{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--border);font-size:12px;color:var(--muted);transition:all 0.3s;}
+.load-step.active{border-color:rgba(245,200,66,0.3);color:var(--text);}
+.load-step.done{border-color:rgba(46,204,113,0.3);color:var(--green);}
+.load-step-icon{font-size:16px;width:20px;text-align:center;}
+.loader-dots span:nth-child(2){animation-delay:.2s;}
+.loader-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes ldot{0%,80%,100%{transform:translateY(0);opacity:.35;}40%{transform:translateY(-9px);opacity:1;}}
 
-  /* ══ HOME ══ */
-  #home {
-    align-items: center;
-    justify-content: flex-start;
-    padding: 56px 28px 36px;
-    overflow-y: auto;
-  }
+/* ══ GAME ══ */
+#game{overflow:hidden;}
+.game-header{padding:18px 22px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.q-num-lbl{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);letter-spacing:1px;}
+.q-cat-lbl{font-size:10px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;opacity:.8;}
+.mult-badge{font-family:'Bebas Neue',sans-serif;font-size:15px;padding:5px 11px;border-radius:10px;letter-spacing:1px;border:1.5px solid transparent;transition:all 0.25s;}
+.mx3{background:rgba(46,204,113,.14);color:var(--green);border-color:rgba(46,204,113,.3);}
+.mx2{background:rgba(243,156,18,.14);color:#f39c12;border-color:rgba(243,156,18,.3);}
+.mx1{background:rgba(232,52,74,.14);color:var(--red);border-color:rgba(232,52,74,.3);}
+.score-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);letter-spacing:1px;}
+.progress-dots{display:flex;gap:5px;padding:0 22px 8px;flex-shrink:0;}
+.dot{flex:1;height:3px;border-radius:2px;background:var(--surface2);transition:background .35s;}
+.dot.dcurrent{background:rgba(245,200,66,.35);}
+.dot.dcorrect{background:var(--green);}
+.dot.dwrong{background:var(--red);}
+.timer-wrap{padding:0 22px 10px;flex-shrink:0;}
+.timer-bg{background:var(--surface2);border-radius:5px;height:6px;overflow:hidden;}
+.timer-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .12s linear;}
+.timer-fill.twarn{background:linear-gradient(90deg,var(--red),#ff8c42);}
+.timer-nums{display:flex;justify-content:space-between;margin-top:5px;}
+.t-val{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--muted);letter-spacing:1px;}
+.dbadge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.deasy{background:rgba(46,204,113,.15);color:var(--green);}
+.dmed{background:rgba(243,156,18,.15);color:#f39c12;}
+.dhard{background:rgba(232,52,74,.15);color:var(--red);}
+.q-area{flex:1;padding:0 22px 4px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;}
+.q-type-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.q-type-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.q-text{font-size:16px;font-weight:500;line-height:1.55;color:var(--text);animation:qSlide .35s ease both;}
+@keyframes qSlide{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-  .home-top {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 36px;
-  }
+/* Photo mystère */
+.photo-mystery-wrap{width:100%;position:relative;border-radius:18px;overflow:hidden;margin-bottom:12px;background:var(--surface2);flex-shrink:0;}
+.mystery-img{width:100%;height:100%;object-fit:cover;display:block;}
+.mystery-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(10,10,15,0.4) 100%);}
+.reveal-bar{position:absolute;bottom:10px;left:12px;right:12px;display:flex;gap:5px;}
+.reveal-pip{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.2);transition:background 0.4s;}
+.reveal-pip.done{background:var(--gold);}
+.reveal-hint{position:absolute;top:10px;right:12px;background:rgba(10,10,15,0.75);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:4px 10px;font-size:10px;color:var(--muted);letter-spacing:1px;backdrop-filter:blur(8px);}
+.hint-text{font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;font-style:italic;}
 
-  .home-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 52px;
-    letter-spacing: 3px;
-    background: linear-gradient(135deg, var(--gold) 0%, #fff8e0 50%, var(--gold2) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-  }
+/* Answers */
+.answers-grid{padding:10px 22px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0;}
+.ans-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:15px;padding:13px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;text-align:center;cursor:pointer;transition:all .18s;min-height:56px;display:flex;align-items:center;justify-content:center;line-height:1.3;animation:qSlide .35s ease both;}
+.ans-btn:nth-child(2){animation-delay:.05s;}
+.ans-btn:nth-child(3){animation-delay:.1s;}
+.ans-btn:nth-child(4){animation-delay:.15s;}
+.ans-btn:not(:disabled):hover{border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.05);}
+.ans-btn:not(:disabled):active{transform:scale(0.94);}
+.ans-btn.correct{background:rgba(46,204,113,.12);border-color:var(--green);color:var(--green);font-weight:600;}
+.ans-btn.wrong{background:rgba(232,52,74,.12);border-color:var(--red);color:var(--red);}
+.ans-btn:disabled{cursor:default;}
 
-  .xp-pill {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    padding: 8px 16px;
-    text-align: center;
-  }
-  .xp-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    color: var(--gold);
-    line-height: 1;
-  }
-  .xp-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+/* Toast */
+.toast{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) scale(.85);background:rgba(10,10,15,.93);border:1.5px solid var(--border);border-radius:22px;padding:18px 28px;text-align:center;opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:100;backdrop-filter:blur(16px);min-width:190px;}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.toast.tc{border-color:rgba(46,204,113,.5);}
+.toast.tw{border-color:rgba(232,52,74,.4);}
+.toast-pts{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;margin-bottom:3px;}
+.toast-msg{font-size:12px;color:var(--muted);}
+.toast-ans{font-size:11px;color:var(--text);margin-top:5px;font-style:italic;}
 
-  .streak-banner {
-    width: 100%;
-    background: linear-gradient(135deg, rgba(245,200,66,0.1), rgba(232,168,0,0.05));
-    border: 1px solid rgba(245,200,66,0.2);
-    border-radius: 18px;
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-  .streak-fire { font-size: 32px; }
-  .streak-info { flex: 1; }
-  .streak-title { font-weight: 600; font-size: 14px; color: var(--gold); }
-  .streak-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .streak-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    color: var(--gold);
-  }
+/* ══ LEVEL UP ══ */
+#levelup{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(245,200,66,.1) 0%,var(--bg) 70%);}
+.lu-stars{font-size:44px;animation:starPop .6s ease both;margin-bottom:14px;}
+@keyframes starPop{from{transform:scale(0) rotate(-20deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+.lu-title{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:3px;color:var(--gold);animation:fadeSlide .5s ease .15s both;}
+.lu-subtitle{font-size:15px;color:var(--muted);margin-bottom:22px;animation:fadeSlide .5s ease .25s both;}
+.lu-badge-big{background:var(--surface);border:2px solid rgba(245,200,66,.3);border-radius:26px;padding:26px 40px;text-align:center;margin-bottom:26px;animation:fadeSlide .5s ease .35s both;}
+.lu-badge-icon{font-size:60px;margin-bottom:8px;}
+.lu-badge-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--gold);}
+.lu-badge-desc{font-size:12px;color:var(--muted);margin-top:3px;}
+.lu-continue{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:18px;padding:16px 48px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;animation:fadeSlide .5s ease .5s both;}
+.confetti-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:200;}
+.cp{position:absolute;width:8px;height:8px;border-radius:2px;animation:cfFall linear forwards;}
+@keyframes cfFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(900px) rotate(720deg);opacity:0;}}
 
-  .section-label {
-    width: 100%;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
+/* ══ RESULT ══ */
+#result{padding:38px 26px 30px;align-items:center;}
+.result-icon{font-size:66px;margin-bottom:10px;animation:popIn .5s cubic-bezier(.36,.07,.19,.97) both;}
+@keyframes popIn{0%{transform:scale(0) rotate(-10deg);opacity:0;}70%{transform:scale(1.12) rotate(3deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+.result-title{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:2px;margin-bottom:3px;animation:fadeSlide .5s ease .15s both;}
+.result-sub{color:var(--muted);font-size:13px;margin-bottom:20px;animation:fadeSlide .5s ease .2s both;}
+.result-score-big{font-family:'Bebas Neue',sans-serif;font-size:82px;color:var(--gold);line-height:1;animation:fadeSlide .5s ease .25s both;}
+.result-score-lbl{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;animation:fadeSlide .5s ease .3s both;}
+.xp-gained-bar{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 18px;margin-bottom:14px;animation:fadeSlide .5s ease .35s both;}
+.xp-gained-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.xp-gained-lbl{font-size:12px;color:var(--muted);}
+.xp-gained-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);}
+.xp-prog-bg{background:var(--surface2);border-radius:5px;height:5px;overflow:hidden;}
+.xp-prog-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width 1s ease .7s;width:0%;}
+.result-stats{display:flex;gap:8px;width:100%;margin-bottom:18px;animation:fadeSlide .5s ease .4s both;}
+.r-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 5px;text-align:center;}
+.r-stat-val{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);}
+.r-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.result-btns{width:100%;display:flex;flex-direction:column;gap:9px;animation:fadeSlide .5s ease .5s both;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:16px;padding:16px;width:100%;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;box-shadow:0 8px 26px rgba(245,200,66,.22);transition:transform .15s;}
+.btn-primary:active{transform:scale(.97);}
+.btn-sec{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:13px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:transform .15s;}
+.btn-sec:active{transform:scale(.97);}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-  .modes-list {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 24px;
-  }
+/* Sound ripple */
+.sound-ripple{position:absolute;width:60px;height:60px;border-radius:50%;border:2px solid var(--gold);opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(0);animation:ripple .6s ease forwards;}
+@keyframes ripple{0%{transform:translate(-50%,-50%) scale(0);opacity:.6;}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0;}}
 
-  .mode-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .mode-card::after {
-    content: '';
-    position: absolute;
-    right: -30px; top: -30px;
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    opacity: 0.04;
-    transition: opacity 0.3s;
-  }
-  .mode-card.gold-card::after { background: var(--gold); }
-  .mode-card.pink-card::after { background: #ff6b9d; }
-  .mode-card.blue-card::after { background: var(--blue); }
-  .mode-card:active { transform: scale(0.97); }
-
-  .mode-icon { font-size: 28px; width: 44px; text-align: center; flex-shrink: 0; }
-  .mode-info { flex: 1; }
-  .mode-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
-  .mode-desc { font-size: 11px; color: var(--muted); }
-  .mode-tag {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-  }
-  .tag-gold { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
-  .tag-pink { background: rgba(255,107,157,0.15); color: #ff6b9d; border: 1px solid rgba(255,107,157,0.3); }
-  .tag-blue { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.3); }
-
-  .daily-btn {
-    width: 100%;
-    background: linear-gradient(135deg, var(--gold), var(--gold2));
-    color: #000;
-    border: none;
-    border-radius: 20px;
-    padding: 18px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    box-shadow: 0 8px 30px rgba(245,200,66,0.25);
-    transition: transform 0.15s, box-shadow 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  .daily-btn:active { transform: scale(0.97); box-shadow: 0 4px 15px rgba(245,200,66,0.15); }
-
-  /* ══ LOADING ══ */
-  #loading {
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    background: var(--bg);
-  }
-
-  .loader-clapboard { font-size: 64px; animation: clap 1.2s ease infinite; }
-  @keyframes clap {
-    0%, 100% { transform: rotate(-5deg) scale(1); }
-    50% { transform: rotate(5deg) scale(1.05); }
-  }
-  .loader-text {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    color: var(--muted);
-    letter-spacing: 3px;
-  }
-  .loader-dots span {
-    display: inline-block;
-    width: 8px; height: 8px;
-    background: var(--gold);
-    border-radius: 50%;
-    margin: 0 3px;
-    animation: bounce 1.2s ease infinite;
-  }
-  .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce {
-    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-    40% { transform: translateY(-10px); opacity: 1; }
-  }
-
-  .error-box {
-    background: var(--surface);
-    border: 1px solid rgba(232,52,74,0.3);
-    border-radius: 20px;
-    padding: 24px;
-    text-align: center;
-    max-width: 300px;
-  }
-  .error-icon { font-size: 48px; margin-bottom: 12px; }
-  .error-title { font-weight: 600; margin-bottom: 8px; }
-  .error-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
-  .retry-btn {
-    background: var(--gold);
-    color: #000;
-    border: none;
-    border-radius: 14px;
-    padding: 12px 28px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 1px;
-    cursor: pointer;
-  }
-
-  /* ══ GAME ══ */
-  #game { background: var(--bg); }
-
-  .game-header {
-    padding: 20px 24px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .q-info { display: flex; flex-direction: column; }
-  .q-counter {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px;
-    color: var(--muted);
-    letter-spacing: 1px;
-  }
-  .q-category {
-    font-size: 10px;
-    color: var(--gold);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-top: 1px;
-    opacity: 0.8;
-  }
-
-  .score-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    color: var(--gold);
-    letter-spacing: 1px;
-    transition: transform 0.2s;
-  }
-  .score-display.bump { animation: scoreBump 0.3s ease; }
-  @keyframes scoreBump {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); color: var(--green); }
-    100% { transform: scale(1); }
-  }
-
-  .mult-badge {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 15px;
-    padding: 5px 10px;
-    border-radius: 10px;
-    letter-spacing: 1px;
-    transition: all 0.3s;
-    border: 1.5px solid transparent;
-  }
-  .mult-x3 { background: rgba(46,204,113,0.15); color: var(--green); border-color: rgba(46,204,113,0.3); }
-  .mult-x2 { background: rgba(243,156,18,0.15); color: #f39c12; border-color: rgba(243,156,18,0.3); }
-  .mult-x1 { background: rgba(232,52,74,0.15); color: var(--red); border-color: rgba(232,52,74,0.3); }
-
-  .progress-dots {
-    display: flex;
-    gap: 5px;
-    padding: 0 24px 10px;
-  }
-  .dot {
-    flex: 1;
-    height: 3px;
-    border-radius: 2px;
-    background: var(--surface2);
-    transition: background 0.4s;
-  }
-  .dot.done { background: var(--gold); }
-  .dot.correct { background: var(--green); }
-  .dot.wrong { background: var(--red); }
-  .dot.current { background: rgba(245,200,66,0.35); }
-
-  .timer-wrap { padding: 0 24px 14px; }
-  .timer-bar-bg {
-    background: var(--surface2);
-    border-radius: 6px;
-    height: 6px;
-    overflow: hidden;
-  }
-  .timer-bar {
-    height: 100%;
-    border-radius: 6px;
-    background: linear-gradient(90deg, var(--green), var(--gold));
-    transition: width 0.15s linear;
-  }
-  .timer-bar.warn { background: linear-gradient(90deg, var(--red), #ff8c42); }
-  .timer-numbers {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
-  }
-  .timer-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    color: var(--muted);
-    letter-spacing: 1px;
-  }
-  .difficulty-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-  }
-  .diff-easy { background: rgba(46,204,113,0.15); color: var(--green); }
-  .diff-medium { background: rgba(243,156,18,0.15); color: #f39c12; }
-  .diff-hard { background: rgba(232,52,74,0.15); color: var(--red); }
-
-  .question-area {
-    flex: 1;
-    padding: 4px 24px 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  .q-type-label {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .q-type-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  .question-text {
-    font-size: 17px;
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--text);
-    animation: fadeSlide 0.4s ease both;
-  }
-  @keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .answers-grid {
-    padding: 16px 24px 20px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .answer-btn {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 14px 10px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    min-height: 62px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.3;
-    animation: fadeSlide 0.4s ease both;
-  }
-  .answer-btn:nth-child(2) { animation-delay: 0.05s; }
-  .answer-btn:nth-child(3) { animation-delay: 0.1s; }
-  .answer-btn:nth-child(4) { animation-delay: 0.15s; }
-
-  .answer-btn:not(:disabled):hover {
-    border-color: rgba(245,200,66,0.4);
-    background: rgba(245,200,66,0.05);
-  }
-  .answer-btn:active:not(:disabled) { transform: scale(0.95); }
-
-  .answer-btn.correct {
-    background: rgba(46,204,113,0.12);
-    border-color: var(--green);
-    color: var(--green);
-    font-weight: 600;
-  }
-  .answer-btn.wrong {
-    background: rgba(232,52,74,0.12);
-    border-color: var(--red);
-    color: var(--red);
-  }
-  .answer-btn:disabled { cursor: default; }
-
-  /* FEEDBACK TOAST */
-  .toast {
-    position: absolute;
-    top: 44%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.85);
-    background: rgba(10,10,15,0.92);
-    border: 1.5px solid var(--border);
-    border-radius: 24px;
-    padding: 20px 32px;
-    text-align: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 100;
-    backdrop-filter: blur(16px);
-    min-width: 200px;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  .toast.correct-t { border-color: rgba(46,204,113,0.5); }
-  .toast.wrong-t { border-color: rgba(232,52,74,0.4); }
-
-  .toast-pts {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 42px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .toast-msg { font-size: 13px; color: var(--muted); }
-  .toast-answer { font-size: 12px; color: var(--text); margin-top: 6px; font-style: italic; }
-
-  /* ══ RESULT ══ */
-  #result {
-    align-items: center;
-    justify-content: center;
-    padding: 40px 28px;
-    flex-direction: column;
-    overflow-y: auto;
-  }
-
-  .result-icon { font-size: 72px; margin-bottom: 12px; animation: popIn 0.5s cubic-bezier(0.36,0.07,0.19,0.97) both; }
-  @keyframes popIn {
-    0% { transform: scale(0) rotate(-10deg); opacity: 0; }
-    70% { transform: scale(1.15) rotate(3deg); }
-    100% { transform: scale(1) rotate(0); opacity: 1; }
-  }
-
-  .result-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 44px;
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-    text-align: center;
-    animation: fadeSlide 0.5s ease 0.2s both;
-  }
-  .result-sub {
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 32px;
-    text-align: center;
-    animation: fadeSlide 0.5s ease 0.3s both;
-  }
-
-  .result-score {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 90px;
-    color: var(--gold);
-    line-height: 1;
-    animation: fadeSlide 0.5s ease 0.35s both;
-  }
-  .result-score-label {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 28px;
-    animation: fadeSlide 0.5s ease 0.4s both;
-  }
-
-  .result-grid {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 28px;
-    animation: fadeSlide 0.5s ease 0.45s both;
-  }
-
-  .r-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 16px 8px;
-    text-align: center;
-  }
-  .r-card-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    color: var(--gold);
-  }
-  .r-card-label {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 3px;
-  }
-
-  .perf-bar-wrap {
-    width: 100%;
-    margin-bottom: 28px;
-    animation: fadeSlide 0.5s ease 0.5s both;
-  }
-  .perf-bar-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-  .perf-bar-bg {
-    background: var(--surface2);
-    border-radius: 6px;
-    height: 8px;
-    overflow: hidden;
-  }
-  .perf-bar-fill {
-    height: 100%;
-    border-radius: 6px;
-    background: linear-gradient(90deg, var(--gold2), var(--gold));
-    transition: width 1s ease 0.8s;
-    width: 0%;
-  }
-
-  .result-btns {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    animation: fadeSlide 0.5s ease 0.55s both;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--gold), var(--gold2));
-    color: #000;
-    border: none;
-    border-radius: 18px;
-    padding: 17px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    box-shadow: 0 8px 30px rgba(245,200,66,0.22);
-    transition: transform 0.15s;
-    width: 100%;
-  }
-  .btn-primary:active { transform: scale(0.97); }
-
-  .btn-sec {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 15px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: transform 0.15s;
-    width: 100%;
-  }
-  .btn-sec:active { transform: scale(0.97); }
-
-  /* Difficulty selector */
-  .diff-select {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    width: 100%;
-  }
-  .diff-opt {
-    flex: 1;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 10px 6px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .diff-opt.selected-easy { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.08); }
-  .diff-opt.selected-medium { border-color: #f39c12; color: #f39c12; background: rgba(243,156,18,0.08); }
-  .diff-opt.selected-hard { border-color: var(--red); color: var(--red); background: rgba(232,52,74,0.08); }
-  .diff-opt:active { transform: scale(0.96); }
+/* Tick pulse on timer */
+.timer-pulse{animation:timerPulse .12s ease;}
+@keyframes timerPulse{0%{transform:scaleX(1);}50%{transform:scaleX(1.004);}100%{transform:scaleX(1);}}
 </style>
 </head>
 <body>
-<div class="phone">
+<div class="phone" id="phone">
 
   <!-- HOME -->
   <div class="screen active" id="home">
-    <div style="padding: 52px 28px 0;">
-      <div class="home-top">
-        <div class="home-logo">CinéQuiz</div>
-        <div class="xp-pill">
-          <div class="xp-val">1 240</div>
-          <div class="xp-label">XP total</div>
-        </div>
-      </div>
-
-      <div class="streak-banner">
-        <div class="streak-fire">🔥</div>
-        <div class="streak-info">
-          <div class="streak-title">Série en cours</div>
-          <div class="streak-sub">Reviens demain pour continuer !</div>
-        </div>
-        <div class="streak-num">7</div>
-      </div>
-
-      <div class="section-label">Difficulté</div>
-      <div class="diff-select">
-        <div class="diff-opt" onclick="selectDiff('easy', this)">😌 Facile</div>
-        <div class="diff-opt selected-medium" onclick="selectDiff('medium', this)">🎯 Moyen</div>
-        <div class="diff-opt" onclick="selectDiff('hard', this)">🔥 Difficile</div>
-      </div>
-
-      <div class="section-label">Modes de jeu</div>
-      <div class="modes-list">
-        <div class="mode-card gold-card" onclick="startGame()">
-          <div class="mode-icon">⚡</div>
-          <div class="mode-info">
-            <div class="mode-name">Mode Rapide</div>
-            <div class="mode-desc">10 questions · Chrono · Multiplicateur</div>
-          </div>
-          <div class="mode-tag tag-gold">x3 MAX</div>
-        </div>
-        <div class="mode-card pink-card" onclick="startGame()">
-          <div class="mode-icon">🎭</div>
-          <div class="mode-info">
-            <div class="mode-name">Qui suis-je ?</div>
-            <div class="mode-desc">Indices progressifs · Acteurs & réals</div>
-          </div>
-          <div class="mode-tag tag-pink">BIENTÔT</div>
-        </div>
+    <div class="home-topbar">
+      <div class="home-logo">CinéQuiz</div>
+      <div class="topbar-right">
+        <div class="icon-btn" id="sound-toggle" onclick="toggleSound()" title="Son">🔊</div>
+        <div class="icon-btn" onclick="goProfile()">👤</div>
       </div>
     </div>
-
-    <div style="padding: 0 28px 36px; margin-top: auto;">
-      <button class="daily-btn" onclick="startGame()">
-        🎯 <span>LANCER UNE PARTIE</span>
-      </button>
+    <div class="xp-widget">
+      <div class="xp-top">
+        <div class="xp-lvname" id="h-lvname">Figurant</div>
+        <div class="xp-next-lbl" id="h-xpnext">0 / 200 XP</div>
+      </div>
+      <div class="xp-bar-bg"><div class="xp-bar-fill" id="h-xpbar" style="width:0%"></div></div>
+      <div class="xp-sub"><span id="h-lvnum">Niveau 1</span><span id="h-nextlv">→ Spectateur</span></div>
     </div>
+    <div class="stats-row">
+      <div class="stat-mini"><div class="stat-mini-val sv-fire" id="h-streak">0</div><div class="stat-mini-lbl">🔥 Série</div></div>
+      <div class="stat-mini"><div class="stat-mini-val sv-gold" id="h-best">0</div><div class="stat-mini-lbl">⭐ Record</div></div>
+      <div class="stat-mini"><div class="stat-mini-val sv-green" id="h-games">0</div><div class="stat-mini-lbl">🎬 Parties</div></div>
+    </div>
+    <div class="section-hd"><span>Badges</span><span id="h-badge-count" style="color:var(--gold)">0 débloqué</span></div>
+    <div class="badges-scroll" id="h-badges"></div>
+    <div class="section-hd" style="margin-bottom:10px;">Mode de jeu</div>
+    <div class="mode-tabs">
+      <div class="mode-tab sel-mode" onclick="selectMode('quiz',this)"><span class="tab-icon">⚡</span>Quiz Cinéma</div>
+      <div class="mode-tab" onclick="selectMode('photo',this)"><span class="tab-icon">🎬</span>Photo Mystère</div>
+    </div>
+    <div class="section-hd" style="margin-bottom:10px;">Difficulté</div>
+    <div class="diff-row">
+      <div class="diff-btn" onclick="selectDiff('easy',this)">😌 Facile</div>
+      <div class="diff-btn sel-medium" onclick="selectDiff('medium',this)">🎯 Moyen</div>
+      <div class="diff-btn" onclick="selectDiff('hard',this)">🔥 Difficile</div>
+    </div>
+    <button class="play-btn" onclick="startGame()">🎬 <span>JOUER</span></button>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="profile">
+    <button class="back-btn" onclick="showScreen('home')">← Retour</button>
+    <div class="profile-hero">
+      <div class="profile-avatar" id="p-avatar">🎭</div>
+      <div class="profile-name" id="p-lvname">Figurant</div>
+      <div class="profile-title" id="p-lvnum">Niveau 1</div>
+    </div>
+    <div class="stats-full-grid">
+      <div class="stat-full-card"><div class="stat-full-val" id="p-xp">0</div><div class="stat-full-lbl">XP Total</div></div>
+      <div class="stat-full-card"><div class="stat-full-val" id="p-games">0</div><div class="stat-full-lbl">Parties jouées</div></div>
+      <div class="stat-full-card"><div class="stat-full-val" id="p-correct">0%</div><div class="stat-full-lbl">Taux de réussite</div></div>
+      <div class="stat-full-card"><div class="stat-full-val" id="p-streak">0</div><div class="stat-full-lbl">Série max 🔥</div></div>
+    </div>
+    <div class="section-hd" style="margin-bottom:12px;">Historique récent</div>
+    <div id="p-history"></div>
   </div>
 
   <!-- LOADING -->
   <div class="screen" id="loading">
-    <div class="loader-clapboard">🎬</div>
-    <div class="loader-text">Chargement des questions</div>
-    <div class="loader-dots">
-      <span></span><span></span><span></span>
-    </div>
+    <div class="loader-film">🎬</div>
+    <div class="loader-text" id="loading-text">Chargement</div>
+    <div class="loader-dots"><span></span><span></span><span></span></div>
+    <div id="loading-steps" style="margin-top:28px;display:flex;flex-direction:column;gap:8px;width:260px;"></div>
   </div>
 
   <!-- GAME -->
   <div class="screen" id="game">
     <div class="game-header">
-      <div class="q-info">
-        <div class="q-counter" id="q-counter">Q 1/10</div>
-        <div class="q-category" id="q-category">Cinéma</div>
+      <div>
+        <div class="q-num-lbl" id="q-num">Q 1/10</div>
+        <div class="q-cat-lbl" id="q-cat">Cinéma</div>
       </div>
-      <div class="mult-badge mult-x3" id="mult-badge">x3</div>
-      <div class="score-display" id="score-display">0 pts</div>
+      <div class="mult-badge mx3" id="mult-badge">x3</div>
+      <div class="score-hd" id="score-hd">0 pts</div>
     </div>
-
     <div class="progress-dots" id="progress-dots"></div>
-
     <div class="timer-wrap">
-      <div class="timer-bar-bg">
-        <div class="timer-bar" id="timer-bar"></div>
-      </div>
-      <div class="timer-numbers">
-        <div class="timer-val" id="timer-val">20s</div>
-        <div class="difficulty-badge diff-medium" id="diff-badge">Moyen</div>
+      <div class="timer-bg"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+      <div class="timer-nums">
+        <div class="t-val" id="t-val">20s</div>
+        <div class="dbadge dmed" id="d-badge">Moyen</div>
       </div>
     </div>
-
-    <div class="question-area">
-      <div class="q-type-label">🎬 Question</div>
-      <div class="question-text" id="question-text">Chargement...</div>
-    </div>
-
+    <div class="q-area" id="q-area"></div>
     <div class="answers-grid" id="answers-grid"></div>
-
     <div class="toast" id="toast">
-      <div class="toast-pts" id="toast-pts">+300</div>
-      <div class="toast-msg" id="toast-msg">Excellent !</div>
-      <div class="toast-answer" id="toast-answer"></div>
+      <div class="toast-pts" id="t-pts">+300</div>
+      <div class="toast-msg" id="t-msg">Excellent !</div>
+      <div class="toast-ans" id="t-ans"></div>
     </div>
+  </div>
+
+  <!-- LEVEL UP -->
+  <div class="screen" id="levelup">
+    <div class="lu-stars">✨⭐✨</div>
+    <div class="lu-title">NIVEAU SUPÉRIEUR !</div>
+    <div class="lu-subtitle" id="lu-sub">Tu passes au niveau 2</div>
+    <div class="lu-badge-big">
+      <div class="lu-badge-icon" id="lu-icon">🎟️</div>
+      <div class="lu-badge-name" id="lu-name">Spectateur</div>
+      <div class="lu-badge-desc" id="lu-desc">Tu prends ta place dans la salle</div>
+    </div>
+    <button class="lu-continue" onclick="proceedAfterLevelUp()">CONTINUER →</button>
+    <div class="confetti-wrap" id="confetti-wrap"></div>
   </div>
 
   <!-- RESULT -->
   <div class="screen" id="result">
-    <div class="result-icon" id="result-icon">🏆</div>
-    <div class="result-title" id="result-title">Bravo !</div>
-    <div class="result-sub" id="result-sub">Tu es un vrai cinéphile !</div>
-    <div class="result-score" id="result-score">0</div>
-    <div class="result-score-label">points</div>
-
-    <div class="result-grid">
-      <div class="r-card">
-        <div class="r-card-val" id="r-correct">0/10</div>
-        <div class="r-card-label">Bonnes rép.</div>
-      </div>
-      <div class="r-card">
-        <div class="r-card-val" id="r-best-mult">x1</div>
-        <div class="r-card-label">Meill. mult.</div>
-      </div>
-      <div class="r-card">
-        <div class="r-card-val" id="r-avg-time">–s</div>
-        <div class="r-card-label">Tps moyen</div>
-      </div>
+    <div class="result-icon" id="r-icon">🏆</div>
+    <div class="result-title" id="r-title">Bravo !</div>
+    <div class="result-sub" id="r-sub">Tu es un vrai cinéphile</div>
+    <div class="result-score-big" id="r-score">0</div>
+    <div class="result-score-lbl">points</div>
+    <div class="xp-gained-bar">
+      <div class="xp-gained-top"><span class="xp-gained-lbl">XP gagnée</span><span class="xp-gained-val" id="r-xp">+0 XP</span></div>
+      <div class="xp-prog-bg"><div class="xp-prog-fill" id="r-xp-fill"></div></div>
     </div>
-
-    <div class="perf-bar-wrap">
-      <div class="perf-bar-label">
-        <span>Performance</span>
-        <span id="perf-pct">0%</span>
-      </div>
-      <div class="perf-bar-bg">
-        <div class="perf-bar-fill" id="perf-bar"></div>
-      </div>
+    <div class="result-stats">
+      <div class="r-stat"><div class="r-stat-val" id="r-correct">0/10</div><div class="r-stat-lbl">Bonnes</div></div>
+      <div class="r-stat"><div class="r-stat-val" id="r-mult">x1</div><div class="r-stat-lbl">Meill. mult.</div></div>
+      <div class="r-stat"><div class="r-stat-val" id="r-avg">–s</div><div class="r-stat-lbl">Tps moyen</div></div>
     </div>
-
     <div class="result-btns">
       <button class="btn-primary" onclick="startGame()">REJOUER</button>
-      <button class="btn-sec" onclick="showScreen('home')">← Accueil</button>
+      <button class="btn-sec" onclick="showScreen('home');refreshHome()">← Accueil</button>
     </div>
   </div>
 
 </div>
 
 <script>
-// ── State ──
-let questions = [];
-let currentQ = 0;
-let score = 0;
-let timerInterval = null;
-let timeLeft = 20;
-let answered = false;
-let correctCount = 0;
-let bestMult = 1;
-let timings = [];
-let dotResults = [];
-let selectedDiff = 'medium';
-let pendingMode = null;
+// ══════════════════════════════════════
+// WEB AUDIO ENGINE
+// ══════════════════════════════════════
+let audioCtx = null;
+let soundEnabled = true;
+let lastTickSecond = -1;
 
-const TOTAL = 10;
-const MAX_TIME = 20;
-
-// ── Helpers ──
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function decodeHTML(str) {
-  const el = document.createElement('div');
-  el.innerHTML = str;
-  return el.textContent || el.innerText || '';
-}
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+function getAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
   }
-  return arr;
+  return audioCtx;
 }
 
-// ── Difficulty ──
-function selectDiff(diff, el) {
-  selectedDiff = diff;
-  document.querySelectorAll('.diff-opt').forEach(d => d.className = 'diff-opt');
-  el.classList.add('selected-' + diff);
+function resumeAudio() {
+  const ctx = getAudio();
+  if (ctx && ctx.state === 'suspended') ctx.resume();
 }
 
-// ── API ──
-async function fetchQuestions() {
-  const diffMap = { easy: 'easy', medium: 'medium', hard: 'hard' };
-  const url = `https://opentdb.com/api.php?amount=${TOTAL}&category=11&difficulty=${diffMap[selectedDiff]}&type=multiple`;
-  const res = await fetch(url);
-  const data = await res.json();
-  if (data.response_code !== 0) throw new Error('API error ' + data.response_code);
-  return data.results.map(q => {
-    const answers = shuffle([q.correct_answer, ...q.incorrect_answers]);
-    const correctIdx = answers.indexOf(q.correct_answer);
-    return {
-      text: decodeHTML(q.question),
-      answers: answers.map(a => decodeHTML(a)),
-      correct: correctIdx,
-      difficulty: q.difficulty,
-      category: decodeHTML(q.category)
-    };
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('sound-toggle');
+  btn.textContent = soundEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('sound-off', !soundEnabled);
+  if (soundEnabled) { resumeAudio(); playClick(); }
+}
+
+// — Core synth helper —
+function synth(type, freq, dur, vol=0.35, startTime=null) {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = startTime || ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = type; osc.frequency.setValueAtTime(freq, t);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.start(t); osc.stop(t + dur);
+}
+
+function synthRamp(type, freqStart, freqEnd, dur, vol=0.3, startTime=null) {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = startTime || ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = type;
+  osc.frequency.setValueAtTime(freqStart, t);
+  osc.frequency.linearRampToValueAtTime(freqEnd, t + dur);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.start(t); osc.stop(t + dur);
+}
+
+// — Sound library —
+function playClick() {
+  synth('sine', 880, 0.08, 0.2);
+}
+
+function playTick() {
+  synth('square', 1200, 0.04, 0.06);
+}
+
+function playUrgentTick() {
+  synth('square', 800, 0.06, 0.12);
+  synth('square', 1600, 0.05, 0.04, ctx => ctx.currentTime + 0.03);
+}
+
+function playCorrect(multiplier) {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = ctx.currentTime;
+  if (multiplier === 3) {
+    // Fast triple arpeggio — triumphant
+    [523, 659, 784, 1047].forEach((f, i) => synth('triangle', f, 0.18, 0.28, t + i * 0.07));
+    setTimeout(() => synth('sine', 1047, 0.3, 0.2), 300);
+  } else if (multiplier === 2) {
+    // Double chime
+    synth('triangle', 523, 0.2, 0.25, t);
+    synth('triangle', 784, 0.2, 0.22, t + 0.1);
+  } else {
+    // Single soft chime
+    synth('triangle', 659, 0.22, 0.22, t);
+    synth('sine', 880, 0.15, 0.18, t + 0.08);
+  }
+}
+
+function playWrong() {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = ctx.currentTime;
+  synthRamp('sawtooth', 280, 140, 0.35, 0.22, t);
+  synth('square', 160, 0.2, 0.1, t + 0.1);
+}
+
+function playTimeout() {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = ctx.currentTime;
+  synthRamp('sawtooth', 320, 160, 0.4, 0.18, t);
+}
+
+function playLevelUp() {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = ctx.currentTime;
+  // Fanfare: ascending chord then big chord
+  const melody = [523, 659, 784, 1047, 784, 1047, 1319];
+  melody.forEach((f, i) => synth('triangle', f, 0.22, 0.3, t + i * 0.1));
+  // Low rumble under it
+  synth('sine', 130, 0.8, 0.35, t + 0.5);
+  synth('sine', 196, 0.6, 0.3, t + 0.55);
+}
+
+function playReveal() {
+  // Soft whoosh when photo un-blurs
+  synthRamp('sine', 400, 800, 0.3, 0.15);
+}
+
+function playResultFanfare(score, total) {
+  const ctx = getAudio();
+  if (!ctx || !soundEnabled) return;
+  resumeAudio();
+  const t = ctx.currentTime;
+  const pct = score / (total * 100);
+  if (pct >= 0.9) {
+    // Perfect / near-perfect: triumphant
+    [392, 523, 659, 784, 1047].forEach((f,i) => synth('triangle', f, 0.3, 0.28, t + i*0.08));
+    setTimeout(() => { [523,659,784,1047].forEach((f,i) => synth('sine', f, 0.4, 0.22, getAudio().currentTime + i*0.06)); }, 600);
+  } else if (pct >= 0.5) {
+    // Good: cheerful
+    [523, 659, 784].forEach((f,i) => synth('triangle', f, 0.25, 0.24, t + i*0.1));
+  } else {
+    // Meh: gentle descending
+    synthRamp('sine', 523, 392, 0.4, 0.18, t);
+  }
+}
+
+function playCountdownBeep(secondsLeft) {
+  if (secondsLeft !== lastTickSecond) {
+    lastTickSecond = secondsLeft;
+    if (secondsLeft <= 5 && secondsLeft > 0) {
+      playUrgentTick();
+    } else if (secondsLeft <= 10) {
+      playTick();
+    }
+  }
+}
+
+// ══════════════════════════════════════
+// PROGRESSION
+// ══════════════════════════════════════
+const LEVELS=[
+  {name:'Figurant',    xp:0,    icon:'🎭', desc:'Bienvenue sur le plateau !'},
+  {name:'Spectateur',  xp:200,  icon:'🎟️', desc:'Tu prends ta place dans la salle'},
+  {name:'Cinéphile',   xp:600,  icon:'🎬', desc:'Tu commences à maîtriser le 7ème art'},
+  {name:'Critique',    xp:1400, icon:'⭐', desc:'Ton avis compte dans l\'industrie'},
+  {name:'Réalisateur', xp:3000, icon:'🎥', desc:'Tu vois les films comme un pro'},
+  {name:'Légende',     xp:6000, icon:'🏆', desc:'Une icône vivante du cinéma'},
+];
+const BADGES=[
+  {id:'first_game', icon:'🎬', name:'Premier tour', cond:s=>s.totalGames>=1},
+  {id:'streak3',    icon:'🔥', name:'En feu',        cond:s=>s.currentStreak>=3},
+  {id:'streak7',    icon:'🌟', name:'Hebdo',          cond:s=>s.currentStreak>=7},
+  {id:'perfect',    icon:'💎', name:'Parfait',        cond:s=>s.perfectGames>=1},
+  {id:'speed',      icon:'⚡', name:'Éclair',         cond:s=>s.fastAnswers>=5},
+  {id:'score500',   icon:'🥇', name:'Champion',       cond:s=>s.bestScore>=500},
+  {id:'score900',   icon:'👑', name:'Maître',         cond:s=>s.bestScore>=900},
+  {id:'photo5',     icon:'📸', name:'Photographe',    cond:s=>s.photoCorrect>=5},
+  {id:'games10',    icon:'🎭', name:'Assidu',         cond:s=>s.totalGames>=10},
+];
+const DEF={xp:0,totalGames:0,totalCorrect:0,totalQuestions:0,bestScore:0,currentStreak:0,maxStreak:0,lastPlayedDate:null,perfectGames:0,fastAnswers:0,photoCorrect:0,unlockedBadges:[],history:[]};
+function loadStats(){try{const r=localStorage.getItem('cq5');return r?{...DEF,...JSON.parse(r)}:{...DEF};}catch{return{...DEF};}}
+function saveStats(s){try{localStorage.setItem('cq5',JSON.stringify(s));}catch{}}
+function getLvl(xp){let l=0;for(let i=LEVELS.length-1;i>=0;i--){if(xp>=LEVELS[i].xp){l=i;break;}}return l;}
+function getXPProg(xp){const l=getLvl(xp);const cur=LEVELS[l].xp;const nxt=l<LEVELS.length-1?LEVELS[l+1].xp:cur+1000;return{l,cur,nxt,pct:Math.min(100,((xp-cur)/(nxt-cur))*100)};}
+function checkStreak(s){const today=new Date().toDateString(),last=s.lastPlayedDate;if(!last)s.currentStreak=1;else if(last===today){}else{const diff=(new Date(today)-new Date(last))/86400000;s.currentStreak=diff===1?(s.currentStreak||0)+1:1;}s.lastPlayedDate=today;if(s.currentStreak>s.maxStreak)s.maxStreak=s.currentStreak;return s;}
+function checkBadges(s){const nb=[];BADGES.forEach(b=>{if(!s.unlockedBadges.includes(b.id)&&b.cond(s)){s.unlockedBadges.push(b.id);nb.push(b);}});return{s,nb};}
+
+// ══════════════════════════════════════
+// TMDB
+// ══════════════════════════════════════
+const TMDB_KEY='2dca580c2a14b55200e784d157207b4d';
+const TMDB_IMG='https://image.tmdb.org/t/p/w500';
+const MOVIE_IDS=[550,278,238,424,19404,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,438631,11,1891,1892,11138,9806,10681,585,10193,862,12,245891,372058,244786,503919,398818,724089,808,14836,218,629,641,857,769,280,2062,77338,197,578,324857,299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,82702,254128,293660,260513,321612,313369];
+
+async function fetchPhotoQuestions(count=5){
+  const pool=[...MOVIE_IDS].sort(()=>Math.random()-0.5).slice(0,count+12);
+  const results=[];
+  for(const id of pool){
+    if(results.length>=count)break;
+    try{const r=await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=fr-FR`);const d=await r.json();if(d.poster_path&&d.title){results.push({id:d.id,title:d.title,poster:TMDB_IMG+d.poster_path,year:d.release_date?d.release_date.slice(0,4):'',genre:d.genres&&d.genres.length?d.genres[0].name:'Film'});}}catch(e){}
+  }
+  return results;
+}
+async function buildPhotoQs(movies){
+  return movies.map((m,i)=>{
+    const others=movies.filter((_,j)=>j!==i);
+    const wrongs=others.sort(()=>Math.random()-0.5).slice(0,3).map(o=>o.title);
+    const answers=shuffle([m.title,...wrongs]);
+    return{type:'photo',movieTitle:m.title,poster:m.poster,year:m.year,genre:m.genre,answers,correct:answers.indexOf(m.title),difficulty:selectedDiff,category:'Photo Mystère'};
   });
 }
+async function fetchTriviaQs(count=10){
+  const dm={easy:'easy',medium:'medium',hard:'hard'};
+  const r=await fetch(`https://opentdb.com/api.php?amount=${count}&category=11&difficulty=${dm[selectedDiff]}&type=multiple`);
+  const d=await r.json();
+  if(d.response_code!==0)throw new Error('API');
+  const raw=d.results.map(q=>({
+    text:decodeHTML(q.question),
+    correct:decodeHTML(q.correct_answer),
+    wrong:q.incorrect_answers.map(a=>decodeHTML(a)),
+    difficulty:q.difficulty,
+    category:decodeHTML(q.category)
+  }));
+  setStep(0,'done'); setStep(1,'active');
+  setLoadingText('Traduction en français…');
+  const translated=await translateQuestions(raw);
+  setStep(1,'done'); setStep(2,'active');
+  setLoadingText('Préparation du quiz…');
+  return translated;
+}
 
-// ── Game flow ──
-async function startGame() {
-  score = 0; currentQ = 0; correctCount = 0;
-  bestMult = 1; timings = []; dotResults = [];
-  showScreen('loading');
+async function translateQuestions(raw){
+  // Build compact JSON payload to translate in one API call
+  const payload=raw.map((q,i)=>({
+    id:i,
+    q:q.text,
+    a:[q.correct,...q.wrong]
+  }));
+
+  const prompt=`Tu es un traducteur expert. Traduis ces questions de quiz cinéma de l'anglais vers le français.
+Règles strictes :
+- Traduis naturellement, pas mot à mot
+- Garde les noms propres (acteurs, réalisateurs, titres de films) en version française si elle existe, sinon garde l'original
+- Pour les titres de films : utilise le titre de sortie français officiel si tu le connais
+- Réponds UNIQUEMENT avec un JSON valide, sans aucun texte avant ou après, sans balises markdown
+
+Format de réponse attendu (tableau JSON) :
+[{"id":0,"q":"Question traduite","a":["Réponse 1","Réponse 2","Réponse 3","Réponse 4"]},...]
+
+Questions à traduire :
+${JSON.stringify(payload)}`;
+
   try {
-    questions = await fetchQuestions();
-    showScreen('game');
-    loadQuestion();
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content.map(c=>c.text||'').join('').trim();
+    const clean=text.replace(/```json|```/g,'').trim();
+    const translated=JSON.parse(clean);
+
+    return translated.map(t=>{
+      const orig=raw[t.id];
+      // t.a[0] is the correct answer (we sent it first), others are wrong
+      const correctFr=t.a[0];
+      const wrongFr=t.a.slice(1);
+      const answers=shuffle([correctFr,...wrongFr]);
+      return{
+        type:'trivia',
+        text:t.q,
+        answers,
+        correct:answers.indexOf(correctFr),
+        difficulty:orig.difficulty,
+        category:translateCategory(orig.category)
+      };
+    });
   } catch(e) {
-    showError();
+    // Fallback: return english questions if translation fails
+    console.warn('Translation failed, using English', e);
+    return raw.map(q=>{
+      const ans=shuffle([q.correct,...q.wrong]);
+      return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:q.category};
+    });
   }
 }
 
-function showError() {
-  document.getElementById('loading').innerHTML = `
-    <div class="error-box">
-      <div class="error-icon">📡</div>
-      <div class="error-title">Connexion impossible</div>
-      <div class="error-sub">Impossible de charger les questions.<br>Vérifie ta connexion et réessaie.</div>
-      <button class="retry-btn" onclick="startGame()">RÉESSAYER</button>
-    </div>
-    <button class="btn-sec" style="margin-top:16px; width:280px;" onclick="showScreen('home')">← Retour</button>
-  `;
+function translateCategory(cat){
+  const map={
+    'Entertainment: Film':'Cinéma',
+    'Entertainment: Television':'Télévision',
+    'Entertainment: Music':'Musique',
+    'Entertainment: Video Games':'Jeux vidéo',
+    'General Knowledge':'Culture générale',
+    'Science & Nature':'Sciences',
+    'History':'Histoire',
+    'Geography':'Géographie',
+  };
+  return map[cat]||cat;
 }
 
-function buildDots() {
-  const c = document.getElementById('progress-dots');
-  c.innerHTML = '';
-  for (let i = 0; i < TOTAL; i++) {
-    const d = document.createElement('div');
-    if (i < currentQ) d.className = 'dot ' + (dotResults[i] ? 'correct' : 'wrong');
-    else if (i === currentQ) d.className = 'dot current';
-    else d.className = 'dot';
-    c.appendChild(d);
+function setLoadingText(text){
+  const el=document.getElementById('loading-text');
+  if(el)el.textContent=text;
+}
+
+function initLoadingSteps(steps){
+  const c=document.getElementById('loading-steps');
+  if(!c)return;
+  c.innerHTML=steps.map((s,i)=>`
+    <div class="load-step" id="lstep-${i}">
+      <span class="load-step-icon">${s.icon}</span>
+      <span>${s.label}</span>
+    </div>`).join('');
+}
+
+function setStep(idx, state){
+  // state: 'active' | 'done'
+  const el=document.getElementById('lstep-'+idx);
+  if(!el)return;
+  el.className='load-step '+state;
+  if(state==='done'){
+    el.querySelector('.load-step-icon').textContent='✅';
   }
 }
 
-function loadQuestion() {
-  answered = false;
-  clearInterval(timerInterval);
-  hideFeedback();
+// ══════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function decodeHTML(s){const el=document.createElement('div');el.innerHTML=s;return el.textContent||el.innerText||'';}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-  const q = questions[currentQ];
-  document.getElementById('q-counter').textContent = `Q ${currentQ + 1}/${TOTAL}`;
-  document.getElementById('q-category').textContent = q.category;
-  document.getElementById('score-display').textContent = score + ' pts';
+function refreshHome(){
+  const s=loadStats();
+  const{l,nxt,pct}=getXPProg(s.xp);
+  const lv=LEVELS[l],nlv=LEVELS[Math.min(l+1,LEVELS.length-1)];
+  document.getElementById('h-lvname').textContent=lv.name;
+  document.getElementById('h-xpnext').textContent=s.xp+' / '+nxt+' XP';
+  document.getElementById('h-xpbar').style.width=pct+'%';
+  document.getElementById('h-lvnum').textContent='Niveau '+(l+1);
+  document.getElementById('h-nextlv').textContent=l<LEVELS.length-1?'→ '+nlv.name:'★ Max';
+  document.getElementById('h-streak').textContent=s.currentStreak;
+  document.getElementById('h-best').textContent=s.bestScore;
+  document.getElementById('h-games').textContent=s.totalGames;
+  const ul=s.unlockedBadges.length;
+  document.getElementById('h-badge-count').textContent=ul+' débloqué'+(ul>1?'s':'');
+  const sc=document.getElementById('h-badges');sc.innerHTML='';
+  BADGES.forEach(b=>{const ok=s.unlockedBadges.includes(b.id);sc.innerHTML+=`<div class="badge-chip ${ok?'unlocked':'locked'}"><div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div></div>`;});
+}
+function goProfile(){refreshProfile();showScreen('profile');}
+function refreshProfile(){
+  const s=loadStats();const{l}=getXPProg(s.xp);const lv=LEVELS[l];
+  const pct=s.totalQuestions>0?Math.round((s.totalCorrect/s.totalQuestions)*100):0;
+  document.getElementById('p-avatar').textContent=lv.icon;
+  document.getElementById('p-lvname').textContent=lv.name;
+  document.getElementById('p-lvnum').textContent='Niveau '+(l+1);
+  document.getElementById('p-xp').textContent=s.xp;
+  document.getElementById('p-games').textContent=s.totalGames;
+  document.getElementById('p-correct').textContent=pct+'%';
+  document.getElementById('p-streak').textContent=s.maxStreak;
+  const hist=document.getElementById('p-history');hist.innerHTML='';
+  const rec=[...(s.history||[])].reverse().slice(0,5);
+  if(!rec.length){hist.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">Aucune partie pour l\'instant</div>';}
+  else{rec.forEach(h=>{const icons=['😅','🎬','⭐','🏆','🎭'];const idx=Math.min(Math.floor((h.correct/h.total)*4),4);const mi=h.mode==='photo'?'📸':'⚡';hist.innerHTML+=`<div class="history-item"><div class="hist-icon">${icons[idx]}</div><div class="hist-info"><div class="hist-score">${h.score} pts</div><div class="hist-detail">${mi} ${h.correct}/${h.total} · ${h.difficulty} · +${h.xp} XP</div></div><div class="hist-date">${h.date}</div></div>`;});}
+}
 
-  const diffLabels = { easy: '😌 Facile', medium: '🎯 Moyen', hard: '🔥 Difficile' };
-  const diffClasses = { easy: 'diff-easy', medium: 'diff-medium', hard: 'diff-hard' };
-  const db = document.getElementById('diff-badge');
-  db.textContent = diffLabels[q.difficulty] || '🎯 Moyen';
-  db.className = 'difficulty-badge ' + (diffClasses[q.difficulty] || 'diff-medium');
+// ══════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════
+let questions=[],currentQ=0,score=0,timerInt=null,timeLeft=20,answered=false;
+let correctCount=0,bestMult=1,timings=[],dotResults=[],gameXP=0;
+let fastAnswerCount=0,photoCorrectCount=0,postLevelUpFn=null;
+let selectedDiff='medium',selectedMode='quiz';
+let revealTimer=null,revealStage=0;
+const TOTAL=10,MAX_TIME=20;
 
+function selectDiff(d,el){selectedDiff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.className='diff-btn');el.classList.add('sel-'+d);playClick();}
+function selectMode(m,el){selectedMode=m;document.querySelectorAll('.mode-tab').forEach(b=>b.className='mode-tab');el.classList.add('sel-mode');playClick();}
+
+async function startGame(){
+  resumeAudio();
+  score=0;currentQ=0;correctCount=0;bestMult=1;timings=[];dotResults=[];gameXP=0;fastAnswerCount=0;photoCorrectCount=0;lastTickSecond=-1;
+  showScreen('loading');
+  if(selectedMode==='photo'){
+    setLoadingText('Chargement des affiches…');
+    initLoadingSteps([
+      {icon:'🖼️', label:'Récupération des affiches TMDB'},
+      {icon:'🎬', label:'Préparation du quiz'},
+    ]);
+  } else {
+    setLoadingText('Chargement en cours…');
+    initLoadingSteps([
+      {icon:'🌐', label:'Récupération des questions'},
+      {icon:'🇫🇷', label:'Traduction en français'},
+      {icon:'🎬', label:'Préparation du quiz'},
+    ]);
+  }
+  try{
+    if(selectedMode==='photo'){
+      setStep(0,'active');
+      const movies=await fetchPhotoQuestions(TOTAL);
+      if(movies.length<4)throw new Error('Not enough');
+      setStep(0,'done');setStep(1,'active');
+      questions=await buildPhotoQs(movies);
+      setStep(1,'done');
+    }else{
+      setStep(0,'active');
+      questions=await fetchTriviaQs(TOTAL); // internally calls setStep(1) and setStep(2)
+      setStep(2,'done');
+    }
+    showScreen('game');
+    loadQ();
+  }catch(e){
+    document.getElementById('loading').innerHTML=`
+      <div style="background:var(--surface);border:1px solid rgba(232,52,74,.3);border-radius:20px;padding:28px;text-align:center;max-width:290px">
+        <div style="font-size:44px;margin-bottom:12px">📡</div>
+        <div style="font-weight:600;margin-bottom:8px">Connexion impossible</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5">Impossible de charger le contenu.<br>Vérifie ta connexion et réessaie.</div>
+        <button onclick="startGame()" style="background:var(--gold);color:#000;border:none;border-radius:14px;padding:12px 28px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;cursor:pointer">RÉESSAYER</button>
+      </div>
+      <button onclick="showScreen('home')" style="margin-top:14px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:12px 28px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">← Retour</button>`;
+  }
+}
+
+function buildDots(){
+  const c=document.getElementById('progress-dots');c.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='dot'+(i<currentQ?(dotResults[i]?' dcorrect':' dwrong'):i===currentQ?' dcurrent':'');c.appendChild(d);}
+}
+
+function loadQ(){
+  answered=false;lastTickSecond=-1;
+  clearInterval(timerInt);clearInterval(revealTimer);
+  hideToast();
+  const q=questions[currentQ];
+  document.getElementById('q-num').textContent=`Q ${currentQ+1}/${TOTAL}`;
+  document.getElementById('q-cat').textContent=q.category;
+  document.getElementById('score-hd').textContent=score+' pts';
+  const dMap={easy:'😌 Facile',medium:'🎯 Moyen',hard:'🔥 Difficile'};
+  const dCls={easy:'deasy',medium:'dmed',hard:'dhard'};
+  const db=document.getElementById('d-badge');
+  db.textContent=dMap[q.difficulty]||'🎯 Moyen';
+  db.className='dbadge '+(dCls[q.difficulty]||'dmed');
   buildDots();
-
-  document.getElementById('question-text').textContent = q.text;
-  document.getElementById('question-text').style.animation = 'none';
-  requestAnimationFrame(() => document.getElementById('question-text').style.animation = '');
-
-  const grid = document.getElementById('answers-grid');
-  grid.innerHTML = '';
-  q.answers.forEach((a, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'answer-btn';
-    btn.textContent = a;
-    btn.style.animationDelay = (i * 0.06) + 's';
-    btn.onclick = () => handleAnswer(i);
+  const qa=document.getElementById('q-area');
+  if(q.type==='photo'){
+    revealStage=0;
+    qa.innerHTML=`
+      <div class="q-type-lbl">📸 Photo Mystère</div>
+      <div class="photo-mystery-wrap" id="photo-wrap" style="height:195px">
+        <img class="mystery-img" id="mystery-img" src="${q.poster}" alt="Film mystère" style="filter:blur(22px) brightness(0.7);transition:filter 1.8s ease;" crossorigin="anonymous">
+        <div class="mystery-overlay"></div>
+        <div class="reveal-hint">Quel est ce film ?</div>
+        <div class="reveal-bar">
+          <div class="reveal-pip" id="pip0"></div>
+          <div class="reveal-pip" id="pip1"></div>
+          <div class="reveal-pip" id="pip2"></div>
+          <div class="reveal-pip" id="pip3"></div>
+        </div>
+      </div>
+      <div class="hint-text">🎞️ ${q.year} · ${q.genre}</div>`;
+    revealTimer=setInterval(()=>{
+      if(answered)return;
+      revealStage=Math.min(revealStage+1,3);
+      const blurs=[22,14,7,0],brights=[0.7,0.8,0.9,1];
+      const img=document.getElementById('mystery-img');
+      if(img){img.style.filter=`blur(${blurs[revealStage]}px) brightness(${brights[revealStage]})`;}
+      const pip=document.getElementById('pip'+revealStage);
+      if(pip){pip.classList.add('done');}
+      playReveal();
+    },5000);
+  }else{
+    qa.innerHTML=`<div class="q-type-lbl">🎬 Question</div><div class="q-text">${q.text}</div>`;
+  }
+  const grid=document.getElementById('answers-grid');grid.innerHTML='';
+  q.answers.forEach((a,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn';btn.textContent=a;
+    btn.style.animationDelay=(i*0.06)+'s';
+    btn.onclick=()=>handleAnswer(i);
     grid.appendChild(btn);
   });
-
   startTimer();
 }
 
-function startTimer() {
-  timeLeft = MAX_TIME;
-  updateTimerUI();
-  timerInterval = setInterval(() => {
-    timeLeft = Math.max(0, timeLeft - 0.1);
+function startTimer(){
+  timeLeft=MAX_TIME;updateTimerUI();
+  timerInt=setInterval(()=>{
+    timeLeft=Math.max(0,timeLeft-0.1);
     updateTimerUI();
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      if (!answered) handleAnswer(-1);
-    }
-  }, 100);
+    playCountdownBeep(Math.ceil(timeLeft));
+    if(timeLeft<=0){clearInterval(timerInt);if(!answered)handleAnswer(-1);}
+  },100);
 }
 
-function updateTimerUI() {
-  const pct = (timeLeft / MAX_TIME) * 100;
-  const bar = document.getElementById('timer-bar');
-  bar.style.width = pct + '%';
-  bar.className = 'timer-bar' + (pct < 30 ? ' warn' : '');
-  document.getElementById('timer-val').textContent = Math.ceil(timeLeft) + 's';
-
-  const elapsed = MAX_TIME - timeLeft;
-  const mult = elapsed < 6 ? 3 : elapsed < 13 ? 2 : 1;
-  const mb = document.getElementById('mult-badge');
-  mb.textContent = 'x' + mult;
-  mb.className = 'mult-badge mult-x' + mult;
+function updateTimerUI(){
+  const pct=(timeLeft/MAX_TIME)*100;
+  const f=document.getElementById('timer-fill');
+  f.style.width=pct+'%';
+  f.className='timer-fill'+(pct<30?' twarn':'');
+  document.getElementById('t-val').textContent=Math.ceil(timeLeft)+'s';
+  const elapsed=MAX_TIME-timeLeft;
+  const m=elapsed<6?3:elapsed<13?2:1;
+  const mb=document.getElementById('mult-badge');
+  mb.textContent='x'+m;mb.className='mult-badge mx'+m;
 }
 
-function handleAnswer(idx) {
-  if (answered) return;
-  answered = true;
-  clearInterval(timerInterval);
-
-  const q = questions[currentQ];
-  const elapsed = MAX_TIME - timeLeft;
-  const mult = elapsed < 6 ? 3 : elapsed < 13 ? 2 : 1;
+function handleAnswer(idx){
+  if(answered)return;
+  answered=true;
+  clearInterval(timerInt);clearInterval(revealTimer);
+  const q=questions[currentQ];
+  const elapsed=MAX_TIME-timeLeft;
+  const m=elapsed<6?3:elapsed<13?2:1;
   timings.push(Math.round(elapsed));
+  const btns=document.querySelectorAll('.ans-btn');
+  btns.forEach(b=>b.disabled=true);
+  const ok=idx===q.correct;
+  dotResults[currentQ]=ok;
 
-  const btns = document.querySelectorAll('.answer-btn');
-  btns.forEach(b => b.disabled = true);
+  if(q.type==='photo'){
+    const img=document.getElementById('mystery-img');
+    if(img)img.style.filter='blur(0px) brightness(1)';
+    document.querySelectorAll('.reveal-pip').forEach(p=>p.classList.add('done'));
+  }
 
-  const isCorrect = idx === q.correct;
-  dotResults[currentQ] = isCorrect;
-
-  if (isCorrect) {
+  if(ok){
     btns[idx].classList.add('correct');
-    const pts = 100 * mult;
-    score += pts;
-    correctCount++;
-    if (mult > bestMult) bestMult = mult;
-    showFeedback(true, pts, mult, null);
-  } else {
-    if (idx >= 0) btns[idx].classList.add('wrong');
+    const pts=100*m;score+=pts;correctCount++;
+    if(m>bestMult)bestMult=m;
+    if(elapsed<5)fastAnswerCount++;
+    if(q.type==='photo')photoCorrectCount++;
+    playCorrect(m);
+    showToast(true,pts,m,null);
+  }else{
+    if(idx>=0)btns[idx].classList.add('wrong');
     btns[q.correct].classList.add('correct');
-    showFeedback(false, 0, mult, q.answers[q.correct]);
+    if(idx===-1)playTimeout();else playWrong();
+    showToast(false,0,m,q.answers[q.correct]);
   }
-
-  const sd = document.getElementById('score-display');
-  sd.textContent = score + ' pts';
-  if (isCorrect) { sd.classList.remove('bump'); void sd.offsetWidth; sd.classList.add('bump'); }
-
-  setTimeout(() => {
-    currentQ++;
-    buildDots();
-    if (currentQ < TOTAL) loadQuestion();
-    else showResult();
-  }, 1900);
+  document.getElementById('score-hd').textContent=score+' pts';
+  setTimeout(()=>{currentQ++;buildDots();if(currentQ<TOTAL)loadQ();else endGame();},2000);
 }
 
-function showFeedback(correct, pts, mult, correctAnswer) {
-  const toast = document.getElementById('toast');
-  const toastPts = document.getElementById('toast-pts');
-  const toastMsg = document.getElementById('toast-msg');
-  const toastAns = document.getElementById('toast-answer');
+function showToast(ok,pts,m,ans){
+  const t=document.getElementById('toast');
+  t.className='toast '+(ok?'tc':'tw');
+  const tp=document.getElementById('t-pts');
+  if(ok){tp.style.color='var(--green)';tp.textContent='+'+pts+' pts';document.getElementById('t-msg').textContent=m===3?'⚡ Ultra rapide ! x3':m===2?'👍 Bien joué ! x2':'✓ Correct';document.getElementById('t-ans').textContent='';}
+  else{tp.style.color='var(--red)';tp.textContent=idx===-1?'⏱ Temps écoulé !':'✗ Raté';document.getElementById('t-msg').textContent=ans?'Bonne réponse :':'Essaie plus vite !';document.getElementById('t-ans').textContent=ans||'';}
+  t.classList.add('show');
+}
+function hideToast(){document.getElementById('toast').classList.remove('show');}
 
-  toast.className = 'toast ' + (correct ? 'correct-t' : 'wrong-t');
-
-  if (correct) {
-    toastPts.style.color = 'var(--green)';
-    toastPts.textContent = '+' + pts + ' pts';
-    toastMsg.textContent = mult === 3 ? '⚡ Ultra rapide ! x3' : mult === 2 ? '👍 Bien joué ! x2' : '✓ Correct';
-    toastAns.textContent = '';
-  } else {
-    toastPts.style.color = 'var(--red)';
-    toastPts.textContent = pts === 0 && correctAnswer === null ? '⏱ Temps écoulé !' : '✗ Raté';
-    toastMsg.textContent = 'Bonne réponse :';
-    toastAns.textContent = correctAnswer || '';
+// ══════════════════════════════════════
+// END GAME
+// ══════════════════════════════════════
+function endGame(){
+  let s=loadStats();
+  const oldLvl=getLvl(s.xp);
+  s=checkStreak(s);
+  const base=Math.floor(score/10);
+  const dm={easy:1,medium:1.5,hard:2}[selectedDiff]||1;
+  const perf=correctCount===TOTAL?50:0;
+  const photoBonus=selectedMode==='photo'?30:0;
+  const xpGained=Math.floor(base*dm+perf+photoBonus);
+  gameXP=xpGained;
+  s.xp+=xpGained;s.totalGames++;s.totalCorrect+=correctCount;s.totalQuestions+=TOTAL;
+  if(score>s.bestScore)s.bestScore=score;
+  if(correctCount===TOTAL)s.perfectGames++;
+  s.fastAnswers=(s.fastAnswers||0)+fastAnswerCount;
+  s.photoCorrect=(s.photoCorrect||0)+photoCorrectCount;
+  const today=new Date();
+  s.history=s.history||[];
+  s.history.push({score,correct:correctCount,total:TOTAL,difficulty:selectedDiff,mode:selectedMode,xp:xpGained,date:today.getDate()+'/'+(today.getMonth()+1)});
+  if(s.history.length>20)s.history=s.history.slice(-20);
+  const{s:us}=checkBadges(s);
+  const newLvl=getLvl(us.xp);
+  saveStats(us);
+  if(newLvl>oldLvl){
+    const lv=LEVELS[newLvl];
+    document.getElementById('lu-sub').textContent='Tu passes au niveau '+(newLvl+1);
+    document.getElementById('lu-icon').textContent=lv.icon;
+    document.getElementById('lu-name').textContent=lv.name;
+    document.getElementById('lu-desc').textContent=lv.desc;
+    postLevelUpFn=()=>showResultScreen(us,xpGained);
+    showScreen('levelup');
+    spawnConfetti();
+    setTimeout(()=>playLevelUp(),300);
+  }else{
+    playResultFanfare(score,TOTAL);
+    showResultScreen(us,xpGained);
   }
-
-  toast.classList.add('show');
 }
+function proceedAfterLevelUp(){if(postLevelUpFn){const fn=postLevelUpFn;postLevelUpFn=null;playResultFanfare(score,TOTAL);fn();}}
 
-function hideFeedback() {
-  document.getElementById('toast').classList.remove('show');
-}
-
-function showResult() {
-  const pct = Math.round((correctCount / TOTAL) * 100);
-  const avgTime = timings.length ? Math.round(timings.reduce((a,b) => a+b, 0) / timings.length) : 0;
-
-  const levels = [
-    { min: 0,  icon: '😅', title: 'Débutant',   sub: 'Continue de t\'entraîner !' },
-    { min: 30, icon: '🎬', title: 'Spectateur',  sub: 'Tu connais quelques classiques' },
-    { min: 50, icon: '⭐', title: 'Cinéphile',   sub: 'Pas mal du tout !' },
-    { min: 70, icon: '🏆', title: 'Critique',    sub: 'Tu maîtrises le 7ème art !' },
-    { min: 90, icon: '🎭', title: 'Légende',     sub: 'Perfection absolue !' },
-  ];
-  const level = [...levels].reverse().find(l => pct >= l.min) || levels[0];
-
-  document.getElementById('result-icon').textContent = level.icon;
-  document.getElementById('result-title').textContent = level.title;
-  document.getElementById('result-sub').textContent = level.sub;
-  document.getElementById('result-score').textContent = score;
-  document.getElementById('r-correct').textContent = correctCount + '/' + TOTAL;
-  document.getElementById('r-best-mult').textContent = 'x' + bestMult;
-  document.getElementById('r-avg-time').textContent = avgTime + 's';
-  document.getElementById('perf-pct').textContent = pct + '%';
-
+function showResultScreen(s,xpGained){
+  const pct=Math.round((correctCount/TOTAL)*100);
+  const avg=timings.length?Math.round(timings.reduce((a,b)=>a+b,0)/timings.length):0;
+  const lls=[{min:0,icon:'😅',title:'Débutant',sub:'Continue de t\'entraîner !'},{min:30,icon:'🎬',title:'Spectateur',sub:'Tu connais quelques classiques'},{min:50,icon:'⭐',title:'Cinéphile',sub:'Pas mal du tout !'},{min:70,icon:'🏆',title:'Critique',sub:'Tu maîtrises le 7ème art !'},{min:90,icon:'🎭',title:'Légende',sub:'Perfection absolue !'}];
+  const ld=[...lls].reverse().find(l=>pct>=l.min)||lls[0];
+  document.getElementById('r-icon').textContent=ld.icon;
+  document.getElementById('r-title').textContent=ld.title;
+  document.getElementById('r-sub').textContent=ld.sub;
+  document.getElementById('r-score').textContent=score;
+  document.getElementById('r-xp').textContent='+'+xpGained+' XP';
+  document.getElementById('r-correct').textContent=correctCount+'/'+TOTAL;
+  document.getElementById('r-mult').textContent='x'+bestMult;
+  document.getElementById('r-avg').textContent=avg+'s';
+  const{pct:xpPct}=getXPProg(s.xp);
+  setTimeout(()=>{document.getElementById('r-xp-fill').style.width=xpPct+'%';},100);
   showScreen('result');
-  setTimeout(() => {
-    document.getElementById('perf-bar').style.width = pct + '%';
-  }, 100);
 }
+
+function spawnConfetti(){
+  const w=document.getElementById('confetti-wrap');w.innerHTML='';
+  const cols=['#f5c842','#e8344a','#2ecc71','#4a9eff','#ff6b9d','#fff'];
+  for(let i=0;i<55;i++){const p=document.createElement('div');p.className='cp';p.style.cssText=`left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*cols.length)]};animation-duration:${1.2+Math.random()*1.5}s;animation-delay:${Math.random()*0.5}s;width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;border-radius:${Math.random()>.5?'50%':'2px'};`;w.appendChild(p);}
+}
+
+// Fix toast ref
+let idx = -1;
+
+// Init
+refreshHome();
 </script>
 </body>
 </html>
