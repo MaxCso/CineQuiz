@@ -128,7 +128,8 @@ body{background:#060609;color:var(--text);font-family:'DM Sans',sans-serif;min-h
 @keyframes qSlide{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 /* Photo mystère */
-.photo-mystery-wrap{width:100%;position:relative;border-radius:18px;overflow:hidden;margin-bottom:12px;background:var(--surface2);flex-shrink:0;}
+.photo-mystery-wrap{width:100%;position:relative;border-radius:18px;overflow:hidden;margin-bottom:8px;background:var(--surface2);flex-shrink:0;}
+.photo-mystery-wrap img{width:100%;display:block;aspect-ratio:2/3;object-fit:cover;}
 .mystery-img{width:100%;height:100%;object-fit:cover;display:block;}
 .mystery-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(10,10,15,0.4) 100%);}
 .reveal-bar{position:absolute;bottom:10px;left:12px;right:12px;display:flex;gap:5px;}
@@ -215,6 +216,7 @@ body{background:#060609;color:var(--text);font-family:'DM Sans',sans-serif;min-h
     <div class="home-topbar">
       <div class="home-logo">CinéQuiz</div>
       <div class="topbar-right">
+        <div class="icon-btn" id="music-toggle" onclick="toggleMusic()" title="Musique">🎵</div>
         <div class="icon-btn" id="sound-toggle" onclick="toggleSound()" title="Son">🔊</div>
         <div class="icon-btn" onclick="goProfile()">👤</div>
       </div>
@@ -341,8 +343,57 @@ body{background:#060609;color:var(--text);font-family:'DM Sans',sans-serif;min-h
 
 <script>
 // ══════════════════════════════════════
-// WEB AUDIO ENGINE
+// AMBIENT MUSIC
 // ══════════════════════════════════════
+let ambientAudio = null;
+let musicEnabled = true;
+
+function initAmbientMusic(){
+  if(ambientAudio) return;
+  ambientAudio = new Audio('ambiance.mp3');
+  ambientAudio.loop = true;
+  ambientAudio.volume = 0.35;
+  ambientAudio.preload = 'auto';
+}
+
+function startMusic(){
+  if(!musicEnabled) return;
+  initAmbientMusic();
+  if(ambientAudio.paused){
+    ambientAudio.play().catch(()=>{}); // autoplay may be blocked silently
+  }
+}
+
+function stopMusic(){
+  if(ambientAudio && !ambientAudio.paused){
+    ambientAudio.pause();
+    ambientAudio.currentTime = 0;
+  }
+}
+
+function setMusicVolume(vol, duration=500){
+  if(!ambientAudio) return;
+  const start = ambientAudio.volume;
+  const diff = vol - start;
+  const steps = 20;
+  let i = 0;
+  const interval = setInterval(()=>{
+    i++;
+    ambientAudio.volume = Math.max(0, Math.min(1, start + diff*(i/steps)));
+    if(i >= steps) clearInterval(interval);
+  }, duration/steps);
+}
+
+function toggleMusic(){
+  musicEnabled = !musicEnabled;
+  const btn = document.getElementById('music-toggle');
+  if(btn) btn.textContent = musicEnabled ? '🎵' : '🔕';
+  if(musicEnabled){ startMusic(); }
+  else { stopMusic(); }
+}
+
+// Start music on first user interaction
+document.addEventListener('click', ()=>{ if(musicEnabled) startMusic(); }, {once:true});
 let audioCtx = null;
 let soundEnabled = true;
 let lastTickSecond = -1;
@@ -571,64 +622,38 @@ async function fetchTriviaQs(count=10){
   return translated;
 }
 
-// LibreTranslate mirrors — tried in order until one works
-const LT_MIRRORS = [
-  'https://libretranslate.com',
-  'https://translate.argosopentech.com',
-  'https://libretranslate.de',
-];
-
-async function ltTranslate(text, mirror) {
-  const r = await fetch(`${mirror}/translate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: text, source: 'en', target: 'fr', format: 'text' }),
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  const d = await r.json();
-  if (!d.translatedText) throw new Error('No translation');
-  return d.translatedText;
-}
-
-async function translateText(text) {
-  for (const mirror of LT_MIRRORS) {
-    try { return await ltTranslate(text, mirror); } catch(e) {}
+async function translateText(text){
+  // MyMemory: free, no key, no CORS issues on mobile
+  try{
+    const url='https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=en|fr';
+    const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    if(d.responseStatus===200 && d.responseData?.translatedText){
+      return d.responseData.translatedText;
+    }
+    throw new Error('bad response');
+  }catch(e){
+    return text; // fallback: original text
   }
-  return text; // fallback: return original
 }
 
-async function translateQuestions(raw) {
-  // Collect all strings to translate (questions + all answers)
-  // We batch them as one string per item separated by \n§\n to minimise API calls
-  // and translate question + answers together per question (10 batches of 5 strings)
-  const results = await Promise.all(raw.map(async (q) => {
-    try {
-      // Join question + 4 answers with a unique separator
-      const SEP = '\n§§§\n';
-      const block = [q.text, q.correct, ...q.wrong].join(SEP);
-      const translated = await translateText(block);
-      const parts = translated.split('§§§').map(s => s.trim());
-
-      // Robust fallback if separator got mangled
-      if (parts.length < 5) throw new Error('separator mangled');
-
-      const textFr   = parts[0];
-      const correctFr = parts[1];
-      const wrongFr   = parts.slice(2);
-      const answers   = shuffle([correctFr, ...wrongFr]);
-      return {
-        type: 'trivia',
-        text: textFr,
-        answers,
-        correct: answers.indexOf(correctFr),
-        difficulty: q.difficulty,
-        category: translateCategory(q.category),
-      };
-    } catch(e) {
-      // Per-question fallback: keep English
-      const ans = shuffle([q.correct, ...q.wrong]);
-      return { type:'trivia', text:q.text, answers:ans, correct:ans.indexOf(q.correct), difficulty:q.difficulty, category:translateCategory(q.category) };
+async function translateQuestions(raw){
+  // Translate all questions in parallel — each question+answers as one block
+  const SEP='\n||||\n';
+  const results=await Promise.all(raw.map(async(q)=>{
+    try{
+      const block=[q.text,q.correct,...q.wrong].join(SEP);
+      const translated=await translateText(block);
+      const parts=translated.split('||||').map(s=>s.trim());
+      if(parts.length<5)throw new Error('split failed');
+      const textFr=parts[0];
+      const correctFr=parts[1];
+      const wrongFr=parts.slice(2);
+      const answers=shuffle([correctFr,...wrongFr]);
+      return{type:'trivia',text:textFr,answers,correct:answers.indexOf(correctFr),difficulty:q.difficulty,category:translateCategory(q.category)};
+    }catch(e){
+      const ans=shuffle([q.correct,...q.wrong]);
+      return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:translateCategory(q.category)};
     }
   }));
   return results;
@@ -676,7 +701,13 @@ function setStep(idx, state){
 // ══════════════════════════════════════
 // UI HELPERS
 // ══════════════════════════════════════
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Music volume: low during game, full on menus
+  if(id==='game') setMusicVolume(0.12, 800);
+  else if(id==='home'||id==='result'||id==='levelup') setMusicVolume(0.35, 800);
+}
 function decodeHTML(s){const el=document.createElement('div');el.innerHTML=s;return el.textContent||el.innerText||'';}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
@@ -793,11 +824,13 @@ function loadQ(){
   buildDots();
   const qa=document.getElementById('q-area');
   if(q.type==='photo'){
+    // Photo mode: scrollable to fit portrait poster + answers
+    document.getElementById('game').style.overflowY='auto';
     revealStage=0;
     qa.innerHTML=`
       <div class="q-type-lbl">📸 Photo Mystère</div>
-      <div class="photo-mystery-wrap" id="photo-wrap" style="height:195px">
-        <img class="mystery-img" id="mystery-img" src="${q.poster}" alt="Film mystère" style="filter:blur(22px) brightness(0.7);transition:filter 1.8s ease;" crossorigin="anonymous">
+      <div class="photo-mystery-wrap" id="photo-wrap">
+        <img id="mystery-img" src="${q.poster}" alt="Film mystère" style="filter:blur(22px) brightness(0.7);transition:filter 1.8s ease;" crossorigin="anonymous">
         <div class="mystery-overlay"></div>
         <div class="reveal-hint">Quel est ce film ?</div>
         <div class="reveal-bar">
@@ -819,6 +852,7 @@ function loadQ(){
       playReveal();
     },5000);
   }else{
+    document.getElementById('game').style.overflowY='hidden';
     qa.innerHTML=`<div class="q-type-lbl">🎬 Question</div><div class="q-text">${q.text}</div>`;
   }
   const grid=document.getElementById('answers-grid');grid.innerHTML='';
