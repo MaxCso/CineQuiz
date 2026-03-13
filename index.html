@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CinéQuiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --gold: #f5c842;
+    --gold2: #e8a800;
+    --red: #e8344a;
+    --green: #2ecc71;
+    --blue: #4a9eff;
+    --text: #f0f0f0;
+    --muted: #6b6b80;
+    --border: rgba(255,255,255,0.07);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #060609;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 50px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 100px rgba(245,200,66,0.06), 0 60px 120px rgba(0,0,0,0.8);
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .screen.active { opacity: 1; pointer-events: all; }
+
+  /* ══ HOME ══ */
+  #home {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 56px 28px 36px;
+    overflow-y: auto;
+  }
+
+  .home-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 36px;
+  }
+
+  .home-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--gold) 0%, #fff8e0 50%, var(--gold2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .xp-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 8px 16px;
+    text-align: center;
+  }
+  .xp-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .xp-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  .streak-banner {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(245,200,66,0.1), rgba(232,168,0,0.05));
+    border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 18px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .streak-fire { font-size: 32px; }
+  .streak-info { flex: 1; }
+  .streak-title { font-weight: 600; font-size: 14px; color: var(--gold); }
+  .streak-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .streak-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--gold);
+  }
+
+  .section-label {
+    width: 100%;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .modes-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-card::after {
+    content: '';
+    position: absolute;
+    right: -30px; top: -30px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.04;
+    transition: opacity 0.3s;
+  }
+  .mode-card.gold-card::after { background: var(--gold); }
+  .mode-card.pink-card::after { background: #ff6b9d; }
+  .mode-card.blue-card::after { background: var(--blue); }
+  .mode-card:active { transform: scale(0.97); }
+
+  .mode-icon { font-size: 28px; width: 44px; text-align: center; flex-shrink: 0; }
+  .mode-info { flex: 1; }
+  .mode-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .mode-desc { font-size: 11px; color: var(--muted); }
+  .mode-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .tag-gold { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+  .tag-pink { background: rgba(255,107,157,0.15); color: #ff6b9d; border: 1px solid rgba(255,107,157,0.3); }
+  .tag-blue { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.3); }
+
+  .daily-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    padding: 18px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(245,200,66,0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .daily-btn:active { transform: scale(0.97); box-shadow: 0 4px 15px rgba(245,200,66,0.15); }
+
+  /* ══ LOADING ══ */
+  #loading {
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: var(--bg);
+  }
+
+  .loader-clapboard { font-size: 64px; animation: clap 1.2s ease infinite; }
+  @keyframes clap {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.05); }
+  }
+  .loader-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--muted);
+    letter-spacing: 3px;
+  }
+  .loader-dots span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 3px;
+    animation: bounce 1.2s ease infinite;
+  }
+  .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-10px); opacity: 1; }
+  }
+
+  .error-box {
+    background: var(--surface);
+    border: 1px solid rgba(232,52,74,0.3);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    max-width: 300px;
+  }
+  .error-icon { font-size: 48px; margin-bottom: 12px; }
+  .error-title { font-weight: 600; margin-bottom: 8px; }
+  .error-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .retry-btn {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 28px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  /* ══ GAME ══ */
+  #game { background: var(--bg); }
+
+  .game-header {
+    padding: 20px 24px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .q-info { display: flex; flex-direction: column; }
+  .q-counter {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .q-category {
+    font-size: 10px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 1px;
+    opacity: 0.8;
+  }
+
+  .score-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    transition: transform 0.2s;
+  }
+  .score-display.bump { animation: scoreBump 0.3s ease; }
+  @keyframes scoreBump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); color: var(--green); }
+    100% { transform: scale(1); }
+  }
+
+  .mult-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    border: 1.5px solid transparent;
+  }
+  .mult-x3 { background: rgba(46,204,113,0.15); color: var(--green); border-color: rgba(46,204,113,0.3); }
+  .mult-x2 { background: rgba(243,156,18,0.15); color: #f39c12; border-color: rgba(243,156,18,0.3); }
+  .mult-x1 { background: rgba(232,52,74,0.15); color: var(--red); border-color: rgba(232,52,74,0.3); }
+
+  .progress-dots {
+    display: flex;
+    gap: 5px;
+    padding: 0 24px 10px;
+  }
+  .dot {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--surface2);
+    transition: background 0.4s;
+  }
+  .dot.done { background: var(--gold); }
+  .dot.correct { background: var(--green); }
+  .dot.wrong { background: var(--red); }
+  .dot.current { background: rgba(245,200,66,0.35); }
+
+  .timer-wrap { padding: 0 24px 14px; }
+  .timer-bar-bg {
+    background: var(--surface2);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    transition: width 0.15s linear;
+  }
+  .timer-bar.warn { background: linear-gradient(90deg, var(--red), #ff8c42); }
+  .timer-numbers {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+  }
+  .timer-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .difficulty-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .diff-easy { background: rgba(46,204,113,0.15); color: var(--green); }
+  .diff-medium { background: rgba(243,156,18,0.15); color: #f39c12; }
+  .diff-hard { background: rgba(232,52,74,0.15); color: var(--red); }
+
+  .question-area {
+    flex: 1;
+    padding: 4px 24px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .q-type-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .q-type-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .question-text {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text);
+    animation: fadeSlide 0.4s ease both;
+  }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .answers-grid {
+    padding: 16px 24px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .answer-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.3;
+    animation: fadeSlide 0.4s ease both;
+  }
+  .answer-btn:nth-child(2) { animation-delay: 0.05s; }
+  .answer-btn:nth-child(3) { animation-delay: 0.1s; }
+  .answer-btn:nth-child(4) { animation-delay: 0.15s; }
+
+  .answer-btn:not(:disabled):hover {
+    border-color: rgba(245,200,66,0.4);
+    background: rgba(245,200,66,0.05);
+  }
+  .answer-btn:active:not(:disabled) { transform: scale(0.95); }
+
+  .answer-btn.correct {
+    background: rgba(46,204,113,0.12);
+    border-color: var(--green);
+    color: var(--green);
+    font-weight: 600;
+  }
+  .answer-btn.wrong {
+    background: rgba(232,52,74,0.12);
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .answer-btn:disabled { cursor: default; }
+
+  /* FEEDBACK TOAST */
+  .toast {
+    position: absolute;
+    top: 44%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: rgba(10,10,15,0.92);
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    padding: 20px 32px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 100;
+    backdrop-filter: blur(16px);
+    min-width: 200px;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .toast.correct-t { border-color: rgba(46,204,113,0.5); }
+  .toast.wrong-t { border-color: rgba(232,52,74,0.4); }
+
+  .toast-pts {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .toast-msg { font-size: 13px; color: var(--muted); }
+  .toast-answer { font-size: 12px; color: var(--text); margin-top: 6px; font-style: italic; }
+
+  /* ══ RESULT ══ */
+  #result {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 28px;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .result-icon { font-size: 72px; margin-bottom: 12px; animation: popIn 0.5s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+  @keyframes popIn {
+    0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+    70% { transform: scale(1.15) rotate(3deg); }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  .result-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    text-align: center;
+    animation: fadeSlide 0.5s ease 0.2s both;
+  }
+  .result-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 32px;
+    text-align: center;
+    animation: fadeSlide 0.5s ease 0.3s both;
+  }
+
+  .result-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 90px;
+    color: var(--gold);
+    line-height: 1;
+    animation: fadeSlide 0.5s ease 0.35s both;
+  }
+  .result-score-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    animation: fadeSlide 0.5s ease 0.4s both;
+  }
+
+  .result-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 28px;
+    animation: fadeSlide 0.5s ease 0.45s both;
+  }
+
+  .r-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px 8px;
+    text-align: center;
+  }
+  .r-card-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--gold);
+  }
+  .r-card-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+
+  .perf-bar-wrap {
+    width: 100%;
+    margin-bottom: 28px;
+    animation: fadeSlide 0.5s ease 0.5s both;
+  }
+  .perf-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .perf-bar-bg {
+    background: var(--surface2);
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .perf-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--gold2), var(--gold));
+    transition: width 1s ease 0.8s;
+    width: 0%;
+  }
+
+  .result-btns {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeSlide 0.5s ease 0.55s both;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #000;
+    border: none;
+    border-radius: 18px;
+    padding: 17px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(245,200,66,0.22);
+    transition: transform 0.15s;
+    width: 100%;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-sec {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.15s;
+    width: 100%;
+  }
+  .btn-sec:active { transform: scale(0.97); }
+
+  /* Difficulty selector */
+  .diff-select {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  .diff-opt {
+    flex: 1;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .diff-opt.selected-easy { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.08); }
+  .diff-opt.selected-medium { border-color: #f39c12; color: #f39c12; background: rgba(243,156,18,0.08); }
+  .diff-opt.selected-hard { border-color: var(--red); color: var(--red); background: rgba(232,52,74,0.08); }
+  .diff-opt:active { transform: scale(0.96); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- HOME -->
+  <div class="screen active" id="home">
+    <div style="padding: 52px 28px 0;">
+      <div class="home-top">
+        <div class="home-logo">CinéQuiz</div>
+        <div class="xp-pill">
+          <div class="xp-val">1 240</div>
+          <div class="xp-label">XP total</div>
+        </div>
+      </div>
+
+      <div class="streak-banner">
+        <div class="streak-fire">🔥</div>
+        <div class="streak-info">
+          <div class="streak-title">Série en cours</div>
+          <div class="streak-sub">Reviens demain pour continuer !</div>
+        </div>
+        <div class="streak-num">7</div>
+      </div>
+
+      <div class="section-label">Difficulté</div>
+      <div class="diff-select">
+        <div class="diff-opt" onclick="selectDiff('easy', this)">😌 Facile</div>
+        <div class="diff-opt selected-medium" onclick="selectDiff('medium', this)">🎯 Moyen</div>
+        <div class="diff-opt" onclick="selectDiff('hard', this)">🔥 Difficile</div>
+      </div>
+
+      <div class="section-label">Modes de jeu</div>
+      <div class="modes-list">
+        <div class="mode-card gold-card" onclick="startGame()">
+          <div class="mode-icon">⚡</div>
+          <div class="mode-info">
+            <div class="mode-name">Mode Rapide</div>
+            <div class="mode-desc">10 questions · Chrono · Multiplicateur</div>
+          </div>
+          <div class="mode-tag tag-gold">x3 MAX</div>
+        </div>
+        <div class="mode-card pink-card" onclick="startGame()">
+          <div class="mode-icon">🎭</div>
+          <div class="mode-info">
+            <div class="mode-name">Qui suis-je ?</div>
+            <div class="mode-desc">Indices progressifs · Acteurs & réals</div>
+          </div>
+          <div class="mode-tag tag-pink">BIENTÔT</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 0 28px 36px; margin-top: auto;">
+      <button class="daily-btn" onclick="startGame()">
+        🎯 <span>LANCER UNE PARTIE</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="loading">
+    <div class="loader-clapboard">🎬</div>
+    <div class="loader-text">Chargement des questions</div>
+    <div class="loader-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="game">
+    <div class="game-header">
+      <div class="q-info">
+        <div class="q-counter" id="q-counter">Q 1/10</div>
+        <div class="q-category" id="q-category">Cinéma</div>
+      </div>
+      <div class="mult-badge mult-x3" id="mult-badge">x3</div>
+      <div class="score-display" id="score-display">0 pts</div>
+    </div>
+
+    <div class="progress-dots" id="progress-dots"></div>
+
+    <div class="timer-wrap">
+      <div class="timer-bar-bg">
+        <div class="timer-bar" id="timer-bar"></div>
+      </div>
+      <div class="timer-numbers">
+        <div class="timer-val" id="timer-val">20s</div>
+        <div class="difficulty-badge diff-medium" id="diff-badge">Moyen</div>
+      </div>
+    </div>
+
+    <div class="question-area">
+      <div class="q-type-label">🎬 Question</div>
+      <div class="question-text" id="question-text">Chargement...</div>
+    </div>
+
+    <div class="answers-grid" id="answers-grid"></div>
+
+    <div class="toast" id="toast">
+      <div class="toast-pts" id="toast-pts">+300</div>
+      <div class="toast-msg" id="toast-msg">Excellent !</div>
+      <div class="toast-answer" id="toast-answer"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="result">
+    <div class="result-icon" id="result-icon">🏆</div>
+    <div class="result-title" id="result-title">Bravo !</div>
+    <div class="result-sub" id="result-sub">Tu es un vrai cinéphile !</div>
+    <div class="result-score" id="result-score">0</div>
+    <div class="result-score-label">points</div>
+
+    <div class="result-grid">
+      <div class="r-card">
+        <div class="r-card-val" id="r-correct">0/10</div>
+        <div class="r-card-label">Bonnes rép.</div>
+      </div>
+      <div class="r-card">
+        <div class="r-card-val" id="r-best-mult">x1</div>
+        <div class="r-card-label">Meill. mult.</div>
+      </div>
+      <div class="r-card">
+        <div class="r-card-val" id="r-avg-time">–s</div>
+        <div class="r-card-label">Tps moyen</div>
+      </div>
+    </div>
+
+    <div class="perf-bar-wrap">
+      <div class="perf-bar-label">
+        <span>Performance</span>
+        <span id="perf-pct">0%</span>
+      </div>
+      <div class="perf-bar-bg">
+        <div class="perf-bar-fill" id="perf-bar"></div>
+      </div>
+    </div>
+
+    <div class="result-btns">
+      <button class="btn-primary" onclick="startGame()">REJOUER</button>
+      <button class="btn-sec" onclick="showScreen('home')">← Accueil</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──
+let questions = [];
+let currentQ = 0;
+let score = 0;
+let timerInterval = null;
+let timeLeft = 20;
+let answered = false;
+let correctCount = 0;
+let bestMult = 1;
+let timings = [];
+let dotResults = [];
+let selectedDiff = 'medium';
+let pendingMode = null;
+
+const TOTAL = 10;
+const MAX_TIME = 20;
+
+// ── Helpers ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function decodeHTML(str) {
+  const el = document.createElement('div');
+  el.innerHTML = str;
+  return el.textContent || el.innerText || '';
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ── Difficulty ──
+function selectDiff(diff, el) {
+  selectedDiff = diff;
+  document.querySelectorAll('.diff-opt').forEach(d => d.className = 'diff-opt');
+  el.classList.add('selected-' + diff);
+}
+
+// ── API ──
+async function fetchQuestions() {
+  const diffMap = { easy: 'easy', medium: 'medium', hard: 'hard' };
+  const url = `https://opentdb.com/api.php?amount=${TOTAL}&category=11&difficulty=${diffMap[selectedDiff]}&type=multiple`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.response_code !== 0) throw new Error('API error ' + data.response_code);
+  return data.results.map(q => {
+    const answers = shuffle([q.correct_answer, ...q.incorrect_answers]);
+    const correctIdx = answers.indexOf(q.correct_answer);
+    return {
+      text: decodeHTML(q.question),
+      answers: answers.map(a => decodeHTML(a)),
+      correct: correctIdx,
+      difficulty: q.difficulty,
+      category: decodeHTML(q.category)
+    };
+  });
+}
+
+// ── Game flow ──
+async function startGame() {
+  score = 0; currentQ = 0; correctCount = 0;
+  bestMult = 1; timings = []; dotResults = [];
+  showScreen('loading');
+  try {
+    questions = await fetchQuestions();
+    showScreen('game');
+    loadQuestion();
+  } catch(e) {
+    showError();
+  }
+}
+
+function showError() {
+  document.getElementById('loading').innerHTML = `
+    <div class="error-box">
+      <div class="error-icon">📡</div>
+      <div class="error-title">Connexion impossible</div>
+      <div class="error-sub">Impossible de charger les questions.<br>Vérifie ta connexion et réessaie.</div>
+      <button class="retry-btn" onclick="startGame()">RÉESSAYER</button>
+    </div>
+    <button class="btn-sec" style="margin-top:16px; width:280px;" onclick="showScreen('home')">← Retour</button>
+  `;
+}
+
+function buildDots() {
+  const c = document.getElementById('progress-dots');
+  c.innerHTML = '';
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    if (i < currentQ) d.className = 'dot ' + (dotResults[i] ? 'correct' : 'wrong');
+    else if (i === currentQ) d.className = 'dot current';
+    else d.className = 'dot';
+    c.appendChild(d);
+  }
+}
+
+function loadQuestion() {
+  answered = false;
+  clearInterval(timerInterval);
+  hideFeedback();
+
+  const q = questions[currentQ];
+  document.getElementById('q-counter').textContent = `Q ${currentQ + 1}/${TOTAL}`;
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('score-display').textContent = score + ' pts';
+
+  const diffLabels = { easy: '😌 Facile', medium: '🎯 Moyen', hard: '🔥 Difficile' };
+  const diffClasses = { easy: 'diff-easy', medium: 'diff-medium', hard: 'diff-hard' };
+  const db = document.getElementById('diff-badge');
+  db.textContent = diffLabels[q.difficulty] || '🎯 Moyen';
+  db.className = 'difficulty-badge ' + (diffClasses[q.difficulty] || 'diff-medium');
+
+  buildDots();
+
+  document.getElementById('question-text').textContent = q.text;
+  document.getElementById('question-text').style.animation = 'none';
+  requestAnimationFrame(() => document.getElementById('question-text').style.animation = '');
+
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = '';
+  q.answers.forEach((a, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = a;
+    btn.style.animationDelay = (i * 0.06) + 's';
+    btn.onclick = () => handleAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function startTimer() {
+  timeLeft = MAX_TIME;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timeLeft = Math.max(0, timeLeft - 0.1);
+    updateTimerUI();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) handleAnswer(-1);
+    }
+  }, 100);
+}
+
+function updateTimerUI() {
+  const pct = (timeLeft / MAX_TIME) * 100;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'timer-bar' + (pct < 30 ? ' warn' : '');
+  document.getElementById('timer-val').textContent = Math.ceil(timeLeft) + 's';
+
+  const elapsed = MAX_TIME - timeLeft;
+  const mult = elapsed < 6 ? 3 : elapsed < 13 ? 2 : 1;
+  const mb = document.getElementById('mult-badge');
+  mb.textContent = 'x' + mult;
+  mb.className = 'mult-badge mult-x' + mult;
+}
+
+function handleAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = questions[currentQ];
+  const elapsed = MAX_TIME - timeLeft;
+  const mult = elapsed < 6 ? 3 : elapsed < 13 ? 2 : 1;
+  timings.push(Math.round(elapsed));
+
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const isCorrect = idx === q.correct;
+  dotResults[currentQ] = isCorrect;
+
+  if (isCorrect) {
+    btns[idx].classList.add('correct');
+    const pts = 100 * mult;
+    score += pts;
+    correctCount++;
+    if (mult > bestMult) bestMult = mult;
+    showFeedback(true, pts, mult, null);
+  } else {
+    if (idx >= 0) btns[idx].classList.add('wrong');
+    btns[q.correct].classList.add('correct');
+    showFeedback(false, 0, mult, q.answers[q.correct]);
+  }
+
+  const sd = document.getElementById('score-display');
+  sd.textContent = score + ' pts';
+  if (isCorrect) { sd.classList.remove('bump'); void sd.offsetWidth; sd.classList.add('bump'); }
+
+  setTimeout(() => {
+    currentQ++;
+    buildDots();
+    if (currentQ < TOTAL) loadQuestion();
+    else showResult();
+  }, 1900);
+}
+
+function showFeedback(correct, pts, mult, correctAnswer) {
+  const toast = document.getElementById('toast');
+  const toastPts = document.getElementById('toast-pts');
+  const toastMsg = document.getElementById('toast-msg');
+  const toastAns = document.getElementById('toast-answer');
+
+  toast.className = 'toast ' + (correct ? 'correct-t' : 'wrong-t');
+
+  if (correct) {
+    toastPts.style.color = 'var(--green)';
+    toastPts.textContent = '+' + pts + ' pts';
+    toastMsg.textContent = mult === 3 ? '⚡ Ultra rapide ! x3' : mult === 2 ? '👍 Bien joué ! x2' : '✓ Correct';
+    toastAns.textContent = '';
+  } else {
+    toastPts.style.color = 'var(--red)';
+    toastPts.textContent = pts === 0 && correctAnswer === null ? '⏱ Temps écoulé !' : '✗ Raté';
+    toastMsg.textContent = 'Bonne réponse :';
+    toastAns.textContent = correctAnswer || '';
+  }
+
+  toast.classList.add('show');
+}
+
+function hideFeedback() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+function showResult() {
+  const pct = Math.round((correctCount / TOTAL) * 100);
+  const avgTime = timings.length ? Math.round(timings.reduce((a,b) => a+b, 0) / timings.length) : 0;
+
+  const levels = [
+    { min: 0,  icon: '😅', title: 'Débutant',   sub: 'Continue de t\'entraîner !' },
+    { min: 30, icon: '🎬', title: 'Spectateur',  sub: 'Tu connais quelques classiques' },
+    { min: 50, icon: '⭐', title: 'Cinéphile',   sub: 'Pas mal du tout !' },
+    { min: 70, icon: '🏆', title: 'Critique',    sub: 'Tu maîtrises le 7ème art !' },
+    { min: 90, icon: '🎭', title: 'Légende',     sub: 'Perfection absolue !' },
+  ];
+  const level = [...levels].reverse().find(l => pct >= l.min) || levels[0];
+
+  document.getElementById('result-icon').textContent = level.icon;
+  document.getElementById('result-title').textContent = level.title;
+  document.getElementById('result-sub').textContent = level.sub;
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('r-correct').textContent = correctCount + '/' + TOTAL;
+  document.getElementById('r-best-mult').textContent = 'x' + bestMult;
+  document.getElementById('r-avg-time').textContent = avgTime + 's';
+  document.getElementById('perf-pct').textContent = pct + '%';
+
+  showScreen('result');
+  setTimeout(() => {
+    document.getElementById('perf-bar').style.width = pct + '%';
+  }, 100);
+}
+</script>
+</body>
+</html>
