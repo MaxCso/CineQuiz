@@ -189,14 +189,48 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .ab.no{background:rgba(232,52,74,.12);border-color:var(--red);color:var(--red);}
 .ab:disabled{cursor:default;}
 
-/* toast */
+/* badge notif dot */
+.notif-dot{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg);animation:dotpop .4s cubic-bezier(.36,.07,.19,.97) both;}
+@keyframes dotpop{from{transform:scale(0);}to{transform:scale(1);}}
+.ibtn-wrap{position:relative;}
+
+/* COMBO overlay */
+.combo-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:50;overflow:hidden;}
+.combo-banner{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;text-align:center;opacity:0;pointer-events:none;text-shadow:0 0 30px currentColor;transition:none;}
+.combo-banner.pop{animation:combopop .7s cubic-bezier(.36,.07,.19,.97) forwards;}
+@keyframes combopop{0%{transform:translate(-50%,-50%) scale(0);opacity:0;}30%{transform:translate(-50%,-50%) scale(1.2);opacity:1;}70%{transform:translate(-50%,-50%) scale(1);opacity:1;}100%{transform:translate(-50%,-50%) scale(0.8);opacity:0;}}
+.combo-particle{position:absolute;pointer-events:none;animation:cpart linear forwards;}
+@keyframes cpart{0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(0);opacity:0;}}
+/* score bump */
+@keyframes scorebump{0%{transform:scale(1);}40%{transform:scale(1.35);}100%{transform:scale(1);}}
+.bump{animation:scorebump .3s ease;}
+/* streak fire pulse on header */
+.streak-pulse{animation:streakpulse .5s ease;}
+@keyframes streakpulse{0%,100%{filter:drop-shadow(0 0 0px transparent);}50%{filter:drop-shadow(0 0 12px #ff6b35);}}
+
+/* toast close button */
 .tst{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%) scale(.85);background:rgba(10,10,15,.94);border:1.5px solid var(--bd);border-radius:19px;padding:15px 22px;text-align:center;opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:100;backdrop-filter:blur(16px);min-width:180px;}
-.tst.on{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.tst.on{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:all;}
 .tst.ok{border-color:rgba(46,204,113,.5);}
 .tst.no{border-color:rgba(232,52,74,.4);}
+.tclose{position:absolute;top:8px;right:10px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--mt);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
 .tpts{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-bottom:3px;}
 .tmsg{font-size:12px;color:var(--mt);}
-.tans{font-size:11px;color:var(--tx);margin-top:4px;font-style:italic;}
+.tans{font-size:11px;color:var(--tx);margin-top:4px;font-style:italic;line-height:1.4;}
+
+/* RÉPLIQUE CULTE mode */
+.quote-box{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:22px 20px;margin-bottom:10px;flex-shrink:0;position:relative;}
+.quote-marks{font-family:'Bebas Neue',sans-serif;font-size:64px;color:rgba(245,200,66,.15);line-height:.7;position:absolute;top:10px;left:14px;user-select:none;}
+.quote-text{font-size:17px;font-weight:500;line-height:1.55;color:var(--tx);padding-left:8px;min-height:80px;transition:all .3s;}
+.quote-word{opacity:0;transition:opacity .4s ease,transform .4s ease;transform:translateY(4px);display:inline;}
+.quote-word.vis{opacity:1;transform:translateY(0);}
+.quote-word.blur{filter:blur(6px);opacity:.35;}
+.quote-meta{font-size:11px;color:var(--mt);margin-top:10px;display:flex;align-items:center;gap:6px;}
+.quote-hint-bar{display:flex;gap:5px;margin-top:8px;}
+.qhpip{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.15);}
+.qhpip.on{background:var(--gold);}
+.quote-film-reveal{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:1px;margin-top:8px;opacity:0;transition:opacity .5s;}
+.quote-film-reveal.vis{opacity:1;}
 
 /* LEVEL UP */
 #lvlup{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(245,200,66,.1),var(--bg) 70%);}
@@ -261,7 +295,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="tbr">
         <div class="ibtn" id="btn-music" onclick="toggleMusic()">🎵</div>
         <div class="ibtn" id="btn-sound" onclick="toggleSound()">🔊</div>
-        <div class="ibtn" onclick="goProfile()">👤</div>
+        <div class="ibtn-wrap"><div class="ibtn" onclick="goProfile()">👤</div><div id="badge-dot" style="display:none" class="notif-dot"></div></div>
       </div>
     </div>
     <!-- XP -->
@@ -286,6 +320,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="mc" onclick="selectMode('photo',this)"><span class="mci">🎬</span>Photo Mystère</div>
       <div class="mc" onclick="selectMode('year',this)"><span class="mci">📅</span>Année Mystère<span class="mnew">NEW</span></div>
       <div class="mc" onclick="selectMode('duo',this)"><span class="mci">🎭</span>Duo ou Solo ?<span class="mnew">NEW</span></div>
+      <div class="mc" onclick="selectMode('quote',this)"><span class="mci">🎤</span>Réplique Culte<span class="mnew">NEW</span></div>
       <div class="mc" onclick="selectMode('boxoffice',this)" style="grid-column:1/-1"><span class="mci">💰</span>Box-office<span class="mnew">NEW</span></div>
     </div>
     <!-- Theme (quiz only) -->
@@ -340,7 +375,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     </div>
     <div class="qa" id="qa"></div>
     <div class="agrid" id="agrid"></div>
+    <div class="combo-overlay" id="combo-overlay">
+      <div class="combo-banner" id="combo-banner"></div>
+    </div>
     <div class="tst" id="toast">
+      <button class="tclose" id="tclose" onclick="forceNextQ()">✕</button>
       <div class="tpts" id="tpts">+300</div>
       <div class="tmsg" id="tmsg">Excellent !</div>
       <div class="tans" id="tans"></div>
@@ -440,7 +479,10 @@ const BADGES=[
   {id:'pphoto',  icon:'📸',name:'Première affiche', desc:'Joue une partie Photo Mystère',       cond:s=>s.photoGames>=1},
   {id:'pyear',   icon:'📅',name:'L\'Horloger',      desc:'Joue une partie Année Mystère',       cond:s=>s.yearGames>=1},
   {id:'pduo',    icon:'🎭',name:'Duo ou Solo',       desc:'Joue une partie Duo ou Solo',         cond:s=>s.duoGames>=1},
+  {id:'pquote',  icon:'🎤',name:'Cinéphile bavard',  desc:'Joue une partie Réplique Culte',      cond:s=>s.quoteGames>=1},
   {id:'pbo',     icon:'💰',name:'Producteur',        desc:'Joue une partie Box-office',          cond:s=>s.boGames>=1},
+  {id:'combo5',  icon:'🔥',name:'En série',          desc:'5 bonnes réponses d\'affilée',        cond:s=>s.bestCombo>=5},
+  {id:'combo10', icon:'💫',name:'Inarrêtable',       desc:'10 bonnes réponses d\'affilée',       cond:s=>s.bestCombo>=10},
   {id:'str3',    icon:'🔥',name:'En feu',            desc:'3 jours consécutifs',                 cond:s=>s.streak>=3},
   {id:'str7',    icon:'🌟',name:'Hebdo',             desc:'7 jours consécutifs',                 cond:s=>s.streak>=7},
   {id:'str30',   icon:'🌙',name:'Mois cinéma',       desc:'30 jours consécutifs',                cond:s=>s.streak>=30},
@@ -462,7 +504,7 @@ const BADGES=[
   {id:'t5h',     icon:'🕰️',name:'Cinémaniac',       desc:'5h de temps de jeu',                  cond:s=>s.playtime>=18000},
 ];
 
-const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,unlocked:[],history:[],playtime:0};
+const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,quoteGames:0,bestCombo:0,unlocked:[],history:[],playtime:0};
 const ls=()=>{try{const r=localStorage.getItem('cq11');return r?{...DEF,...JSON.parse(r)}:{...DEF};}catch{return{...DEF};}};
 const ss=s=>{try{localStorage.setItem('cq11',JSON.stringify(s));}catch{}};
 const glv=xp=>{let l=0;for(let i=LEVELS.length-1;i>=0;i--){if(xp>=LEVELS[i].xp){l=i;break;}}return l;};
@@ -607,7 +649,10 @@ function refHome(){
   document.getElementById('h-bct').textContent=ul+' débloqué'+(ul>1?'s':'');
   document.getElementById('h-bdg').innerHTML=BADGES.map(b=>{const ok=s.unlocked.includes(b.id);return`<div class="bc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')"><div class="bci">${b.icon}</div><div class="bcn">${b.name}</div></div>`;}).join('');
 }
-function goProfile(){refProfile();go('profile');}
+function goProfile(){
+  const dot=document.getElementById('badge-dot');if(dot)dot.style.display='none';
+  refProfile();go('profile');
+}
 function refProfile(){
   const s=ls();const{l}=gxp(s.xp);const lv=LEVELS[l];
   const pct=s.questions>0?Math.round((s.correct/s.questions)*100):0;
@@ -645,14 +690,44 @@ function closeMod(e){if(!e||e.target===document.getElementById('bmod'))document.
 let qs=[],curQ=0,score=0,tInt=null,tLeft=20,ansed=false;
 let okCnt=0,bestM=1,times=[],dotRes=[],fastCnt=0,photoOkCnt=0;
 let revInt=null,revStage=0,lvlFn=null,tStart=0;
+let combo=0,nextQTimer=null,quoteRevInt=null,quoteWordsShown=0;
 const TOTAL=10,MAXT=20;
 
 // Box-office drag state
 let dragIdx=null,dragOrder=[];
 
+// ── QUOTE DATABASE ──
+const QUOTES=[
+  {quote:"Je te fais une offre que tu ne peux pas refuser.",film:"Le Parrain",choices:["Le Parrain","Scarface","Les Affranchis","Il était une fois en Amérique"]},
+  {quote:"Frankly my dear I don't give a damn.",film:"Autant en emporte le vent",choices:["Autant en emporte le vent","Casablanca","Rebecca","La Vie est belle"]},
+  {quote:"May the Force be with you.",film:"Star Wars",choices:["Star Wars","Star Trek","Dune","Avatar"]},
+  {quote:"Here's looking at you kid.",film:"Casablanca",choices:["Casablanca","Autant en emporte le vent","Citizen Kane","Le Troisième Homme"]},
+  {quote:"You can't handle the truth!",film:"Des hommes d'honneur",choices:["Des hommes d'honneur","Philadelphia","JFK","Minority Report"]},
+  {quote:"I'll be back.",film:"Terminator",choices:["Terminator","RoboCop","Total Recall","Predator"]},
+  {quote:"Why so serious?",film:"The Dark Knight",choices:["The Dark Knight","Joker","Batman v Superman","Suicide Squad"]},
+  {quote:"To infinity and beyond!",film:"Toy Story",choices:["Toy Story","Toy Story 2","Cars","Vice-versa"]},
+  {quote:"Houston we have a problem.",film:"Apollo 13",choices:["Apollo 13","Interstellar","The Martian","Gravity"]},
+  {quote:"Life is like a box of chocolates.",film:"Forrest Gump",choices:["Forrest Gump","Philadelphia","Cast Away","The Green Mile"]},
+  {quote:"I see dead people.",film:"Sixième Sens",choices:["Sixième Sens","Shining","Get Out","Hereditary"]},
+  {quote:"With great power comes great responsibility.",film:"Spider-Man",choices:["Spider-Man","Batman Begins","Iron Man","Thor"]},
+  {quote:"Just keep swimming.",film:"Le Monde de Nemo",choices:["Le Monde de Nemo","Le Monde de Dory","Rebelle","Cars"]},
+  {quote:"I am your father.",film:"L'Empire contre-attaque",choices:["L'Empire contre-attaque","Star Wars","Le Retour du Jedi","La Menace fantôme"]},
+  {quote:"There's no place like home.",film:"Le Magicien d'Oz",choices:["Le Magicien d'Oz","Alice au Pays des Merveilles","Peter Pan","Blanche-Neige"]},
+  {quote:"Keep your friends close but your enemies closer.",film:"Le Parrain 2",choices:["Le Parrain 2","Le Parrain","Il était une fois en Amérique","Casino"]},
+  {quote:"Hasta la vista baby.",film:"Terminator 2",choices:["Terminator 2","Terminator","Predator","Total Recall"]},
+  {quote:"You talkin' to me?",film:"Taxi Driver",choices:["Taxi Driver","Mean Streets","Raging Bull","Les Affranchis"]},
+  {quote:"Nobody puts Baby in a corner.",film:"Dirty Dancing",choices:["Dirty Dancing","Flashdance","Footloose","Grease"]},
+  {quote:"I'm the king of the world!",film:"Titanic",choices:["Titanic","Waterworld","The Poseidon Adventure","Perfect Storm"]},
+  {quote:"Go ahead make my day.",film:"L'Inspecteur Harry",choices:["L'Inspecteur Harry","Magnum Force","La Corde raide","Firefox"]},
+  {quote:"You is kind you is smart you is important.",film:"La Couleur des sentiments",choices:["La Couleur des sentiments","Lincoln","12 Years a Slave","Selma"]},
+  {quote:"Carpe diem seize the day boys.",film:"Le Cercle des poètes disparus",choices:["Le Cercle des poètes disparus","Dead Poets Society","Good Will Hunting","Les Quatre Cents Coups"]},
+  {quote:"You had me at hello.",film:"Jerry Maguire",choices:["Jerry Maguire","Coup de foudre à Notting Hill","Ghost","Serendipity"]},
+  {quote:"Elementary my dear Watson.",film:"Sherlock Holmes",choices:["Sherlock Holmes","Enola Holmes","Mr. Holmes","Jack the Ripper"]},
+];
+
 async function startGame(){
   resume();
-  score=0;curQ=0;okCnt=0;bestM=1;times=[];dotRes=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
+  score=0;curQ=0;okCnt=0;bestM=1;times=[];dotRes=[];fastCnt=0;photoOkCnt=0;lastTick=-1;combo=0;
   tStart=Date.now();
   go('loading');
   try{
@@ -701,8 +776,15 @@ async function startGame(){
       if(boQs.length<4)throw new Error('Not enough BO rounds');
       qs=boQs.slice(0,TOTAL);
       setStep(0,'don');setStep(1,'act');setStep(1,'don');
+    } else if(selMode==='quote'){
+      sltxt('Chargement des répliques…');
+      initSteps([{icon:'🎤',label:'Sélection des répliques culte'},{icon:'🎬',label:'Préparation'}]);
+      setStep(0,'act');
+      const pool=shuffle([...QUOTES]);
+      qs=pool.slice(0,TOTAL).map(q=>({type:'quote',quote:q.quote,film:q.film,answers:shuffle([...q.choices]),correct:null,difficulty:'medium',category:'Réplique Culte'}));
+      qs.forEach(q=>{q.correct=q.answers.indexOf(q.film);});
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
     } else {
-      // Quiz mode
       sltxt('Chargement des questions…');
       initSteps([{icon:'🌐',label:'Récupération des questions'},{icon:'🇫🇷',label:'Traduction en français'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');
@@ -829,9 +911,34 @@ function loadQ(){
     tLeft=30;updateTimerUI();
     tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();if(tLeft<=0){clearInterval(tInt);if(!ansed)handleBOAnswer(q);}},100);
 
-  } else {
+  } else if(q.type==='quote'){
     game.style.overflowY='hidden';
-    qa.innerHTML=`<div class="qtl">🎬 Question</div><div class="qtxt">${q.text}</div>`;
+    const words=q.quote.split(' ');
+    quoteWordsShown=0;
+    // Start with first 2 words visible, reveal more every 3s
+    const renderWords=(n)=>`<div class="quote-text">${words.map((w,i)=>`<span class="quote-word${i<n?' vis':i<n+2?' blur':''}">${w}&nbsp;</span>`).join('')}</div>`;
+    qa.innerHTML=`
+      <div class="qtl">🎤 Réplique Culte</div>
+      <div class="quote-box">
+        <div class="quote-marks">"</div>
+        <div id="quote-inner">${renderWords(2)}</div>
+        <div class="quote-hint-bar">${words.map((_,i)=>`<div class="qhpip${i<2?' on':''}" id="qhp${i}"></div>`).join('')}</div>
+        <div class="quote-film-reveal" id="qfr"></div>
+      </div>
+      <div class="htxt">De quel film vient cette réplique ?</div>`;
+    quoteWordsShown=2;
+    clearInterval(quoteRevInt);
+    quoteRevInt=setInterval(()=>{
+      if(ansed){clearInterval(quoteRevInt);return;}
+      quoteWordsShown=Math.min(quoteWordsShown+2,words.length);
+      document.getElementById('quote-inner').innerHTML=renderWords(quoteWordsShown);
+      words.forEach((_,i)=>{const p=document.getElementById('qhp'+i);if(p&&i<quoteWordsShown)p.classList.add('on');});
+      if(quoteWordsShown>=words.length)clearInterval(quoteRevInt);
+    },3000);
+    q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+    startTimer();
+
+  } else {
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     startTimer();
   }
@@ -885,27 +992,26 @@ function handleBOAnswer(q){
   ansed=true;clearInterval(tInt);
   const userOrder=dragOrder.map(i=>q.movies[i].id);
   const correct=q.correctOrder;
-  // Score: 25pts per correct position
   let ok=0;
   userOrder.forEach((id,i)=>{if(id===correct[i])ok++;});
   const pts=ok*25;
-  dotRes[curQ]=ok>=3;
+  const isOk=ok>=3;
+  dotRes[curQ]=isOk;
   score+=pts;
-  if(ok>=3)okCnt++;
-  // Show correct/wrong on items
+  if(isOk){okCnt++;combo++;sndOk(ok>=3?3:2);triggerCombo(combo,2);bumpScore();}else{combo=0;sndNo();}
   const items=document.querySelectorAll('.bo-item');
   items.forEach((li,i)=>{
     const id=q.movies[dragOrder[i]].id;
     li.classList.add(id===correct[i]?'correct-bo':'wrong-bo');
     li.querySelector('.bo-rank').textContent=i+1;
   });
-  // Show correct revenue order in toast
-  if(ok>0)sndOk(ok>=3?3:ok>=2?2:1);else sndNo();
   const ans=correct.map(id=>q.movies.find(m=>m.id===id).title).join(' > ');
-  showToast(ok>=3,pts,1,ok<4?`Ordre: ${ans.slice(0,60)}…`:null);
+  showToast(isOk,pts,1,ok<4?`Ordre: ${ans.slice(0,55)}…`:null);
   document.getElementById('scorehd').textContent=score+' pts';
   buildDots();
-  setTimeout(()=>{curQ++;buildDots();if(curQ<TOTAL)loadQ();else endGame();},2400);
+  const delay=isOk?1800:3800;
+  if(nextQTimer)clearTimeout(nextQTimer);
+  nextQTimer=setTimeout(()=>advanceQ(),delay);
 }
 
 function handleDuoAnswer(userSaysYes){
@@ -919,16 +1025,19 @@ function handleDuoAnswer(userSaysYes){
   times.push(Math.round(elapsed));
   const pts=ok?100*m:0;
   score+=pts;
-  if(ok){okCnt++;if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;sndOk(m);}else sndNo();
+  if(ok){okCnt++;if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;combo++;sndOk(m);triggerCombo(combo,m);bumpScore();}
+  else{combo=0;sndNo();}
   const btns=document.querySelectorAll('.ab');
   btns.forEach(b=>{b.disabled=true;});
-  if(ok)btns[userSaysYes?0:1].classList.add('ok');else btns[userSaysYes?0:1].classList.add('no');
+  btns[userSaysYes?0:1].classList.add(ok?'ok':'no');
   btns[q.answer?0:1].classList.add('ok');
   const ans=q.answer?`Oui ! Ils ont tourné dans "${q.film}"`:`Non, ils n'ont pas tourné ensemble`;
   showToast(ok,pts,m,ans);
   document.getElementById('scorehd').textContent=score+' pts';
   buildDots();
-  setTimeout(()=>{curQ++;buildDots();if(curQ<TOTAL)loadQ();else endGame();},2100);
+  const delay=ok?1800:3800;
+  if(nextQTimer)clearTimeout(nextQTimer);
+  nextQTimer=setTimeout(()=>advanceQ(),delay);
 }
 
 function handleYearAnswer(){
@@ -937,41 +1046,108 @@ function handleYearAnswer(){
   const guessed=sl?parseInt(sl.value):1992;
   const q=qs[curQ];
   const diff=Math.abs(guessed-q.year);
-  let pts=0,lbl='';
-  if(diff===0){pts=300;lbl='🎯 Exact !';}
-  else if(diff<=2){pts=200;lbl=`±${diff} an${diff>1?'s':''}`;}
-  else if(diff<=5){pts=100;lbl=`±${diff} ans`;}
-  else{lbl=`±${diff} ans — c'était ${q.year}`;}
+  let pts=0;
+  if(diff===0){pts=300;}
+  else if(diff<=2){pts=200;}
+  else if(diff<=5){pts=100;}
   clearInterval(tInt);ansed=true;
   score+=pts;
   const ok=pts>0;dotRes[curQ]=ok;
-  if(ok){okCnt++;sndOk(3);}else sndNo();
+  if(ok){okCnt++;combo++;sndOk(3);triggerCombo(combo,3);bumpScore();}else{combo=0;sndNo();}
   times.push(Math.round(MAXT-tLeft));
   const img=document.getElementById('yimg');if(img)img.style.filter='blur(0) brightness(1)';
   showToast(ok,pts,1,`${q.title} (${q.year})`);
   document.getElementById('scorehd').textContent=score+' pts';
   buildDots();
-  setTimeout(()=>{curQ++;buildDots();if(curQ<TOTAL)loadQ();else endGame();},2300);
+  const delay=ok?1800:3800;
+  if(nextQTimer)clearTimeout(nextQTimer);
+  nextQTimer=setTimeout(()=>advanceQ(),delay);
 }
 
 function handleAnswer(idx){
   if(ansed)return;
-  ansed=true;clearInterval(tInt);clearInterval(revInt);
+  ansed=true;clearInterval(tInt);clearInterval(revInt);clearInterval(quoteRevInt);
   const q=qs[curQ];
   const elapsed=MAXT-tLeft;const m=elapsed<6?3:elapsed<13?2:1;
   times.push(Math.round(elapsed));
   const btns=document.querySelectorAll('.ab');btns.forEach(b=>b.disabled=true);
   const ok=idx===q.correct;dotRes[curQ]=ok;
   if(q.type==='photo'){const img=document.getElementById('pimg');if(img)img.style.filter='blur(0) brightness(1)';document.querySelectorAll('.prp').forEach(p=>p.classList.add('on'));}
-  if(ok){btns[idx].classList.add('ok');score+=100*m;okCnt++;if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;if(q.type==='photo')photoOkCnt++;sndOk(m);showToast(true,100*m,m,null);}
-  else{if(idx>=0)btns[idx].classList.add('no');btns[q.correct].classList.add('ok');sndNo();showToast(false,0,m,q.answers[q.correct]);}
+  if(q.type==='quote'&&ok){const fr=document.getElementById('qfr');if(fr){fr.textContent='🎬 '+q.film;fr.classList.add('vis');}}
+  if(ok){
+    btns[idx].classList.add('ok');
+    const pts=100*m;score+=pts;okCnt++;
+    if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;if(q.type==='photo')photoOkCnt++;
+    combo++;
+    sndOk(m);
+    showToast(true,pts,m,null);
+    triggerCombo(combo,m);
+    bumpScore();
+  }else{
+    combo=0;
+    if(idx>=0)btns[idx].classList.add('no');btns[q.correct].classList.add('ok');
+    sndNo();showToast(false,0,m,q.answers[q.correct]);
+  }
   document.getElementById('scorehd').textContent=score+' pts';
-  setTimeout(()=>{curQ++;buildDots();if(curQ<TOTAL)loadQ();else endGame();},2000);
+  // Wrong: longer delay (3.8s) + user can close; Correct: 1.8s auto
+  const delay=ok?1800:3800;
+  if(nextQTimer)clearTimeout(nextQTimer);
+  nextQTimer=setTimeout(()=>advanceQ(),delay);
+}
+
+function forceNextQ(){
+  if(!ansed)return;
+  hideToast();
+  if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+  advanceQ();
+}
+
+function advanceQ(){
+  curQ++;buildDots();if(curQ<TOTAL)loadQ();else endGame();
+}
+
+// ── COMBO FX ──
+function triggerCombo(c,m){
+  if(c<3)return;
+  const banner=document.getElementById('combo-banner');
+  if(!banner)return;
+  const labels={3:'🔥 COMBO x3 !',4:'⚡ x4 ENCHAÎNÉ !',5:'💎 x5 EN FEU !!',6:'👑 INARRÊTABLE !',7:'🚀 INCROYABLE !',8:'🌟 LÉGENDAIRE !',9:'🏆 PARFAIT !',10:'🎭 MAÎTRE DU CINÉMA !'};
+  const colors={3:'#ff6b35',4:'var(--gold)',5:'var(--green)',6:'var(--blue)',7:'#ff6b9d',8:'var(--gold)',9:'var(--green)',10:'var(--gold)'};
+  const label=labels[Math.min(c,10)]||`🔥 x${c} COMBO !`;
+  const color=colors[Math.min(c,10)]||'var(--gold)';
+  banner.textContent=label;banner.style.color=color;
+  banner.classList.remove('pop');void banner.offsetWidth;banner.classList.add('pop');
+  // Extra score bonus for big combos
+  if(c>=5){const bonus=c*10;score+=bonus;document.getElementById('scorehd').textContent=score+' pts';}
+  // Particles
+  spawnComboParticles(color);
+  // Sound flourish
+  if(sndOn){resume();const c2=ac();if(c2){const t=c2.currentTime;sy('triangle',880,.15,.3,t);sy('triangle',1047,.15,.28,t+.08);sy('sine',1319,.2,.25,t+.16);}}
+}
+
+function bumpScore(){
+  const el=document.getElementById('scorehd');if(!el)return;
+  el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');
+  setTimeout(()=>el.classList.remove('bump'),350);
+}
+
+function spawnComboParticles(color){
+  const ov=document.getElementById('combo-overlay');if(!ov)return;
+  for(let i=0;i<12;i++){
+    const p=document.createElement('div');p.className='combo-particle';
+    const angle=Math.random()*Math.PI*2;const dist=60+Math.random()*80;
+    p.style.cssText=`left:50%;top:35%;width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;border-radius:${Math.random()>.5?'50%':'2px'};background:${color};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*720}deg;animation-duration:${.6+Math.random()*.4}s;animation-delay:${Math.random()*.1}s;`;
+    ov.appendChild(p);
+    setTimeout(()=>p.remove(),1200);
+  }
 }
 
 function showToast(ok,pts,m,ans){
   const t=document.getElementById('toast');t.className='tst '+(ok?'ok':'no');
   const tp=document.getElementById('tpts');
+  const tc=document.getElementById('tclose');
+  // Show close button only on wrong answers
+  if(tc)tc.style.display=ok?'none':'flex';
   if(ok){tp.style.color='var(--green)';tp.textContent='+'+pts+' pts';document.getElementById('tmsg').textContent=m===3?'⚡ Ultra rapide ! x3':m===2?'👍 Bien joué ! x2':'✓ Correct';document.getElementById('tans').textContent='';}
   else{tp.style.color='var(--red)';tp.textContent=ans===null?'⏱ Temps !':'✗ Raté';document.getElementById('tmsg').textContent=ans?'Bonne réponse :':'Réponds plus vite !';document.getElementById('tans').textContent=ans||'';}
   t.classList.add('on');
@@ -1006,13 +1182,23 @@ function endGame(){
   if(score>s.best)s.best=score;
   if(okCnt===TOTAL)s.perfects=(s.perfects||0)+1;
   s.fast=(s.fast||0)+fastCnt;s.photoOk=(s.photoOk||0)+photoOkCnt;s.playtime=(s.playtime||0)+playSec;
+  if(combo>s.bestCombo)s.bestCombo=combo;
   if(selMode==='photo')s.photoGames=(s.photoGames||0)+1;
   if(selMode==='year')s.yearGames=(s.yearGames||0)+1;
   if(selMode==='duo')s.duoGames=(s.duoGames||0)+1;
   if(selMode==='boxoffice')s.boGames=(s.boGames||0)+1;
+  if(selMode==='quote')s.quoteGames=(s.quoteGames||0)+1;
   const dt=new Date();s.history=[...(s.history||[]),{score,correct:okCnt,total:TOTAL,mode:selMode,xp,date:`${dt.getDate()}/${dt.getMonth()+1}`}];
   if(s.history.length>20)s.history=s.history.slice(-20);
   const{s:us}=chkBadges(s);const newLvl=glv(us.xp);ss(us);
+  // Show badge notif dot if new badges
+  if(us.unlocked.length>(s.unlocked?.length||0)||chkBadges({...s}).nb?.length>0){
+    const dot=document.getElementById('badge-dot');if(dot)dot.style.display='block';
+  }
+  // Re-check properly
+  const prevUnlocked=(JSON.parse(localStorage.getItem('cq11_prev_badges')||'[]'));
+  if(us.unlocked.length>prevUnlocked.length){const dot=document.getElementById('badge-dot');if(dot)dot.style.display='block';}
+  localStorage.setItem('cq11_prev_badges',JSON.stringify(us.unlocked));
   if(newLvl>oldLvl){
     const lv=LEVELS[newLvl];
     document.getElementById('lusb').textContent='Tu passes au niveau '+(newLvl+1);
@@ -1051,6 +1237,14 @@ function confetti(){
 // ── INIT ──
 renderThemes();
 refHome();
+// Init badge dot on reload if badges were earned before
+(()=>{
+  const s=ls();
+  const prev=JSON.parse(localStorage.getItem('cq11_prev_badges')||'[]');
+  if(s.unlocked.length>prev.length){const dot=document.getElementById('badge-dot');if(dot)dot.style.display='block';}
+  // Sync on first load
+  if(!prev.length&&s.unlocked.length){localStorage.setItem('cq11_prev_badges',JSON.stringify(s.unlocked));}
+})();
 </script>
 </body>
 </html>
