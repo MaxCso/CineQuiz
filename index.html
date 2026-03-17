@@ -134,16 +134,16 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 .dm{background:rgba(243,156,18,.15);color:#f39c12;}
 .dh{background:rgba(232,52,74,.15);color:var(--red);}
 
-/* question area — flex:1, portrait posters fill it cleanly */
-.qa{flex:1;min-height:0;padding:0 20px 4px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;}
+/* question area */
+.qa{flex:1;min-height:0;padding:0 20px 4px;display:flex;flex-direction:column;overflow:hidden;}
 .qtl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;display:flex;align-items:center;gap:7px;flex-shrink:0;}
 .qtl::after{content:'';flex:1;height:1px;background:var(--bd);}
 .qtxt{font-size:15px;font-weight:500;line-height:1.5;color:var(--tx);animation:qs .35s ease both;}
 @keyframes qs{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-/* PORTRAIT poster */
-.pmw{width:100%;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);}
-.pmw img{width:100%;display:block;aspect-ratio:2/3;object-fit:cover;object-position:center top;max-height:46dvh;}
+/* PORTRAIT poster — remplit tout l'espace flex disponible */
+.pmw{flex:1;min-height:0;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);}
+.pmw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
 .pmo{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(10,10,15,.55) 100%);pointer-events:none;}
 .prbar{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:4px;}
 .prp{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .4s;}
@@ -631,7 +631,12 @@ function buildRepliqueQuestions(){
 const TK='2dca580c2a14b55200e784d157207b4d';
 const TI='https://image.tmdb.org/t/p/w500';
 const TA='https://image.tmdb.org/t/p/w185';
-const POOL=[550,278,238,424,19404,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,438631,11,1891,1892,11138,9806,10681,585,10193,862,12,245891,372058,244786,503919,398818,724089,808,14836,218,629,641,857,769,280,2062,77338,197,578,324857,299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,82702,254128,293660,260513,321612,313369,76341,420818,346,361743,118340,283995,299537,284053,49521,38757,694919,700391,787699,385687,653346,872585,614933,569094,718789,822119,823464,976573,385128,414906,447332,573435,675353,634649,453395,616037,399170,505642,438148,566525,460465,503736,395992,556574];
+const POOL=[550,278,238,424,19404,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,438631,11,1891,1892,11138,9806,10681,585,10193,862,12,245891,372058,244786,503919,398818,724089,808,14836,218,629,641,857,769,280,2062,77338,197,578,324857,299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,82702,254128,293660,260513,321612,313369,76341,420818,346,361743,118340,283995,299537,284053,49521,38757,694919,700391,787699,385687,653346,872585,614933,569094,718789,822119,823464,976573,385128,414906,447332,573435,675353,634649,453395,616037,399170,505642,438148,566525,460465,503736,395992,556574,
+// Classiques
+348,769,107,637,624,598,77,8587,10530,671,762,207,429,274,559,101,453,105,4935,10020,9806,4247,792,1422,857,226,161,8965,22,11324,423,578,264,9619,510,578,1724,8966,297762,
+// Films récents 2018-2025
+299534,299536,299537,299538,458156,385128,497698,566525,569094,572154,580489,585511,597208,614917,634649,635302,646385,653346,661374,667257,675353,678512,680,693134,696374,718789,724089,726209,734253,748783,760104,762509,774752,787699,791226,799379,822119,823464,829799,839033,848326,872585,877817,882598,889737,912649,915935,933260,940551,945961,951891,955555,957452,965150,975359,976573,978796,984736,985939,1010600,1013860,1022789,1029575,1035048,1041613,1043905,1075794,1087822,1094138,1100782,1126166,1131459,1138194,1156593,1166489,1184918,1214314,1241982,1252171];
+
 
 const GENRE_IDS={Action:28,'Science-Fiction':878,Drame:18,Horreur:27,Animation:16,Comédie:35};
 
@@ -907,9 +912,9 @@ function loadQ(){
 
   if(q.type==='photo'){
     // PORTRAIT: game is scrollable, poster fills qa with aspect-ratio enforced
-    game.style.overflowY='auto';
-    qa.style.justifyContent='flex-start';
-    qa.style.paddingTop='4px';
+    game.style.overflowY='hidden';
+    qa.style.justifyContent='';
+    qa.style.paddingTop='';
     revStage=0;
     qa.innerHTML=`
       <div class="qtl">📸 Photo Mystère</div>
@@ -934,7 +939,7 @@ function loadQ(){
   } else if(q.type==='year'){
     game.style.overflowY='auto';
     qa.style.justifyContent='flex-start';
-    qa.style.paddingTop='4px';
+    qa.style.paddingTop='';
     const mid=1992;
     qa.innerHTML=`
       <div class="qtl">📅 Année Mystère</div>
