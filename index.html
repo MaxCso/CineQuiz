@@ -159,17 +159,85 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 .duo-vs{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--mt);letter-spacing:1px;flex-shrink:0;}
 
 /* Box-office ranking */
-.bo-list{display:flex;flex-direction:column;gap:7px;width:100%;}
-.bo-item{background:var(--sf);border:1.5px solid var(--bd);border-radius:13px;padding:11px 14px;display:flex;align-items:center;gap:12px;cursor:grab;transition:all .2s;user-select:none;}
-.bo-item.dragging{opacity:.5;border-color:var(--gold);}
-.bo-item.correct-bo{border-color:var(--green);background:rgba(46,204,113,.1);}
-.bo-item.wrong-bo{border-color:var(--red);background:rgba(232,52,74,.1);}
-.bo-rank{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--mt);width:24px;flex-shrink:0;}
-.bo-poster{width:36px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0;}
-.bo-title{flex:1;font-size:13px;font-weight:500;line-height:1.3;}
-.bo-revenue{font-size:11px;color:var(--mt);margin-top:2px;}
-.bo-handle{font-size:18px;color:var(--mt);flex-shrink:0;}
-.bo-confirm{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:14px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;margin-top:8px;flex-shrink:0;}
+.bo-list{display:flex;flex-direction:column;gap:10px;width:100%;position:relative;}
+.bo-item{
+  background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;
+  padding:13px 14px;display:flex;align-items:center;gap:12px;
+  user-select:none;touch-action:none;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .22s ease,
+             border-color .2s ease,
+             background .2s ease;
+  position:relative;
+}
+.bo-item.is-dragging{
+  transform:scale(1.03) rotate(0.8deg);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  border-color:var(--gold);
+  background:var(--sf2);
+  z-index:10;
+  opacity:.92;
+}
+.bo-item.slot-above{transform:translateY(-6px);}
+.bo-item.slot-below{transform:translateY(6px);}
+.bo-item.correct-bo{border-color:var(--green);background:rgba(46,204,113,.1);transform:none;}
+.bo-item.wrong-bo{border-color:var(--red);background:rgba(232,52,74,.1);transform:none;}
+.bo-rank{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--mt);width:26px;flex-shrink:0;line-height:1;}
+.bo-poster{width:42px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+.bo-info{flex:1;min-width:0;}
+.bo-title{font-size:14px;font-weight:600;line-height:1.3;white-space:normal;word-break:break-word;}
+.bo-year{font-size:11px;color:var(--mt);margin-top:3px;}
+.bo-handle{font-size:22px;color:rgba(255,255,255,.25);flex-shrink:0;padding:4px 2px;cursor:grab;line-height:1;}
+.bo-handle:active{cursor:grabbing;}
+.bo-confirm{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:14px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;margin-top:10px;flex-shrink:0;transition:transform .15s;}
+.bo-confirm:active{transform:scale(.97);}
+
+/* Wrong sheet — bigger, scrollable for long film lists */
+.ws-scrim{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:8000;pointer-events:none;transition:background .3s;}
+.ws-scrim.on{background:rgba(0,0,0,.65);pointer-events:all;}
+.wrong-sheet{
+  position:fixed;left:0;right:0;bottom:-100%;
+  background:var(--sf);
+  border-top:2px solid rgba(232,52,74,.5);
+  border-radius:26px 26px 0 0;
+  padding:20px 22px max(32px,env(safe-area-inset-bottom,32px));
+  z-index:8001;
+  transition:bottom .38s cubic-bezier(.22,1,.36,1);
+  max-height:85vh;
+  overflow-y:auto;
+}
+.wrong-sheet.on{bottom:0;}
+.ws-hdl{width:38px;height:4px;background:rgba(255,255,255,.14);border-radius:2px;margin:0 auto 20px;}
+.ws-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.ws-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);letter-spacing:1px;}
+.ws-x{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--tx);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-x:active{transform:scale(.88);}
+.ws-sublbl{font-size:11px;color:var(--mt);text-transform:uppercase;letter-spacing:2px;margin-bottom:11px;}
+.ws-ans{background:rgba(46,204,113,.1);border:1.5px solid var(--green);border-radius:15px;padding:16px 18px;font-size:16px;font-weight:600;color:var(--green);line-height:1.55;margin-bottom:18px;word-break:break-word;}
+/* BO correct order list inside wrong sheet */
+.ws-bo-list{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+.ws-bo-item{display:flex;align-items:center;gap:12px;background:rgba(46,204,113,.07);border:1.5px solid rgba(46,204,113,.25);border-radius:13px;padding:11px 14px;}
+.ws-bo-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--green);width:24px;flex-shrink:0;}
+.ws-bo-img{width:36px;height:52px;border-radius:7px;object-fit:cover;flex-shrink:0;}
+.ws-bo-name{font-size:14px;font-weight:600;line-height:1.3;flex:1;}
+.ws-bo-rev{font-size:11px;color:var(--mt);margin-top:2px;}
+.ws-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:15px;padding:17px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:transform .15s;}
+.ws-btn:active{transform:scale(.97);}
+
+/* ── RÉPLIQUE CULTE ── */
+.rq-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0 4px;width:100%;}
+.rq-quote-box{background:var(--sf);border:1.5px solid rgba(245,200,66,.25);border-radius:18px;padding:20px 22px;width:100%;position:relative;}
+.rq-guillemets{font-family:'Bebas Neue',sans-serif;font-size:54px;color:rgba(245,200,66,.18);line-height:1;position:absolute;top:6px;left:14px;pointer-events:none;}
+.rq-text{font-size:16px;font-weight:500;line-height:1.7;color:var(--tx);text-align:center;padding:10px 8px 0;min-height:60px;font-style:italic;}
+.rq-cursor{display:inline-block;width:2px;height:18px;background:var(--gold);margin-left:2px;vertical-align:middle;animation:blink .9s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.rq-hint{display:flex;align-items:center;gap:8px;background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2);border-radius:12px;padding:9px 14px;width:100%;font-size:12px;color:var(--blue);opacity:0;transition:opacity .6s ease;}
+.rq-hint.on{opacity:1;}
+.rq-hint-icon{font-size:16px;flex-shrink:0;}
+.rq-film-poster{width:100%;border-radius:14px;overflow:hidden;background:var(--sf2);flex-shrink:1;min-height:0;max-height:200px;position:relative;}
+.rq-film-poster img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;filter:blur(18px) brightness(.6);transition:filter 1.2s ease;}
+.rq-film-poster img.reveal{filter:blur(0) brightness(1);}
+.rq-poster-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(10,10,15,.7) 100%);}
 
 /* Year slider */
 .yslider-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 4px;}
@@ -197,21 +265,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .tpts{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-bottom:3px;}
 .tmsg{font-size:12px;color:var(--mt);}
 .tans{font-size:11px;color:var(--tx);margin-top:4px;font-style:italic;line-height:1.4;}
-/* wrong sheet — fixed, above everything */
-.ws-scrim{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:8000;pointer-events:none;transition:background .3s;}
-.ws-scrim.on{background:rgba(0,0,0,.6);pointer-events:all;}
-.wrong-sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--sf);border-top:2px solid rgba(232,52,74,.5);border-radius:24px 24px 0 0;padding:22px 22px max(30px,env(safe-area-inset-bottom,30px));z-index:8001;transition:bottom .35s cubic-bezier(.22,1,.36,1);}
-.wrong-sheet.on{bottom:0;}
-.ws-hdl{width:36px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin:0 auto 18px;}
-.ws-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.ws-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--red);letter-spacing:1px;}
-.ws-x{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--tx);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.ws-x:active{transform:scale(.88);}
-.ws-sublbl{font-size:11px;color:var(--mt);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
-.ws-ans{background:rgba(46,204,113,.1);border:1.5px solid var(--green);border-radius:14px;padding:14px 16px;font-size:15px;font-weight:600;color:var(--green);line-height:1.4;margin-bottom:16px;}
-.ws-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:14px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;}
-.ws-btn:active{transform:scale(.97);}
-
 /* LEVEL UP */
 #lvlup{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(245,200,66,.1),var(--bg) 70%);}
 .lus{font-size:42px;animation:spop .6s ease both;margin-bottom:12px;}
@@ -300,7 +353,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="mc" onclick="selectMode('photo',this)"><span class="mci">🎬</span>Photo Mystère</div>
       <div class="mc" onclick="selectMode('year',this)"><span class="mci">📅</span>Année Mystère<span class="mnew">NEW</span></div>
       <div class="mc" onclick="selectMode('duo',this)"><span class="mci">🎭</span>Duo ou Solo ?<span class="mnew">NEW</span></div>
-      <div class="mc" onclick="selectMode('boxoffice',this)" style="grid-column:1/-1"><span class="mci">💰</span>Box-office<span class="mnew">NEW</span></div>
+      <div class="mc" onclick="selectMode('boxoffice',this)"><span class="mci">💰</span>Box-office<span class="mnew">NEW</span></div>
+      <div class="mc" onclick="selectMode('replique',this)"><span class="mci">🎭</span>Réplique Culte<span class="mnew">NEW</span></div>
     </div>
     <!-- Theme (quiz only) -->
     <div id="theme-sec">
@@ -468,6 +522,9 @@ const BADGES=[
   {id:'pyear',   icon:'📅',name:'L\'Horloger',      desc:'Joue une partie Année Mystère',       cond:s=>s.yearGames>=1},
   {id:'pduo',    icon:'🎭',name:'Duo ou Solo',       desc:'Joue une partie Duo ou Solo',         cond:s=>s.duoGames>=1},
   {id:'pbo',     icon:'💰',name:'Producteur',        desc:'Joue une partie Box-office',          cond:s=>s.boGames>=1},
+  {id:'preplique',icon:'🎭',name:'Le Mot Juste',      desc:'Joue une partie Réplique Culte',       cond:s=>s.repliqueGames>=1},
+  {id:'rq10',    icon:'🗣️',name:'Scénariste',        desc:'10 bonnes réponses Réplique Culte',    cond:s=>s.repliqueOk>=10},
+  {id:'rq5perf', icon:'🎤',name:'Dialoguiste',        desc:'5 parties Réplique Culte parfaites',  cond:s=>s.repliquePerfects>=5},
   {id:'str3',    icon:'🔥',name:'En feu',            desc:'3 jours consécutifs',                 cond:s=>s.streak>=3},
   {id:'str7',    icon:'🌟',name:'Hebdo',             desc:'7 jours consécutifs',                 cond:s=>s.streak>=7},
   {id:'str30',   icon:'🌙',name:'Mois cinéma',       desc:'30 jours consécutifs',                cond:s=>s.streak>=30},
@@ -489,7 +546,7 @@ const BADGES=[
   {id:'t5h',     icon:'🕰️',name:'Cinémaniac',       desc:'5h de temps de jeu',                  cond:s=>s.playtime>=18000},
 ];
 
-const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,unlocked:[],history:[],playtime:0};
+const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,repliqueGames:0,repliqueOk:0,repliquePerfects:0,unlocked:[],history:[],playtime:0};
 const ls=()=>{try{const r=localStorage.getItem('cq11');return r?{...DEF,...JSON.parse(r)}:{...DEF};}catch{return{...DEF};}};
 const ss=s=>{try{localStorage.setItem('cq11',JSON.stringify(s));}catch{}};
 const glv=xp=>{let l=0;for(let i=LEVELS.length-1;i>=0;i--){if(xp>=LEVELS[i].xp){l=i;break;}}return l;};
@@ -500,7 +557,80 @@ function chkStreak(s){const t=new Date().toDateString(),l=s.lastDate;if(!l)s.str
 function chkBadges(s){const nb=[];BADGES.forEach(b=>{if(!s.unlocked.includes(b.id)&&b.cond(s)){s.unlocked.push(b.id);nb.push(b);}});return{s,nb};}
 
 // ══════════════════════════════
-// TMDB
+// RÉPLIQUE CULTE — base de données
+// ══════════════════════════════
+const REPLIQUES=[
+  {quote:"Tu parles à moi ? Tu parles à moi ?",film:"Taxi Driver",actor:"Robert De Niro",year:1976,hint:"Robert De Niro face à un miroir",id:353},
+  {quote:"Je vais lui faire une offre qu'il ne pourra pas refuser.",film:"Le Parrain",actor:"Marlon Brando",year:1972,hint:"Don Corleone dans son bureau",id:238},
+  {quote:"Houston, on a un problème.",film:"Apollo 13",actor:"Tom Hanks",year:1995,hint:"Tom Hanks dans une capsule spatiale",id:568},
+  {quote:"Que la Force soit avec toi.",film:"Star Wars",actor:"Alec Guinness",year:1977,hint:"Un chevalier Jedi en robe brune",id:11},
+  {quote:"Je suis le roi du monde !",film:"Titanic",actor:"Leonardo DiCaprio",year:1997,hint:"Un homme sur la proue d'un navire",id:597},
+  {quote:"La vie, c'est comme une boîte de chocolats : on ne sait jamais sur quoi on va tomber.",film:"Forrest Gump",actor:"Tom Hanks",year:1994,hint:"Tom Hanks sur un banc de parc",id:13},
+  {quote:"Vous allez avoir besoin d'un plus grand bateau.",film:"Les Dents de la mer",actor:"Roy Scheider",year:1975,hint:"Trois hommes sur un petit bateau face à une immense mâchoire",id:578},
+  {quote:"Je vois des gens morts.",film:"Sixième Sens",actor:"Haley Joel Osment",year:1999,hint:"Un enfant chuchotant dans le noir",id:745},
+  {quote:"Montre-moi l'argent !",film:"Jerry Maguire",actor:"Cuba Gooding Jr.",year:1996,hint:"Un joueur de football criant au téléphone",id:629},
+  {quote:"Il n'est pas de mauvaise herbe, et il n'est pas de mauvais homme. Il n'y a que de mauvais cultivateurs.",film:"Les Misérables",actor:"Charles Laughton",year:1935,hint:"Un texte de Victor Hugo à l'écran",id:197},
+  {quote:"Je reviendrai.",film:"Terminator",actor:"Arnold Schwarzenegger",year:1984,hint:"Un cyborg en lunettes noires et cuir",id:218},
+  {quote:"Voler ! Pourquoi un homme volerait-il, si ce n'est pour atteindre les étoiles ?",film:"Interstellar",actor:"Matthew McConaughey",year:2014,hint:"Un astronaute regardant les étoiles",id:157336},
+  {quote:"L'argent ne fait pas le bonheur de ceux qui n'en ont pas.",film:"L'Argent fait le bonheur",actor:"José Garcia",year:1996,hint:"Deux amis en dispute comique",id:0},
+  {quote:"Sois gentil, rembobine.",film:"Super",actor:"Rainn Wilson",year:2010,hint:"Une pancarte dans une vidéothèque",id:0},
+  {quote:"Avec un grand pouvoir vient une grande responsabilité.",film:"Spider-Man",actor:"Cliff Robertson",year:2002,hint:"Un oncle bienveillant sur son lit de mort",id:557},
+  {quote:"Mon précieux…",film:"Le Seigneur des Anneaux : Les Deux Tours",actor:"Andy Serkis",year:2002,hint:"Une créature blafarde dans une caverne sombre",id:120},
+  {quote:"Pourquoi tant de sérieux ?",film:"The Dark Knight",actor:"Heath Ledger",year:2008,hint:"Un homme au maquillage blanc et rouge avec une cicatrice",id:155},
+  {quote:"Je peux le faire toute la journée.",film:"Captain America : First Avenger",actor:"Chris Evans",year:2011,hint:"Un jeune homme maigre dans une ruelle",id:1771},
+  {quote:"Tu ne passeras pas !",film:"Le Seigneur des Anneaux : La Communauté de l'Anneau",actor:"Ian McKellen",year:2001,hint:"Un vieux mage sur un pont de pierre",id:120},
+  {quote:"Hakuna Matata.",film:"Le Roi Lion",actor:"Nathan Lane",year:1994,hint:"Un phacochère et un suricate dans la savane",id:8587},
+  {quote:"Il faut imaginer Sisyphe heureux.",film:"La Haine",actor:"Vincent Cassel",year:1995,hint:"Banlieue parisienne en noir et blanc",id:176},
+  {quote:"Quand j'aurai besoin de ton avis, je te le demanderai.",film:"Le Diable s'habille en Prada",actor:"Meryl Streep",year:2006,hint:"Une rédactrice en chef élégante au regard glacial",id:349},
+  {quote:"Je suis indestructible.",film:"Die Hard",actor:"Bruce Willis",year:1988,hint:"Un homme en débardeur blanc couvert de sueur dans un gratte-ciel",id:562},
+  {quote:"Ne me libère pas, libère-toi de moi.",film:"La Vie d'Adèle",actor:"Adèle Exarchopoulos",year:2013,hint:"Deux jeunes femmes dans un appartement",id:186869},
+  {quote:"Mets-toi à ma place.",film:"Les Intouchables",actor:"François Cluzet",year:2011,hint:"Un homme en fauteuil roulant face à son aide-soignant",id:77338},
+  {quote:"Je ne suis pas un homme courageux. Je suis simplement persistant.",film:"Whiplash",actor:"J.K. Simmons",year:2014,hint:"Un chef d'orchestre suant sous les projecteurs",id:244786},
+  {quote:"C'est beau, la vie.",film:"La La Land",actor:"Emma Stone",year:2016,hint:"Une actrice chantant dans un studio de Los Angeles",id:313369},
+  {quote:"Je suis Groot.",film:"Les Gardiens de la Galaxie",actor:"Vin Diesel",year:2014,hint:"Un arbre géant violet et bienveillant",id:118340},
+  {quote:"Chaque centime compte.",film:"Parasite",actor:"Song Kang-ho",year:2019,hint:"Une famille dans un sous-sol humide",id:496243},
+  {quote:"L'enfer, c'est les autres.",film:"Huis Clos",actor:"Arletty",year:1954,hint:"Trois personnages enfermés dans une pièce sans fenêtre",id:0},
+  {quote:"On est tous des clowns.",film:"Joker",actor:"Joaquin Phoenix",year:2019,hint:"Un homme au maquillage clownesque dans un escalier",id:475557},
+  {quote:"Ne jamais renoncer, ne jamais capituler.",film:"Galaxy Quest",actor:"Tim Allen",year:1999,hint:"Un acteur de série SF mimant un capitaine",id:10527},
+  {quote:"C'est ma vie, et j'en fais ce que je veux.",film:"Pulp Fiction",actor:"John Travolta",year:1994,hint:"Deux hommes en costumes noirs avec des pistolets",id:680},
+  {quote:"Vous ne pouvez pas gérer la vérité !",film:"Des Hommes d'honneur",actor:"Jack Nicholson",year:1992,hint:"Un officier de marine à la barre d'un tribunal",id:745},
+  {quote:"Attends, c'est toi le méchant là ?",film:"La Grande Arnaque",actor:"Brad Pitt",year:2001,hint:"Un homme décontracté mangeant en permanence",id:64690},
+  {quote:"Je mens toujours, donc si je dis que je mens, est-ce que je mens ?",film:"Inception",actor:"Leonardo DiCaprio",year:2010,hint:"Un homme dans un couloir qui se courbe",id:27205},
+  {quote:"La nuit est sombre et pleine de terreurs.",film:"Game of Thrones (le film)",actor:"Carice van Houten",year:2019,hint:"Une femme rousse aux yeux clairs devant des flammes",id:0},
+  {quote:"Bonne nuit, bonne chance.",film:"Good Night, and Good Luck",actor:"David Strathairn",year:2005,hint:"Un journaliste TV derrière un bureau avec une cigarette",id:4147},
+  {quote:"On ne parle pas du Club des poings.",film:"Fight Club",actor:"Brad Pitt",year:1999,hint:"Deux hommes ensanglantés dans un sous-sol",id:550},
+  {quote:"Je veux que tu aies peur.",film:"Nightmare on Elm Street",actor:"Robert Englund",year:1984,hint:"Une main griffue sur fond de flammes rouges",id:616},
+  {quote:"Tu dois être le changement que tu veux voir dans le monde.",film:"Gandhi",actor:"Ben Kingsley",year:1982,hint:"Un homme en toge blanche marchant au soleil",id:1366},
+  {quote:"Bienvenue dans le désert du réel.",film:"Matrix",actor:"Laurence Fishburne",year:1999,hint:"Un homme au manteau en cuir tenant deux pilules",id:603},
+  {quote:"Après tout, demain est un autre jour.",film:"Autant en emporte le vent",actor:"Vivien Leigh",year:1939,hint:"Une femme en robe verte regardant l'horizon au crépuscule",id:770},
+];
+
+function buildRepliqueQuestions(){
+  const pool=shuffle([...REPLIQUES]).slice(0,TOTAL+5);
+  const qs=[];
+  for(let i=0;i<pool.length&&qs.length<TOTAL;i++){
+    const q=pool[i];
+    const wrongFilms=REPLIQUES.filter(r=>r.film!==q.film).map(r=>r.film);
+    const uniq=[...new Set(wrongFilms)];
+    if(uniq.length<3)continue;
+    const wrong=shuffle(uniq).slice(0,3);
+    const answers=shuffle([q.film,...wrong]);
+    qs.push({
+      type:'replique',
+      quote:q.quote,
+      film:q.film,
+      actor:q.actor,
+      year:q.year,
+      hint:q.hint,
+      answers,
+      correct:answers.indexOf(q.film),
+      difficulty:'medium',
+      category:'Réplique Culte'
+    });
+  }
+  return qs;
+}
+
 // ══════════════════════════════
 const TK='2dca580c2a14b55200e784d157207b4d';
 const TI='https://image.tmdb.org/t/p/w500';
@@ -652,7 +782,7 @@ function refProfile(){
   const hist=document.getElementById('p-hist');hist.innerHTML='';
   const rec=[...(s.history||[])].reverse().slice(0,6);
   if(!rec.length)hist.innerHTML='<div style="color:var(--mt);font-size:13px;text-align:center;padding:18px 0">Aucune partie pour l\'instant</div>';
-  else rec.forEach(h=>{const icons=['😅','🎬','⭐','🏆','🎭'];const idx=Math.min(Math.floor((h.correct/h.total)*4),4);const mi=h.mode==='photo'?'📸':h.mode==='year'?'📅':h.mode==='duo'?'🎭':h.mode==='boxoffice'?'💰':'⚡';hist.innerHTML+=`<div class="hitem"><div class="hi">${icons[idx]}</div><div class="hinfo"><div class="hs">${h.score} pts</div><div class="hd">${mi} ${h.correct}/${h.total} · +${h.xp} XP</div></div><div class="hdate">${h.date}</div></div>`;});
+  else rec.forEach(h=>{const icons=['😅','🎬','⭐','🏆','🎭'];const idx=Math.min(Math.floor((h.correct/h.total)*4),4);const mi=h.mode==='photo'?'📸':h.mode==='year'?'📅':h.mode==='duo'?'🎭':h.mode==='boxoffice'?'💰':h.mode==='replique'?'🗣️':'⚡';hist.innerHTML+=`<div class="hitem"><div class="hi">${icons[idx]}</div><div class="hinfo"><div class="hs">${h.score} pts</div><div class="hd">${mi} ${h.correct}/${h.total} · +${h.xp} XP</div></div><div class="hdate">${h.date}</div></div>`;});
 }
 
 function openBadge(id){
@@ -729,8 +859,16 @@ async function startGame(){
       if(boQs.length<4)throw new Error('Not enough BO rounds');
       qs=boQs.slice(0,TOTAL);
       setStep(0,'don');setStep(1,'act');setStep(1,'don');
+    } else if(selMode==='replique'){
+      sltxt('Chargement des répliques…');
+      initSteps([{icon:'🎭',label:'Sélection des répliques cultes'},{icon:'🎬',label:'Préparation du quiz'}]);
+      setStep(0,'act');
+      await new Promise(r=>setTimeout(r,300));
+      qs=buildRepliqueQuestions();
+      if(qs.length<4)throw new Error('Not enough quotes');
+      setStep(0,'don');setStep(1,'act');
+      await new Promise(r=>setTimeout(r,200));setStep(1,'don');
     } else {
-      // Quiz mode
       sltxt('Chargement des questions…');
       initSteps([{icon:'🌐',label:'Récupération des questions'},{icon:'🇫🇷',label:'Traduction en français'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');
@@ -759,8 +897,8 @@ function loadQ(){
   document.getElementById('qcat').textContent=q.category;
   document.getElementById('scorehd').textContent=score+' pts';
   const db=document.getElementById('dbadge');
-  db.textContent=q.difficulty==='easy'?'😌 Facile':q.difficulty==='hard'?'🔥 Difficile':'🎯 Moyen';
-  db.className='dbd '+(q.difficulty==='easy'?'de':q.difficulty==='hard'?'dh':'dm');
+  if(q.type==='replique'){db.textContent='🎭 Réplique';db.className='dbd dm';}
+  else{db.textContent=q.difficulty==='easy'?'😌 Facile':q.difficulty==='hard'?'🔥 Difficile':'🎯 Moyen';db.className='dbd '+(q.difficulty==='easy'?'de':q.difficulty==='hard'?'dh':'dm');}
   buildDots();
 
   const game=document.getElementById('game');
@@ -857,6 +995,30 @@ function loadQ(){
     tLeft=30;updateTimerUI();
     tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();if(tLeft<=0){clearInterval(tInt);if(!ansed)handleBOAnswer(q);}},100);
 
+  } else if(q.type==='replique'){
+    game.style.overflowY='hidden';
+    qa.innerHTML=`
+      <div class="qtl">🎭 Réplique Culte</div>
+      <div class="rq-wrap">
+        <div class="rq-quote-box">
+          <div class="rq-guillemets">"</div>
+          <div class="rq-text" id="rq-text"></div>
+        </div>
+        <div class="rq-hint" id="rq-hint">
+          <span class="rq-hint-icon">💡</span>
+          <span id="rq-hint-txt">${q.hint}</span>
+        </div>
+      </div>`;
+    q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+    // Effet machine à écrire
+    typewriterEffect(q.quote,'rq-text',()=>{});
+    // Indice après 8s
+    setTimeout(()=>{
+      const h=document.getElementById('rq-hint');
+      if(h&&!ansed)h.classList.add('on');
+    },8000);
+    startTimer();
+
   } else {
     game.style.overflowY='hidden';
     qa.innerHTML=`<div class="qtl">🎬 Question</div><div class="qtxt">${q.text}</div>`;
@@ -865,74 +1027,209 @@ function loadQ(){
   }
 }
 
+function typewriterEffect(text,targetId,onDone){
+  const el=document.getElementById(targetId);
+  if(!el)return;
+  el.innerHTML='<span class="rq-cursor"></span>';
+  let i=0;
+  const cursor=el.querySelector('.rq-cursor');
+  const interval=setInterval(()=>{
+    if(i>=text.length){
+      clearInterval(interval);
+      if(cursor)cursor.remove();
+      onDone();
+      return;
+    }
+    const char=text[i];
+    const t=document.createTextNode(char);
+    el.insertBefore(t,cursor);
+    i++;
+  },38);
+}
+
 function mkBtn(a,i){const b=document.createElement('button');b.className='ab';b.textContent=a;b.style.animationDelay=(i*.06)+'s';b.onclick=()=>handleAnswer(i);return b;}
 
-// ── Box-office drag ──
+// ── Box-office drag — smooth touch/mouse ──
+let dragOrder=[],dragIdx=null;
+let touchDragIdx=null,touchStartY=0,touchCurrentY=0,touchDragEl=null;
+
 function renderBOList(q){
   const qa=document.getElementById('qa');
   let existing=document.getElementById('bo-list');
   if(existing)existing.remove();
-  const ul=document.createElement('div');ul.className='bo-list';ul.id='bo-list';
+  const ul=document.createElement('div');
+  ul.className='bo-list';ul.id='bo-list';
   dragOrder.forEach((mi,pos)=>{
     const m=q.movies[mi];
     const li=document.createElement('div');
-    li.className='bo-item';li.dataset.idx=mi;li.draggable=true;
-    li.innerHTML=`<div class="bo-rank">${pos+1}</div><img class="bo-poster" src="${m.poster}" crossorigin="anonymous"><div class="bo-title">${m.title}<div class="bo-revenue">${m.year}</div></div><div class="bo-handle">☰</div>`;
-    // Touch drag
-    li.addEventListener('touchstart',e=>onTouchStart(e,mi),{passive:true});
-    li.addEventListener('touchmove',e=>onTouchMove(e),{passive:false});
-    li.addEventListener('touchend',e=>onTouchEnd(e,q));
-    li.addEventListener('dragstart',()=>dragIdx=mi);
-    li.addEventListener('dragover',e=>{e.preventDefault();onDragOver(mi,q);});
-    li.addEventListener('drop',e=>{e.preventDefault();});
+    li.className='bo-item';
+    li.dataset.mi=mi;
+    li.dataset.pos=pos;
+    li.innerHTML=`
+      <div class="bo-rank">${pos+1}</div>
+      <img class="bo-poster" src="${m.poster}" crossorigin="anonymous" loading="lazy">
+      <div class="bo-info">
+        <div class="bo-title">${m.title}</div>
+        <div class="bo-year">${m.year}</div>
+      </div>
+      <div class="bo-handle">⠿</div>`;
+    const handle=li.querySelector('.bo-handle');
+    handle.addEventListener('touchstart',e=>{e.preventDefault();startTouchDrag(e,parseInt(mi),li,q);},{passive:false});
+    handle.addEventListener('mousedown',e=>{startMouseDrag(e,parseInt(mi),li,q);});
     ul.appendChild(li);
   });
   qa.appendChild(ul);
 }
-let touchStartY=0,touchDragIdx=null;
-function onTouchStart(e,mi){touchStartY=e.touches[0].clientY;touchDragIdx=mi;}
-function onTouchMove(e){
-  e.preventDefault();
-  const y=e.touches[0].clientY;const dy=y-touchStartY;
-  if(Math.abs(dy)>20){
-    const dir=dy>0?1:-1;
-    const i=dragOrder.indexOf(touchDragIdx);const ni=Math.max(0,Math.min(dragOrder.length-1,i+dir));
-    if(ni!==i){[dragOrder[i],dragOrder[ni]]=[dragOrder[ni],dragOrder[i]];renderBOList(qs[curQ]);touchStartY=y;}
-  }
+
+function startTouchDrag(e,mi,li,q){
+  touchDragIdx=mi;
+  touchDragEl=li;
+  touchStartY=e.touches[0].clientY;
+  touchCurrentY=touchStartY;
+  li.classList.add('is-dragging');
+  const move=ev=>{
+    ev.preventDefault();
+    touchCurrentY=ev.touches[0].clientY;
+    const dy=touchCurrentY-touchStartY;
+    li.style.transform=`scale(1.03) rotate(0.8deg) translateY(${dy}px)`;
+    updateSlotHints(mi,touchCurrentY,q);
+  };
+  const end=()=>{
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('touchend',end);
+    li.classList.remove('is-dragging');
+    li.style.transform='';
+    // Apply reorder
+    const newPos=getTargetPos(mi,touchCurrentY,q);
+    if(newPos!==null){reorderBO(mi,newPos,q);}
+    else{clearSlotHints();}
+  };
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',end,{once:true});
 }
-function onTouchEnd(){}
-function onDragOver(targetIdx,q){
-  if(dragIdx===null||dragIdx===targetIdx)return;
-  const fi=dragOrder.indexOf(dragIdx);const ti=dragOrder.indexOf(targetIdx);
-  [dragOrder[fi],dragOrder[ti]]=[dragOrder[ti],dragOrder[fi]];
-  dragIdx=targetIdx;renderBOList(q);
+
+function startMouseDrag(e,mi,li,q){
+  e.preventDefault();
+  let curY=e.clientY;
+  li.classList.add('is-dragging');
+  const move=ev=>{
+    const dy=ev.clientY-curY;
+    curY=ev.clientY;
+    li.style.transform=`scale(1.03) rotate(0.8deg) translateY(${(parseFloat(li.style.transform?.match(/translateY\((-?\d+\.?\d*)px\)/)?.[1]||0))+dy}px)`;
+    updateSlotHints(mi,ev.clientY,q);
+  };
+  const end=ev=>{
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('mouseup',end);
+    li.classList.remove('is-dragging');
+    li.style.transform='';
+    const newPos=getTargetPos(mi,ev.clientY,q);
+    if(newPos!==null)reorderBO(mi,newPos,q);
+    else clearSlotHints();
+  };
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',end,{once:true});
+}
+
+function getTargetPos(mi,clientY,q){
+  const list=document.getElementById('bo-list');
+  if(!list)return null;
+  const items=[...list.querySelectorAll('.bo-item')].filter(el=>parseInt(el.dataset.mi)!==mi);
+  let target=null;
+  items.forEach(item=>{
+    const rect=item.getBoundingClientRect();
+    if(clientY>rect.top&&clientY<rect.bottom){target=parseInt(item.dataset.pos);}
+  });
+  return target;
+}
+
+function updateSlotHints(mi,clientY,q){
+  const list=document.getElementById('bo-list');if(!list)return;
+  list.querySelectorAll('.bo-item').forEach(el=>{
+    el.classList.remove('slot-above','slot-below');
+    if(parseInt(el.dataset.mi)===mi)return;
+    const rect=el.getBoundingClientRect();
+    const mid=rect.top+rect.height/2;
+    if(clientY<mid&&clientY>rect.top-20)el.classList.add('slot-above');
+    else if(clientY>mid&&clientY<rect.bottom+20)el.classList.add('slot-below');
+  });
+}
+
+function clearSlotHints(){
+  document.querySelectorAll('.bo-item').forEach(el=>el.classList.remove('slot-above','slot-below'));
+}
+
+function reorderBO(mi,targetPos,q){
+  clearSlotHints();
+  const curPos=dragOrder.indexOf(mi);
+  if(curPos===targetPos){renderBOList(q);return;}
+  const newOrder=[...dragOrder];
+  newOrder.splice(curPos,1);
+  newOrder.splice(targetPos,0,mi);
+  dragOrder=newOrder;
+  renderBOList(q);
+  // Animate new positions with a quick fade
+  const list=document.getElementById('bo-list');
+  if(list)list.querySelectorAll('.bo-item').forEach((el,i)=>{
+    el.style.opacity='0';el.style.transform='translateY(8px)';
+    requestAnimationFrame(()=>{
+      el.style.transition='opacity .2s ease,transform .2s ease';
+      el.style.opacity='1';el.style.transform='';
+      setTimeout(()=>el.style.transition='',220);
+    });
+  });
 }
 
 function handleBOAnswer(q){
   if(ansed)return;
   ansed=true;clearInterval(tInt);
+  clearSlotHints();
   const userOrder=dragOrder.map(i=>q.movies[i].id);
   const correct=q.correctOrder;
-  // Score: 25pts per correct position
   let ok=0;
   userOrder.forEach((id,i)=>{if(id===correct[i])ok++;});
   const pts=ok*25;
   dotRes[curQ]=ok>=3;
   score+=pts;
   if(ok>=3)okCnt++;
-  // Show correct/wrong on items
+  // Reveal correct/wrong colors on items
   const items=document.querySelectorAll('.bo-item');
   items.forEach((li,i)=>{
     const id=q.movies[dragOrder[i]].id;
     li.classList.add(id===correct[i]?'correct-bo':'wrong-bo');
     li.querySelector('.bo-rank').textContent=i+1;
   });
-  // Show correct revenue order in toast
-  if(ok>0)sndOk(ok>=3?3:ok>=2?2:1);else sndNo();
-  const ans=correct.map(id=>q.movies.find(m=>m.id===id).title).join(' > ');
-  showToast(ok>=3,pts,1,ok<4?`Ordre: ${ans.slice(0,55)}…`:null);
+  if(ok>=3)sndOk(ok===4?3:2);else sndNo();
+  const isOk=ok>=3;
+  // Build correct order list for wrong sheet
+  const correctMovies=correct.map(id=>q.movies.find(m=>m.id===id));
+  const boList=`<div class="ws-bo-list">${correctMovies.map((m,i)=>`
+    <div class="ws-bo-item">
+      <div class="ws-bo-num">${i+1}</div>
+      <img class="ws-bo-img" src="${m.poster}" crossorigin="anonymous">
+      <div><div class="ws-bo-name">${m.title}</div><div class="ws-bo-rev">${m.year}</div></div>
+    </div>`).join('')}</div>`;
   document.getElementById('scorehd').textContent=score+' pts';
   buildDots();
+  if(isOk){
+    // Correct: auto-advance after short delay
+    showToast(true,pts,2,null);
+  } else {
+    // Wrong: show full correct order in bottom sheet
+    document.getElementById('ws-title').textContent=ok===0?'✗ Raté !':`${ok}/4 correct`;
+    // Replace ws-ans with full BO list
+    const wsAns=document.getElementById('ws-ans');
+    wsAns.style.display='none';
+    // Insert BO list before ws-ans
+    const existing=document.getElementById('ws-bo-list-inner');
+    if(existing)existing.remove();
+    const div=document.createElement('div');
+    div.id='ws-bo-list-inner';
+    div.innerHTML=`<div class="ws-sublbl" style="margin-top:0">Ordre correct</div>${boList}`;
+    wsAns.parentNode.insertBefore(div,wsAns);
+    document.getElementById('wrong-sheet').classList.add('on');
+    document.getElementById('ws-scrim').classList.add('on');
+  }
 }
 
 function handleDuoAnswer(userSaysYes){
@@ -987,13 +1284,17 @@ function handleAnswer(idx){
   const btns=document.querySelectorAll('.ab');btns.forEach(b=>b.disabled=true);
   const ok=idx===q.correct;dotRes[curQ]=ok;
   if(q.type==='photo'){const img=document.getElementById('pimg');if(img)img.style.filter='blur(0) brightness(1)';document.querySelectorAll('.prp').forEach(p=>p.classList.add('on'));}
+  // Pour réplique : toujours afficher l'indice après réponse
+  if(q.type==='replique'){const h=document.getElementById('rq-hint');if(h)h.classList.add('on');}
   if(ok){
     btns[idx].classList.add('ok');score+=100*m;okCnt++;
     if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;if(q.type==='photo')photoOkCnt++;
-    sndOk(m);showToast(true,100*m,m,null);
+    const toastExtra=q.type==='replique'?`${q.film} · ${q.year}`:null;
+    sndOk(m);showToast(true,100*m,m,toastExtra);
   }else{
     if(idx>=0)btns[idx].classList.add('no');btns[q.correct].classList.add('ok');
-    sndNo();showToast(false,0,m,idx===-1?null:q.answers[q.correct]);
+    const wrongAns=idx===-1?null:(q.type==='replique'?`${q.answers[q.correct]} · ${q.year} (${q.actor})`:q.answers[q.correct]);
+    sndNo();showToast(false,0,m,wrongAns);
   }
   document.getElementById('scorehd').textContent=score+' pts';
 }
@@ -1006,7 +1307,7 @@ function showToast(ok,pts,m,ans){
     document.getElementById('tpts').style.color='var(--green)';
     document.getElementById('tpts').textContent='+'+pts+' pts';
     document.getElementById('tmsg').textContent=m===3?'⚡ Ultra rapide ! x3':m===2?'👍 Bien joué ! x2':'✓ Correct';
-    document.getElementById('tans').textContent='';
+    document.getElementById('tans').textContent=ans||'';
     t.classList.add('on');
     // auto-dismiss après 1.6s
     if(nextQTimer)clearTimeout(nextQTimer);
@@ -1023,6 +1324,11 @@ function hideToast(){document.getElementById('toast').classList.remove('on');}
 function closeWrongSheet(){
   document.getElementById('wrong-sheet').classList.remove('on');
   document.getElementById('ws-scrim').classList.remove('on');
+  // Restore ws-ans visibility and remove injected BO list
+  const wsAns=document.getElementById('ws-ans');
+  if(wsAns)wsAns.style.display='';
+  const boInner=document.getElementById('ws-bo-list-inner');
+  if(boInner)boInner.remove();
   advanceQ();
 }
 function advanceQ(){curQ++;buildDots();if(curQ<TOTAL)loadQ();else endGame();}
@@ -1049,7 +1355,7 @@ function endGame(){
   let s=ls();const oldLvl=glv(s.xp);
   s=chkStreak(s);
   const base=Math.floor(score/10);
-  const bonus=(okCnt===TOTAL?50:0)+(selMode==='photo'?30:0)+(selMode==='duo'?25:0)+(selMode==='boxoffice'?35:0)+(selMode==='year'?20:0);
+  const bonus=(okCnt===TOTAL?50:0)+(selMode==='photo'?30:0)+(selMode==='duo'?25:0)+(selMode==='boxoffice'?35:0)+(selMode==='year'?20:0)+(selMode==='replique'?25:0);
   const xp=Math.floor(base+bonus);
   s.xp+=xp;s.games++;s.correct+=okCnt;s.questions+=TOTAL;
   if(score>s.best)s.best=score;
@@ -1059,6 +1365,7 @@ function endGame(){
   if(selMode==='year')s.yearGames=(s.yearGames||0)+1;
   if(selMode==='duo')s.duoGames=(s.duoGames||0)+1;
   if(selMode==='boxoffice')s.boGames=(s.boGames||0)+1;
+  if(selMode==='replique'){s.repliqueGames=(s.repliqueGames||0)+1;s.repliqueOk=(s.repliqueOk||0)+okCnt;if(okCnt===TOTAL)s.repliquePerfects=(s.repliquePerfects||0)+1;}
   const dt=new Date();s.history=[...(s.history||[]),{score,correct:okCnt,total:TOTAL,mode:selMode,xp,date:`${dt.getDate()}/${dt.getMonth()+1}`}];
   if(s.history.length>20)s.history=s.history.slice(-20);
   const{s:us}=chkBadges(s);const newLvl=glv(us.xp);ss(us);
