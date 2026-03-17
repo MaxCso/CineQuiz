@@ -42,13 +42,14 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 /* badges strip */
 .bscroll{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none;}
 .bscroll::-webkit-scrollbar{display:none;}
-.bc{flex-shrink:0;background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:8px 11px;text-align:center;min-width:62px;cursor:pointer;transition:transform .15s;}
+.bc{flex-shrink:0;background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:8px 11px;text-align:center;min-width:62px;cursor:pointer;transition:transform .15s;position:relative;}
 .bc.ok{border-color:rgba(245,200,66,.35);background:rgba(245,200,66,.06);}
-.bc.lk{opacity:.28;filter:grayscale(1);}
+.bc.lk{opacity:.22;filter:grayscale(1);}
 .bc:active{transform:scale(.91);}
 .bci{font-size:19px;margin-bottom:2px;}
 .bcn{font-size:9px;color:var(--mt);}
 .bc.ok .bcn{color:var(--gold);}
+.bc-new{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--red);border-radius:50%;border:2px solid var(--bg);}
 
 /* mode grid */
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
@@ -542,7 +543,7 @@ const BADGES=[
   {id:'t5h',     icon:'🕰️',name:'Cinémaniac',       desc:'5h de temps de jeu',                  cond:s=>s.playtime>=18000},
 ];
 
-const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,repliqueGames:0,repliqueOk:0,repliquePerfects:0,unlocked:[],history:[],playtime:0};
+const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,repliqueGames:0,repliqueOk:0,repliquePerfects:0,unlocked:[],seen:[],history:[],playtime:0};
 const ls=()=>{try{const r=localStorage.getItem('cq11');return r?{...DEF,...JSON.parse(r)}:{...DEF};}catch{return{...DEF};}};
 const ss=s=>{try{localStorage.setItem('cq11',JSON.stringify(s));}catch{}};
 const glv=xp=>{let l=0;for(let i=LEVELS.length-1;i>=0;i--){if(xp>=LEVELS[i].xp){l=i;break;}}return l;};
@@ -763,7 +764,13 @@ function refHome(){
   document.getElementById('h-gms').textContent=s.games;
   const ul=s.unlocked.length;
   document.getElementById('h-bct').textContent=ul+' débloqué'+(ul>1?'s':'');
-  document.getElementById('h-bdg').innerHTML=BADGES.map(b=>{const ok=s.unlocked.includes(b.id);return`<div class="bc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')"><div class="bci">${b.icon}</div><div class="bcn">${b.name}</div></div>`;}).join('');
+  // Trier : débloqués en premier, puis verrouillés
+  const sorted=[...BADGES].sort((a,b)=>{const ao=s.unlocked.includes(a.id),bo=s.unlocked.includes(b.id);return ao===bo?0:ao?-1:1;});
+  document.getElementById('h-bdg').innerHTML=sorted.map(b=>{
+    const ok=s.unlocked.includes(b.id);
+    const isNew=ok&&!(s.seen||[]).includes(b.id);
+    return`<div class="bc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')">${isNew?'<div class="bc-new"></div>':''}<div class="bci">${b.icon}</div><div class="bcn">${b.name}</div></div>`;
+  }).join('');
 }
 function goProfile(){refProfile();go('profile');}
 function refProfile(){
@@ -789,6 +796,13 @@ function refProfile(){
 function openBadge(id){
   const b=BADGES.find(x=>x.id===id);if(!b)return;
   const s=ls();const ok=s.unlocked.includes(id);
+  // Marquer comme vu si débloqué
+  if(ok&&!(s.seen||[]).includes(id)){
+    s.seen=[...(s.seen||[]),id];ss(s);
+    // Retirer la pastille du badge cliqué
+    const el=document.querySelector(`[onclick="openBadge('${id}')"] .bc-new`);
+    if(el)el.remove();
+  }
   document.getElementById('mbi').textContent=b.icon;
   document.getElementById('mbn').textContent=b.name;
   document.getElementById('mbd').textContent=b.desc;
