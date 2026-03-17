@@ -141,10 +141,10 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 .qtxt{font-size:15px;font-weight:500;line-height:1.5;color:var(--tx);animation:qs .35s ease both;}
 @keyframes qs{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-/* PORTRAIT poster — key fix: height is constrained by flex parent */
+/* PORTRAIT poster — affiche complète en contain */
 .pmw{width:100%;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);flex-shrink:1;min-height:0;}
-.pmw img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
-.pmo{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(10,10,15,.55) 100%);}
+.pmw img{width:100%;display:block;object-fit:contain;object-position:center;background:var(--sf2);max-height:42dvh;}
+.pmo{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(10,10,15,.55) 100%);pointer-events:none;}
 .prbar{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:4px;}
 .prp{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .4s;}
 .prp.on{background:var(--gold);}
@@ -356,11 +356,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="mc" onclick="selectMode('boxoffice',this)"><span class="mci">💰</span>Box-office<span class="mnew">NEW</span></div>
       <div class="mc" onclick="selectMode('replique',this)"><span class="mci">🎭</span>Réplique Culte<span class="mnew">NEW</span></div>
     </div>
-    <!-- Theme (quiz only) -->
-    <div id="theme-sec">
-      <div class="shd" style="margin-bottom:8px;">Thème</div>
-      <div class="trow" id="trow"></div>
-    </div>
+    <div id="theme-sec" style="display:none"><div class="trow" id="trow"></div></div>
     <button class="pbtn" onclick="startGame()">🎬 JOUER</button>
   </div>
 
@@ -903,6 +899,9 @@ function loadQ(){
 
   const game=document.getElementById('game');
   const qa=document.getElementById('qa');
+  // Reset styles inline potentiellement posés par le mode réplique
+  qa.style.overflow='';
+  qa.style.justifyContent='';
   const grid=document.getElementById('agrid');
   grid.innerHTML='';
 
@@ -912,8 +911,8 @@ function loadQ(){
     revStage=0;
     qa.innerHTML=`
       <div class="qtl">📸 Photo Mystère</div>
-      <div class="pmw" id="pmw" style="max-height:240px">
-        <img id="pimg" src="${q.poster}" alt="?" style="filter:blur(22px) brightness(.7);transition:filter 1.8s ease;width:100%;aspect-ratio:2/3;object-fit:cover;object-position:center top;display:block;" crossorigin="anonymous">
+      <div class="pmw" id="pmw">
+        <img id="pimg" src="${q.poster}" alt="?" style="filter:blur(22px) brightness(.7);transition:filter 1.8s ease;width:100%;aspect-ratio:2/3;" crossorigin="anonymous">
         <div class="pmo"></div>
         <div class="prhint">Quel film ?</div>
         <div class="prbar"><div class="prp" id="pp0"></div><div class="prp" id="pp1"></div><div class="prp" id="pp2"></div><div class="prp" id="pp3"></div></div>
@@ -935,8 +934,8 @@ function loadQ(){
     const mid=1992;
     qa.innerHTML=`
       <div class="qtl">📅 Année Mystère</div>
-      <div class="pmw" style="max-height:240px">
-        <img id="yimg" src="${q.poster}" alt="?" style="filter:blur(14px) brightness(.7);transition:filter .5s;width:100%;aspect-ratio:2/3;object-fit:cover;object-position:center top;display:block;" crossorigin="anonymous">
+      <div class="pmw">
+        <img id="yimg" src="${q.poster}" alt="?" style="filter:blur(14px) brightness(.7);transition:filter .5s;width:100%;aspect-ratio:2/3;" crossorigin="anonymous">
         <div class="pmo"></div>
       </div>
       <div class="yslider-wrap">
@@ -996,7 +995,9 @@ function loadQ(){
     tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();if(tLeft<=0){clearInterval(tInt);if(!ansed)handleBOAnswer(q);}},100);
 
   } else if(q.type==='replique'){
-    game.style.overflowY='hidden';
+    game.style.overflowY='auto';
+    qa.style.overflow='visible';
+    qa.style.justifyContent='flex-start';
     qa.innerHTML=`
       <div class="qtl">🎭 Réplique Culte</div>
       <div class="rq-wrap">
@@ -1050,7 +1051,6 @@ function typewriterEffect(text,targetId,onDone){
 function mkBtn(a,i){const b=document.createElement('button');b.className='ab';b.textContent=a;b.style.animationDelay=(i*.06)+'s';b.onclick=()=>handleAnswer(i);return b;}
 
 // ── Box-office drag — smooth touch/mouse ──
-let dragOrder=[],dragIdx=null;
 let touchDragIdx=null,touchStartY=0,touchCurrentY=0,touchDragEl=null;
 
 function renderBOList(q){
@@ -1244,8 +1244,7 @@ function handleDuoAnswer(userSaysYes){
   const pts=ok?100*m:0;
   score+=pts;
   if(ok){okCnt++;if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;sndOk(m);}else sndNo();
-  const btns=document.querySelectorAll('.ab');
-  btns.forEach(b=>{b.disabled=true;});
+  const btns=Array.from(document.querySelectorAll('#agrid .ab'));btns.forEach(b=>b.disabled=true);
   if(ok)btns[userSaysYes?0:1].classList.add('ok');else btns[userSaysYes?0:1].classList.add('no');
   btns[q.answer?0:1].classList.add('ok');
   const duoAns=q.answer?`Oui ! Ils ont tourné dans "${q.film}"`:`Non, ils n'ont pas tourné ensemble`;
@@ -1281,7 +1280,7 @@ function handleAnswer(idx){
   const q=qs[curQ];
   const elapsed=MAXT-tLeft;const m=elapsed<6?3:elapsed<13?2:1;
   times.push(Math.round(elapsed));
-  const btns=document.querySelectorAll('.ab');btns.forEach(b=>b.disabled=true);
+  const btns=Array.from(document.querySelectorAll('#agrid .ab'));btns.forEach(b=>b.disabled=true);
   const ok=idx===q.correct;dotRes[curQ]=ok;
   if(q.type==='photo'){const img=document.getElementById('pimg');if(img)img.style.filter='blur(0) brightness(1)';document.querySelectorAll('.prp').forEach(p=>p.classList.add('on'));}
   // Pour réplique : toujours afficher l'indice après réponse
