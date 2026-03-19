@@ -9,7 +9,7 @@
 :root{--bg:#0a0a0f;--sf:#13131a;--sf2:#1c1c28;--gold:#f5c842;--gold2:#e8a800;--red:#e8344a;--green:#2ecc71;--blue:#4a9eff;--tx:#f0f0f0;--mt:#6b6b80;--bd:rgba(255,255,255,0.07);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-height:100dvh;display:flex;justify-content:center;align-items:center;overflow:hidden;}
-.wrap{width:100vw;height:100dvh;background:var(--bg);position:relative;overflow:hidden;}
+.wrap{width:100vw;height:100dvh;background:var(--bg);position:relative;overflow:hidden;isolation:isolate;}
 @media(min-width:500px){body{background:#060609;}.wrap{width:390px;height:844px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.08);box-shadow:0 0 80px rgba(245,200,66,0.06),0 50px 100px rgba(0,0,0,0.8);}}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;}
 .scr.on{opacity:1;pointer-events:all;}
@@ -17,65 +17,55 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 /* ── HOME ── */
 #home{padding:max(50px,env(safe-area-inset-top,50px)) 22px max(28px,env(safe-area-inset-bottom,28px));position:relative;background:linear-gradient(160deg,#0e0b08 0%,#0a0a0f 50%,#070810 100%);}
 
-/* Grain de film — canvas SVG inline, jamais de scroll */
+/* Grain de film — strictement dans #home, jamais fixé */
 #home::before{
   content:'';
-  position:absolute;inset:0;
-  pointer-events:none;z-index:0;
-  opacity:.028;
-  animation:grain .15s steps(1) infinite;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:180px 180px;
-  border-radius:inherit;
-  overflow:hidden;
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.025;
+  animation:grain .18s steps(1) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px 160px;
 }
 @keyframes grain{
   0%{background-position:0 0;}
-  14%{background-position:-12% -8%;}
-  28%{background-position:8% 14%;}
-  42%{background-position:-6% -18%;}
-  56%{background-position:14% 6%;}
-  70%{background-position:-8% 20%;}
-  85%{background-position:10% -10%;}
+  25%{background-position:-8% -12%;}
+  50%{background-position:10% 8%;}
+  75%{background-position:-4% 16%;}
   100%{background-position:0 0;}
 }
 
-/* Vignette projecteur — position:absolute jamais fixed */
+/* Vignette projecteur — strictement dans #home */
 #home::after{
   content:'';
-  position:absolute;inset:0;
-  pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 80% 80% at 50% 42%,transparent 35%,rgba(0,0,0,.6) 100%);
-  border-radius:inherit;
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  pointer-events:none;
+  z-index:0;
+  background:radial-gradient(ellipse 80% 80% at 50% 40%,transparent 30%,rgba(0,0,0,.5) 100%);
 }
 
-/* Scanlines légères — absolute uniquement dans home */
-.scanline{
-  position:absolute;inset:0;
-  pointer-events:none;z-index:1;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.025) 3px,rgba(0,0,0,.025) 4px);
-  border-radius:inherit;
-}
+/* Tout le contenu home au-dessus */
+#home > *{position:relative;z-index:2;}
 
-/* Tout le contenu home au-dessus des overlays */
-#home > *:not(.scanline){position:relative;z-index:2;}
-
-/* Logo avec halo doré façon enseigne de cinéma */
+/* Logo lumineux */
 .logo{
   font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;
   background:linear-gradient(135deg,#fff3c0,var(--gold),#fff8e0,var(--gold2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 16px rgba(245,200,66,.3));
+  filter:drop-shadow(0 0 14px rgba(245,200,66,.28));
   animation:logoGlow 4s ease-in-out infinite;
 }
 @keyframes logoGlow{
-  0%,100%{filter:drop-shadow(0 0 12px rgba(245,200,66,.25));}
-  50%{filter:drop-shadow(0 0 24px rgba(245,200,66,.5));}
+  0%,100%{filter:drop-shadow(0 0 10px rgba(245,200,66,.22));}
+  50%{filter:drop-shadow(0 0 22px rgba(245,200,66,.48));}
 }
 
-/* Cards semi-transparentes sur home */
+/* Cards home */
 #home .xpw,#home .sm,#home .mc,#home .bc{background:rgba(19,19,26,.88);}
-#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.35),0 0 50px rgba(245,200,66,.08);}
+#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.3),0 0 40px rgba(245,200,66,.07);}
 .tbr{display:flex;gap:8px;}
 .ibtn{width:40px;height:40px;border-radius:50%;background:var(--sf2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .2s;flex-shrink:0;}
 .ibtn:active{transform:scale(.88);}
@@ -382,7 +372,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
   <!-- HOME -->
   <div class="scr on" id="home">
-    <div class="scanline"></div>
     <div class="topbar">
       <div class="logo">CinéQuiz</div>
       <div class="tbr">
