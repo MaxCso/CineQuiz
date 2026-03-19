@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>CinéQuiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="icon" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
 <style>
 :root{--bg:#0a0a0f;--sf:#13131a;--sf2:#1c1c28;--gold:#f5c842;--gold2:#e8a800;--red:#e8344a;--green:#2ecc71;--blue:#4a9eff;--tx:#f0f0f0;--mt:#6b6b80;--bd:rgba(255,255,255,0.07);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -17,9 +15,102 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 .scr.on{opacity:1;pointer-events:all;}
 
 /* ── HOME ── */
-#home{padding:max(50px,env(safe-area-inset-top,50px)) 22px max(28px,env(safe-area-inset-bottom,28px));}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;background:linear-gradient(135deg,var(--gold),#fff8e0,var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+#home{padding:max(50px,env(safe-area-inset-top,50px)) 22px max(28px,env(safe-area-inset-bottom,28px));position:relative;}
+
+/* Grain de film animé */
+#home::before{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;z-index:0;
+  opacity:.032;
+  animation:grain 0.12s steps(1) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+@keyframes grain{
+  0%{background-position:0 0;}
+  10%{background-position:-5% -10%;}
+  20%{background-position:-15% 5%;}
+  30%{background-position:7% -25%;}
+  40%{background-position:-5% 25%;}
+  50%{background-position:-15% 10%;}
+  60%{background-position:15% 0%;}
+  70%{background-position:0 15%;}
+  80%{background-position:3% 35%;}
+  90%{background-position:-10% 10%;}
+  100%{background-position:0 0;}
+}
+
+/* Vignette projecteur */
+#home::after{
+  content:'';
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 75% 85% at 50% 45%,transparent 40%,rgba(0,0,0,.55) 100%);
+}
+
+/* Bandes de pellicule — côté gauche et droit */
+.film-strip-left,.film-strip-right{
+  position:fixed;top:0;bottom:0;width:18px;
+  pointer-events:none;z-index:1;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.film-strip-left{left:0;background:rgba(0,0,0,.6);border-right:1px solid rgba(255,255,255,.04);}
+.film-strip-right{right:0;background:rgba(0,0,0,.6);border-left:1px solid rgba(255,255,255,.04);}
+@media(min-width:500px){
+  .film-strip-left,.film-strip-right{display:none;}
+}
+.film-holes{
+  display:flex;flex-direction:column;gap:0;
+  animation:filmScroll 3s linear infinite;
+}
+@keyframes filmScroll{from{transform:translateY(0);}to{transform:translateY(-50%);}  }
+.film-hole{
+  width:10px;height:14px;
+  border-radius:2px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  margin:6px auto;
+  flex-shrink:0;
+}
+
+/* Ligne de balayage (scan line) subtile */
+.scanline{
+  position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.03) 2px,
+    rgba(0,0,0,.03) 4px
+  );
+}
+
+/* Tout le contenu home au-dessus des overlays */
+#home > *{position:relative;z-index:2;}
+
+/* Teinte légèrement chaude sur le fond home */
+#home{background:linear-gradient(160deg,#0e0b08 0%,#0a0a0f 50%,#070810 100%);}
+
+/* Logo avec halo doré façon enseigne de cinéma */
+.logo{
+  font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;
+  background:linear-gradient(135deg,#fff3c0,var(--gold),#fff8e0,var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 18px rgba(245,200,66,.35));
+  animation:logoGlow 4s ease-in-out infinite;
+}
+@keyframes logoGlow{
+  0%,100%{filter:drop-shadow(0 0 14px rgba(245,200,66,.3));}
+  50%{filter:drop-shadow(0 0 28px rgba(245,200,66,.55));}
+}
+
+/* Cards legèrement plus chaudes sur home */
+#home .xpw,#home .sm,#home .mc,#home .bc{
+  backdrop-filter:blur(8px);
+  background:rgba(19,19,26,.85);
+}
+#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.35),0 0 60px rgba(245,200,66,.1);}
 .tbr{display:flex;gap:8px;}
 .ibtn{width:40px;height:40px;border-radius:50%;background:var(--sf2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .2s;flex-shrink:0;}
 .ibtn:active{transform:scale(.88);}
@@ -326,6 +417,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
   <!-- HOME -->
   <div class="scr on" id="home">
+    <!-- Effets pellicule -->
+    <div class="scanline"></div>
+    <div class="film-strip-left"><div class="film-holes" id="fhl"></div></div>
+    <div class="film-strip-right"><div class="film-holes" id="fhr"></div></div>
     <div class="topbar">
       <div class="logo">CinéQuiz</div>
       <div class="tbr">
@@ -490,19 +585,120 @@ function toggleMusic(){musOn=!musOn;const b=document.getElementById('btn-music')
 document.addEventListener('click',()=>{if(musOn)playMus();},{once:true});
 
 // ══════════════════════════════
-// AUDIO FX
+// AUDIO FX — Sound design cinéma
 // ══════════════════════════════
 let _ac=null,sndOn=true,lastTick=-1;
 const ac=()=>{if(!_ac){try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _ac;};
 const resume=()=>{const c=ac();if(c&&c.state==='suspended')c.resume();};
-const sy=(type,f,d,v=0.28,t=null)=>{const c=ac();if(!c||!sndOn)return;resume();const at=t||c.currentTime;const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.type=type;o.frequency.setValueAtTime(f,at);g.gain.setValueAtTime(v,at);g.gain.exponentialRampToValueAtTime(0.001,at+d);o.start(at);o.stop(at+d);};
-const sr=(type,f0,f1,d,v=0.22,t=null)=>{const c=ac();if(!c||!sndOn)return;resume();const at=t||c.currentTime;const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.type=type;o.frequency.setValueAtTime(f0,at);o.frequency.linearRampToValueAtTime(f1,at+d);g.gain.setValueAtTime(v,at);g.gain.exponentialRampToValueAtTime(0.001,at+d);o.start(at);o.stop(at+d);};
-const sndOk=(m)=>{if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;if(m===3){[523,659,784,1047].forEach((f,i)=>sy('triangle',f,.18,.28,t+i*.07));setTimeout(()=>sy('sine',1047,.3,.2),300);}else if(m===2){sy('triangle',523,.2,.25,t);sy('triangle',784,.2,.22,t+.1);}else sy('triangle',659,.22,.22,t);};
-const sndNo=()=>{if(!sndOn)return;resume();const c=ac();if(!c)return;sr('sawtooth',280,140,.35,.22);sy('square',160,.2,.1,c.currentTime+.1);};
-const sndLvl=()=>{if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;[523,659,784,1047,784,1047,1319].forEach((f,i)=>sy('triangle',f,.22,.28,t+i*.1));sy('sine',130,.8,.35,t+.5);};
-const sndResult=(s)=>{if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;const p=s/(TOTAL*100);if(p>=.9){[392,523,659,784,1047].forEach((f,i)=>sy('triangle',f,.3,.28,t+i*.08));setTimeout(()=>{const c2=ac();if(c2)[523,659,784,1047].forEach((f,i)=>sy('sine',f,.4,.22,c2.currentTime+i*.06));},600);}else if(p>=.5){[523,659,784].forEach((f,i)=>sy('triangle',f,.25,.22,t+i*.1));}else sr('sine',523,392,.4,.18,t);};
+
+// ── Helpers bas niveau ──
+function mkGain(ctx,vol,t){const g=ctx.createGain();g.gain.setValueAtTime(vol,t);g.connect(ctx.destination);return g;}
+function osc(ctx,type,freq,g,t,dur){const o=ctx.createOscillator();o.type=type;o.frequency.setValueAtTime(freq,t);o.connect(g);o.start(t);o.stop(t+dur);}
+function noise(ctx,g,t,dur){
+  const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+  const src=ctx.createBufferSource();src.buffer=buf;
+  src.connect(g);src.start(t);src.stop(t+dur);
+}
+
+// ── Claquette (bonne réponse) ──
+// Clap mécanique + chime selon le multiplicateur
+const sndOk=(m)=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+  // Clap mécanique : bruit court + transient
+  const gSnap=c.createGain();gSnap.gain.setValueAtTime(.28,t);gSnap.gain.exponentialRampToValueAtTime(.001,t+.09);gSnap.connect(c.destination);
+  noise(c,gSnap,t,.09);
+  // Chime mélodique selon multiplicateur
+  if(m===3){
+    // Fanfare dorée — 4 notes en arpège rapide
+    [[523,.18,.22],[659,.16,.2],[784,.14,.18],[1047,.18,.22]].forEach(([f,d,v],i)=>{
+      const g=c.createGain();g.gain.setValueAtTime(v,t+i*.065);g.gain.exponentialRampToValueAtTime(.001,t+i*.065+d+.1);g.connect(c.destination);
+      osc(c,'triangle',f,g,t+i*.065,d+.1);
+      // Harmonique douce
+      const g2=c.createGain();g2.gain.setValueAtTime(v*.3,t+i*.065);g2.gain.exponentialRampToValueAtTime(.001,t+i*.065+d);g2.connect(c.destination);
+      osc(c,'sine',f*2,g2,t+i*.065,d);
+    });
+    // Résonance finale
+    setTimeout(()=>{const c2=ac();if(!c2)return;const t2=c2.currentTime;const g=c2.createGain();g.gain.setValueAtTime(.18,t2);g.gain.exponentialRampToValueAtTime(.001,t2+.5);g.connect(c2.destination);osc(c2,'sine',1047,g,t2,.5);},300);
+  } else if(m===2){
+    // Double ding — cloches
+    [[523,.22,.2],[784,.2,.18]].forEach(([f,d,v],i)=>{
+      const g=c.createGain();g.gain.setValueAtTime(v,t+i*.1);g.gain.exponentialRampToValueAtTime(.001,t+i*.1+d);g.connect(c.destination);
+      osc(c,'triangle',f,g,t+i*.1,d);
+    });
+  } else {
+    // Simple ding de cloche
+    const g=c.createGain();g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.28);g.connect(c.destination);
+    osc(c,'triangle',659,g,t,.28);
+  }
+};
+
+// ── Erreur — bruitage de pellicule qui se déchire ──
+const sndNo=()=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+  // Descente grave + scratch
+  const g=c.createGain();g.gain.setValueAtTime(.22,t);g.gain.exponentialRampToValueAtTime(.001,t+.38);g.connect(c.destination);
+  const o=c.createOscillator();o.type='sawtooth';
+  o.frequency.setValueAtTime(320,t);o.frequency.exponentialRampToValueAtTime(80,t+.38);
+  o.connect(g);o.start(t);o.stop(t+.38);
+  // Scratch court
+  const gs=c.createGain();gs.gain.setValueAtTime(.12,t+.05);gs.gain.exponentialRampToValueAtTime(.001,t+.18);gs.connect(c.destination);
+  noise(c,gs,t+.05,.13);
+};
+
+// ── Level up — fanfare de projecteur ──
+const sndLvl=()=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+  // Mélodie ascendante façon ouverture de film
+  const notes=[392,494,523,587,659,784,880,1047];
+  notes.forEach((f,i)=>{
+    const g=c.createGain();g.gain.setValueAtTime(.25,t+i*.09);g.gain.exponentialRampToValueAtTime(.001,t+i*.09+.22);g.connect(c.destination);
+    osc(c,'triangle',f,g,t+i*.09,.22);
+    // Basse sous la mélodie
+    if(i<4){const gb=c.createGain();gb.gain.setValueAtTime(.15,t+i*.09);gb.gain.exponentialRampToValueAtTime(.001,t+i*.09+.3);gb.connect(c.destination);osc(c,'sine',f/2,gb,t+i*.09,.3);}
+  });
+  // Accord final
+  setTimeout(()=>{const c2=ac();if(!c2)return;const t2=c2.currentTime;[523,659,784,1047].forEach((f,i)=>{const g=c2.createGain();g.gain.setValueAtTime(.2,t2);g.gain.exponentialRampToValueAtTime(.001,t2+.6);g.connect(c2.destination);osc(c2,'sine',f,g,t2,.6);});},750);
+};
+
+// ── Résultat ──
+const sndResult=(s)=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+  const p=s/(TOTAL*100);
+  if(p>=.9){
+    // Triomphe — générique de film
+    [392,523,659,784,1047].forEach((f,i)=>{const g=c.createGain();g.gain.setValueAtTime(.22,t+i*.08);g.gain.exponentialRampToValueAtTime(.001,t+i*.08+.3);g.connect(c.destination);osc(c,'triangle',f,g,t+i*.08,.3);});
+    setTimeout(()=>{const c2=ac();if(!c2)return;const t2=c2.currentTime;[523,659,784,1047].forEach((f,i)=>{const g=c2.createGain();g.gain.setValueAtTime(.18,t2+i*.06);g.gain.exponentialRampToValueAtTime(.001,t2+i*.06+.4);g.connect(c2.destination);osc(c2,'sine',f,g,t2+i*.06,.4);});},600);
+  } else if(p>=.5){
+    [523,659,784].forEach((f,i)=>{const g=c.createGain();g.gain.setValueAtTime(.2,t+i*.1);g.gain.exponentialRampToValueAtTime(.001,t+i*.1+.25);g.connect(c.destination);osc(c,'triangle',f,g,t+i*.1,.25);});
+  } else {
+    // Descente douce
+    const g=c.createGain();g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);g.connect(c.destination);
+    const o=c.createOscillator();o.type='sine';o.frequency.setValueAtTime(523,t);o.frequency.linearRampToValueAtTime(392,t+.5);o.connect(g);o.start(t);o.stop(t+.5);
+  }
+};
+
+// ── Chrono — cliquetis de pellicule ──
+function beep(s){
+  if(s!==lastTick){
+    lastTick=s;
+    if(!sndOn)return;
+    resume();const c=ac();if(!c)return;const t=c.currentTime;
+    if(s<=5&&s>0){
+      // Cliquetis mécanique rapide et tendu
+      const g=c.createGain();g.gain.setValueAtTime(.14,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);g.connect(c.destination);
+      noise(c,g,t,.05);
+      // Double-frappe
+      const g2=c.createGain();g2.gain.setValueAtTime(.1,t+.06);g2.gain.exponentialRampToValueAtTime(.001,t+.1);g2.connect(c.destination);
+      noise(c,g2,t+.06,.04);
+    } else if(s<=10){
+      // Cliquetis simple — roue dentée
+      const g=c.createGain();g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);g.connect(c.destination);
+      noise(c,g,t,.04);
+    }
+  }
+}
 function toggleSound(){sndOn=!sndOn;const b=document.getElementById('btn-sound');b.textContent=sndOn?'🔊':'🔇';b.classList.toggle('off',!sndOn);}
-function beep(s){if(s!==lastTick){lastTick=s;if(s<=5&&s>0){sy('square',800,.06,.12);const c=ac();if(c)sy('square',1600,.05,.04,c.currentTime+.03);}else if(s<=10)sy('square',1200,.04,.06);}}
 
 // ══════════════════════════════
 // LEVELS & BADGES
@@ -1430,6 +1626,15 @@ function confetti(){
 
 // ── INIT ──
 refHome();
+// Génère les trous de pellicule (mobile uniquement)
+(()=>{
+  ['fhl','fhr'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    let html='';
+    for(let i=0;i<36;i++)html+='<div class="film-hole"></div>';
+    el.innerHTML=html+html; // double pour boucle seamless
+  });
+})();
 </script>
 </body>
 </html>
