@@ -15,102 +15,67 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;min-hei
 .scr.on{opacity:1;pointer-events:all;}
 
 /* ── HOME ── */
-#home{padding:max(50px,env(safe-area-inset-top,50px)) 22px max(28px,env(safe-area-inset-bottom,28px));position:relative;}
+#home{padding:max(50px,env(safe-area-inset-top,50px)) 22px max(28px,env(safe-area-inset-bottom,28px));position:relative;background:linear-gradient(160deg,#0e0b08 0%,#0a0a0f 50%,#070810 100%);}
 
-/* Grain de film animé */
+/* Grain de film — canvas SVG inline, jamais de scroll */
 #home::before{
   content:'';
-  position:fixed;inset:0;
+  position:absolute;inset:0;
   pointer-events:none;z-index:0;
-  opacity:.032;
-  animation:grain 0.12s steps(1) infinite;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-size:200px 200px;
+  opacity:.028;
+  animation:grain .15s steps(1) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  border-radius:inherit;
+  overflow:hidden;
 }
 @keyframes grain{
   0%{background-position:0 0;}
-  10%{background-position:-5% -10%;}
-  20%{background-position:-15% 5%;}
-  30%{background-position:7% -25%;}
-  40%{background-position:-5% 25%;}
-  50%{background-position:-15% 10%;}
-  60%{background-position:15% 0%;}
-  70%{background-position:0 15%;}
-  80%{background-position:3% 35%;}
-  90%{background-position:-10% 10%;}
+  14%{background-position:-12% -8%;}
+  28%{background-position:8% 14%;}
+  42%{background-position:-6% -18%;}
+  56%{background-position:14% 6%;}
+  70%{background-position:-8% 20%;}
+  85%{background-position:10% -10%;}
   100%{background-position:0 0;}
 }
 
-/* Vignette projecteur */
+/* Vignette projecteur — position:absolute jamais fixed */
 #home::after{
   content:'';
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 75% 85% at 50% 45%,transparent 40%,rgba(0,0,0,.55) 100%);
+  position:absolute;inset:0;
+  pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 80% at 50% 42%,transparent 35%,rgba(0,0,0,.6) 100%);
+  border-radius:inherit;
 }
 
-/* Bandes de pellicule — côté gauche et droit */
-.film-strip-left,.film-strip-right{
-  position:fixed;top:0;bottom:0;width:18px;
-  pointer-events:none;z-index:1;
-  display:flex;flex-direction:column;
-  overflow:hidden;
-}
-.film-strip-left{left:0;background:rgba(0,0,0,.6);border-right:1px solid rgba(255,255,255,.04);}
-.film-strip-right{right:0;background:rgba(0,0,0,.6);border-left:1px solid rgba(255,255,255,.04);}
-@media(min-width:500px){
-  .film-strip-left,.film-strip-right{display:none;}
-}
-.film-holes{
-  display:flex;flex-direction:column;gap:0;
-  animation:filmScroll 3s linear infinite;
-}
-@keyframes filmScroll{from{transform:translateY(0);}to{transform:translateY(-50%);}  }
-.film-hole{
-  width:10px;height:14px;
-  border-radius:2px;
-  background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.1);
-  margin:6px auto;
-  flex-shrink:0;
-}
-
-/* Ligne de balayage (scan line) subtile */
+/* Scanlines légères — absolute uniquement dans home */
 .scanline{
-  position:fixed;inset:0;pointer-events:none;z-index:1;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,.03) 2px,
-    rgba(0,0,0,.03) 4px
-  );
+  position:absolute;inset:0;
+  pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.025) 3px,rgba(0,0,0,.025) 4px);
+  border-radius:inherit;
 }
 
 /* Tout le contenu home au-dessus des overlays */
-#home > *{position:relative;z-index:2;}
-
-/* Teinte légèrement chaude sur le fond home */
-#home{background:linear-gradient(160deg,#0e0b08 0%,#0a0a0f 50%,#070810 100%);}
+#home > *:not(.scanline){position:relative;z-index:2;}
 
 /* Logo avec halo doré façon enseigne de cinéma */
 .logo{
   font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;
   background:linear-gradient(135deg,#fff3c0,var(--gold),#fff8e0,var(--gold2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 18px rgba(245,200,66,.35));
+  filter:drop-shadow(0 0 16px rgba(245,200,66,.3));
   animation:logoGlow 4s ease-in-out infinite;
 }
 @keyframes logoGlow{
-  0%,100%{filter:drop-shadow(0 0 14px rgba(245,200,66,.3));}
-  50%{filter:drop-shadow(0 0 28px rgba(245,200,66,.55));}
+  0%,100%{filter:drop-shadow(0 0 12px rgba(245,200,66,.25));}
+  50%{filter:drop-shadow(0 0 24px rgba(245,200,66,.5));}
 }
 
-/* Cards legèrement plus chaudes sur home */
-#home .xpw,#home .sm,#home .mc,#home .bc{
-  backdrop-filter:blur(8px);
-  background:rgba(19,19,26,.85);
-}
-#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.35),0 0 60px rgba(245,200,66,.1);}
+/* Cards semi-transparentes sur home */
+#home .xpw,#home .sm,#home .mc,#home .bc{background:rgba(19,19,26,.88);}
+#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.35),0 0 50px rgba(245,200,66,.08);}
 .tbr{display:flex;gap:8px;}
 .ibtn{width:40px;height:40px;border-radius:50%;background:var(--sf2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .2s;flex-shrink:0;}
 .ibtn:active{transform:scale(.88);}
@@ -417,10 +382,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
   <!-- HOME -->
   <div class="scr on" id="home">
-    <!-- Effets pellicule -->
     <div class="scanline"></div>
-    <div class="film-strip-left"><div class="film-holes" id="fhl"></div></div>
-    <div class="film-strip-right"><div class="film-holes" id="fhr"></div></div>
     <div class="topbar">
       <div class="logo">CinéQuiz</div>
       <div class="tbr">
@@ -1626,15 +1588,6 @@ function confetti(){
 
 // ── INIT ──
 refHome();
-// Génère les trous de pellicule (mobile uniquement)
-(()=>{
-  ['fhl','fhr'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    let html='';
-    for(let i=0;i<36;i++)html+='<div class="film-hole"></div>';
-    el.innerHTML=html+html; // double pour boucle seamless
-  });
-})();
 </script>
 </body>
 </html>
