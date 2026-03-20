@@ -21,17 +21,33 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   position:relative;
 }
 
-/* Canvas fond pellicule — couvre tout #home */
-#film-canvas{
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FOND PERSONNALISÉ — modifie uniquement cette ligne :
+   Remplace  fond.jpg  par le nom de ton fichier image
+   Formats supportés : .jpg  .png  .webp
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#home-bg{
   position:absolute;
-  top:0;left:0;right:0;bottom:0;
-  width:100%;height:100%;
+  inset:0;
   z-index:0;
   pointer-events:none;
+  background-image: url('fond.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
 }
 
-/* Contenu au-dessus */
-#home > *:not(#film-canvas){
+/* Vignette par-dessus pour que le texte reste lisible */
+#home-bg::after{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 40%, transparent 20%, rgba(0,0,0,.65) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.4) 0%, transparent 18%, transparent 72%, rgba(0,0,0,.55) 100%);
+}
+
+/* Contenu au-dessus du fond */
+#home > *:not(#home-bg){
   position:relative;
   z-index:2;
 }
@@ -380,7 +396,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
   <!-- HOME -->
   <div class="scr on" id="home">
-    <canvas id="film-canvas"></canvas>
+    <div id="home-bg"></div>
     <div class="topbar">
       <div class="logo">CinéQuiz</div>
       <div class="tbr">
@@ -1633,191 +1649,6 @@ function applyNewBadges(){
 // ── INIT ──
 refHome();
 applyNewBadges();
-
-// ── FOND PELLICULE — canvas ──
-(()=>{
-  const canvas=document.getElementById('film-canvas');
-  if(!canvas)return;
-
-  const ctx=canvas.getContext('2d');
-  let W,H;
-
-  // Données statiques générées une seule fois
-  let scratches=[];    // rayures verticales
-  let dustParticles=[];// poussières
-  let grainData=null;  // texture grain précalculée
-  let frame=0;
-
-  function resize(){
-    W=canvas.offsetWidth;
-    H=canvas.offsetHeight;
-    canvas.width=W;
-    canvas.height=H;
-    generateStatics();
-  }
-
-  function generateStatics(){
-    // Rayures verticales (10-20)
-    scratches=[];
-    const nS=12+Math.floor(Math.random()*8);
-    for(let i=0;i<nS;i++){
-      scratches.push({
-        x:Math.random()*W,
-        y:Math.random()*H*0.3,
-        len:H*(.1+Math.random()*.6),
-        w:.5+Math.random()*1.5,
-        alpha:.04+Math.random()*.18,
-        drift:Math.random()>.7,// certaines dérivent légèrement
-      });
-    }
-
-    // Poussières / débris (30-60)
-    dustParticles=[];
-    const nD=35+Math.floor(Math.random()*25);
-    for(let i=0;i<nD;i++){
-      const big=Math.random()>.85;
-      dustParticles.push({
-        x:Math.random()*W,
-        y:Math.random()*H,
-        r:big?.8+Math.random()*2.5:.3+Math.random()*.8,
-        alpha:big?.12+Math.random()*.22:.05+Math.random()*.14,
-        glow:big,
-      });
-    }
-
-    // Précalcule grain (petite texture qu'on tile)
-    const gs=128;
-    const gCanvas=document.createElement('canvas');
-    gCanvas.width=gs;gCanvas.height=gs;
-    const gCtx=gCanvas.getContext('2d');
-    const gd=gCtx.createImageData(gs,gs);
-    for(let i=0;i<gd.data.length;i+=4){
-      const v=Math.random()*255|0;
-      gd.data[i]=v;gd.data[i+1]=v;gd.data[i+2]=v;
-      gd.data[i+3]=v<60?0:Math.floor(v*.08); // grain très subtil
-    }
-    gCtx.putImageData(gd,0,0);
-    grainData=gCanvas;
-  }
-
-  function draw(){
-    if(!W||!H){resize();}
-    ctx.clearRect(0,0,W,H);
-
-    // ── 1. Fond bleu profond ──
-    const bg=ctx.createRadialGradient(W*.5,H*.35,H*.05,W*.5,H*.5,H*.85);
-    bg.addColorStop(0,'#0a1628');   // bleu marine centre
-    bg.addColorStop(.4,'#060d1f');  // bleu très profond
-    bg.addColorStop(.75,'#030810'); // presque noir
-    bg.addColorStop(1,'#000508');   // noir bords
-    ctx.fillStyle=bg;
-    ctx.fillRect(0,0,W,H);
-
-    // ── 2. Halo bleu lumineux (bords extérieurs comme sur la photo) ──
-    const halo=ctx.createRadialGradient(W*.5,H*.5,H*.25,W*.5,H*.5,H*.75);
-    halo.addColorStop(0,'rgba(0,30,80,0)');
-    halo.addColorStop(.6,'rgba(0,50,140,.08)');
-    halo.addColorStop(.85,'rgba(10,90,200,.18)');
-    halo.addColorStop(1,'rgba(30,120,255,.28)');
-    ctx.fillStyle=halo;
-    ctx.fillRect(0,0,W,H);
-
-    // Halo coin bas-gauche
-    const hl2=ctx.createRadialGradient(0,H,10,0,H,W*.7);
-    hl2.addColorStop(0,'rgba(20,100,220,.22)');
-    hl2.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=hl2;ctx.fillRect(0,0,W,H);
-
-    // Halo coin bas-droit
-    const hl3=ctx.createRadialGradient(W,H*.9,10,W,H*.9,W*.6);
-    hl3.addColorStop(0,'rgba(15,80,200,.18)');
-    hl3.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=hl3;ctx.fillRect(0,0,W,H);
-
-    // ── 3. Grain ──
-    if(grainData&&frame%2===0){// refresh à ~15fps
-      ctx.globalAlpha=.045;
-      for(let tx=0;tx<W;tx+=128)for(let ty=0;ty<H;ty+=128)ctx.drawImage(grainData,tx,ty);
-      ctx.globalAlpha=1;
-    }
-
-    // ── 4. Rayures ──
-    scratches.forEach(s=>{
-      ctx.beginPath();
-      ctx.moveTo(s.x,s.y);
-      ctx.lineTo(s.x+(s.drift?.5:0),s.y+s.len);
-      ctx.strokeStyle=`rgba(180,210,255,${s.alpha})`;
-      ctx.lineWidth=s.w;
-      ctx.stroke();
-    });
-
-    // ── 5. Poussières ──
-    dustParticles.forEach(p=>{
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      if(p.glow){
-        const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3);
-        g.addColorStop(0,`rgba(180,220,255,${p.alpha})`);
-        g.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=g;ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2);
-      } else {
-        ctx.fillStyle=`rgba(160,200,255,${p.alpha})`;
-      }
-      ctx.fill();
-    });
-
-    // ── 6. Ligne diagonale lumineuse (comme sur la photo) ──
-    const lx1=W*.3,ly1=H*.85,lx2=W*.7,ly2=H*.98;
-    const lg=ctx.createLinearGradient(lx1,ly1,lx2,ly2);
-    lg.addColorStop(0,'rgba(180,220,255,0)');
-    lg.addColorStop(.4,'rgba(200,230,255,.35)');
-    lg.addColorStop(.7,'rgba(255,255,255,.5)');
-    lg.addColorStop(1,'rgba(180,220,255,0)');
-    ctx.beginPath();ctx.moveTo(lx1,ly1);ctx.lineTo(lx2,ly2);
-    ctx.strokeStyle=lg;ctx.lineWidth=1.5;ctx.stroke();
-
-    // Deuxième rayure diagonale plus fine
-    const lx3=W*.65,ly3=H*.55,lx4=W*.85,ly4=H*.7;
-    const lg2=ctx.createLinearGradient(lx3,ly3,lx4,ly4);
-    lg2.addColorStop(0,'rgba(150,200,255,0)');
-    lg2.addColorStop(.5,'rgba(180,215,255,.2)');
-    lg2.addColorStop(1,'rgba(150,200,255,0)');
-    ctx.beginPath();ctx.moveTo(lx3,ly3);ctx.lineTo(lx4,ly4);
-    ctx.strokeStyle=lg2;ctx.lineWidth=.8;ctx.stroke();
-
-    // ── 7. Vignette finale ──
-    const vg=ctx.createRadialGradient(W*.5,H*.42,H*.18,W*.5,H*.5,H*.72);
-    vg.addColorStop(0,'rgba(0,0,0,0)');
-    vg.addColorStop(.55,'rgba(0,0,0,.15)');
-    vg.addColorStop(.8,'rgba(0,0,0,.55)');
-    vg.addColorStop(1,'rgba(0,0,0,.82)');
-    ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-
-    frame++;
-    // Anime le grain seulement (pas les rayures — elles bougent très lentement)
-    if(frame%30===0){
-      // Rafraîchit le grain et bouge légèrement quelques poussières
-      const gCanvas2=document.createElement('canvas');
-      gCanvas2.width=128;gCanvas2.height=128;
-      const gCtx2=gCanvas2.getContext('2d');
-      const gd2=gCtx2.createImageData(128,128);
-      for(let i=0;i<gd2.data.length;i+=4){
-        const v=Math.random()*255|0;
-        gd2.data[i]=v;gd2.data[i+1]=v;gd2.data[i+2]=v;
-        gd2.data[i+3]=v<60?0:Math.floor(v*.08);
-      }
-      gCtx2.putImageData(gd2,0,0);
-      grainData=gCanvas2;
-    }
-
-    setTimeout(()=>requestAnimationFrame(draw),50); // ~20fps
-  }
-
-  // Init
-  resize();
-  window.addEventListener('resize',()=>{resize();});
-  requestAnimationFrame(draw);
-})();
 </script>
 </body>
 </html>
