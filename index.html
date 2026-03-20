@@ -19,58 +19,60 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 #home{
   padding:max(52px,calc(env(safe-area-inset-top) + 14px)) 20px max(24px,calc(env(safe-area-inset-bottom) + 10px));
   position:relative;
-  background:linear-gradient(160deg,#0e0b08 0%,#0a0a0f 50%,#070810 100%);
 }
 
-/* Grain de film — strictement dans #home, jamais fixé */
-#home::before{
-  content:'';
-  position:absolute;
+/* Fond cinéma — dégradé chaud */
+.home-bg{
+  position:fixed;
   top:0;left:0;right:0;bottom:0;
-  pointer-events:none;
   z-index:0;
-  opacity:.025;
-  animation:grain .18s steps(1) infinite;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:160px 160px;
-}
-@keyframes grain{
-  0%{background-position:0 0;}
-  25%{background-position:-8% -12%;}
-  50%{background-position:10% 8%;}
-  75%{background-position:-4% 16%;}
-  100%{background-position:0 0;}
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(80,50,10,.55) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 20% 100%, rgba(40,20,5,.4) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20,10,30,.35) 0%, transparent 60%),
+    linear-gradient(175deg, #0e0b06 0%, #0a0a0f 45%, #08070e 100%);
 }
 
-/* Vignette projecteur — strictement dans #home */
-#home::after{
-  content:'';
-  position:absolute;
+/* Vignette projecteur */
+.home-vignette{
+  position:fixed;
   top:0;left:0;right:0;bottom:0;
+  z-index:1;
   pointer-events:none;
-  z-index:0;
-  background:radial-gradient(ellipse 80% 80% at 50% 40%,transparent 30%,rgba(0,0,0,.5) 100%);
+  background:radial-gradient(ellipse 85% 75% at 50% 38%, transparent 28%, rgba(0,0,0,.72) 100%);
+}
+
+/* Grain de film via canvas généré en JS */
+#home-grain{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  z-index:2;
+  pointer-events:none;
+  opacity:.06;
 }
 
 /* Tout le contenu home au-dessus */
-#home > *{position:relative;z-index:2;}
-
+#home > *:not(.home-bg):not(.home-vignette):not(#home-grain){
+  position:relative;
+  z-index:3;
+}
 /* Logo lumineux */
 .logo{
   font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;
   background:linear-gradient(135deg,#fff3c0,var(--gold),#fff8e0,var(--gold2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 14px rgba(245,200,66,.28));
+  filter:drop-shadow(0 0 14px rgba(245,200,66,.3));
   animation:logoGlow 4s ease-in-out infinite;
 }
 @keyframes logoGlow{
-  0%,100%{filter:drop-shadow(0 0 10px rgba(245,200,66,.22));}
-  50%{filter:drop-shadow(0 0 22px rgba(245,200,66,.48));}
+  0%,100%{filter:drop-shadow(0 0 10px rgba(245,200,66,.2));}
+  50%{filter:drop-shadow(0 0 22px rgba(245,200,66,.5));}
 }
 
-/* Cards home */
-#home .xpw,#home .sm,#home .mc,#home .bc{background:rgba(19,19,26,.88);}
-#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.3),0 0 40px rgba(245,200,66,.07);}
+/* Cards home semi-transparentes */
+#home .xpw,#home .sm,#home .mc,#home .bc{background:rgba(14,11,8,.75);border-color:rgba(255,255,255,.1);}
+#home .pbtn{box-shadow:0 8px 32px rgba(245,200,66,.35),0 0 50px rgba(245,200,66,.1);}
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .tbr{display:flex;gap:8px;align-items:center;}
 .ibtn{width:40px;height:40px;border-radius:50%;background:var(--sf2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .2s;flex-shrink:0;}
@@ -400,10 +402,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
   <!-- HOME -->
   <div class="scr on" id="home">
+    <div class="home-bg"></div>
+    <div class="home-vignette"></div>
+    <canvas id="home-grain"></canvas>
     <div class="topbar">
       <div class="logo">CinéQuiz</div>
       <div class="tbr">
-        <div class="ibtn" onclick="openHelp()" title="Comment jouer ?">❓</div>
+        <div class="ibtn" onclick="openHelp()" title="Comment jouer ?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
         <div class="ibtn" id="btn-music" onclick="toggleMusic()">🎵</div>
         <div class="ibtn" id="btn-sound" onclick="toggleSound()">🔊</div>
         <div class="ibtn" onclick="goProfile()">👤</div>
@@ -521,7 +526,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     </div>
     <div class="rbtns">
       <button class="rbp" onclick="startGame()">REJOUER</button>
-      <button class="rbs" onclick="go('home');refHome()">← Accueil</button>
+      <button class="rbs" onclick="go('home');refHome();applyNewBadges()">← Accueil</button>
     </div>
   </div>
 
@@ -572,7 +577,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="help-tip"><div class="help-tip-icon">⚡</div><div class="help-tip-text"><strong>Multiplicateur</strong> — Moins de 6s = x3 · Entre 6 et 13s = x2. Enchaîne les bonnes réponses pour des bonus de combo !</div></div>
       <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>Badges</strong> — Des succès se débloquent selon tes exploits. Clique sur n'importe quel badge pour voir sa condition.</div></div>
       <div class="help-tip"><div class="help-tip-icon">🔥</div><div class="help-tip-text"><strong>Série quotidienne</strong> — Joue chaque jour pour maintenir ta flamme et débloquer des badges exclusifs.</div></div>
-      <div class="help-tip"><div class="help-tip-icon">🎵</div><div class="help-tip-text"><strong>Musique</strong> — Place un fichier <code style="background:var(--sf2);padding:1px 5px;border-radius:4px;font-size:11px;">ambiance.mp3</code> dans le même dossier que le jeu pour une ambiance sonore.</div></div>
 
       <button class="help-close" onclick="closeHelp()">C'EST PARTI ! 🎬</button>
     </div>
@@ -1600,6 +1604,7 @@ function endGame(){
   const dt=new Date();s.history=[...(s.history||[]),{score,correct:okCnt,total:TOTAL,mode:selMode,xp,date:`${dt.getDate()}/${dt.getMonth()+1}`}];
   if(s.history.length>20)s.history=s.history.slice(-20);
   const{s:us}=chkBadges(s);const newLvl=glv(us.xp);ss(us);
+  markModePlayed(selMode);
   if(newLvl>oldLvl){
     const lv=LEVELS[newLvl];
     document.getElementById('lusb').textContent='Tu passes au niveau '+(newLvl+1);
@@ -1635,8 +1640,50 @@ function confetti(){
   for(let i=0;i<55;i++){const p=document.createElement('div');p.className='cfp';p.style.cssText=`left:${Math.random()*100}%;background:${cols[~~(Math.random()*cols.length)]};animation-duration:${1.2+Math.random()*1.5}s;animation-delay:${Math.random()*.5}s;width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;border-radius:${Math.random()>.5?'50%':'2px'};`;w.appendChild(p);}
 }
 
+// ── NEW badges — disparaît après avoir joué le mode ──
+function markModePlayed(mode){
+  localStorage.setItem('cq_played_'+mode,'1');
+}
+function applyNewBadges(){
+  document.querySelectorAll('.mc .mnew').forEach(el=>{
+    const mc=el.closest('.mc');
+    if(!mc)return;
+    const match=(mc.getAttribute('onclick')||'').match(/selectMode\('(\w+)'/);
+    if(!match)return;
+    if(localStorage.getItem('cq_played_'+match[1]))el.style.display='none';
+  });
+}
+
 // ── INIT ──
 refHome();
+applyNewBadges();
+
+// Grain cinéma sur canvas — fonctionne sur tous les mobiles
+(()=>{
+  const canvas=document.getElementById('home-grain');
+  if(!canvas)return;
+  const resize=()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;};
+  resize();
+  window.addEventListener('resize',resize);
+  const ctx=canvas.getContext('2d');
+  let frame=0;
+  function drawGrain(){
+    if(!document.getElementById('home').classList.contains('on')){requestAnimationFrame(drawGrain);return;}
+    frame++;
+    const w=canvas.width,h=canvas.height;
+    const imageData=ctx.createImageData(w,h);
+    const data=imageData.data;
+    // Bruit aléatoire sur les pixels
+    for(let i=0;i<data.length;i+=4){
+      const v=Math.random()*255|0;
+      data[i]=v;data[i+1]=v;data[i+2]=v;
+      data[i+3]=frame%2===0?18:22; // alpha faible, varie pour effet scintillement
+    }
+    ctx.putImageData(imageData,0,0);
+    setTimeout(()=>requestAnimationFrame(drawGrain),80); // ~12fps pour effet pellicule
+  }
+  drawGrain();
+})();
 </script>
 </body>
 </html>
