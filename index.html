@@ -23,17 +23,23 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 
 /* Vidéo fond */
 .home-video{
-  position:fixed;
+  position:absolute;
   top:0;left:0;right:0;bottom:0;
   z-index:0;
   pointer-events:none;
   overflow:hidden;
+  background:#0a0a0f;
 }
 .home-video video{
-  width:100%;height:100%;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  min-width:100%;
+  min-height:100%;
+  width:auto;
+  height:auto;
   object-fit:cover;
-  object-position:center;
-  opacity:.55; /* assombrir pour que le texte reste lisible */
+  opacity:.55;
 }
 
 /* Fallback si pas de vidéo */
@@ -44,23 +50,23 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 
 /* Vignette projecteur par-dessus la vidéo */
 .home-vignette{
-  position:fixed;
+  position:absolute;
   top:0;left:0;right:0;bottom:0;
   z-index:1;
   pointer-events:none;
   background:radial-gradient(ellipse 85% 75% at 50% 38%,transparent 28%,rgba(0,0,0,.75) 100%);
 }
 
-/* Grain de film par-dessus */
+/* Grain de film */
 #home-grain{
-  position:fixed;
+  position:absolute;
   top:0;left:0;right:0;bottom:0;
   z-index:2;
   pointer-events:none;
   opacity:.05;
 }
 
-/* Contenu au-dessus de tout */
+/* Contenu au-dessus */
 #home > *:not(.home-video):not(.home-vignette):not(#home-grain){
   position:relative;
   z-index:3;
@@ -412,7 +418,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
   <div class="scr on" id="home">
     <div class="home-video">
       <div class="home-video-fallback"></div>
-      <video autoplay muted loop playsinline preload="auto">
+      <video autoplay muted loop playsinline preload="auto" webkit-playsinline x-webkit-airplay="deny">
         <source src="fond.mp4" type="video/mp4">
       </video>
     </div>
@@ -607,11 +613,23 @@ function playMus(){if(!musOn)return;initMus();if(amb.paused)amb.play().catch(()=
 function stopMus(){if(amb&&!amb.paused){amb.pause();amb.currentTime=0;}}
 function fadeMus(v,d=600){if(!amb)return;const s=amb.volume,diff=v-s,n=20;let i=0;const t=setInterval(()=>{i++;amb.volume=Math.max(0,Math.min(1,s+diff*(i/n)));if(i>=n)clearInterval(t);},d/n);}
 function toggleMusic(){musOn=!musOn;const b=document.getElementById('btn-music');b.textContent=musOn?'🎵':'🔕';b.classList.toggle('off',!musOn);if(musOn)playMus();else stopMus();}
+// Lance la vidéo dès que possible
+function tryPlayVideo(){
+  const v=document.querySelector('.home-video video');
+  if(!v)return;
+  v.muted=true;
+  v.play().catch(()=>{});
+}
+// Tentative immédiate
+window.addEventListener('load',tryPlayVideo);
+// Au premier touch/click (iOS requiert un geste utilisateur)
+document.addEventListener('touchstart',function playOnTouch(){
+  tryPlayVideo();
+  document.removeEventListener('touchstart',playOnTouch);
+},{passive:true});
 document.addEventListener('click',()=>{
   if(musOn)playMus();
-  // Lance la vidéo de fond au premier tap
-  const v=document.querySelector('.home-video video');
-  if(v&&v.paused)v.play().catch(()=>{});
+  tryPlayVideo();
 },{once:true});
 
 // ══════════════════════════════
