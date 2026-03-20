@@ -619,12 +619,97 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 // ══════════════════════════════
 // MUSIC
 // ══════════════════════════════
-let amb=null,musOn=true;
-function initMus(){if(amb)return;amb=new Audio('ambiance.mp3');amb.loop=true;amb.volume=0.3;amb.preload='auto';}
-function playMus(){if(!musOn)return;initMus();if(amb.paused)amb.play().catch(()=>{});}
-function stopMus(){if(amb&&!amb.paused){amb.pause();amb.currentTime=0;}}
-function fadeMus(v,d=600){if(!amb)return;const s=amb.volume,diff=v-s,n=20;let i=0;const t=setInterval(()=>{i++;amb.volume=Math.max(0,Math.min(1,s+diff*(i/n)));if(i>=n)clearInterval(t);},d/n);}
-function toggleMusic(){musOn=!musOn;const b=document.getElementById('btn-music');b.textContent=musOn?'🎵':'🔕';b.classList.toggle('off',!musOn);if(musOn)playMus();else stopMus();}
+// ══════════════════════════════
+// MUSIQUE — multi-piste par mode
+// ══════════════════════════════
+let musOn=true;
+let _trackHome=null,_trackGame=null; // deux players : accueil + jeu
+let _curMode=null; // mode actif pour savoir quelle piste jouer
+
+// Fichiers audio par mode (place-les dans le même dossier que le HTML)
+const MUSIC_FILES={
+  home:    'ambiance.mp3',
+  quiz:    'music-quiz.mp3',
+  photo:   'music-photo.mp3',
+  year:    'music-year.mp3',
+  duo:     'music-duo.mp3',
+  boxoffice:'music-boxoffice.mp3',
+  replique:'music-replique.mp3',
+  acteur:  'music-acteur.mp3',
+  bande:   'music-bande.mp3',
+};
+
+function getTrack(key){
+  // Crée le player Audio à la demande et le met en cache
+  if(!window._musicCache) window._musicCache={};
+  if(!window._musicCache[key]){
+    const a=new Audio(MUSIC_FILES[key]);
+    a.loop=true;a.volume=0;a.preload='auto';
+    window._musicCache[key]=a;
+  }
+  return window._musicCache[key];
+}
+
+function fadeTrack(track,toVol,dur=700,onDone){
+  if(!track)return onDone&&onDone();
+  const from=track.volume,diff=toVol-from,n=20;
+  let i=0;
+  const t=setInterval(()=>{
+    i++;
+    track.volume=Math.max(0,Math.min(1,from+diff*(i/n)));
+    if(i>=n){clearInterval(t);if(onDone)onDone();}
+  },dur/n);
+}
+
+function switchMusic(key,vol=0.28){
+  if(!musOn)return;
+  const file=MUSIC_FILES[key];
+  if(!file)return; // pas de fichier défini pour ce mode → silence
+
+  const next=getTrack(key);
+
+  // Si même piste déjà en cours → juste ajuster le volume
+  if(!next.paused && _curMode===key){
+    fadeTrack(next,vol);
+    return;
+  }
+
+  // Fade out la piste en cours (accueil ou jeu précédent)
+  const all=window._musicCache?Object.values(window._musicCache):[];
+  all.forEach(t=>{
+    if(t!==next&&!t.paused){
+      fadeTrack(t,0,500,()=>{t.pause();t.currentTime=0;});
+    }
+  });
+
+  // Lance et fade in la nouvelle piste
+  next.volume=0;
+  next.play().catch(()=>{});
+  fadeTrack(next,vol,700);
+  _curMode=key;
+}
+
+function playMus(){switchMusic('home',0.3);}
+function stopMus(){
+  if(window._musicCache){
+    Object.values(window._musicCache).forEach(t=>{
+      fadeTrack(t,0,400,()=>{t.pause();t.currentTime=0;});
+    });
+  }
+}
+function fadeMus(v,d=600){
+  // Rétrocompat : ajuste le volume de la piste active
+  if(window._musicCache&&_curMode&&window._musicCache[_curMode]){
+    fadeTrack(window._musicCache[_curMode],v,d);
+  }
+}
+function toggleMusic(){
+  musOn=!musOn;
+  const b=document.getElementById('btn-music');
+  b.textContent=musOn?'🎵':'🔕';
+  b.classList.toggle('off',!musOn);
+  if(musOn)playMus();else stopMus();
+}
 document.addEventListener('click',()=>{if(musOn)playMus();},{once:true});
 
 // ══════════════════════════════
@@ -1087,8 +1172,14 @@ const go=id=>{
   // Fond visible uniquement sur l'accueil
   const bg=document.getElementById('home-bg');
   if(bg)bg.classList.toggle('visible',id==='home');
-  if(id==='game')fadeMus(0.1,700);
-  else if(['home','result','lvlup'].includes(id))fadeMus(0.3,700);
+  // Musique selon l'écran
+  if(id==='game'){
+    switchMusic(selMode,0.22); // piste spécifique au mode
+  } else if(id==='home'){
+    switchMusic('home',0.3);
+  } else if(['result','lvlup'].includes(id)){
+    fadeMus(0.15,600); // baisse la musique de jeu pendant les résultats
+  }
 };
 const dh=s=>{const el=document.createElement('div');el.innerHTML=s;return el.textContent||'';};
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
