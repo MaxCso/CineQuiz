@@ -1361,65 +1361,85 @@ async function fetchBoxOfficeRound(){
 // ==============================
 // ACTEUR & BANDE-ANNONCE
 // ==============================
-// 40 acteurs avec ID TMDB - photo récupérée en live via l'API (id fixe garantit nom = bonne personne)
+// Acteurs celebres - IDs TMDB verifies + profile_path de secours
+// Le fetch live recupere la photo actuelle via l ID fixe (garanti = bonne personne)
 const KNOWN_ACTORS=[
-  {id:31,      name:'Tom Hanks'},
-  {id:287,     name:'Brad Pitt'},
-  {id:6193,    name:'Leonardo DiCaprio'},
-  {id:192,     name:'Morgan Freeman'},
-  {id:1245,    name:'Scarlett Johansson'},
-  {id:500,     name:'Tom Cruise'},
-  {id:2232,    name:'Keanu Reeves'},
-  {id:3223,    name:'Robert Downey Jr.'},
-  {id:2524,    name:'Joaquin Phoenix'},
-  {id:74568,   name:'Chris Hemsworth'},
-  {id:16851,   name:'Ryan Gosling'},
-  {id:1896,    name:'Charlize Theron'},
-  {id:819,     name:'Edward Norton'},
-  {id:64,      name:'Gary Oldman'},
-  {id:8784,    name:'Meryl Streep'},
-  {id:1892,    name:'Cate Blanchett'},
-  {id:2888,    name:'Will Smith'},
-  {id:380,     name:'Russell Crowe'},
-  {id:1813461, name:'Florence Pugh'},
-  {id:1373737, name:'Timothée Chalamet'},
-  {id:1190668, name:'Zendaya'},
-  {id:514,     name:'Denzel Washington'},
-  {id:10859,   name:'Christian Bale'},
-  {id:52571,   name:'Chris Evans'},
-  {id:1136406, name:'Ana de Armas'},
-  {id:932,     name:'Cillian Murphy'},
-  {id:2037,    name:'Robert De Niro'},
-  {id:8891,    name:'Matt Damon'},
-  {id:1136,    name:'Natalie Portman'},
-  {id:3776,    name:'Hugh Jackman'},
-  {id:1023139, name:'Pedro Pascal'},
-  {id:234352,  name:'Margot Robbie'},
-  {id:5049,    name:'Kate Winslet'},
-  {id:53639,   name:'Emily Blunt'},
-  {id:13798,   name:'Jake Gyllenhaal'},
-  {id:16483,   name:'Sylvester Stallone'},
-  {id:1327,    name:'Javier Bardem'},
-  {id:2227,    name:'Halle Berry'},
-  {id:10980,   name:'Viggo Mortensen'},
-  {id:3,       name:'Clint Eastwood'},
+  // Hommes
+  {id:31,      name:'Tom Hanks',           path:'/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg'},
+  {id:287,     name:'Brad Pitt',           path:'/kU3B75TyRiCgE270EyZnHjfivoq.jpg'},
+  {id:6193,    name:'Leonardo DiCaprio',   path:'/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg'},
+  {id:192,     name:'Morgan Freeman',      path:'/jPssioIGQMDczvUU7GHoImhFQMk.jpg'},
+  {id:500,     name:'Tom Cruise',          path:'/aemBIlLBFzRxKbdE4y8OAZG8Xtz.jpg'},
+  {id:2232,    name:'Keanu Reeves',        path:'/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg'},
+  {id:3223,    name:'Robert Downey Jr.',   path:'/im9SAqJPZKEbVZGmjXuLI4O7RvM.jpg'},
+  {id:2524,    name:'Joaquin Phoenix',     path:'/nXMzvVF6xR3k5FBjNcQ5uBkZPHW.jpg'},
+  {id:74568,   name:'Chris Hemsworth',     path:'/jpurJ9jAcLCYjgHHfYF32m3zJYm.jpg'},
+  {id:16851,   name:'Ryan Gosling',        path:'/lyUyVARQKhGxaxy0FbPJCQRpiaW.jpg'},
+  {id:819,     name:'Edward Norton',       path:'/8nytsqL59SFJTVYMgB5V2CBiSUb.jpg'},
+  {id:64,      name:'Gary Oldman',         path:'/2v9FVVBUrrkW2m3QOcYkuhq9A6o.jpg'},
+  {id:2888,    name:'Will Smith',          path:'/7F3HQMoVvqHODLwbHJPNMNuPfpY.jpg'},
+  {id:380,     name:'Russell Crowe',       path:'/xRlFBCRjXlzl4YEJftqJj7AKCHe.jpg'},
+  {id:1373737, name:'Timothee Chalamet',   path:'/BE2sdjpgsa2rNTFa66f7upkaOP.jpg'},
+  {id:514,     name:'Denzel Washington',   path:'/jj2Gcobpopokal0YstuCQW0ldnOQ.jpg'},
+  {id:10859,   name:'Christian Bale',      path:'/qCpZn2e3dimwbryLnqxZuI88PTi.jpg'},
+  {id:52571,   name:'Chris Evans',         path:'/3bOGNse2LkVJAk18sAxKAWCLFTj.jpg'},
+  {id:932,     name:'Cillian Murphy',      path:'/dm6V24NjjvjMiCtbMkc8Y2WPm2e.jpg'},
+  {id:2037,    name:'Robert De Niro',      path:'/cT8htcckIuyI1iba0fykaxsEovn.jpg'},
+  {id:8891,    name:'Matt Damon',          path:'/ycAv4UJbbf3jUEHMn1PxFpzKUlg.jpg'},
+  {id:3776,    name:'Hugh Jackman',        path:'/t4768kJFH1HiKNXrDqoAFCOdkiO.jpg'},
+  {id:1023139, name:'Pedro Pascal',        path:'/iDlJFYcTMg81nAtU4wBj6DJDSS5.jpg'},
+  {id:10980,   name:'Viggo Mortensen',     path:'/vH5gVSpHAMhDaFWfh0Q7BG61O1y.jpg'},
+  {id:3,       name:'Clint Eastwood',      path:'/tHRqb9QQ6BDTMO23sifs0hCKnQq.jpg'},
+  {id:13798,   name:'Jake Gyllenhaal',     path:'/tgEeIDba1GzSMQ1AiQrCGsYJksc.jpg'},
+  {id:16483,   name:'Sylvester Stallone',  path:'/mMRBECqxfCqMOCghDnKaMPIaXjf.jpg'},
+  {id:1327,    name:'Javier Bardem',       path:'/AsHsX5gELBxCeVnP27BAPe3loNY.jpg'},
+  // Femmes
+  {id:1245,    name:'Scarlett Johansson',  path:'/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg'},
+  {id:8784,    name:'Meryl Streep',        path:'/UGnM7fzECb3P3BmYQOGHBF8LW5.jpg'},
+  {id:1892,    name:'Cate Blanchett',      path:'/2843XeSBkBu9B5wYHyYVBxYGqUk.jpg'},
+  {id:1813461, name:'Florence Pugh',       path:'/3bG0MoFMtRZBKZsHNFLiaqA5XDE.jpg'},
+  {id:1190668, name:'Zendaya',             path:'/6TE2AlOUqEnIfiilxkSdgP9oM2Y.jpg'},
+  {id:1136406, name:'Ana de Armas',        path:'/3vxvsmYLNGBDkAp1IiM1pnFsI8S.jpg'},
+  {id:234352,  name:'Margot Robbie',       path:'/euDPyqLnuwaWMHajcU3oZ9uZezR.jpg'},
+  {id:5049,    name:'Kate Winslet',        path:'/e3tdop3WhseRnn8prldBSsQswFk.jpg'},
+  {id:53639,   name:'Emily Blunt',         path:'/pQHJSBInhBGMXe7Mf7HnCDETzz3.jpg'},
+  {id:2227,    name:'Halle Berry',         path:'/p9GBB5GmDMCQDRMKyOCKcIbAVBs.jpg'},
+  {id:1136,    name:'Natalie Portman',     path:'/rC0mLzNNHJTSmNm7cXZqJ2CHvXX.jpg'},
+  // Charlize Theron - ID correct
+  {id:6885,    name:'Charlize Theron',     path:'/AxMxflMFDqkstZZFGzOPFIwMRrX.jpg'},
 ];
 
 async function fetchActorQuestions(count){
-  const pool=shuffle([...KNOWN_ACTORS]).slice(0, Math.min(count+10, KNOWN_ACTORS.length));
+  const pool=shuffle([...KNOWN_ACTORS]).slice(0, Math.min(count+12, KNOWN_ACTORS.length));
   const result=[];
   for(const actor of pool){
     if(result.length>=count)break;
     try{
-      // Fetch en live : id fixe = nom fixe, profile_path toujours à jour
+      // Fetch live pour avoir le path le plus recent
       const r=await fetch(`https://api.themoviedb.org/3/person/${actor.id}?api_key=${TK}`);
       const d=await r.json();
-      if(!d.profile_path)continue;
+      // Verifier que le nom correspond (garde-fou anti-mauvais ID)
+      if(!d.profile_path||!d.name)continue;
+      // Si le nom TMDB ne match pas du tout, ignorer
+      const tmdbName=d.name.toLowerCase().replace(/[^a-z]/g,'');
+      const expectedName=actor.name.toLowerCase().replace(/[^a-z]/g,'');
+      if(tmdbName!==expectedName&&!tmdbName.includes(expectedName.slice(0,5))){
+        console.warn('ID mismatch:',actor.id,d.name,'!=',actor.name);
+        continue;
+      }
       const photo=`https://image.tmdb.org/t/p/w342${d.profile_path}`;
       const wrongs=shuffle(KNOWN_ACTORS.filter(a=>a.id!==actor.id)).slice(0,3).map(a=>a.name);
       const answers=shuffle([actor.name,...wrongs]);
-      result.push({type:'acteur',name:actor.name,photo,answers,correct:answers.indexOf(actor.name),difficulty:'medium',category:'Acteur Mystère'});
-    }catch(e){}
+      result.push({type:'acteur',name:actor.name,photo,answers,correct:answers.indexOf(actor.name),difficulty:'medium',category:'Acteur Mystere'});
+    }catch(e){
+      // Fallback sur le path hardcode si le fetch echoue
+      if(actor.path){
+        const photo=`https://image.tmdb.org/t/p/w342${actor.path}`;
+        const wrongs=shuffle(KNOWN_ACTORS.filter(a=>a.id!==actor.id)).slice(0,3).map(a=>a.name);
+        const answers=shuffle([actor.name,...wrongs]);
+        result.push({type:'acteur',name:actor.name,photo,answers,correct:answers.indexOf(actor.name),difficulty:'medium',category:'Acteur Mystere'});
+      }
+    }
   }
   return result.slice(0,count);
 }
@@ -1714,7 +1734,7 @@ function loadQ(){
         <div class="prhint">Quel film ?</div>
         <div class="prbar"><div class="prp" id="pp0"></div><div class="prp" id="pp1"></div><div class="prp" id="pp2"></div><div class="prp" id="pp3"></div></div>
       </div>
-      <div class="htxt">🎞️ ${q.year} · ${q.genre}</div>`;
+      <div class="htxt" id="photo-hint">🎞️ ${q.genre} · ${q.year}</div>`;
     revInt=setInterval(()=>{
       if(ansed)return;
       revStage=Math.min(revStage+1,3);
@@ -1788,14 +1808,16 @@ function loadQ(){
       if(boClueIdx>=q.clues.length-1)clearInterval(revInt);
     },5000);
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-    startTimer();
+    // Timer plus long pour Indices Mystere - les indices arrivent progressivement
+    tLeft=30;updateTimerUI();
+    tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);clearInterval(revInt);if(!ansed)handleAnswer(-1);}},100);
 
   } else if(q.type==='boxoffice'){
     game.style.overflowY='auto';
     qa.innerHTML=`<div class="qtl">💰 Box-office</div><div style="font-size:13px;color:var(--mt);margin-bottom:8px;flex-shrink:0;">Classe ces films du plus au moins rentable :</div>`;
     dragOrder=[...q.movies.map((_,i)=>i)];
     renderBOList(q);
-    document.getElementById('dbadge').textContent='💰 Recettes';
+    document.getElementById('dbadge').textContent='💰 Box-office';
     document.getElementById('dbadge').className='dbd dm';
     const cb=document.createElement('button');
     cb.className='bo-confirm';cb.textContent='VALIDER L\'ORDRE';cb.style.gridColumn='1/-1';
@@ -1810,7 +1832,7 @@ function loadQ(){
     qa.style.overflow='visible';
     qa.style.justifyContent='flex-start';
     qa.innerHTML=`
-      <div class="qtl">🎭 Réplique Culte</div>
+      <div class="qtl">💬 La Réplique</div>
       <div class="rq-wrap">
         <div class="rq-quote-box">
           <div class="rq-guillemets">"</div>
@@ -1837,7 +1859,7 @@ function loadQ(){
     qa.innerHTML=`
       <div class="qtl">👤 Acteur Mystère</div>
       <div class="acteur-wrap" id="acteur-wrap">
-        <img id="acteur-img" src="${q.photo}" alt="?" style="filter:blur(24px) brightness(.65);transition:filter 1.8s ease;" crossorigin="anonymous">
+        <img id="acteur-img" src="${q.photo}" alt="?" style="filter:blur(28px) brightness(.5) saturate(.5);transition:filter 2s ease;" crossorigin="anonymous" onerror="this.style.display='none';this.parentNode.style.background='var(--sf2)'">
         <div class="pmo"></div>
         <div class="prhint">Quel acteur ?</div>
         <div class="acteur-reveal-bar"><div class="prp" id="ap0"></div><div class="prp" id="ap1"></div><div class="prp" id="ap2"></div><div class="prp" id="ap3"></div></div>
@@ -1845,11 +1867,11 @@ function loadQ(){
     revInt=setInterval(()=>{
       if(ansed)return;
       revStage=Math.min(revStage+1,3);
-      const bl=[24,14,6,0],br=[.65,.78,.9,1];
+      const bl=[28,16,6,0],br=[.5,.68,.85,1],sat=[.5,.7,.9,1];
       const img=document.getElementById('acteur-img');
-      if(img)img.style.filter=`blur(${bl[revStage]}px) brightness(${br[revStage]})`;
+      if(img)img.style.filter=`blur(${bl[revStage]}px) brightness(${br[revStage]}) saturate(${sat[revStage]})`;
       const p=document.getElementById('ap'+revStage);if(p)p.classList.add('on');
-    },4500);
+    },5000);
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     startTimer();
 
@@ -1863,7 +1885,7 @@ function loadQ(){
   } else {
     game.style.overflowY='hidden';
     qa.style.justifyContent='center';
-    qa.innerHTML=`<div class="qtl">🎬 Question</div><div class="qtxt">${q.text}</div>`;
+    qa.innerHTML=`<div class="qtl">❓ Trivia Ciné</div><div class="qtxt">${q.text}</div>`;
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     startTimer();
   }
