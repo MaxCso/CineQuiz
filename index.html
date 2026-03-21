@@ -247,16 +247,12 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   filter:drop-shadow(0 0 24px rgba(245,200,66,.5));
 }
 .splash-tagline{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:4px;text-transform:uppercase;margin-top:4px;}
-.splash-film-strip{
-  position:absolute;bottom:0;left:0;right:0;height:40px;
-  display:flex;overflow:hidden;
-  border-top:2px solid rgba(245,200,66,.2);
+.splash-tap{
+  margin-top:32px;font-size:11px;color:rgba(255,255,255,.3);
+  letter-spacing:3px;text-transform:uppercase;
+  animation:tapPulse 1.6s ease-in-out infinite;
 }
-.splash-frame{
-  flex-shrink:0;height:100%;aspect-ratio:1.3;
-  border-right:2px solid rgba(245,200,66,.15);
-  background:rgba(245,200,66,.03);
-}
+@keyframes tapPulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
 
 /* -- TRANSITIONS QUESTIONS -- */
 @keyframes slideInRight{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:translateX(0);}}
@@ -782,14 +778,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     <div class="splash-logo-wrap" id="splash-logo">
       <div class="splash-logo">CineQuiz</div>
       <div class="splash-tagline">Le quiz du 7eme art</div>
-    </div>
-    <div class="splash-film-strip">
-      <div class="splash-frame"></div><div class="splash-frame"></div><div class="splash-frame"></div>
-      <div class="splash-frame"></div><div class="splash-frame"></div><div class="splash-frame"></div>
-      <div class="splash-frame"></div><div class="splash-frame"></div><div class="splash-frame"></div>
-      <div class="splash-frame"></div><div class="splash-frame"></div><div class="splash-frame"></div>
-      <div class="splash-frame"></div><div class="splash-frame"></div><div class="splash-frame"></div>
-      <div class="splash-frame"></div><div class="splash-frame"></div><div class="splash-frame"></div>
+      <div class="splash-tap">Appuie pour commencer</div>
     </div>
   </div>
 
@@ -1020,7 +1009,7 @@ function toggleMusic(){
   b.style.opacity=musOn?'1':'.38';
   if(musOn)playMus();else stopMus();
 }
-document.addEventListener('click',()=>{if(musOn)playMus();},{once:true});
+// La musique est lancée via le splash screen au premier tap
 
 // ==============================
 // AUDIO FX - Sound design cinéma
@@ -2621,15 +2610,29 @@ function runSplash(){
   const logo=document.getElementById('splash-logo');
   const curtain=document.getElementById('splash-curtain');
   if(!splash)return;
-  // Afficher le logo apres un court délai
+
+  function startSequence(){
+    // Lancer la musique dès la première interaction
+    if(musOn)playMus();
+    setTimeout(()=>{logo.classList.add('show');},100);
+    setTimeout(()=>{curtain.classList.add('open');},600);
+    setTimeout(()=>{
+      splash.classList.add('out');
+      setTimeout(()=>{splash.style.display='none';},700);
+    },1600);
+  }
+
+  // Afficher le logo immédiatement, attendre le 1er tap
   setTimeout(()=>{logo.classList.add('show');},300);
-  // Ouvrir les rideaux
-  setTimeout(()=>{curtain.classList.add('open');},900);
-  // Masquer le splash
-  setTimeout(()=>{
-    splash.classList.add('out');
-    setTimeout(()=>{splash.style.display='none';},700);
-  },2000);
+
+  // Sur mobile : touchend, sur desktop : click
+  const onTap=()=>{
+    splash.removeEventListener('touchend',onTap);
+    splash.removeEventListener('click',onTap);
+    startSequence();
+  };
+  splash.addEventListener('touchend',onTap,{once:true});
+  splash.addEventListener('click',onTap,{once:true});
 }
 
 // ── TRANSITIONS ──
