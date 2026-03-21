@@ -1443,8 +1443,8 @@ function closeMod(e){if(!e||e.target===document.getElementById('bmod'))document.
 // GAME STATE
 // ==============================
 let qs=[],curQ=0,score=0,tInt=null,tLeft=20,ansed=false;
-let okCnt=0,bestM=1,times=[],dotRes=[],fastCnt=0,photoOkCnt=0;
-let revInt=null,revStage=0,lvlFn=null,tStart=0;
+let combo=0,okCnt=0,bestM=1,times=[],dotRes=[],fastCnt=0,photoOkCnt=0,lastTick=-1,tStart=0;
+let revInt=null,revStage=0,lvlFn=null;
 let nextQTimer=null;
 const TOTAL=10,MAXT=20;
 
@@ -1453,7 +1453,7 @@ let dragIdx=null,dragOrder=[];
 
 async function startGame(){
   resume();
-  score=0;curQ=0;okCnt=0;bestM=1;times=[];dotRes=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
+  score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];dotRes=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
   tStart=Date.now();
   go('loading');
   try{
@@ -1573,6 +1573,7 @@ function buildDots(){
 
 function loadQ(){
   ansed=false;lastTick=-1;
+  if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
   clearInterval(tInt);clearInterval(revInt);hideToast();
   const q=qs[curQ];
   document.getElementById('qnum').textContent=`Q ${curQ+1}/${TOTAL}`;
@@ -2149,11 +2150,12 @@ function handleAnswer(idx){
   // Pour réplique : toujours afficher l'indice après réponse
   if(q.type==='replique'){const h=document.getElementById('rq-hint');if(h)h.classList.add('on');}
   if(ok){
-    btns[idx].classList.add('ok');score+=100*m;okCnt++;
+    btns[idx].classList.add('ok');score+=100*m;okCnt++;combo++;
     if(m>bestM)bestM=m;if(elapsed<5)fastCnt++;if(q.type==='photo')photoOkCnt++;
     const toastExtra=q.type==='replique'?`${q.film} · ${q.year}`:null;
     sndOk(m);showToast(true,100*m,m,toastExtra);
   }else{
+    combo=0;
     if(idx>=0)btns[idx].classList.add('no');btns[q.correct].classList.add('ok');
     const wrongAns=idx===-1?null:(q.type==='replique'?`${q.answers[q.correct]} · ${q.year} (${q.actor})`:q.answers[q.correct]);
     sndNo();showToast(false,0,m,wrongAns);
