@@ -2289,6 +2289,2253 @@ async function startGame(){
       await new Promise(r=>setTimeout(r,200));setStep(2,'don');
     }
     setTimeout(()=>{curQ=0;score=0;go('game');loadQ();},350);
+  }catch(e){
+    document.getElementById('loading').innerHTML=`<div style="background:var(--sf);border:1px solid rgba(232,52,74,.3);border-radius:18px;padding:26px;text-align:center;max-width:280px"><div style="font-size:40px;margin-bottom:10px">📡</div><div style="font-weight:600;margin-bottom:7px">Connexion impossible</div><div style="font-size:12px;color:var(--mt);margin-bottom:18px;line-height:1.5">Vérifie ta connexion et réessaie.</div><button onclick="startGame()" style="background:var(--gold);color:#000;border:none;border-radius:12px;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer">RÉESSAYER</button></div><button onclick="go('home')" style="margin-top:12px;background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:12px;padding:11px 26px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">← Retour</button>`;
+  }
+}
+
+// ─── sndOk : bonne réponse ─────────────────────────────────────
+// Inspiration : son de validation douce d'app premium
+
+// -- INIT --
+refHome();
+applyNewBadges();
+loadTheme();
+runSplash();
+// Fond accueil
+const _hbg2=document.getElementById('home-bg');
+if(_hbg2)_hbg2.classList.add('visible');
+
+</script>
+</body>
+</html>
+}
+
+/* Contenu home au-dessus du fond */
+#home > *{z-index:2;position:relative;}
+/* Logo lumineux */
+.logo{
+  font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;
+  background:linear-gradient(135deg,#fff3c0,var(--gold),#fff8e0,var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 14px rgba(245,200,66,.3));
+  animation:logoGlow 4s ease-in-out infinite;
+}
+@keyframes logoGlow{
+  0%,100%{filter:drop-shadow(0 0 10px rgba(245,200,66,.2));}
+  50%{filter:drop-shadow(0 0 22px rgba(245,200,66,.5));}
+}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:3px;text-transform:uppercase;margin-top:-2px;}
+
+/* -- Topbar & buttons -- */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.tbr{display:flex;gap:8px;align-items:center;}
+.ibtn{width:40px;height:40px;border-radius:50%;background:rgba(14,11,8,.7);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:transform .2s;flex-shrink:0;backdrop-filter:blur(8px);}
+.ibtn:active{transform:scale(.88);}
+.ibtn.off{opacity:.38;}
+
+/* -- XP widget -- */
+.xpw{background:rgba(14,11,8,.72);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:11px 15px;margin-bottom:8px;backdrop-filter:blur(8px);}
+.xpw-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.xpw-nm{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
+.xpw-nl{font-size:11px;color:rgba(255,255,255,.4);}
+.xpb{background:rgba(255,255,255,.08);border-radius:4px;height:5px;overflow:hidden;}
+.xpbf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width 1s ease;}
+.xps{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:rgba(255,255,255,.35);}
+
+/* -- STATS ROW redesign -- */
+.srow{display:flex;gap:7px;margin-bottom:9px;}
+.sm{
+  flex:1;border-radius:13px;padding:8px 5px 7px;text-align:center;
+  position:relative;overflow:hidden;cursor:default;
+  border:1px solid rgba(255,255,255,.08);
+}
+.sm-fire{background:linear-gradient(145deg,rgba(255,80,20,.22),rgba(255,60,0,.08));}
+.sm-gold{background:linear-gradient(145deg,rgba(245,200,66,.22),rgba(220,160,0,.08));}
+.sm-green{background:linear-gradient(145deg,rgba(46,204,113,.22),rgba(0,180,80,.08));}
+.sm::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);}
+.sm-icon{font-size:14px;display:block;margin-bottom:2px;}
+.smv{font-family:'Bebas Neue',sans-serif;font-size:20px;line-height:1;display:block;margin-bottom:2px;}
+.sml{font-size:8px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;}
+.c-fire{color:#ff7040;}.c-gold{color:var(--gold);}.c-green{color:#4ade80;}
+
+.shd{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:3px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+
+/* badges strip */
+.bscroll{display:flex;gap:7px;overflow-x:auto;padding:6px 2px 4px;margin-bottom:8px;scrollbar-width:none;}
+.bscroll::-webkit-scrollbar{display:none;}
+.bc{flex-shrink:0;background:rgba(14,11,8,.6);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:8px 11px;text-align:center;min-width:64px;cursor:pointer;transition:transform .15s;position:relative;backdrop-filter:blur(6px);}
+.bc.ok{border-color:rgba(245,200,66,.35);background:rgba(245,200,66,.1);}
+.bc.lk{opacity:.2;filter:grayscale(1);}
+.bc:active{transform:scale(.91);}
+.bci{font-size:19px;margin-bottom:2px;}
+.bcn{font-size:9px;color:rgba(255,255,255,.38);}
+.bc.ok .bcn{color:var(--gold);}
+.bc-new{position:absolute;top:-5px;right:-5px;width:12px;height:12px;background:var(--red);border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 6px rgba(232,52,74,.6);}
+
+/* -- MODE CARDS redesign -- */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.mc{
+  background:rgba(10,8,5,.65);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:12px 8px 10px;
+  text-align:center;cursor:pointer;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(6px);
+}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);}
+.mc::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:2px;border-radius:2px;background:transparent;transition:background .22s,opacity .22s;opacity:0;}
+.mc[data-mode="quiz"]    {--mc-color:#f5c842;--mc-bg:rgba(245,200,66,.1);}
+.mc[data-mode="photo"]   {--mc-color:#60a5fa;--mc-bg:rgba(96,165,250,.1);}
+.mc[data-mode="year"]    {--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
+.mc[data-mode="bo"]      {--mc-color:#f472b6;--mc-bg:rgba(244,114,182,.1);}
+.mc[data-mode="boxoffice"]{--mc-color:#34d399;--mc-bg:rgba(52,211,153,.1);}
+.mc[data-mode="replique"]{--mc-color:#fb923c;--mc-bg:rgba(251,146,60,.1);}
+.mc[data-mode="acteur"]  {--mc-color:#e879f9;--mc-bg:rgba(232,121,249,.1);}
+.mc[data-mode="bande"]   {--mc-color:#38bdf8;--mc-bg:rgba(56,189,248,.1);}
+.mc.sel{border-color:var(--mc-color,var(--gold));background:var(--mc-bg,rgba(245,200,66,.1));transform:scale(1.04);}
+.mc.sel::after{background:var(--mc-color,var(--gold));opacity:1;}
+.mc:not(.sel):active{transform:scale(.96);}
+.mci{display:flex;align-items:center;justify-content:center;margin:0 auto 6px;width:24px;height:24px;opacity:.75;transition:opacity .2s;color:rgba(255,255,255,.6);}
+.mci svg{width:22px;height:22px;}
+.mc.sel .mci{opacity:1;color:var(--mc-color,var(--gold));}
+.mc-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.2px;display:block;transition:color .2s;line-height:1.2;}
+.mc.sel .mc-label{color:var(--mc-color,var(--gold));}
+.mnew{
+  position:absolute;top:7px;right:7px;
+  font-size:8px;background:var(--red);color:#fff;
+  border-radius:5px;padding:2px 6px;font-weight:800;letter-spacing:.5px;
+  box-shadow:0 2px 8px rgba(232,52,74,.5);
+}
+
+/* theme row */
+.trow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none;}
+.trow::-webkit-scrollbar{display:none;}
+.tc{flex-shrink:0;background:rgba(10,8,5,.6);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:7px 14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tc.sel{background:rgba(74,158,255,.15);border-color:var(--blue);color:var(--blue);}
+.tc:active{transform:scale(.94);}
+
+/* -- BOUTON JOUER redesign -- */
+.pbtn{
+  width:100%;border:none;border-radius:20px;height:60px;
+  background:linear-gradient(100deg,#f5c842 0%,#ffdc6b 45%,#e8a800 100%);
+  color:#000;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(245,200,66,.45),0 1px 0 rgba(255,255,255,.3) inset,0 -2px 0 rgba(0,0,0,.15) inset;
+  transition:transform .15s,box-shadow .15s;
+}
+.pbtn::after{
+  content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+  animation:btnglare 2.5s ease 1s infinite;
+}
+@keyframes btnglare{0%{left:-80%;}100%{left:160%;}}
+.pbtn:active{transform:scale(.97);box-shadow:0 2px 12px rgba(245,200,66,.3);}
+.pbtn-icon{font-size:22px;}
+
+/* -- FOND DE JEU par mode -- */
+#game-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity .6s ease;
+}
+#game-bg.on{opacity:1;}
+/* Fonds de jeu avec animation douce */
+#game-bg::before{
+  content:'';position:absolute;inset:-20%;width:140%;height:140%;
+  animation:gameBgPulse 12s ease-in-out infinite;
+  background:inherit;
+  opacity:.6;
+}
+@keyframes gameBgPulse{
+  0%,100%{transform:translate(0,0) scale(1);}
+  33%    {transform:translate(5%,8%) scale(1.08);}
+  66%    {transform:translate(-6%,-5%) scale(.94);}
+}
+#game-bg.mode-quiz    {background:radial-gradient(ellipse 70% 55% at 35% 25%,rgba(100,70,0,.9) 0%,#060401 65%);}
+#game-bg.mode-photo   {background:radial-gradient(ellipse 65% 55% at 65% 35%,rgba(0,50,110,.9) 0%,#000609 65%);}
+#game-bg.mode-year    {background:radial-gradient(ellipse 60% 55% at 50% 25%,rgba(65,0,120,.9) 0%,#04000a 65%);}
+#game-bg.mode-duo     {background:radial-gradient(ellipse 65% 55% at 35% 70%,rgba(110,0,50,.9) 0%,#060003 65%);}
+#game-bg.mode-bo      {background:radial-gradient(ellipse 65% 55% at 30% 65%,rgba(110,0,70,.9) 0%,#060005 65%);}
+#game-bg.mode-boxoffice{background:radial-gradient(ellipse 65% 55% at 70% 75%,rgba(0,85,40,.9) 0%,#000604 65%);}
+#game-bg.mode-replique{background:radial-gradient(ellipse 65% 55% at 25% 50%,rgba(100,40,0,.9) 0%,#060200 65%);}
+#game-bg.mode-acteur  {background:radial-gradient(ellipse 65% 55% at 78% 25%,rgba(75,0,100,.9) 0%,#050007 65%);}
+#game-bg.mode-bande   {background:radial-gradient(ellipse 65% 55% at 50% 78%,rgba(0,65,100,.9) 0%,#000507 65%);}
+#game-bg.mode-casting {background:radial-gradient(ellipse 65% 55% at 60% 30%,rgba(80,55,0,.9) 0%,#060400 65%);}
+#game,#lvlup,#result{position:absolute;inset:0;z-index:1;}
+
+
+/* -- SPLASH SCREEN -- */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:#08070d;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+  transition:opacity .6s ease;
+}
+#splash.out{opacity:0;pointer-events:none;}
+.splash-curtain{
+  position:absolute;inset:0;
+  display:flex;
+}
+.splash-curtain-l,.splash-curtain-r{
+  flex:1;background:#0d0b14;
+  transition:transform .8s cubic-bezier(.76,0,.24,1);
+}
+.splash-curtain-l{transform-origin:left;border-right:1px solid rgba(245,200,66,.15);}
+.splash-curtain-r{transform-origin:right;border-left:1px solid rgba(245,200,66,.15);}
+.splash-curtain.open .splash-curtain-l{transform:translateX(-100%);}
+.splash-curtain.open .splash-curtain-r{transform:translateX(100%);}
+.splash-logo-wrap{position:relative;z-index:1;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);}
+.splash-logo-wrap.show{opacity:1;transform:scale(1);}
+.splash-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;
+  background:linear-gradient(135deg,#fff3c0,#f5c842,#fff8e0,#e8a800);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 24px rgba(245,200,66,.5));
+}
+.splash-tagline{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:4px;text-transform:uppercase;margin-top:4px;}
+.splash-tap{
+  margin-top:32px;font-size:11px;color:rgba(255,255,255,.3);
+  letter-spacing:3px;text-transform:uppercase;
+  animation:tapPulse 1.6s ease-in-out infinite;
+}
+@keyframes tapPulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
+
+/* -- TRANSITIONS QUESTIONS -- */
+@keyframes slideInRight{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:translateX(0);}}
+@keyframes slideOutLeft{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(-24px);}}
+@keyframes fadeScaleIn{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
+.qa.q-exit{animation:slideOutLeft .18s ease both;}
+.qa.q-enter{animation:slideInRight .22s ease both;}
+.agrid.q-exit{animation:slideOutLeft .18s ease both;}
+.agrid.q-enter{animation:fadeScaleIn .25s ease .05s both;}
+
+/* -- COMBO VISUEL -- */
+#combo-banner{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);
+  z-index:200;pointer-events:none;
+  text-align:center;
+  opacity:0;
+}
+#combo-banner.show{
+  animation:comboPop .65s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes comboPop{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-4deg);}
+  40%{opacity:1;transform:translate(-50%,-50%) scale(1.1) rotate(2deg);}
+  60%{transform:translate(-50%,-50%) scale(.95) rotate(-1deg);}
+  80%{transform:translate(-50%,-50%) scale(1.02) rotate(0deg);}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);}
+}
+#combo-banner.hide{animation:comboFade .4s ease both;}
+@keyframes comboFade{to{opacity:0;transform:translate(-50%,-58%) scale(.9);}}
+.combo-fire{font-size:32px;display:block;animation:comboBounce .4s ease infinite alternate;}
+@keyframes comboBounce{from{transform:scale(1);}to{transform:scale(1.15);}}
+.combo-label{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:48px;letter-spacing:2px;line-height:1;
+  background:linear-gradient(135deg,#fff3c0,#f5c842,#ff9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 8px rgba(245,200,66,.6));
+}
+.combo-sub{font-size:13px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+
+/* -- R-SULTATS ENRICHIS -- */
+#result{padding:max(40px,env(safe-area-inset-top,40px)) 22px max(28px,env(safe-area-inset-bottom,28px));display:flex;flex-direction:column;align-items:center;overflow-y:auto;}
+.r-hero{text-align:center;margin-bottom:16px;}
+.ricon{font-size:56px;display:block;animation:rIconPop .6s cubic-bezier(.34,1.56,.64,1) .1s both;}
+@keyframes rIconPop{from{transform:scale(0) rotate(-20deg);}to{transform:scale(1) rotate(0deg);}}
+.rtit{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;color:var(--gold);margin-top:6px;animation:fadeScaleIn .4s ease .25s both;}
+.rsub{font-size:13px;color:rgba(255,255,255,.5);margin-top:3px;animation:fadeScaleIn .4s ease .3s both;}
+.rscore{font-family:'Bebas Neue',sans-serif;font-size:72px;line-height:1;color:var(--gold);letter-spacing:2px;animation:scoreCount .5s ease .4s both;}
+@keyframes scoreCount{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.rscl{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:3px;text-transform:uppercase;margin-top:-4px;margin-bottom:30px;}
+
+/* Graphique r-ponses */
+.r-chart{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:16px;margin-bottom:14px;animation:fadeScaleIn .4s ease .5s both;backdrop-filter:blur(10px);}
+.r-chart-title{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.r-bars{display:flex;gap:5px;align-items:flex-end;height:60px;}
+.r-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.r-bar{width:100%;border-radius:4px 4px 0 0;transition:height .6s cubic-bezier(.34,1.56,.64,1);}
+.r-bar.ok{background:linear-gradient(to top,rgba(46,204,113,.4),rgba(46,204,113,.8));}
+.r-bar.no{background:linear-gradient(to top,rgba(232,52,74,.3),rgba(232,52,74,.6));}
+.r-bar.empty{background:rgba(255,255,255,.06);}
+.r-bar-n{font-size:9px;color:rgba(255,255,255,.3);}
+
+.xpbar{width:100%;background:rgba(255,255,255,.07);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 16px;margin-bottom:12px;animation:fadeScaleIn .4s ease .6s both;}
+.xpbt{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.xpbl{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:1px;}
+.xpbv{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);}
+.xpbb{background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;}
+.xpbf2{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));width:0%;transition:width 1.2s cubic-bezier(.34,1.56,.64,1);}
+
+.rstats{display:flex;gap:8px;width:100%;margin-bottom:14px;animation:fadeScaleIn .4s ease .65s both;}
+.rst{flex:1;background:rgba(255,255,255,.07);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:12px 6px;text-align:center;}
+.rstv{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);}
+.rstl{font-size:9px;color:rgba(255,255,255,.38);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+.rbtns{display:flex;gap:9px;width:100%;animation:fadeScaleIn .4s ease .7s both;}
+.rbp{flex:2;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:16px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;}
+.rbs{flex:1;background:rgba(255,255,255,.07);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:16px;padding:15px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+
+
+
+/* -- STATS AVANC-ES PROFIL -- */
+.mode-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+.ms-card{
+  background:rgba(255,255,255,.06);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.09);border-radius:13px;
+  padding:10px 12px;
+}
+.ms-mode{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.ms-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);line-height:1;}
+.ms-label{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;}
+.ms-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden;}
+.ms-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .8s ease;}
+
+/* -- TH-MES VISUELS -- */
+/* Dor- */
+body.theme-gold{--bg:#0d0a00;--sf:#1a1500;--sf2:#252000;--gold:#f5c842;--bd:rgba(245,200,66,0.12);}
+body.theme-gold #home-bg::before{background:radial-gradient(ellipse 50% 40% at 38% 28%,rgba(245,180,20,.38) 0%,transparent 58%),radial-gradient(ellipse 42% 36% at 70% 62%,rgba(200,140,0,.28) 0%,transparent 60%),radial-gradient(ellipse 40% 34% at 25% 72%,rgba(180,100,10,.22) 0%,transparent 58%);}
+/* N-on */
+body.theme-neon{--bg:#020008;--sf:#0a0018;--sf2:#120024;--gold:#b94fff;--gold2:#8b00ff;--green:#00ff88;--bd:rgba(185,79,255,0.15);}
+body.theme-neon .logo{background:linear-gradient(135deg,#ff00cc,#b94fff,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+body.theme-neon #home-bg::before{background:radial-gradient(ellipse 50% 40% at 38% 28%,rgba(180,0,255,.3) 0%,transparent 58%),radial-gradient(ellipse 42% 36% at 70% 62%,rgba(0,200,255,.2) 0%,transparent 60%),radial-gradient(ellipse 40% 34% at 25% 72%,rgba(255,0,150,.18) 0%,transparent 58%);}
+body.theme-neon .mc.sel{box-shadow:0 0 20px rgba(185,79,255,.4);}
+body.theme-neon .pbtn{background:linear-gradient(100deg,#b94fff,#8b00ff);}
+/* Classique (s-pia/vintage) */
+body.theme-classic{--bg:#0a0700;--sf:#1a1200;--sf2:#241900;--gold:#c8924a;--gold2:#a06828;--bd:rgba(200,146,74,0.12);}
+body.theme-classic #home-bg::before{background:radial-gradient(ellipse 50% 40% at 38% 28%,rgba(180,120,40,.3) 0%,transparent 58%),radial-gradient(ellipse 42% 36% at 70% 62%,rgba(120,80,20,.22) 0%,transparent 60%);}
+
+body.theme-crimson{--bg:#0a0003;--sf:#180008;--sf2:#220010;--gold:#ff4d6d;--gold2:#c9184a;--green:#2ecc71;--bd:rgba(255,77,109,0.12);}
+body.theme-crimson .logo{background:linear-gradient(135deg,#ff4d6d,#ff8fa3,#c9184a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+body.theme-crimson #home-bg::before{background:radial-gradient(ellipse 50% 40% at 38% 28%,rgba(200,0,50,.35) 0%,transparent 58%),radial-gradient(ellipse 42% 36% at 70% 62%,rgba(150,0,80,.25) 0%,transparent 60%),radial-gradient(ellipse 40% 34% at 25% 72%,rgba(100,0,40,.2) 0%,transparent 58%);}
+body.theme-crimson .pbtn{background:linear-gradient(100deg,#ff4d6d,#c9184a);}
+
+body.theme-ocean{--bg:#000a12;--sf:#001a28;--sf2:#002438;--gold:#00c8ff;--gold2:#0096c7;--green:#00ff99;--bd:rgba(0,200,255,0.12);}
+body.theme-ocean .logo{background:linear-gradient(135deg,#00c8ff,#48cae4,#0096c7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+body.theme-ocean #home-bg::before{background:radial-gradient(ellipse 50% 40% at 38% 28%,rgba(0,100,200,.35) 0%,transparent 58%),radial-gradient(ellipse 42% 36% at 70% 62%,rgba(0,180,220,.25) 0%,transparent 60%),radial-gradient(ellipse 40% 34% at 25% 72%,rgba(0,60,150,.2) 0%,transparent 58%);}
+body.theme-ocean .pbtn{background:linear-gradient(100deg,#00c8ff,#0096c7);color:#000;}
+
+body.theme-forest{--bg:#000a05;--sf:#001a0a;--sf2:#002410;--gold:#00e676;--gold2:#00c853;--bd:rgba(0,230,118,0.1);}
+body.theme-forest .logo{background:linear-gradient(135deg,#00e676,#69f0ae,#00c853);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+body.theme-forest #home-bg::before{background:radial-gradient(ellipse 50% 40% at 38% 28%,rgba(0,150,60,.3) 0%,transparent 58%),radial-gradient(ellipse 42% 36% at 70% 62%,rgba(0,100,40,.22) 0%,transparent 60%),radial-gradient(ellipse 40% 34% at 25% 72%,rgba(0,80,30,.18) 0%,transparent 58%);}
+body.theme-forest .pbtn{background:linear-gradient(100deg,#00e676,#00c853);color:#000;}
+
+body.theme-aurora{--bg:#040010;--sf:#080020;--sf2:#0d0030;--gold:#da77f2;--gold2:#9c27b0;--green:#69f0ae;--bd:rgba(218,119,242,0.12);}
+body.theme-aurora .logo{background:linear-gradient(135deg,#69f0ae,#da77f2,#ff6eb4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+body.theme-aurora #home-bg::before{background:radial-gradient(ellipse 55% 45% at 30% 40%,rgba(100,0,200,.3) 0%,transparent 55%),radial-gradient(ellipse 45% 38% at 70% 55%,rgba(0,200,150,.25) 0%,transparent 55%),radial-gradient(ellipse 40% 35% at 50% 75%,rgba(200,0,100,.2) 0%,transparent 52%);}
+body.theme-aurora .pbtn{background:linear-gradient(100deg,#da77f2,#9c27b0);}
+
+.theme-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.theme-opt{
+  flex:1;min-width:70px;padding:10px 6px;border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.1);
+  text-align:center;cursor:pointer;font-size:10px;font-weight:700;
+  color:rgba(255,255,255,.5);letter-spacing:.5px;text-transform:uppercase;
+  transition:all .2s;
+}
+.theme-opt.active{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.08);}
+.theme-opt-dot{width:18px;height:18px;border-radius:50%;margin:0 auto 5px;}
+
+
+/* -- MODE LE CASTING -- */
+.casting-wrap{width:100%;display:flex;flex-direction:column;gap:10px;}
+.casting-header{
+  background:rgba(255,255,255,.07);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);border-radius:16px;
+  padding:14px 16px;text-align:center;
+}
+.casting-title{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.casting-actors{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.casting-actor{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;padding:6px 12px 6px 6px;
+  animation:qs .3s ease both;
+}
+.casting-actor-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:top;background:var(--sf2);}
+.casting-actor-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);}
+.casting-clue{
+  background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);
+  border-radius:12px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.55);
+  text-align:center;font-style:italic;
+}
+
+
+/* -- G-N-RIQUE -- */
+.mc[data-mode="generique"]{--mc-color:#f97316;--mc-bg:rgba(249,115,22,.1);}
+#game-bg.mode-generique{background:radial-gradient(ellipse 65% 55% at 50% 40%,rgba(80,30,0,.9) 0%,#060200 65%);}
+
+.gen-wrap{width:100%;display:flex;flex-direction:column;gap:10px;}
+.gen-header{
+  background:rgba(255,255,255,.07);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.12);border-radius:16px;
+  padding:14px 16px;
+}
+.gen-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.gen-label{font-size:10px;color:rgba(255,255,255,.38);letter-spacing:2px;text-transform:uppercase;}
+.gen-counter{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1px;}
+.gen-actors{display:flex;flex-direction:column;gap:7px;}
+.gen-actor-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);
+  animation:genSlideIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes genSlideIn{
+  from{opacity:0;transform:translateX(-12px);}
+  to{opacity:1;transform:translateX(0);}
+}
+.gen-actor-num{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:rgba(245,200,66,.15);border:1px solid rgba(245,200,66,.25);
+  color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+}
+.gen-actor-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.85);}
+.gen-actor-role{font-size:10px;color:rgba(255,255,255,.35);margin-left:auto;font-style:italic;}
+.gen-hint{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  border-radius:12px;padding:8px 14px;font-size:11px;color:rgba(255,255,255,.4);
+  text-align:center;
+}
+.gen-pip-bar{display:flex;gap:4px;margin-top:8px;}
+.gen-pip{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .4s;}
+.gen-pip.on{background:var(--gold);}
+
+/* -- LIEU DE TOURNAGE -- */
+.mc[data-mode="location"]{--mc-color:#34d399;--mc-bg:rgba(52,211,153,.1);}
+#game-bg.mode-location{background:radial-gradient(ellipse 65% 55% at 40% 60%,rgba(0,60,40,.9) 0%,#000503 65%);}
+
+.loc-wrap{width:100%;display:flex;flex-direction:column;gap:10px;}
+.loc-img-box{
+  width:100%;flex:1;min-height:0;position:relative;
+  border-radius:16px;overflow:hidden;background:var(--sf2);
+}
+.loc-img-box img{width:100%;height:100%;object-fit:cover;display:block;}
+.loc-overlay{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
+  padding:12px 14px 10px;
+}
+.loc-country{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:2px;text-transform:uppercase;}
+.loc-place{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;margin-top:2px;}
+.loc-hint{
+  background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);
+  border-radius:12px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.55);
+  text-align:center;
+}
+
+/* -- MODE ENTRAINEMENT -- */
+.train-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.35);
+  border-radius:8px;padding:3px 9px;font-size:10px;color:#a78bfa;
+  letter-spacing:1px;text-transform:uppercase;font-weight:600;
+}
+.mc[data-mode="training"]{--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
+.mc[data-mode="casting"]{--mc-color:#fbbf24;--mc-bg:rgba(251,191,36,.1);}
+
+/* -- PROFILE -- */
+#profile{padding:max(48px,env(safe-area-inset-top,48px)) 22px 32px;}
+.bkbtn{background:none;border:none;color:var(--mt);font-size:13px;cursor:pointer;margin-bottom:18px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;}
+.phero{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:20px;margin-bottom:11px;text-align:center;}
+.pav{font-size:48px;margin-bottom:6px;}
+.pnm{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:2px;}
+.ptt{font-size:13px;color:var(--gold);margin-top:2px;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px;}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:12px;}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);}
+.sl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.hitem{background:var(--sf);border:1px solid var(--bd);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.hi{font-size:18px;}.hinfo{flex:1;}
+.hs{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);}
+.hd{font-size:11px;color:var(--mt);margin-top:1px;}
+.hdate{font-size:11px;color:var(--mt);}
+/* profile badge grid */
+.pbgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px;}
+.pbc{background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:9px 5px;text-align:center;cursor:pointer;transition:transform .15s;}
+.pbc.ok{border-color:rgba(245,200,66,.3);background:rgba(245,200,66,.05);}
+.pbc.lk{opacity:.28;filter:grayscale(1);}
+.pbc:active{transform:scale(.91);}
+.pbci{font-size:20px;margin-bottom:2px;}
+.pbcn{font-size:9px;color:var(--mt);}
+.pbc.ok .pbcn{color:var(--gold);}
+
+/* -- LOADING -- */
+#loading{align-items:center;justify-content:center;gap:15px;}
+.lfilm{font-size:54px;animation:fbob 1.4s ease infinite;}
+@keyframes fbob{0%,100%{transform:rotate(-8deg) scale(1);}50%{transform:rotate(8deg) scale(1.08);}}
+.ltxt{font-family:'Bebas Neue',sans-serif;font-size:19px;color:var(--mt);letter-spacing:3px;}
+.ldots span{display:inline-block;width:6px;height:6px;background:var(--gold);border-radius:50%;margin:0 3px;animation:ldot 1.2s ease infinite;}
+.ldots span:nth-child(2){animation-delay:.2s;}
+.ldots span:nth-child(3){animation-delay:.4s;}
+@keyframes ldot{0%,80%,100%{transform:translateY(0);opacity:.3;}40%{transform:translateY(-8px);opacity:1;}}
+.lstep{display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:11px;background:var(--sf);border:1px solid var(--bd);font-size:12px;color:var(--mt);transition:all .3s;}
+.lstep.act{border-color:rgba(245,200,66,.3);color:var(--tx);}
+.lstep.don{border-color:rgba(46,204,113,.3);color:var(--green);}
+.lsi{font-size:14px;width:18px;text-align:center;}
+
+/* -- GAME -- */
+#game{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.ghd{padding:max(15px,env(safe-area-inset-top,15px)) 20px 5px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.qnl{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--mt);letter-spacing:1px;}
+.qcl{font-size:10px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;opacity:.8;}
+.mb{font-family:'Bebas Neue',sans-serif;font-size:14px;padding:4px 10px;border-radius:9px;letter-spacing:1px;border:1.5px solid transparent;transition:all .25s;}
+.mx3{background:rgba(46,204,113,.14);color:var(--green);border-color:rgba(46,204,113,.3);}
+.mx2{background:rgba(243,156,18,.14);color:#f39c12;border-color:rgba(243,156,18,.3);}
+.mx1{background:rgba(232,52,74,.14);color:var(--red);border-color:rgba(232,52,74,.3);}
+.shd2{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);letter-spacing:1px;}
+.pdots{display:flex;gap:4px;padding:0 20px 5px;flex-shrink:0;}
+.dot{flex:1;height:3px;border-radius:2px;background:var(--sf2);transition:background .35s;}
+.dot.dc{background:rgba(245,200,66,.35);}
+.dot.dv{background:var(--green);}
+.dot.dx{background:var(--red);}
+.twrap{padding:0 20px 7px;flex-shrink:0;}
+.tbg{background:var(--sf2);border-radius:4px;height:5px;overflow:hidden;}
+.tfil{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .12s linear;}
+.tfil.warn{background:linear-gradient(90deg,var(--red),#ff8c42);}
+.tnums{display:flex;justify-content:space-between;margin-top:4px;}
+.tv{font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--mt);letter-spacing:1px;}
+.dbd{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;}
+.de{background:rgba(46,204,113,.15);color:var(--green);}
+.dm{background:rgba(243,156,18,.15);color:#f39c12;}
+.dh{background:rgba(232,52,74,.15);color:var(--red);}
+
+/* question area */
+.qa{flex:1;min-height:0;padding:0 20px 2px;display:flex;flex-direction:column;overflow:hidden;}
+.qtl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.qtl::after{content:'';flex:1;height:1px;background:var(--bd);}
+.qtxt{font-size:15px;font-weight:500;line-height:1.5;color:var(--tx);animation:qs .35s ease both;}
+@keyframes qs{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* PORTRAIT poster - remplit tout l'espace flex disponible */
+.pmw{flex:1;min-height:0;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);}
+.pmw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+.pmo{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(10,10,15,.55) 100%);pointer-events:none;}
+.prbar{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:4px;}
+.prp{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .4s;}
+.prp.on{background:var(--gold);}
+.prhint{position:absolute;top:8px;right:9px;background:rgba(10,10,15,.78);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:3px 8px;font-size:10px;color:var(--mt);letter-spacing:1px;backdrop-filter:blur(8px);}
+.htxt{font-size:11px;color:var(--mt);text-align:center;margin-top:6px;font-style:italic;flex-shrink:0;}
+
+/* Duo/Solo mode */
+.duo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.actor-card{flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;text-align:center;}
+.actor-card img{width:100%;aspect-ratio:1;object-fit:cover;object-position:top;}
+.actor-card .aname{font-size:12px;font-weight:600;padding:7px 6px 8px;line-height:1.2;}
+.duo-vs{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--mt);letter-spacing:1px;flex-shrink:0;}
+
+/* Box-office ranking */
+.bo-list{display:flex;flex-direction:column;gap:10px;width:100%;position:relative;}
+.bo-item{
+  background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;
+  padding:13px 14px;display:flex;align-items:center;gap:12px;
+  user-select:none;touch-action:none;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .22s ease,
+             border-color .2s ease,
+             background .2s ease;
+  position:relative;
+}
+.bo-item.is-dragging{
+  transform:scale(1.03) rotate(0.8deg);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  border-color:var(--gold);
+  background:var(--sf2);
+  z-index:10;
+  opacity:.92;
+}
+.bo-item.slot-above{transform:translateY(-6px);}
+.bo-item.slot-below{transform:translateY(6px);}
+.bo-item.correct-bo{border-color:var(--green);background:rgba(46,204,113,.1);transform:none;}
+.bo-item.wrong-bo{border-color:var(--red);background:rgba(232,52,74,.1);transform:none;}
+.bo-rank{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--mt);width:26px;flex-shrink:0;line-height:1;}
+.bo-poster{width:42px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4);filter:none;}
+.bo-info{flex:1;min-width:0;}
+.bo-title{font-size:14px;font-weight:600;line-height:1.3;white-space:normal;word-break:break-word;}
+.bo-year{font-size:11px;color:var(--mt);margin-top:3px;}
+.bo-handle{font-size:22px;color:rgba(255,255,255,.25);flex-shrink:0;padding:4px 2px;cursor:grab;line-height:1;}
+.bo-handle:active{cursor:grabbing;}
+.bo-confirm{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:14px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;margin-top:10px;flex-shrink:0;transition:transform .15s;}
+.bo-confirm:active{transform:scale(.97);}
+
+/* Wrong sheet - bigger, scrollable for long film lists */
+.ws-scrim{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:8000;pointer-events:none;transition:background .3s;}
+.ws-scrim.on{background:rgba(0,0,0,.65);pointer-events:all;}
+.wrong-sheet{
+  position:fixed;left:0;right:0;bottom:-100%;
+  background:var(--sf);
+  border-top:2px solid rgba(232,52,74,.5);
+  border-radius:26px 26px 0 0;
+  padding:20px 22px max(32px,env(safe-area-inset-bottom,32px));
+  z-index:8001;
+  transition:bottom .38s cubic-bezier(.22,1,.36,1);
+  max-height:85vh;
+  overflow-y:auto;
+}
+.wrong-sheet.on{bottom:0;}
+.ws-hdl{width:38px;height:4px;background:rgba(255,255,255,.14);border-radius:2px;margin:0 auto 20px;}
+.ws-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.ws-title{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);letter-spacing:1px;}
+.ws-x{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--tx);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-x:active{transform:scale(.88);}
+.ws-sublbl{font-size:11px;color:var(--mt);text-transform:uppercase;letter-spacing:2px;margin-bottom:11px;}
+.ws-ans{background:rgba(46,204,113,.1);border:1.5px solid var(--green);border-radius:15px;padding:16px 18px;font-size:16px;font-weight:600;color:var(--green);line-height:1.55;margin-bottom:18px;word-break:break-word;}
+/* BO correct order list inside wrong sheet */
+.ws-bo-list{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+.ws-bo-item{display:flex;align-items:center;gap:12px;background:rgba(46,204,113,.07);border:1.5px solid rgba(46,204,113,.25);border-radius:13px;padding:11px 14px;}
+.ws-bo-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--green);width:24px;flex-shrink:0;}
+.ws-bo-img{width:36px;height:52px;border-radius:7px;object-fit:cover;flex-shrink:0;}
+.ws-bo-name{font-size:14px;font-weight:600;line-height:1.3;flex:1;}
+.ws-bo-rev{font-size:11px;color:var(--mt);margin-top:2px;}
+.ws-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:15px;padding:17px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:transform .15s;}
+.ws-btn:active{transform:scale(.97);}
+
+/* -- R-PLIQUE CULTE -- */
+.rq-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0 4px;width:100%;}
+.rq-quote-box{background:var(--sf);border:1.5px solid rgba(245,200,66,.25);border-radius:18px;padding:20px 22px;width:100%;position:relative;}
+.rq-guillemets{font-family:'Bebas Neue',sans-serif;font-size:54px;color:rgba(245,200,66,.18);line-height:1;position:absolute;top:6px;left:14px;pointer-events:none;}
+.rq-text{font-size:16px;font-weight:500;line-height:1.7;color:var(--tx);text-align:center;padding:10px 8px 0;min-height:60px;font-style:italic;}
+.rq-cursor{display:inline-block;width:2px;height:18px;background:var(--gold);margin-left:2px;vertical-align:middle;animation:blink .9s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.rq-hint{display:flex;align-items:center;gap:8px;background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2);border-radius:12px;padding:9px 14px;width:100%;font-size:12px;color:var(--blue);opacity:0;transition:opacity .6s ease;}
+.rq-hint.on{opacity:1;}
+.rq-hint-icon{font-size:16px;flex-shrink:0;}
+.rq-film-poster{width:100%;border-radius:14px;overflow:hidden;background:var(--sf2);flex-shrink:1;min-height:0;max-height:200px;position:relative;}
+.rq-film-poster img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;filter:blur(18px) brightness(.6);transition:filter 1.2s ease;}
+.rq-film-poster img.reveal{filter:blur(0) brightness(1);}
+.rq-poster-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(10,10,15,.7) 100%);}
+
+/* -- QUI EST-CE ? -- */
+.actor-mystery-wrap{width:100%;position:relative;border-radius:16px;overflow:hidden;background:var(--sf2);flex-shrink:1;min-height:0;}
+.actor-mystery-wrap img{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;display:block;transition:filter 1.8s ease;}
+.actor-pips{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:4px;}
+.actor-pip{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.2);transition:background .4s;}
+.actor-pip.on{background:var(--gold);}
+.actor-hint{position:absolute;top:8px;right:9px;background:rgba(10,10,15,.8);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:3px 8px;font-size:10px;color:var(--mt);letter-spacing:1px;}
+
+/* -- BANDE-ANNONCE -- */
+.ba-film-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;overflow:hidden;margin-bottom:10px;flex-shrink:0;}
+
+/* Year slider */
+.yslider-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 4px;}
+.ydisp{font-family:'Bebas Neue',sans-serif;font-size:60px;color:var(--gold);letter-spacing:4px;line-height:1;}
+.yfilm{font-size:12px;color:var(--mt);text-align:center;}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:5px;background:var(--sf2);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 0 4px rgba(245,200,66,.22);}
+
+/* answers grid */
+.agrid{padding:4px 16px max(16px,env(safe-area-inset-bottom,16px));display:grid;grid-template-columns:1fr 1fr;gap:9px;flex-shrink:0;}
+.ab{
+  background:rgba(255,255,255,.07);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;padding:14px 10px;
+  color:rgba(255,255,255,.88);
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  text-align:center;cursor:pointer;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  min-height:58px;display:flex;align-items:center;justify-content:center;
+  line-height:1.35;animation:qs .35s ease both;
+  box-shadow:0 2px 8px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.ab:nth-child(2){animation-delay:.05s;}
+.ab:nth-child(3){animation-delay:.1s;}
+.ab:nth-child(4){animation-delay:.15s;}
+.ab:not(:disabled):active{transform:scale(.95);background:rgba(255,255,255,.12);}
+.ab.ok{background:rgba(46,204,113,.2);border-color:rgba(46,204,113,.5);color:#4ade80;font-weight:700;box-shadow:0 0 16px rgba(46,204,113,.2);}
+.ab.no{background:rgba(232,52,74,.18);border-color:rgba(232,52,74,.45);color:#f87171;}
+.ab:disabled{cursor:default;}
+
+/* toast */
+.tst{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) scale(.85);background:rgba(10,10,15,.94);border:1.5px solid var(--bd);border-radius:19px;padding:15px 22px;text-align:center;opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:100;backdrop-filter:blur(16px);min-width:180px;}
+.tst.on{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:all;}
+.tst.ok{border-color:rgba(46,204,113,.5);}
+.tsts.no{border-color:rgba(232,52,74,.4);}
+.tpts{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-bottom:3px;}
+.tmsg{font-size:12px;color:var(--mt);}
+.tans{font-size:11px;color:var(--tx);margin-top:4px;font-style:italic;line-height:1.4;}
+/* -- MODE DEVINE LA BO (indices texte) -- */
+.bo-clues-wrap{
+  width:100%;display:flex;flex-direction:column;gap:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;padding:16px;
+  backdrop-filter:blur(12px);
+}
+.bo-clues-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.bo-clues-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);}
+.bo-clues-sub{font-size:11px;color:var(--gold);font-weight:600;}
+.bo-clues-list{display:flex;flex-direction:column;gap:8px;min-height:100px;}
+.bo-clue-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  animation:qs .35s ease both;
+}
+.bo-clue-item.bo-clue-new{
+  border-color:rgba(245,200,66,.3);
+  background:rgba(245,200,66,.07);
+  animation:clueappear .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes clueappear{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+.bo-clue-num{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(245,200,66,.15);border:1px solid rgba(245,200,66,.3);
+  color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.bo-clue-txt{font-size:13px;color:rgba(255,255,255,.85);line-height:1.4;}
+.bo-clues-bar{display:flex;gap:4px;margin-top:4px;}
+.bo-bar-pip{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .4s;}
+.bo-bar-pip.on{background:var(--gold);}
+
+/* -- Mode Qui est-ce ? -- */
+.acteur-wrap{width:100%;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);flex:1;min-height:0;}
+.acteur-wrap img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;position:absolute;inset:0;}
+.acteur-reveal-bar{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:4px;}
+
+/* -- Mode Bande-annonce -- */
+.ba-film-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;overflow:hidden;margin-bottom:10px;flex-shrink:0;}
+.ba-poster-row{display:flex;gap:12px;align-items:center;padding:12px;}
+.ba-poster{width:60px;height:88px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.ba-film-info{flex:1;}
+.ba-film-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--gold);line-height:1.2;margin-bottom:4px;}
+.ba-film-sub{font-size:12px;color:var(--mt);}
+.ba-subq-bar{display:flex;gap:6px;padding:0 12px 12px;}
+.ba-pip{flex:1;height:4px;border-radius:2px;background:var(--sf2);transition:background .3s;}
+.ba-pip.done-ok{background:var(--green);}
+.ba-pip.done-no{background:var(--red);}
+.ba-pip.active{background:var(--gold);animation:bapulse 1s ease infinite;}
+@keyframes bapulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.ba-subq-label{font-size:11px;color:var(--mt);text-align:center;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+.ba-bonus{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);text-align:center;margin:8px 0 4px;animation:popin .4s cubic-bezier(.36,.07,.19,.97) both;}
+#lvlup{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(245,200,66,.1),var(--bg) 70%);}
+.lus{font-size:42px;animation:spop .6s ease both;margin-bottom:12px;}
+@keyframes spop{from{transform:scale(0) rotate(-20deg);opacity:0;}to{transform:scale(1);opacity:1;}}
+.lut{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--gold);animation:fs .5s ease .15s both;}
+.lusb{font-size:13px;color:var(--mt);margin-bottom:18px;animation:fs .5s ease .25s both;}
+.lubig{background:var(--sf);border:2px solid rgba(245,200,66,.3);border-radius:22px;padding:20px 34px;text-align:center;margin-bottom:20px;animation:fs .5s ease .35s both;}
+.lubig-i{font-size:52px;margin-bottom:6px;}
+.lubig-n{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);}
+.lubig-d{font-size:12px;color:var(--mt);margin-top:3px;}
+.lucnt{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:15px;padding:14px 40px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;animation:fs .5s ease .5s both;}
+.cfwrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:200;}
+.cfp{position:absolute;width:8px;height:8px;border-radius:2px;animation:cff linear forwards;}
+@keyframes cff{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(900px) rotate(720deg);opacity:0;}}
+
+/* RESULT */
+#result{padding:max(34px,env(safe-area-inset-top,34px)) 22px max(24px,env(safe-area-inset-bottom,24px));align-items:center;}
+.ricon{font-size:60px;margin-bottom:8px;animation:popin .5s cubic-bezier(.36,.07,.19,.97) both;}
+@keyframes popin{0%{transform:scale(0) rotate(-10deg);opacity:0;}70%{transform:scale(1.12) rotate(3deg);}100%{transform:scale(1);opacity:1;}}
+.rtit{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;margin-bottom:3px;animation:fs .5s ease .15s both;}
+.rsub{color:var(--mt);font-size:13px;margin-bottom:14px;animation:fs .5s ease .2s both;}
+.rscore{font-family:'Bebas Neue',sans-serif;font-size:76px;color:var(--gold);line-height:1;animation:fs .5s ease .25s both;}
+.rscl{font-size:11px;color:var(--mt);letter-spacing:3px;text-transform:uppercase;margin-bottom:13px;animation:fs .5s ease .3s both;}
+.xpbar{width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:12px 16px;margin-bottom:11px;animation:fs .5s ease .35s both;}
+.xpbt{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.xpbl{font-size:12px;color:var(--mt);}
+.xpbv{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);}
+.xpbb{background:var(--sf2);border-radius:4px;height:5px;overflow:hidden;}
+.xpbf2{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width 1s ease .7s;width:0%;}
+.rstats{display:flex;gap:7px;width:100%;margin-bottom:14px;animation:fs .5s ease .4s both;}
+.rst{flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:11px 4px;text-align:center;}
+.rstv{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--gold);}
+.rstl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.rbtns{width:100%;display:flex;flex-direction:column;gap:8px;animation:fs .5s ease .5s both;}
+.rbp{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:15px;padding:15px;width:100%;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;box-shadow:0 6px 20px rgba(245,200,66,.22);transition:transform .15s;}
+.rbp:active{transform:scale(.97);}
+.rbs{background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:15px;padding:12px;width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:transform .15s;}
+.rbs:active{transform:scale(.97);}
+@keyframes fs{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* HELP MODAL */
+.help-over{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.help-over.on{opacity:1;pointer-events:all;}
+.help-sh{background:var(--sf);border-radius:24px 24px 0 0;padding:20px 20px max(28px,env(safe-area-inset-bottom,28px));width:100%;max-width:500px;max-height:88vh;overflow-y:auto;transform:translateY(50px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.help-over.on .help-sh{transform:translateY(0);}
+.help-hdl{width:36px;height:4px;border-radius:2px;background:var(--sf2);margin:0 auto 16px;}
+.help-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.help-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--gold);}
+.help-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--tx);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.help-x:active{transform:scale(.88);}
+.help-intro{font-size:13px;color:var(--mt);line-height:1.6;margin-bottom:18px;}
+.help-sep{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:3px;margin:14px 0 10px;}
+.help-mode{display:flex;gap:12px;background:var(--sf2);border-radius:14px;padding:13px 14px;margin-bottom:8px;}
+.help-mode-icon{font-size:24px;flex-shrink:0;margin-top:1px;}
+.help-mode-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--gold);margin-bottom:3px;}
+.help-mode-desc{font-size:12px;color:var(--mt);line-height:1.5;}
+.help-tip{display:flex;gap:10px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.18);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.help-tip-icon{font-size:17px;flex-shrink:0;}
+.help-tip-text{font-size:12px;color:var(--tx);line-height:1.5;}
+.help-close{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:14px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;margin-top:6px;}
+.help-close:active{transform:scale(.97);}
+
+/* AVATAR PICKER */
+.av-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.av-opt{aspect-ratio:1;border-radius:14px;background:var(--sf2);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
+.av-opt:active{transform:scale(.88);}
+.av-opt.av-sel{border-color:var(--gold);background:rgba(245,200,66,.12);transform:scale(1.1);}
+
+/* BADGE MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.mover.on{opacity:1;pointer-events:all;}
+.msh{background:var(--sf);border-radius:22px 22px 0 0;padding:22px 22px max(26px,env(safe-area-inset-bottom,26px));width:100%;max-width:500px;transform:translateY(40px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.mover.on .msh{transform:translateY(0);}
+.mhdl{width:34px;height:4px;border-radius:2px;background:var(--sf2);margin:0 auto 16px;}
+.mbi{font-size:50px;text-align:center;margin-bottom:8px;}
+.mbn{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:3px;}
+.mbd{font-size:14px;color:var(--mt);text-align:center;line-height:1.5;margin-bottom:5px;}
+.mbs{font-size:12px;text-align:center;margin-bottom:16px;}
+.mbcl{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:13px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx);cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+
+  <!-- FOND PROJECTEUR ANIMÉ -->
+  <div id="home-bg"></div>
+
+  <!-- HOME -->
+  <div class="scr on" id="home">
+    <div class="topbar">
+      <div>
+        <div class="logo">CinéQuiz</div>
+        <div class="logo-sub">Le quiz du 7ème art</div>
+      </div>
+      <div class="tbr">
+        <div class="ibtn" onclick="openHelp()" title="Comment jouer ?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></div>
+        <div class="ibtn" id="btn-music" onclick="toggleMusic()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <div class="ibtn" id="btn-sound" onclick="toggleSound()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div>
+        <div class="ibtn" onclick="goProfile()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      </div>
+    </div>
+    <!-- XP -->
+    <div class="xpw">
+      <div class="xpw-top"><div class="xpw-nm" id="h-nm">Figurant</div><div class="xpw-nl" id="h-nl">0 / 200 XP</div></div>
+      <div class="xpb"><div class="xpbf" id="h-xpb" style="width:0%"></div></div>
+      <div class="xps"><span id="h-ln">Niveau 1</span><span id="h-nx">→ Spectateur</span></div>
+    </div>
+    <!-- Stats -->
+    <div class="srow">
+      <div class="sm sm-fire"><span class="sm-icon">🔥</span><span class="smv c-fire" id="h-str">0</span><div class="sml">Série</div></div>
+      <div class="sm sm-gold"><span class="sm-icon">⭐</span><span class="smv c-gold" id="h-bst">0</span><div class="sml">Record</div></div>
+      <div class="sm sm-green"><span class="sm-icon">🎬</span><span class="smv c-green" id="h-gms">0</span><div class="sml">Parties</div></div>
+    </div>
+    <!-- Badges -->
+    <div class="shd"><span>Badges</span><span id="h-bct" style="color:var(--gold)">0 débloqué</span></div>
+    <div class="bscroll" id="h-bdg"></div>
+    <!-- Modes -->
+    <div class="shd" style="margin-bottom:8px;">Mode de jeu</div>
+    <div class="mgrid">
+      <div class="mc sel" data-mode="quiz" onclick="selectMode('quiz',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span><span class="mc-label">Trivia Ciné</span></div>
+      <div class="mc" data-mode="photo" onclick="selectMode('photo',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="mc-label">Affiche Mystère</span></div>
+      <div class="mc" data-mode="year" onclick="selectMode('year',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="mc-label">Quelle Année ?</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="bo" onclick="selectMode('bo',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="mc-label">Indices Mystère</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="boxoffice" onclick="selectMode('boxoffice',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="mc-label">Box-office</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="replique" onclick="selectMode('replique',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="mc-label">La Réplique</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="acteur" onclick="selectMode('acteur',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="mc-label">Acteur Mystère</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="generique" onclick="selectMode('generique',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="mc-label">Le Générique</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="location" onclick="selectMode('location',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="mc-label">Lieu de tournage</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="casting" onclick="selectMode('casting',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="mc-label">Le Casting</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="training" onclick="selectMode('training',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M5 3L2 6m17-3l3 3"/></svg></span><span class="mc-label">Entraînement</span></div>
+      <div class="mc" data-mode="bande" onclick="selectMode('bande',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="2" y="4" width="20" height="16" rx="2"/><rect x="7" y="4" width="1.5" height="16"/><rect x="15.5" y="4" width="1.5" height="16"/><polygon points="10,9 10,15 16,12" fill="currentColor" stroke="none"/></svg></span><span class="mc-label">Le Trailer</span><span class="mnew">NEW</span></div>
+    </div>
+
+    <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span> JOUER</button>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="scr" id="profile">
+    <button class="bkbtn" onclick="go('home')">← Retour</button>
+    <div class="phero">
+      <div class="pav" id="p-av" onclick="openAvModal()" style="cursor:pointer;" title="Changer d'avatar">🎭</div>
+      <div style="font-size:11px;color:var(--mt);margin-bottom:3px;cursor:pointer;" onclick="openAvModal()">Changer d'avatar ✏️</div>
+      <div class="pnm" id="p-nm">Figurant</div>
+      <div class="ptt" id="p-tt">Niveau 1</div>
+    </div>
+    <div class="sgrid">
+      <div class="sc"><div class="sv" id="p-xp">0</div><div class="sl">XP Total</div></div>
+      <div class="sc"><div class="sv" id="p-gm">0</div><div class="sl">Parties jouées</div></div>
+      <div class="sc"><div class="sv" id="p-pc">0%</div><div class="sl">Taux de réussite</div></div>
+      <div class="sc"><div class="sv" id="p-sk">0</div><div class="sl">Série max 🔥</div></div>
+      <div class="sc"><div class="sv" id="p-pt">0min</div><div class="sl">Temps de jeu</div></div>
+      <div class="sc"><div class="sv" id="p-bs">0</div><div class="sl">Meilleur score</div></div>
+    </div>
+    <div class="shd" style="margin-bottom:8px;">Stats par mode</div>
+    <div class="mode-stats-grid" id="p-mode-stats"></div>
+    <div class="shd" style="margin-bottom:8px;">Theme <span style="color:var(--mt);font-size:9px;">Débloquer en jouant</span></div>
+    <div class="theme-picker" id="theme-picker">
+      <div class="theme-opt active" data-theme="" onclick="applyTheme('',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#f5c842,#0a0a0f)"></div>Défaut</div>
+      <div class="theme-opt" data-theme="gold" onclick="applyTheme('gold',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#f5c842,#a06828)"></div>Doré</div>
+      <div class="theme-opt" data-theme="neon" onclick="applyTheme('neon',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#b94fff,#00ccff)"></div>Néon</div>
+      <div class="theme-opt" data-theme="classic" onclick="applyTheme('classic',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#c8924a,#0a0700)"></div>Vintage</div>
+      <div class="theme-opt" data-theme="crimson" onclick="applyTheme('crimson',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#ff4d6d,#2a000a)"></div>Crimson</div>
+      <div class="theme-opt" data-theme="ocean" onclick="applyTheme('ocean',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#00c8ff,#000a12)"></div>Océan</div>
+      <div class="theme-opt" data-theme="forest" onclick="applyTheme('forest',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#00e676,#000a05)"></div>Forêt</div>
+      <div class="theme-opt" data-theme="aurora" onclick="applyTheme('aurora',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#69f0ae,#da77f2,#ff6eb4)"></div>Aurora</div>
+    </div>
+    <div class="shd" style="margin-bottom:9px;">Badges <span id="p-bc" style="color:var(--gold)"></span></div>
+    <div class="pbgrid" id="p-bgrid"></div>
+    <div class="shd" style="margin-bottom:9px;">Historique récent</div>
+    <div id="p-hist"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="scr" id="loading">
+    <div class="lfilm">🎬</div>
+    <div class="ltxt" id="ltxt">Chargement</div>
+    <div class="ldots"><span></span><span></span><span></span></div>
+    <div id="lsteps" style="margin-top:22px;display:flex;flex-direction:column;gap:7px;width:250px;"></div>
+  </div>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash">
+    <div class="splash-curtain" id="splash-curtain">
+      <div class="splash-curtain-l"></div>
+      <div class="splash-curtain-r"></div>
+    </div>
+    <div class="splash-logo-wrap" id="splash-logo">
+      <div class="splash-logo">CineQuiz</div>
+      <div class="splash-tagline">Le quiz du 7eme art</div>
+      <div class="splash-tap">Appuie pour commencer</div>
+    </div>
+  </div>
+
+  <!-- COMBO BANNER -->
+  <div id="combo-banner"><span class="combo-fire">🔥</span><div class="combo-label" id="combo-label">COMBO x3</div><div class="combo-sub">Incroyable !</div></div>
+
+  <!-- FOND DE JEU par mode -->
+  <div id="game-bg"></div>
+
+  <!-- GAME -->
+  <div class="scr" id="game">
+    <div class="ghd">
+      <div><div class="qnl" id="qnum">Q 1/10</div><div class="qcl" id="qcat">Cinéma</div></div>
+      <div class="mb mx3" id="mbadge">x3</div>
+      <div class="shd2" id="scorehd">0 pts</div>
+    </div>
+    <div class="pdots" id="pdots"></div>
+    <div class="twrap">
+      <div class="tbg"><div class="tfil" id="tfil" style="width:100%"></div></div>
+      <div class="tnums"><div class="tv" id="tv">20s</div><div class="dbd dm" id="dbadge">Moyen</div></div>
+    </div>
+    <div class="qa" id="qa"></div>
+    <div class="agrid" id="agrid"></div>
+    <div class="tst" id="toast">
+      <div class="tpts" id="tpts">+300</div>
+      <div class="tmsg" id="tmsg">Excellent !</div>
+      <div class="tans" id="tans"></div>
+    </div>
+  </div>
+
+  <!-- LEVEL UP -->
+  <div class="scr" id="lvlup">
+    <div class="lus">✨⭐✨</div>
+    <div class="lut">NIVEAU SUPÉRIEUR !</div>
+    <div class="lusb" id="lusb">Tu passes au niveau 2</div>
+    <div class="lubig">
+      <div class="lubig-i" id="lui">🎟️</div>
+      <div class="lubig-n" id="lun">Spectateur</div>
+      <div class="lubig-d" id="lud">Tu prends ta place dans la salle</div>
+    </div>
+    <button class="lucnt" onclick="afterLvl()">CONTINUER →</button>
+    <div class="cfwrap" id="cfwrap"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="scr" id="result">
+    <div class="r-hero">
+      <span class="ricon" id="ricon">🏆</span>
+      <div class="rtit" id="rtit">Bravo !</div>
+      <div class="rsub" id="rsub"></div>
+    </div>
+    <div class="rscore" id="rscore">0</div>
+    <div class="rscl">points</div>
+    <div class="r-chart">
+      <div class="r-chart-title">Réponses par question</div>
+      <div class="r-bars" id="r-bars"></div>
+    </div>
+    <div class="xpbar">
+      <div class="xpbt"><span class="xpbl">XP gagnée</span><span class="xpbv" id="rxp">+0 XP</span></div>
+      <div class="xpbb"><div class="xpbf2" id="rxpf"></div></div>
+    </div>
+    <div class="rstats">
+      <div class="rst"><div class="rstv" id="rco">0/10</div><div class="rstl">Correctes</div></div>
+      <div class="rst"><div class="rstv" id="rmu">x1</div><div class="rstl">Meill. mult.</div></div>
+      <div class="rst"><div class="rstv" id="rav">–s</div><div class="rstl">Tps moyen</div></div>
+    </div>
+    <div class="rbtns">
+      <button class="rbp" onclick="startGame()">↺ REJOUER</button>
+      <button class="rbs" onclick="go('home');refHome();applyNewBadges()">← Accueil</button>
+    </div>
+  </div>
+
+  <!-- BADGE MODAL -->
+  <div class="mover" id="bmod" onclick="closeMod(event)">
+    <div class="msh">
+      <div class="mhdl"></div>
+      <div class="mbi" id="mbi">🎬</div>
+      <div class="mbn" id="mbn">Badge</div>
+      <div class="mbd" id="mbd">Description</div>
+      <div class="mbs" id="mbs"></div>
+      <button class="mbcl" onclick="closeMod()">Fermer</button>
+    </div>
+  </div>
+
+  <!-- WRONG ANSWER — fixed, outside all screens so never blocked -->
+  <div class="ws-scrim" id="ws-scrim" onclick="closeWrongSheet()"></div>
+  <div class="wrong-sheet" id="wrong-sheet">
+    <div class="ws-hdl"></div>
+    <div class="ws-head">
+      <div class="ws-title" id="ws-title">✗ Raté !</div>
+      <div class="ws-x" onclick="closeWrongSheet()">✕</div>
+    </div>
+    <div class="ws-sublbl">Bonne réponse</div>
+    <div class="ws-ans" id="ws-ans">—</div>
+    <button class="ws-btn" onclick="closeWrongSheet()">QUESTION SUIVANTE →</button>
+  </div>
+
+  <!-- HELP MODAL -->
+  <div class="help-over" id="help-modal" onclick="closeHelp(event)">
+    <div class="help-sh">
+      <div class="help-hdl"></div>
+      <div class="help-head">
+        <div class="help-title">Comment jouer ?</div>
+        <div class="help-x" onclick="closeHelp()">✕</div>
+      </div>
+      <p class="help-intro">CinéQuiz est un jeu de culture cinéma. Réponds aux questions avant la fin du chrono — plus tu es rapide, plus tu marques de points grâce au <strong style="color:var(--gold)">multiplicateur x3</strong>. Enchaîne les bonnes réponses pour déclencher des <strong style="color:#ff6b35">combos</strong> !</p>
+
+      <div class="help-sep">Modes de jeu</div>
+      <div class="help-mode"><div class="help-mode-icon">⚡</div><div><div class="help-mode-name">Trivia Ciné</div><div class="help-mode-desc">Questions classiques sur les films, acteurs et réalisateurs. Choisis un thème (Action, SF, Horreur…) pour cibler tes connaissances.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎬</div><div><div class="help-mode-name">Affiche Mystère</div><div class="help-mode-desc">Une affiche s'affiche floutée et se révèle progressivement. Identifie le film avant la révélation complète pour plus de points.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">📅</div><div><div class="help-mode-name">Quelle Année ?</div><div class="help-mode-desc">Déplace le curseur pour deviner l'année de sortie du film. Exact = 300 pts · ±2 ans = 200 pts · ±5 ans = 100 pts.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎵</div><div><div class="help-mode-name">Indices Mystère</div><div class="help-mode-desc">Une affiche de film s'affiche floutée et se révèle progressivement. Des indices apparaissent toutes les 5s. Trouve le film parmi 4 propositions !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">💰</div><div><div class="help-mode-name">Box-office</div><div class="help-mode-desc">Classe 4 films du plus au moins rentable en les faisant glisser. 25 pts par bonne position. Maintiens le handle ⠿ pour déplacer.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🗣️</div><div><div class="help-mode-name">La Réplique</div><div class="help-mode-desc">Une réplique iconique se révèle mot par mot. Identifie le film d'origine le plus vite possible pour un score maximum.</div></div></div>
+
+      <div class="help-sep">Astuces</div>
+      <div class="help-tip"><div class="help-tip-icon">⚡</div><div class="help-tip-text"><strong>Multiplicateur</strong> — Moins de 6s = x3 · Entre 6 et 13s = x2. Enchaîne les bonnes réponses pour des bonus de combo !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>Badges</strong> — Des succès se débloquent selon tes exploits. Clique sur n'importe quel badge pour voir sa condition.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🔥</div><div class="help-tip-text"><strong>Série quotidienne</strong> — Joue chaque jour pour maintenir ta flamme et débloquer des badges exclusifs.</div></div>
+
+      <button class="help-close" onclick="closeHelp()">C'EST PARTI ! 🎬</button>
+    </div>
+  </div>
+
+  <!-- AVATAR PICKER -->
+  <div class="mover" id="av-modal" onclick="closeAvModal(event)">
+    <div class="msh">
+      <div class="mhdl"></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:14px;">CHOISIR UN AVATAR</div>
+      <div class="av-grid" id="av-grid"></div>
+      <button class="mbcl" onclick="closeAvModal()">Fermer</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ==============================
+// MUSIC
+// ==============================
+// ==============================
+// MUSIQUE - multi-piste par mode
+// ==============================
+let musOn=true;
+let _trackHome=null,_trackGame=null; // deux players : accueil + jeu
+let _curMode=null; // mode actif pour savoir quelle piste jouer
+
+// Fichiers audio par mode (place-les dans le même dossier que le HTML)
+const MUSIC_FILES={
+  home:    'ambiance.mp3',
+  quiz:    'music-quiz.mp3',
+  photo:   'music-photo.mp3',
+  year:    'music-year.mp3',
+  duo:     'music-duo.mp3',
+  bo:      'music-bo.mp3',
+  boxoffice:'music-boxoffice.mp3',
+  replique:'music-replique.mp3',
+  acteur:  'music-acteur.mp3',
+  bande:   'music-bande.mp3',
+  casting: 'music-casting.mp3',
+  generique:'music-generique.mp3',
+  location:'music-location.mp3',
+  training:'music-quiz.mp3',
+};
+
+function getTrack(key){
+  // Crée le player Audio à la demande et le met en cache
+  if(!window._musicCache) window._musicCache={};
+  if(!window._musicCache[key]){
+    const a=new Audio(MUSIC_FILES[key]);
+    a.loop=true;a.volume=0;a.preload='auto';
+    window._musicCache[key]=a;
+  }
+  return window._musicCache[key];
+}
+
+function fadeTrack(track,toVol,dur=700,onDone){
+  if(!track)return onDone&&onDone();
+  const from=track.volume,diff=toVol-from,n=20;
+  let i=0;
+  const t=setInterval(()=>{
+    i++;
+    track.volume=Math.max(0,Math.min(1,from+diff*(i/n)));
+    if(i>=n){clearInterval(t);if(onDone)onDone();}
+  },dur/n);
+}
+
+function switchMusic(key,vol=0.28){
+  if(!musOn)return;
+  const file=MUSIC_FILES[key];
+  if(!file)return; // pas de fichier défini pour ce mode → silence
+
+  const next=getTrack(key);
+
+  // Si même piste déjà en cours → juste ajuster le volume
+  if(!next.paused && _curMode===key){
+    fadeTrack(next,vol);
+    return;
+  }
+
+  // Fade out la piste en cours (accueil ou jeu précédent)
+  const all=window._musicCache?Object.values(window._musicCache):[];
+  all.forEach(t=>{
+    if(t!==next&&!t.paused){
+      fadeTrack(t,0,500,()=>{t.pause();t.currentTime=0;});
+    }
+  });
+
+  // Lance et fade in la nouvelle piste
+  next.volume=0;
+  next.play().catch(()=>{});
+  fadeTrack(next,vol,700);
+  _curMode=key;
+}
+
+function playMus(){switchMusic('home',0.3);}
+function stopMus(){
+  if(window._musicCache){
+    Object.values(window._musicCache).forEach(t=>{
+      fadeTrack(t,0,400,()=>{t.pause();t.currentTime=0;});
+    });
+  }
+}
+function fadeMus(v,d=600){
+  // Rétrocompat : ajuste le volume de la piste active
+  if(window._musicCache&&_curMode&&window._musicCache[_curMode]){
+    fadeTrack(window._musicCache[_curMode],v,d);
+  }
+}
+function toggleMusic(){
+  musOn=!musOn;
+  const b=document.getElementById('btn-music');
+  b.style.opacity=musOn?'1':'.38';
+  if(musOn)playMus();else stopMus();
+}
+// La musique est lancée via le splash screen au premier tap
+
+// ==============================
+// AUDIO FX - Sound design cinéma
+// ==============================
+let _ac=null,sndOn=true,lastTick=-1;
+const ac=()=>{if(!_ac){try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _ac;};
+const resume=()=>{const c=ac();if(c&&c.state==='suspended')c.resume();};
+
+// ─── helpers ───────────────────────────────────────────────────
+function mkGain(ctx,vol,t,decay){
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(vol,t);
+  if(decay)g.gain.exponentialRampToValueAtTime(0.0001,t+decay);
+  g.connect(ctx.destination);return g;
+}
+function osc(ctx,type,freq,gainNode,t,dur,freqEnd){
+  const o=ctx.createOscillator();
+  o.type=type;
+  o.frequency.setValueAtTime(freq,t);
+  if(freqEnd)o.frequency.exponentialRampToValueAtTime(freqEnd,t+dur);
+  o.connect(gainNode);o.start(t);o.stop(t+dur+.05);
+}
+function noise(ctx,gainNode,t,dur){
+  const buf=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*dur),ctx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+  const n=ctx.createBufferSource();n.buffer=buf;n.connect(gainNode);n.start(t);n.stop(t+dur);
+}
+// Reverb synthétique léger (convolution très courte)
+function addReverb(ctx,src,wet=.25){
+  try{
+    const conv=ctx.createConvolver();
+    const len=ctx.sampleRate*.4;
+    const buf=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);}
+    conv.buffer=buf;
+    const dryG=ctx.createGain();dryG.gain.value=1-wet;
+    const wetG=ctx.createGain();wetG.gain.value=wet;
+    src.connect(dryG);dryG.connect(ctx.destination);
+    src.connect(conv);conv.connect(wetG);wetG.connect(ctx.destination);
+    return {dry:dryG,wet:wetG};
+  }catch(e){src.connect(ctx.destination);}
+}
+
+// ─── sndOk : bonne réponse ─────────────────────────────────────
+// Inspiration : son de validation douce d'app premium
+const sndOk=(m)=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+
+  // Accord chaleureux selon le multiplicateur
+  const chords={
+    1:[[523,.14],[659,.12]],                          // x1 : deux notes chaudes
+    2:[[523,.16],[659,.14],[784,.13]],                // x2 : triade montante
+    3:[[523,.18],[659,.16],[784,.14],[1047,.18]],     // x3 : accord complet + octave
+  };
+  const notes=chords[Math.min(m,3)]||chords[1];
+
+  notes.forEach(([freq,vol],i)=>{
+    const delay=i*.07;
+    // Onde principale - triangle pour chaleur
+    const g1=c.createGain();
+    g1.gain.setValueAtTime(0,t+delay);
+    g1.gain.linearRampToValueAtTime(vol,t+delay+.02);
+    g1.gain.exponentialRampToValueAtTime(0.0001,t+delay+.55);
+    const o1=c.createOscillator();o1.type='triangle';o1.frequency.value=freq;
+    o1.connect(g1);g1.connect(c.destination);o1.start(t+delay);o1.stop(t+delay+.6);
+
+    // Harmonique sine douce en dessous
+    const g2=c.createGain();
+    g2.gain.setValueAtTime(0,t+delay);
+    g2.gain.linearRampToValueAtTime(vol*.25,t+delay+.03);
+    g2.gain.exponentialRampToValueAtTime(0.0001,t+delay+.4);
+    const o2=c.createOscillator();o2.type='sine';o2.frequency.value=freq*.5;
+    o2.connect(g2);g2.connect(c.destination);o2.start(t+delay);o2.stop(t+delay+.45);
+  });
+
+  // Petit "pop" percussif au début - discret
+  const gp=c.createGain();gp.gain.setValueAtTime(.08,t);gp.gain.exponentialRampToValueAtTime(0.0001,t+.04);
+  noise(c,gp,t,.04);
+};
+
+// ─── sndNo : mauvaise réponse ──────────────────────────────────
+// Deux tons descendants - agréable mais clairement négatif
+const sndNo=()=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+
+  // Deux tons descendants (comme un "uh-oh" discret)
+  [[300,.15,220,.18],[220,.13,180,.14]].forEach(([f1,v,f2,d],i)=>{
+    const delay=i*.16;
+    const g=c.createGain();
+    g.gain.setValueAtTime(v,t+delay);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+delay+d+.1);
+    const o=c.createOscillator();o.type='sine';
+    o.frequency.setValueAtTime(f1,t+delay);
+    o.frequency.linearRampToValueAtTime(f2,t+delay+d);
+    o.connect(g);g.connect(c.destination);o.start(t+delay);o.stop(t+delay+d+.15);
+  });
+
+  // Légère teinte de "bois" - pas agressif
+  const gn=c.createGain();gn.gain.setValueAtTime(.04,t+.02);gn.gain.exponentialRampToValueAtTime(0.0001,t+.1);
+  noise(c,gn,t+.02,.08);
+};
+
+// ─── sndLvl : level up ─────────────────────────────────────────
+// Fanfare courte mais satisfaisante
+const sndLvl=()=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+
+  // Montée mélodique - do majeur
+  const melody=[392,494,587,659,784,880];
+  melody.forEach((f,i)=>{
+    const delay=i*.1;
+    const g=c.createGain();
+    g.gain.setValueAtTime(0,t+delay);
+    g.gain.linearRampToValueAtTime(.2,t+delay+.03);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.3);
+    osc(c,'triangle',f,g,t+delay,.35);
+    // Basse harmonique
+    const gb=c.createGain();gb.gain.setValueAtTime(.1,t+delay);gb.gain.exponentialRampToValueAtTime(0.0001,t+delay+.28);
+    osc(c,'sine',f/2,gb,t+delay,.3);
+  });
+
+  // Accord final tenu
+  setTimeout(()=>{
+    const c2=ac();if(!c2)return;const t2=c2.currentTime;
+    [523,659,784,1047].forEach((f,i)=>{
+      const g=c2.createGain();
+      g.gain.setValueAtTime(0,t2);g.gain.linearRampToValueAtTime(.18,t2+.05);
+      g.gain.exponentialRampToValueAtTime(0.0001,t2+.9);
+      osc(c2,'sine',f,g,t2,.95);
+    });
+  },640);
+};
+
+// ─── sndResult : ecran de résultats ───────────────────────────
+const sndResult=(s)=>{
+  if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
+  const p=s/(TOTAL*100);
+
+  if(p>=.8){
+    // Victoire - arpège majeur joyeux
+    [523,659,784,1047,1319].forEach((f,i)=>{
+      const delay=i*.09;
+      const g=c.createGain();g.gain.setValueAtTime(0,t+delay);g.gain.linearRampToValueAtTime(.18,t+delay+.03);g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.5);
+      osc(c,'triangle',f,g,t+delay,.55);
+    });
+    setTimeout(()=>{
+      const c2=ac();if(!c2)return;const t2=c2.currentTime;
+      [523,659,784,1047].forEach((f,i)=>{const g=c2.createGain();g.gain.setValueAtTime(.15,t2+i*.06);g.gain.exponentialRampToValueAtTime(0.0001,t2+i*.06+.6);osc(c2,'sine',f,g,t2+i*.06,.65);});
+    },500);
+  } else if(p>=.5){
+    // Correct - accord neutre satisfaisant
+    [440,554,659].forEach((f,i)=>{
+      const delay=i*.1;
+      const g=c.createGain();g.gain.setValueAtTime(0,t+delay);g.gain.linearRampToValueAtTime(.16,t+delay+.03);g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.45);
+      osc(c,'triangle',f,g,t+delay,.5);
+    });
+  } else {
+    // Faible - deux tons doux descendants, pas punitifs
+    [[440,.15],[330,.13]].forEach(([f,v],i)=>{
+      const g=c.createGain();g.gain.setValueAtTime(v,t+i*.22);g.gain.exponentialRampToValueAtTime(0.0001,t+i*.22+.5);
+      osc(c,'sine',f,g,t+i*.22,.55,f*.85);
+    });
+  }
+};
+
+// ─── beep : chrono ─────────────────────────────────────────────
+// Son de tic discret - pas stressant avant les 5 dernières secondes
+function beep(s){
+  if(s!==lastTick){
+    lastTick=s;
+    if(!sndOn||s<=0)return;
+    resume();const c=ac();if(!c)return;const t=c.currentTime;
+    if(s<=5){
+      // Tic tendu mais propre - ton court aigü
+      const g=c.createGain();g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.06);
+      osc(c,'sine',880,g,t,.07);
+      // Double-tic à 3s et moins
+      if(s<=3){
+        const g2=c.createGain();g2.gain.setValueAtTime(.09,t+.08);g2.gain.exponentialRampToValueAtTime(0.0001,t+.13);
+        osc(c,'sine',1100,g2,t+.08,.06);
+      }
+    } else if(s<=10){
+      // Tic doux et minimal
+      const g=c.createGain();g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.05);
+      osc(c,'sine',660,g,t,.06);
+    }
+  }
+}
+
+
+// -- THÈMES --
+const THEMES_UNLOCK={neon:5,classic:10}; // parties requises pour débloquer
+function applyTheme(name,el){
+  const s=ls();
+  // Tous les thèmes sont libres
+  document.body.className=name?'theme-'+name:'';
+  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('active'));
+  if(el)el.classList.add('active');
+  s.theme=name;ss(s);
+}
+function showToastMsg(msg){
+  // Mini toast sans score
+  const t=document.getElementById('toast');if(!t)return;
+  t.className='tst ok';
+  document.getElementById('tpts').textContent='';
+  document.getElementById('tmsg').textContent=msg;
+  document.getElementById('tans').textContent='';
+  t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2000);
+}
+
+function renderModeStats(s){
+  const grid=document.getElementById('p-mode-stats');
+  if(!grid)return;
+  const modes=[
+    {key:'photo',label:'Affiche Mystère',games:s.photoGames||0,ok:s.photoOk||0},
+    {key:'year',label:'Quelle Année ?',games:s.yearGames||0,ok:0},
+    {key:'replique',label:'La Réplique',games:s.repliqueGames||0,ok:s.repliqueOk||0},
+    {key:'acteur',label:'Acteur Mystère',games:s.acteurGames||0,ok:0},
+    {key:'boxoffice',label:'Box-office',games:s.boGames||0,ok:0},
+    {key:'bande',label:'Le Trailer',games:s.baGames||0,ok:0},
+    {key:'bo',label:'Indices Mystère',games:s.boMusicGames||0,ok:0},
+    {key:'training',label:'Entraînement',games:s.trainingGames||0,ok:0},
+  ].filter(m=>m.games>0);
+  if(!modes.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);font-size:12px;padding:10px;">Joue pour voir tes statistiques par mode !</div>';return;}
+  grid.innerHTML=modes.map(m=>{
+    const pct=m.ok&&m.games?Math.round((m.ok/(m.games*10))*100):0;
+    return `<div class="ms-card">
+      <div class="ms-mode">${m.label}</div>
+      <div class="ms-val">${m.games}</div>
+      <div class="ms-label">partie${m.games>1?'s':''}</div>
+      ${m.ok?`<div class="ms-bar"><div class="ms-bar-fill" style="width:${pct}%"></div></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function loadTheme(){
+  const s=ls();
+  if(s.theme)applyTheme(s.theme,document.querySelector('.theme-opt[data-theme="'+s.theme+'"]'));
+}
+
+// -- HAPTIQUE iOS (Web Vibration API + iOS Taptic via AudioContext trick) --
+function haptic(type){
+  // Vibration API (Android + certains navigateurs)
+  if(navigator.vibrate){
+    if(type==='ok') navigator.vibrate([10]);
+    else if(type==='no') navigator.vibrate([30,20,30]);
+    else if(type==='combo') navigator.vibrate([10,50,10,50,15]);
+    else if(type==='clap') navigator.vibrate([5,30,5]);
+  }
+  // iOS : on utilise un AudioContext silencieux pour déclencher le Taptic Engine
+  // via un bruit blanc à très haute fréquence (inaudible)
+  try{
+    const ctx=ac();if(!ctx)return;
+    const t=ctx.currentTime;
+    const g=ctx.createGain();
+    if(type==='ok'){g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.0001,t+.015);}
+    else if(type==='no'){g.gain.setValueAtTime(.001,t);g.gain.setValueAtTime(.001,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.04);}
+    else if(type==='combo'){g.gain.setValueAtTime(.001,t);g.gain.setValueAtTime(.001,t+.01);g.gain.setValueAtTime(.001,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.035);}
+    g.connect(ctx.destination);
+    const osc2=ctx.createOscillator();osc2.frequency.value=20000;
+    osc2.connect(g);osc2.start(t);osc2.stop(t+.05);
+  }catch(e){}
+}
+
+// -- SON CLAQUETTE (splash) --
+function sndClap(){
+  if(!sndOn)return;
+  try{
+    const ctx=ac();if(!ctx)return;
+    const t=ctx.currentTime;
+    // Impact sec - claquette de cinéma
+    const g1=ctx.createGain();g1.gain.setValueAtTime(.35,t);g1.gain.exponentialRampToValueAtTime(.0001,t+.08);g1.connect(ctx.destination);
+    const n1=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*.08),ctx.sampleRate);
+    const d=n1.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
+    const src=ctx.createBufferSource();src.buffer=n1;src.connect(g1);src.start(t);
+    // Click tonique
+    const g2=ctx.createGain();g2.gain.setValueAtTime(.25,t);g2.gain.exponentialRampToValueAtTime(.0001,t+.06);g2.connect(ctx.destination);
+    const o=ctx.createOscillator();o.type='square';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(200,t+.06);
+    o.connect(g2);o.start(t);o.stop(t+.07);
+    // Résonance bois
+    const g3=ctx.createGain();g3.gain.setValueAtTime(.15,t+.01);g3.gain.exponentialRampToValueAtTime(.0001,t+.15);g3.connect(ctx.destination);
+    const o2=ctx.createOscillator();o2.type='triangle';o2.frequency.value=280;
+    o2.connect(g3);o2.start(t+.01);o2.stop(t+.16);
+  }catch(e){}
+}
+function toggleSound(){sndOn=!sndOn;const b=document.getElementById('btn-sound');b.style.opacity=sndOn?'1':'.38';}
+
+// ==============================
+// LEVELS & BADGES
+// ==============================
+const LEVELS=[
+  {name:'Figurant',   xp:0,   icon:'🎭',desc:'Bienvenue sur le plateau !'},
+  {name:'Spectateur', xp:200, icon:'🎟️',desc:'Tu prends ta place dans la salle'},
+  {name:'Cinéphile',  xp:600, icon:'🎬',desc:'Tu commences à maîtriser le 7ème art'},
+  {name:'Critique',   xp:1400,icon:'⭐',desc:'Ton avis compte dans l\'industrie'},
+  {name:'Réalisateur',xp:3000,icon:'🎥',desc:'Tu vois les films comme un pro'},
+  {name:'Légende',    xp:6000,icon:'🏆',desc:'Une icône vivante du cinéma'},
+];
+const BADGES=[
+  {id:'first',   icon:'🎬',name:'Premier tour',     desc:'Joue ta première partie',             cond:s=>s.games>=1},
+  {id:'pphoto',  icon:'📸',name:'Première affiche', desc:'Joue une partie Photo Mystère',       cond:s=>s.photoGames>=1},
+  {id:'pyear',   icon:'📅',name:'L\'Horloger',      desc:'Joue une partie Année Mystère',       cond:s=>s.yearGames>=1},
+  {id:'pduo',    icon:'🎵',name:'Première BO',        desc:'Joue une partie Devine la BO',         cond:s=>s.boMusicGames>=1||s.duoGames>=1},
+  {id:'pbo',     icon:'💰',name:'Producteur',        desc:'Joue une partie Box-office',          cond:s=>s.boGames>=1},
+  {id:'preplique',icon:'🗣️',name:'Le Mot Juste',      desc:'Joue une partie Réplique Culte',       cond:s=>s.repliqueGames>=1},
+  {id:'pacteur',  icon:'🎭',name:'Casting Director',  desc:'Joue une partie Qui est-ce ?',         cond:s=>s.acteurGames>=1},
+  {id:'pba',      icon:'🎞️',name:'Festival',          desc:'Joue une partie Bande-annonce',        cond:s=>s.baGames>=1},
+  {id:'ba3',      icon:'🏅',name:'Trois étoiles',     desc:'Réussis un 3/3 en Bande-annonce',      cond:s=>s.baPerfects>=1},
+  {id:'rq10',    icon:'🗣️',name:'Scénariste',        desc:'10 bonnes réponses Réplique Culte',    cond:s=>s.repliqueOk>=10},
+  {id:'rq5perf', icon:'🎤',name:'Dialoguiste',        desc:'5 parties Réplique Culte parfaites',  cond:s=>s.repliquePerfects>=5},
+  {id:'str3',    icon:'🔥',name:'En feu',            desc:'3 jours consécutifs',                 cond:s=>s.streak>=3},
+  {id:'str7',    icon:'🌟',name:'Hebdo',             desc:'7 jours consécutifs',                 cond:s=>s.streak>=7},
+  {id:'str30',   icon:'🌙',name:'Mois cinéma',       desc:'30 jours consécutifs',                cond:s=>s.streak>=30},
+  {id:'perf',    icon:'💎',name:'Parfait',           desc:'10/10 en une partie',                 cond:s=>s.perfects>=1},
+  {id:'perf5',   icon:'💠',name:'Sans faille',       desc:'5 parties parfaites',                 cond:s=>s.perfects>=5},
+  {id:'fast5',   icon:'⚡',name:'Éclair',            desc:'5 réponses x3',                       cond:s=>s.fast>=5},
+  {id:'fast50',  icon:'🚀',name:'Supersonique',      desc:'50 réponses x3',                      cond:s=>s.fast>=50},
+  {id:'s300',    icon:'🥉',name:'Bronze',            desc:'300+ points en une partie',           cond:s=>s.best>=300},
+  {id:'s500',    icon:'🥇',name:'Champion',          desc:'500+ points en une partie',           cond:s=>s.best>=500},
+  {id:'s900',    icon:'👑',name:'Maître',            desc:'900+ points en une partie',           cond:s=>s.best>=900},
+  {id:'g10',     icon:'🎭',name:'Assidu',            desc:'10 parties jouées',                   cond:s=>s.games>=10},
+  {id:'g50',     icon:'🎪',name:'Passionné',         desc:'50 parties jouées',                   cond:s=>s.games>=50},
+  {id:'g100',    icon:'🎖️',name:'Vétéran',          desc:'100 parties jouées',                  cond:s=>s.games>=100},
+  {id:'ph5',     icon:'🖼️',name:'Photographe',      desc:'5 bonnes réponses Photo Mystère',     cond:s=>s.photoOk>=5},
+  {id:'ph20',    icon:'🎞️',name:'Répertoire',       desc:'20 bonnes réponses Photo Mystère',    cond:s=>s.photoOk>=20},
+  {id:'xp1k',    icon:'✨',name:'Montée en grade',   desc:'Atteins 1 000 XP',                    cond:s=>s.xp>=1000},
+  {id:'xp5k',    icon:'🌠',name:'Superstar',         desc:'Atteins 5 000 XP',                    cond:s=>s.xp>=5000},
+  {id:'t1h',     icon:'⏱️',name:'Une heure',        desc:'1h de temps de jeu',                  cond:s=>s.playtime>=3600},
+  {id:'t5h',     icon:'🕰️',name:'Cinémaniac',       desc:'5h de temps de jeu',                  cond:s=>s.playtime>=18000},
+  {id:'pgenerique',icon:'🎵',name:'Mélomane',desc:'Joue une partie Blind Test',cond:s=>s.generiqueGames>=1},
+  {id:'plocation',icon:'🌍',name:'Globe-trotter',desc:'Joue une partie Lieu de tournage',cond:s=>s.locationGames>=1},
+  {id:'pcasting', icon:'🧩',name:'Directeur de casting',desc:'Joue une partie Le Casting',cond:s=>s.castingGames>=1},
+  {id:'pbo_music',icon:'🎵',name:'Mélomane',          desc:'Joue une partie Devine la BO',         cond:s=>s.boMusicGames>=1},
+  {id:'combo5',  icon:'🔥',name:'En série',            desc:'5 bonnes réponses d\'affilée',         cond:s=>(s.bestCombo||0)>=5},
+  {id:'combo10', icon:'⚡',name:'Inarrêtable',          desc:'10 bonnes réponses d\'affilée',        cond:s=>(s.bestCombo||0)>=10},
+  {id:'str14',   icon:'📆',name:'Deux semaines',        desc:'14 jours consécutifs',                 cond:s=>s.streak>=14},
+  {id:'best1000',icon:'💎',name:'Millionnaire',         desc:'1000+ points en une partie',           cond:s=>s.best>=1000},
+  {id:'xp2k',    icon:'💫',name:'Étoile montante',      desc:'Atteins 2 000 XP',                     cond:s=>s.xp>=2000},
+  {id:'xp10k',   icon:'🌟',name:'Icône du cinéma',      desc:'Atteins 10 000 XP',                    cond:s=>s.xp>=10000},
+  {id:'g200',    icon:'🏛️',name:'Vétéran absolu',       desc:'200 parties jouées',                   cond:s=>s.games>=200},
+  {id:'perf10',  icon:'👑',name:'Perfectionniste',       desc:'10 parties parfaites',                 cond:s=>(s.perfects||0)>=10},
+  {id:'allModes',icon:'🎭',name:'Explorateur',           desc:'Joue tous les modes au moins une fois',cond:s=>s.photoGames>=1&&s.yearGames>=1&&s.boGames>=1&&s.repliqueGames>=1&&s.acteurGames>=1&&s.baGames>=1&&s.boMusicGames>=1},
+];
+
+const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,boMusicGames:0,repliqueGames:0,repliqueOk:0,repliquePerfects:0,acteurGames:0,baGames:0,baPerfects:0,bestCombo:0,avatar:'',unlocked:[],history:[],playtime:0};
+const ls=()=>{try{const r=localStorage.getItem('cq11');return r?{...DEF,...JSON.parse(r)}:{...DEF};}catch{return{...DEF};}};
+const ss=s=>{try{localStorage.setItem('cq11',JSON.stringify(s));}catch{}};
+const glv=xp=>{let l=0;for(let i=LEVELS.length-1;i>=0;i--){if(xp>=LEVELS[i].xp){l=i;break;}}return l;};
+const gxp=xp=>{const l=glv(xp);const cur=LEVELS[l].xp;const nxt=l<LEVELS.length-1?LEVELS[l+1].xp:cur+1000;return{l,cur,nxt,pct:Math.min(100,((xp-cur)/(nxt-cur))*100)};};
+const fmtT=s=>{if(s<60)return s+'s';if(s<3600)return Math.floor(s/60)+'min';const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);return m>0?h+'h'+m+'min':h+'h';};
+
+function chkStreak(s){const t=new Date().toDateString(),l=s.lastDate;if(!l)s.streak=1;else if(l!==t){const d=(new Date(t)-new Date(l))/86400000;s.streak=d===1?(s.streak||0)+1:1;}s.lastDate=t;if(s.streak>s.maxStreak)s.maxStreak=s.streak;return s;}
+function chkBadges(s){const nb=[];BADGES.forEach(b=>{if(!s.unlocked.includes(b.id)&&b.cond(s)){s.unlocked.push(b.id);nb.push(b);}});return{s,nb};}
+
+// ==============================
+// RÉPLIQUE CULTE - base de données
+// ==============================
+const REPLIQUES=[
+  {quote:"Tu parles à moi ? Tu parles à moi ?",film:"Taxi Driver",actor:"Robert De Niro",year:1976,hint:"Robert De Niro face à un miroir",id:353},
+  {quote:"Je vais lui faire une offre qu'il ne pourra pas refuser.",film:"Le Parrain",actor:"Marlon Brando",year:1972,hint:"Don Corleone dans son bureau",id:238},
+  {quote:"Houston, on a un problème.",film:"Apollo 13",actor:"Tom Hanks",year:1995,hint:"Tom Hanks dans une capsule spatiale",id:568},
+  {quote:"Que la Force soit avec toi.",film:"Star Wars",actor:"Alec Guinness",year:1977,hint:"Un chevalier Jedi en robe brune",id:11},
+  {quote:"Je suis le roi du monde !",film:"Titanic",actor:"Leonardo DiCaprio",year:1997,hint:"Un homme sur la proue d'un navire",id:597},
+  {quote:"La vie, c'est comme une boîte de chocolats : on ne sait jamais sur quoi on va tomber.",film:"Forrest Gump",actor:"Tom Hanks",year:1994,hint:"Tom Hanks sur un banc de parc",id:13},
+  {quote:"Vous allez avoir besoin d'un plus grand bateau.",film:"Les Dents de la mer",actor:"Roy Scheider",year:1975,hint:"Trois hommes sur un petit bateau face à une immense mâchoire",id:578},
+  {quote:"Je vois des gens morts.",film:"Sixième Sens",actor:"Haley Joel Osment",year:1999,hint:"Un enfant chuchotant dans le noir",id:745},
+  {quote:"Montre-moi l'argent !",film:"Jerry Maguire",actor:"Cuba Gooding Jr.",year:1996,hint:"Un joueur de football criant au téléphone",id:629},
+  {quote:"Il n'est pas de mauvaise herbe, et il n'est pas de mauvais homme. Il n'y a que de mauvais cultivateurs.",film:"Les Misérables",actor:"Charles Laughton",year:1935,hint:"Un texte de Victor Hugo à l'écran",id:197},
+  {quote:"Je reviendrai.",film:"Terminator",actor:"Arnold Schwarzenegger",year:1984,hint:"Un cyborg en lunettes noires et cuir",id:218},
+  {quote:"Voler ! Pourquoi un homme volerait-il, si ce n'est pour atteindre les étoiles ?",film:"Interstellar",actor:"Matthew McConaughey",year:2014,hint:"Un astronaute regardant les étoiles",id:157336},
+  {quote:"L'argent ne fait pas le bonheur de ceux qui n'en ont pas.",film:"L'Argent fait le bonheur",actor:"José Garcia",year:1996,hint:"Deux amis en dispute comique",id:0},
+  {quote:"Sois gentil, rembobine.",film:"Super",actor:"Rainn Wilson",year:2010,hint:"Une pancarte dans une vidéothèque",id:0},
+  {quote:"Avec un grand pouvoir vient une grande responsabilité.",film:"Spider-Man",actor:"Cliff Robertson",year:2002,hint:"Un oncle bienveillant sur son lit de mort",id:557},
+  {quote:"Mon précieux…",film:"Le Seigneur des Anneaux : Les Deux Tours",actor:"Andy Serkis",year:2002,hint:"Une créature blafarde dans une caverne sombre",id:120},
+  {quote:"Pourquoi tant de sérieux ?",film:"The Dark Knight",actor:"Heath Ledger",year:2008,hint:"Un homme au maquillage blanc et rouge avec une cicatrice",id:155},
+  {quote:"Je peux le faire toute la journée.",film:"Captain America : First Avenger",actor:"Chris Evans",year:2011,hint:"Un jeune homme maigre dans une ruelle",id:1771},
+  {quote:"Tu ne passeras pas !",film:"Le Seigneur des Anneaux : La Communauté de l'Anneau",actor:"Ian McKellen",year:2001,hint:"Un vieux mage sur un pont de pierre",id:120},
+  {quote:"Hakuna Matata.",film:"Le Roi Lion",actor:"Nathan Lane",year:1994,hint:"Un phacochère et un suricate dans la savane",id:8587},
+  {quote:"Il faut imaginer Sisyphe heureux.",film:"La Haine",actor:"Vincent Cassel",year:1995,hint:"Banlieue parisienne en noir et blanc",id:176},
+  {quote:"Quand j'aurai besoin de ton avis, je te le demanderai.",film:"Le Diable s'habille en Prada",actor:"Meryl Streep",year:2006,hint:"Une rédactrice en chef élégante au regard glacial",id:349},
+  {quote:"Je suis indestructible.",film:"Die Hard",actor:"Bruce Willis",year:1988,hint:"Un homme en débardeur blanc couvert de sueur dans un gratte-ciel",id:562},
+  {quote:"Ne me libère pas, libère-toi de moi.",film:"La Vie d'Adèle",actor:"Adèle Exarchopoulos",year:2013,hint:"Deux jeunes femmes dans un appartement",id:186869},
+  {quote:"Mets-toi à ma place.",film:"Les Intouchables",actor:"François Cluzet",year:2011,hint:"Un homme en fauteuil roulant face à son aide-soignant",id:77338},
+  {quote:"Je ne suis pas un homme courageux. Je suis simplement persistant.",film:"Whiplash",actor:"J.K. Simmons",year:2014,hint:"Un chef d'orchestre suant sous les projecteurs",id:244786},
+  {quote:"C'est beau, la vie.",film:"La La Land",actor:"Emma Stone",year:2016,hint:"Une actrice chantant dans un studio de Los Angeles",id:313369},
+  {quote:"Je suis Groot.",film:"Les Gardiens de la Galaxie",actor:"Vin Diesel",year:2014,hint:"Un arbre géant violet et bienveillant",id:118340},
+  {quote:"Chaque centime compte.",film:"Parasite",actor:"Song Kang-ho",year:2019,hint:"Une famille dans un sous-sol humide",id:496243},
+  {quote:"L'enfer, c'est les autres.",film:"Huis Clos",actor:"Arletty",year:1954,hint:"Trois personnages enfermés dans une pièce sans fenêtre",id:0},
+  {quote:"On est tous des clowns.",film:"Joker",actor:"Joaquin Phoenix",year:2019,hint:"Un homme au maquillage clownesque dans un escalier",id:475557},
+  {quote:"Ne jamais renoncer, ne jamais capituler.",film:"Galaxy Quest",actor:"Tim Allen",year:1999,hint:"Un acteur de série SF mimant un capitaine",id:10527},
+  {quote:"C'est ma vie, et j'en fais ce que je veux.",film:"Pulp Fiction",actor:"John Travolta",year:1994,hint:"Deux hommes en costumes noirs avec des pistolets",id:680},
+  {quote:"Vous ne pouvez pas gérer la vérité !",film:"Des Hommes d'honneur",actor:"Jack Nicholson",year:1992,hint:"Un officier de marine à la barre d'un tribunal",id:745},
+  {quote:"Attends, c'est toi le méchant là ?",film:"La Grande Arnaque",actor:"Brad Pitt",year:2001,hint:"Un homme décontracté mangeant en permanence",id:64690},
+  {quote:"Je mens toujours, donc si je dis que je mens, est-ce que je mens ?",film:"Inception",actor:"Leonardo DiCaprio",year:2010,hint:"Un homme dans un couloir qui se courbe",id:27205},
+  {quote:"La nuit est sombre et pleine de terreurs.",film:"Game of Thrones (le film)",actor:"Carice van Houten",year:2019,hint:"Une femme rousse aux yeux clairs devant des flammes",id:0},
+  {quote:"Bonne nuit, bonne chance.",film:"Good Night, and Good Luck",actor:"David Strathairn",year:2005,hint:"Un journaliste TV derrière un bureau avec une cigarette",id:4147},
+  {quote:"On ne parle pas du Club des poings.",film:"Fight Club",actor:"Brad Pitt",year:1999,hint:"Deux hommes ensanglantés dans un sous-sol",id:550},
+  {quote:"Je veux que tu aies peur.",film:"Nightmare on Elm Street",actor:"Robert Englund",year:1984,hint:"Une main griffue sur fond de flammes rouges",id:616},
+  {quote:"Tu dois être le changement que tu veux voir dans le monde.",film:"Gandhi",actor:"Ben Kingsley",year:1982,hint:"Un homme en toge blanche marchant au soleil",id:1366},
+  {quote:"Bienvenue dans le désert du réel.",film:"Matrix",actor:"Laurence Fishburne",year:1999,hint:"Un homme au manteau en cuir tenant deux pilules",id:603},
+  {quote:"Après tout, demain est un autre jour.",film:"Autant en emporte le vent",actor:"Vivien Leigh",year:1939,hint:"Une femme en robe verte regardant l'horizon au crépuscule",id:770},
+  // -- Nouvelles répliques --
+  {quote:"Je suis Spartacus !",film:"Spartacus",actor:"Kirk Douglas",year:1960,hint:"Des esclaves se lèvent un par un dans une arène",id:21},
+  {quote:"Vous parlez à moi ?",film:"Taxi Driver",actor:"Robert De Niro",year:1976,hint:"Un homme seul face à son reflet",id:353},
+  {quote:"La peur est le chemin vers le côté obscur.",film:"La Menace fantôme",actor:"Yoda",year:1999,hint:"Un petit être vert aux grandes oreilles",id:1893},
+  {quote:"Je reviendrai.",film:"Terminator 2",actor:"Arnold Schwarzenegger",year:1991,hint:"Un cyborg sur une moto",id:280},
+  {quote:"Hasta la vista, baby.",film:"Terminator 2",actor:"Arnold Schwarzenegger",year:1991,hint:"Un cyborg pointant son arme vers un ennemi gelé",id:280},
+  {quote:"Je suis la loi.",film:"Dredd",actor:"Karl Urban",year:2012,hint:"Un juge casqué dans une mégalopole dystopique",id:49524},
+  {quote:"La différence entre stupidité et génie, c'est que le génie a des limites.",film:"Là-haut",actor:"Ed Asner",year:2009,hint:"Un vieil homme avec des milliers de ballons colorés",id:14160},
+  {quote:"Tout ce que vous pouvez imaginer est réel.",film:"Rêves de Waking Life",actor:"Wiley Wiggins",year:2001,hint:"Un monde animé aux frontières floues",id:22013},
+  {quote:"On n'est jamais aussi bien que chez soi.",film:"Le Magicien d'Oz",actor:"Judy Garland",year:1939,hint:"Une fille en rubis qui frappe ses talons",id:630},
+  {quote:"Quelle est votre superpuissance ?",film:"Unbreakable",actor:"Samuel L. Jackson",year:2000,hint:"Un homme aux cheveux blancs dans un fauteuil roulant",id:9741},
+  {quote:"Quand on est mort, on n'a plus de problèmes.",film:"Pulp Fiction",actor:"Harvey Keitel",year:1994,hint:"Un homme en costume blanc dans un appartement ensanglanté",id:680},
+  {quote:"Je suis la tempête.",film:"Kingsman",actor:"Colin Firth",year:2015,hint:"Un gentleman en costume rayé dans une église",id:207703},
+  {quote:"Pourquoi si sérieux ?",film:"The Dark Knight",actor:"Heath Ledger",year:2008,hint:"Un clown au sourire scarifié",id:155},
+  {quote:"Je suis mortel.",film:"Gladiator",actor:"Joaquin Phoenix",year:2000,hint:"Un homme pâle en robe blanche dans une arène",id:98},
+  {quote:"Je veux mon argent.",film:"No Country for Old Men",actor:"Javier Bardem",year:2007,hint:"Un homme aux cheveux en bol avec un compresseur d'air",id:6977},
+  {quote:"Nul ne peut se battre contre la mer.",film:"Master and Commander",actor:"Russell Crowe",year:2003,hint:"Un capitaine à la barre pendant une tempête",id:4512},
+  {quote:"Je ne suis pas le messie.",film:"La Vie de Brian",actor:"Graham Chapman",year:1979,hint:"Un homme nu sur un balcon entouré de fidèles",id:583},
+  {quote:"Tu ne peux pas gérer la vérité !",film:"Des hommes d'honneur",actor:"Jack Nicholson",year:1992,hint:"Un officier en uniforme à la barre des témoins",id:9562},
+  {quote:"Inch'Allah.",film:"Lawrence d'Arabie",actor:"Omar Sharif",year:1962,hint:"Un désert de sable doré et un homme en toge",id:947},
+  {quote:"Il n'y a pas de cuillère.",film:"Matrix",actor:"Rowan Witt",year:1999,hint:"Un enfant en méditation devant des cuillères tordues",id:603},
+  {quote:"Je suis Groot.",film:"Les Gardiens de la Galaxie",actor:"Vin Diesel",year:2014,hint:"Un arbre géant bienveillant avec des yeux de biche",id:118340},
+  {quote:"Vivre ou mourir, c'est la question.",film:"Hamlet",actor:"Laurence Olivier",year:1948,hint:"Un prince danois au bord d'une falaise",id:3164},
+  {quote:"Chaque matin tu te réveilles et tu décides d'être heureux.",film:"La Liste de Schindler",actor:"Ben Kingsley",year:1993,hint:"Un homme en manteau sombre dans la neige",id:424},
+];
+
+function buildRepliqueQuestions(){
+  const pool=shuffle([...REPLIQUES]).slice(0,TOTAL+5);
+  const qs=[];
+  for(let i=0;i<pool.length&&qs.length<TOTAL;i++){
+    const q=pool[i];
+    const wrongFilms=REPLIQUES.filter(r=>r.film!==q.film).map(r=>r.film);
+    const uniq=[...new Set(wrongFilms)];
+    if(uniq.length<3)continue;
+    const wrong=shuffle(uniq).slice(0,3);
+    const answers=shuffle([q.film,...wrong]);
+    qs.push({
+      type:'replique',
+      quote:q.quote,
+      film:q.film,
+      actor:q.actor,
+      year:q.year,
+      hint:q.hint,
+      answers,
+      correct:answers.indexOf(q.film),
+      difficulty:'medium',
+      category:'La Réplique'
+    });
+  }
+  return qs;
+}
+
+// ==============================
+const TK='2dca580c2a14b55200e784d157207b4d';
+const TI='https://image.tmdb.org/t/p/w500';
+const TA='https://image.tmdb.org/t/p/w185';
+const POOL=[550,278,238,424,19404,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,438631,11,1891,1892,11138,9806,10681,585,10193,862,12,245891,372058,244786,503919,398818,724089,808,14836,218,629,641,857,769,280,2062,77338,197,578,324857,299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,82702,254128,293660,260513,321612,313369,76341,420818,346,361743,118340,283995,299537,284053,49521,38757,694919,700391,787699,385687,653346,872585,614933,569094,718789,822119,823464,976573,385128,414906,447332,573435,675353,634649,453395,616037,399170,505642,438148,566525,460465,503736,395992,556574,
+// Classiques
+348,769,107,637,624,598,77,8587,10530,671,762,207,429,274,559,101,453,105,4935,10020,9806,4247,792,1422,857,226,161,8965,22,11324,423,578,264,9619,510,578,1724,8966,297762,
+// Films récents 2018-2025
+299534,299536,299537,299538,458156,385128,497698,566525,569094,572154,580489,585511,597208,614917,634649,635302,646385,653346,661374,667257,675353,678512,680,693134,696374,718789,724089,726209,734253,748783,760104,762509,774752,787699,791226,799379,822119,823464,829799,839033,848326,872585,877817,882598,889737,912649,915935,933260,940551,945961,951891,955555,957452,965150,975359,976573,978796,984736,985939,1010600,1013860,1022789,1029575,1035048,1041613,1043905,1075794,1087822,1094138,1100782,1126166,1131459,1138194,1156593,1166489,1184918,1214314,1241982,1252171];
+
+
+const GENRE_IDS={Action:28,'Science-Fiction':878,Drame:18,Horreur:27,Animation:16,Comédie:35};
+
+async function fetchMovies(ids,count){
+  const pool=shuffle([...ids]).slice(0,count+15);
+  const res=[];
+  for(const id of pool){
+    if(res.length>=count)break;
+    try{const r=await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TK}&language=fr-FR`);const d=await r.json();if(d.poster_path&&d.title&&d.release_date){res.push({id:d.id,title:d.title,poster:TI+d.poster_path,year:parseInt(d.release_date.slice(0,4)),genre:d.genres?.[0]?.name||'Film',revenue:d.revenue||0});}}catch(e){}
+  }
+  return res;
+}
+
+async function fetchGenreMovies(genre,count){
+  try{
+    const r=await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TK}&language=fr-FR&with_genres=${GENRE_IDS[genre]}&sort_by=popularity.desc&page=1`);
+    const d=await r.json();
+    const ids=(d.results||[]).map(m=>m.id);
+    return fetchMovies(ids,count);
+  }catch{return fetchMovies(POOL,count);}
+}
+
+// -- Pool acteurs célèbres (IDs TMDB) pour "Qui est-ce ?" --
+const ACTOR_POOL=[
+  {id:31,   name:'Tom Hanks'},
+  {id:287,  name:'Brad Pitt'},
+  {id:6193, name:'Leonardo DiCaprio'},
+  {id:192,  name:'Morgan Freeman'},
+  {id:1245, name:'Scarlett Johansson'},
+  {id:500,  name:'Tom Cruise'},
+  {id:2232, name:'Keanu Reeves'},
+  {id:3223, name:'Robert Downey Jr.'},
+  {id:64,   name:'Gary Oldman'},
+  {id:8784, name:'Meryl Streep'},
+  {id:73457,name:'Chris Evans'},
+  {id:16828,name:'Chris Hemsworth'},
+  {id:71580,name:'Margot Robbie'},
+  {id:1136406,name:'Timothée Chalamet'},
+  {id:1157957,name:'Zendaya'},
+  {id:6885, name:'Natalie Portman'},
+  {id:1614, name:'Cate Blanchett'},
+  {id:2524, name:'Joaquin Phoenix'},
+  {id:1333, name:'Russell Crowe'},
+  {id:380,  name:'Johnny Depp'},
+  {id:2888, name:'Will Smith'},
+  {id:8691, name:'Julia Roberts'},
+  {id:3910, name:'Denzel Washington'},
+  {id:1892, name:'Matt Damon'},
+  {id:819,  name:'Edward Norton'},
+  {id:1136, name:'Ryan Reynolds'},
+  {id:74568,name:'Ryan Gosling'},
+  {id:3902, name:'Viola Davis'},
+  {id:17467,name:'Florence Pugh'},
+  {id:90633,name:'Ana de Armas'},
+];
+
+async function fetchBandeAnnonceQuestions(count){
+  const movies=await fetchMovies(POOL,count+12);
+  const valid=movies.filter(m=>m.year&&m.genre);
+  const result=[];
+  const fakeDirectors=['Christopher Nolan','Steven Spielberg','Quentin Tarantino','James Cameron','Denis Villeneuve','Ridley Scott','Martin Scorsese','David Fincher','Tim Burton','Peter Jackson','Wes Anderson','Guillermo del Toro','David Lynch','Clint Eastwood','Roman Polanski'];
+  const allGenres=['Action','Comédie','Drame','Horreur','Science-Fiction','Animation','Thriller','Romance','Aventure','Fantaisie'];
+  for(const m of valid){
+    if(result.length>=count)break;
+    let director='';
+    try{
+      const r=await fetch(`https://api.themoviedb.org/3/movie/${m.id}/credits?api_key=${TK}&language=fr-FR`);
+      const d=await r.json();
+      const dir=(d.crew||[]).find(c=>c.job==='Director');
+      if(dir)director=dir.name;
+    }catch(e){}
+    if(!director)continue;
+    const dirAnswers=shuffle([director,...shuffle(fakeDirectors.filter(d=>d!==director)).slice(0,3)]);
+    const genreAnswers=shuffle([m.genre,...shuffle(allGenres.filter(g=>g!==m.genre)).slice(0,3)]);
+    const ya=shuffle([m.year,m.year-3,m.year+4,m.year-7]);
+    result.push({
+      type:'bande',
+      title:m.title,poster:m.poster,
+      year:m.year,genre:m.genre,director,
+      dirAnswers,dirCorrect:dirAnswers.indexOf(director),
+      genreAnswers,genreCorrect:genreAnswers.indexOf(m.genre),
+      yearAnswers:ya,yearCorrect:ya.indexOf(m.year),
+      subQ:0,subScore:0,subResults:[],
+      difficulty:'medium',category:'Le Trailer'
+    });
+  }
+  return result;
+}
+
+const DUO_ACTORS=[
+  {id:31,   name:'Tom Hanks',    photo:TA+'/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg'},
+  {id:287,  name:'Brad Pitt',    photo:TA+'/kU3B75TyRiCgE270EyZnHjfivoq.jpg'},
+  {id:6193, name:'Leonardo DiCaprio',photo:TA+'/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg'},
+  {id:192,  name:'Morgan Freeman',photo:TA+'/jPssioIGQMDczvUU7GHoImhFQMk.jpg'},
+  {id:1245, name:'Scarlett Johansson',photo:TA+'/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg'},
+  {id:500,  name:'Tom Cruise',   photo:TA+'/aemBIlLBFzRxKbdE4y8OAZG8Xtz.jpg'},
+  {id:2232, name:'Keanu Reeves', photo:TA+'/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg'},
+  {id:1157957,name:'Zendaya',    photo:TA+'/6TE2AlOUqEnIfiilxkSdgP9oM2Y.jpg'},
+  {id:64,   name:'Gary Oldman',  photo:TA+'/2v9FVVBUrrkW2m3QOcYkuhq9A6o.jpg'},
+  {id:8784, name:'Meryl Streep', photo:TA+'/UGnM7fzECb3P3BmYQOGHBF8LW5.jpg'},
+];
+
+async function fetchDuoQuestions(count){
+  const qs=[];
+  const shuffled=shuffle([...DUO_ACTORS]);
+  for(let i=0;i<shuffled.length&&qs.length<count;i++){
+    const a1=shuffled[i];
+    try{
+      const r=await fetch(`https://api.themoviedb.org/3/person/${a1.id}/movie_credits?api_key=${TK}&language=fr-FR`);
+      const d=await r.json();
+      const films=shuffle(d.cast||[]).filter(m=>m.poster_path&&m.release_date).slice(0,6);
+      for(const film of films){
+        if(qs.length>=count)break;
+        // Get co-stars
+        const r2=await fetch(`https://api.themoviedb.org/3/movie/${film.id}/credits?api_key=${TK}&language=fr-FR`);
+        const d2=await r2.json();
+        const cast=d2.cast||[];
+        // Pick one real co-star
+        const real=shuffle(cast).find(a=>a.id!==a1.id&&a.profile_path&&a.known_for_department==='Acting');
+        // Pick one random actor not in this film
+        const fake=shuffle(DUO_ACTORS).find(a=>a.id!==a1.id&&!cast.some(c=>c.id===a.id));
+        if(!real||!fake)continue;
+        const a2real={id:real.id,name:real.name,photo:real.profile_path?TA+real.profile_path:null};
+        // 50/50: real duo or fake
+        const isReal=Math.random()>0.5;
+        const a2=isReal?a2real:fake;
+        qs.push({type:'duo',a1,a2,film:film.title,answer:isReal,difficulty:'medium',category:'Duo ou Solo ?'});
+      }
+    }catch(e){}
+  }
+  return qs.slice(0,count);
+}
+
+async function fetchBoxOfficeRound(){
+  // Get 4 movies with known revenue, sort by revenue desc
+  const movies=await fetchMovies(POOL,20);
+  const withRevenue=movies.filter(m=>m.revenue>0);
+  if(withRevenue.length<4)return null;
+  const pick=shuffle(withRevenue).slice(0,4);
+  // Sort correct order: highest revenue first
+  const sorted=[...pick].sort((a,b)=>b.revenue-a.revenue);
+  return{type:'boxoffice',movies:pick,correctOrder:sorted.map(m=>m.id),category:'Box-office',difficulty:'medium'};
+}
+
+// ==============================
+// ACTEUR & BANDE-ANNONCE
+// ==============================
+
+
+
+// -- GÉNÉRIQUE DATA --
+const GENERIQUE_FILMS=[
+  {title:'Inception',year:2010,genre:'Science-fiction',
+   cast:[{name:'Leonardo DiCaprio',role:'Dom Cobb'},{name:'Joseph Gordon-Levitt',role:'Arthur'},{name:'Elliot Page',role:'Ariadne'},{name:'Tom Hardy',role:'Eames'},{name:'Ken Watanabe',role:'Saito'},{name:'Cillian Murphy',role:'Fischer'},{name:'Marion Cotillard',role:'Mal'}]},
+  {title:'Pulp Fiction',year:1994,genre:'Crime',
+   cast:[{name:'John Travolta',role:'Vincent Vega'},{name:'Samuel L. Jackson',role:'Jules Winnfield'},{name:'Uma Thurman',role:'Mia Wallace'},{name:'Bruce Willis',role:'Butch Coolidge'},{name:'Harvey Keitel',role:'Le Loup'},{name:'Tim Roth',role:'Pumpkin'}]},
+  {title:'The Dark Knight',year:2008,genre:'Super-heros',
+   cast:[{name:'Christian Bale',role:'Batman'},{name:'Heath Ledger',role:'Le Joker'},{name:'Aaron Eckhart',role:'Harvey Dent'},{name:'Michael Caine',role:'Alfred'},{name:'Gary Oldman',role:'Gordon'},{name:'Maggie Gyllenhaal',role:'Rachel'}]},
+  {title:'Le Parrain',year:1972,genre:'Drame criminel',
+   cast:[{name:'Marlon Brando',role:'Don Corleone'},{name:'Al Pacino',role:'Michael'},{name:'James Caan',role:'Sonny'},{name:'Diane Keaton',role:'Kay'},{name:'Robert Duvall',role:'Tom Hagen'},{name:'Talia Shire',role:'Connie'}]},
+  {title:'Forrest Gump',year:1994,genre:'Drame',
+   cast:[{name:'Tom Hanks',role:'Forrest Gump'},{name:'Robin Wright',role:'Jenny'},{name:'Gary Sinise',role:'Lieutenant Dan'},{name:'Sally Field',role:'Madame Gump'},{name:'Mykelti Williamson',role:'Bubba'}]},
+  {title:'Matrix',year:1999,genre:'Science-fiction',
+   cast:[{name:'Keanu Reeves',role:'Neo'},{name:'Laurence Fishburne',role:'Morpheus'},{name:'Carrie-Anne Moss',role:'Trinity'},{name:'Hugo Weaving',role:'Agent Smith'},{name:'Joe Pantoliano',role:'Cypher'}]},
+  {title:'Interstellar',year:2014,genre:'Science-fiction',
+   cast:[{name:'Matthew McConaughey',role:'Cooper'},{name:'Anne Hathaway',role:'Amelia Brand'},{name:'Jessica Chastain',role:'Murph adulte'},{name:'Michael Caine',role:'Prof. Brand'},{name:'Matt Damon',role:'Dr. Mann'}]},
+  {title:'Fight Club',year:1999,genre:'Thriller',
+   cast:[{name:'Brad Pitt',role:'Tyler Durden'},{name:'Edward Norton',role:'Le Narrateur'},{name:'Helena Bonham Carter',role:'Marla Singer'},{name:'Meat Loaf',role:'Bob'}]},
+  {title:'Gladiator',year:2000,genre:'Peglum',
+   cast:[{name:'Russell Crowe',role:'Maximus'},{name:'Joaquin Phoenix',role:'Commode'},{name:'Connie Nielsen',role:'Lucilla'},{name:'Oliver Reed',role:'Proximo'},{name:'Derek Jacobi',role:'Gracchus'}]},
+  {title:'Titanic',year:1997,genre:'Romance',
+   cast:[{name:'Leonardo DiCaprio',role:'Jack Dawson'},{name:'Kate Winslet',role:'Rose DeWitt'},{name:'Billy Zane',role:'Cal Hockley'},{name:'Kathy Bates',role:'Molly Brown'},{name:'Frances Fisher',role:'Ruth'}]},
+  {title:'Avengers : Endgame',year:2019,genre:'Super-heros',
+   cast:[{name:'Robert Downey Jr.',role:'Tony Stark'},{name:'Chris Evans',role:'Steve Rogers'},{name:'Scarlett Johansson',role:'Natasha'},{name:'Chris Hemsworth',role:'Thor'},{name:'Mark Ruffalo',role:'Bruce Banner'}]},
+  {title:'Joker',year:2019,genre:'Drame',
+   cast:[{name:'Joaquin Phoenix',role:'Arthur Fleck'},{name:'Robert De Niro',role:'Murray Franklin'},{name:'Zazie Beetz',role:'Sophie'},{name:'Frances Conroy',role:'Penny Fleck'}]},
+  {title:'Le Silence des agneaux',year:1991,genre:'Thriller',
+   cast:[{name:'Jodie Foster',role:'Clarice Starling'},{name:'Anthony Hopkins',role:'Hannibal Lecter'},{name:'Scott Glenn',role:'Jack Crawford'},{name:'Ted Levine',role:'Buffalo Bill'}]},
+  {title:'Django Unchained',year:2012,genre:'Western',
+   cast:[{name:'Jamie Foxx',role:'Django'},{name:'Christoph Waltz',role:'Dr. Schultz'},{name:'Leonardo DiCaprio',role:'Calvin Candie'},{name:'Kerry Washington',role:'Broomhilda'},{name:'Samuel L. Jackson',role:'Stephen'}]},
+  {title:'Dune',year:2021,genre:'Science-fiction',
+   cast:[{name:'Timothee Chalamet',role:'Paul Atreides'},{name:'Zendaya',role:'Chani'},{name:'Rebecca Ferguson',role:'Lady Jessica'},{name:'Oscar Isaac',role:'Duc Leto'},{name:'Josh Brolin',role:'Gurney'}]},
+  {title:'Parasite',year:2019,genre:'Drame coreen',
+   cast:[{name:'Song Kang-ho',role:'Ki-taek'},{name:'Lee Sun-kyun',role:'M. Park'},{name:'Cho Yeo-jeong',role:'Mme Park'},{name:'Choi Woo-shik',role:'Ki-woo'}]},
+  {title:'Oppenheimer',year:2023,genre:'Biopic',
+   cast:[{name:'Cillian Murphy',role:'J. Robert Oppenheimer'},{name:'Emily Blunt',role:'Katherine'},{name:'Matt Damon',role:'Leslie Groves'},{name:'Robert Downey Jr.',role:'Lewis Strauss'},{name:'Florence Pugh',role:'Jean Tatlock'}]},
+  {title:'Intouchables',year:2011,genre:'Comedie dramatique',
+   cast:[{name:'Francois Cluzet',role:'Philippe'},{name:'Omar Sy',role:'Driss'},{name:'Anne Le Ny',role:'Yvonne'},{name:'Audrey Fleurot',role:'Magalie'}]},
+];
+
+function fetchGeneriqueQuestions(count){
+  const pool=shuffle([...GENERIQUE_FILMS]).slice(0,count);
+  const allTitles=GENERIQUE_FILMS.map(f=>f.title);
+  return pool.map(film=>{
+    const others=shuffle(allTitles.filter(t=>t!==film.title)).slice(0,3);
+    const answers=shuffle([film.title,...others]);
+    // Mélanger le cast pour varier l'ordre de révélation
+    const shuffledCast=shuffle([...film.cast]);
+    return{
+      type:'generique',title:film.title,year:film.year,genre:film.genre,
+      cast:shuffledCast,answers,correct:answers.indexOf(film.title),
+      difficulty:'medium',category:'Le Generique'
+    };
+  });
+}
+
+// -- LIEU DE TOURNAGE DATA --
+const LOCATION_FILMS=[
+  {title:"Lawrence d'Arabie",country:"Jordanie",place:"Wadi Rum",hint:"Desert de roche rouge, tournage iconique",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Wadi_Rum_protected_area.jpg/640px-Wadi_Rum_protected_area.jpg"},
+  {title:"Gladiator",country:"Malte",place:"Fort Ricasoli",hint:"Arenes romaines reconstituees pour le film",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Fort_Ricasoli_Malta.jpg/640px-Fort_Ricasoli_Malta.jpg"},
+  {title:"Le Seigneur des Anneaux",country:"Nouvelle-Zelande",place:"Matamata (Hobbiton)",hint:"Village de hobbits en pleine campagne verdoyante",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hobbiton_movie_set%2C_New_Zealand_2.jpg/640px-Hobbiton_movie_set%2C_New_Zealand_2.jpg"},
+  {title:"James Bond - Skyfall",country:"Ecosse",place:"Glen Etive",hint:"Vallee ecossaise brumeuse et dramatique",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Glen_Etive.jpg/640px-Glen_Etive.jpg"},
+  {title:"Indiana Jones",country:"Jordanie",place:"Petra",hint:"Cite rose taillee dans la roche",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Petra_Jordan_BW_21.JPG/640px-Petra_Jordan_BW_21.JPG"},
+  {title:"Star Wars IV",country:"Tunisie",place:"Matmata",hint:"Habitations troglodytes dans le desert",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Matmata_-_Hotel_Sidi_Driss.jpg/640px-Matmata_-_Hotel_Sidi_Driss.jpg"},
+  {title:"Harry Potter",country:"Ecosse",place:"Pont de Glenfinnan",hint:"Viaduc traversé par le Poudlard Express",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Glenfinnan_Viaduct.jpg/640px-Glenfinnan_Viaduct.jpg"},
+  {title:"Mamma Mia",country:"Grece",place:"Ile de Skopelos",hint:"Village blanc et bleu sur une ile grecque",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Skopelos_island_Greece.jpg/640px-Skopelos_island_Greece.jpg"},
+  {title:"Il etait une fois dans l'Ouest",country:"Espagne",place:"Almeria",hint:"Desert aride et rochers ocres pour western spaghetti",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Tabernas_Desert.jpg/640px-Tabernas_Desert.jpg"},
+  {title:"Dune",country:"Jordanie",place:"Wadi Rum",hint:"Paysage martien, meme desert que Lawrence d'Arabie",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Wadi_Rum_protected_area.jpg/640px-Wadi_Rum_protected_area.jpg"},
+  {title:"Mission Impossible II",country:"Australie",place:"Parc National Royal",hint:"Falaises spectaculaires face a l'ocean",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Royal_National_Park_7.jpg/640px-Royal_National_Park_7.jpg"},
+  {title:"Gladiator II",country:"Maroc",place:"Ouarzazate",hint:"La cite du cinema africaine, portes du desert",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Ouarzazate_view.jpg/640px-Ouarzazate_view.jpg"},
+];
+
+function fetchLocationQuestions(count){
+  const pool=shuffle([...LOCATION_FILMS]).slice(0,count);
+  const allTitles=LOCATION_FILMS.map(f=>f.title);
+  return pool.map(film=>{
+    const others=shuffle(allTitles.filter(t=>t!==film.title)).slice(0,3);
+    const answers=shuffle([film.title,...others]);
+    return{type:'location',title:film.title,country:film.country,place:film.place,
+      hint:film.hint,photo:film.photo,answers,correct:answers.indexOf(film.title),
+      difficulty:'medium',category:'Lieu de tournage'};
+  });
+}
+
+// -- CASTING DATA --
+const CASTING_FILMS=[
+  {title:'Inception',id:27205,actors:['Leonardo DiCaprio','Joseph Gordon-Levitt','Elliot Page','Tom Hardy'],clue:'Film de science-fiction de Christopher Nolan (2010)'},
+  {title:'Pulp Fiction',id:680,actors:['John Travolta','Samuel L. Jackson','Uma Thurman','Bruce Willis'],clue:'Film culte de Quentin Tarantino (1994)'},
+  {title:'The Dark Knight',id:155,actors:['Christian Bale','Heath Ledger','Aaron Eckhart','Michael Caine'],clue:'Blockbuster DC de Christopher Nolan (2008)'},
+  {title:'Avengers : Endgame',id:299534,actors:['Robert Downey Jr.','Chris Evans','Scarlett Johansson','Chris Hemsworth'],clue:'Film Marvel des frères Russo (2019)'},
+  {title:'Le Seigneur des Anneaux',id:120,actors:['Elijah Wood','Viggo Mortensen','Ian McKellen','Orlando Bloom'],clue:'Saga fantasy de Peter Jackson (2001)'},
+  {title:'Fight Club',id:550,actors:['Brad Pitt','Edward Norton','Helena Bonham Carter'],clue:'Thriller psychologique de David Fincher (1999)'},
+  {title:'Forrest Gump',id:13,actors:['Tom Hanks','Robin Wright','Gary Sinise'],clue:'Drame américain de Robert Zemeckis (1994)'},
+  {title:'Titanic',id:597,actors:['Leonardo DiCaprio','Kate Winslet','Billy Zane'],clue:'Romance dramatique de James Cameron (1997)'},
+  {title:'Matrix',id:603,actors:['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss','Hugo Weaving'],clue:'Science-fiction des Wachowski (1999)'},
+  {title:'Gladiator',id:98,actors:['Russell Crowe','Joaquin Phoenix','Connie Nielsen'],clue:'Péplum de Ridley Scott (2000)'},
+  {title:'Interstellar',id:157336,actors:['Matthew McConaughey','Anne Hathaway','Jessica Chastain','Michael Caine'],clue:'Science-fiction de Christopher Nolan (2014)'},
+  {title:'Le Parrain',id:238,actors:['Marlon Brando','Al Pacino','James Caan','Diane Keaton'],clue:'Saga criminelle de Francis Ford Coppola (1972)'},
+  {title:'Shutter Island',id:11324,actors:['Leonardo DiCaprio','Mark Ruffalo','Ben Kingsley'],clue:'Thriller psychologique de Martin Scorsese (2010)'},
+  {title:'Joker',id:475557,actors:['Joaquin Phoenix','Robert De Niro','Zazie Beetz'],clue:'Drame de Todd Phillips (2019)'},
+  {title:'Les Gardiens de la Galaxie',id:118340,actors:['Chris Pratt','Zoe Saldana','Vin Diesel','Bradley Cooper'],clue:'Film Marvel de James Gunn (2014)'},
+  {title:'Django Unchained',id:68718,actors:['Jamie Foxx','Christoph Waltz','Leonardo DiCaprio','Kerry Washington'],clue:'Western de Quentin Tarantino (2012)'},
+  {title:'Le Silence des agneaux',id:274,actors:['Jodie Foster','Anthony Hopkins','Scott Glenn'],clue:'Thriller psychologique de Jonathan Demme (1991)'},
+  {title:'Parasite',id:496243,actors:['Song Kang-ho','Lee Sun-kyun','Cho Yeo-jeong'],clue:'Drame coréen de Bong Joon-ho (2019)'},
+  {title:'Oppenheimer',id:872585,actors:['Cillian Murphy','Emily Blunt','Matt Damon','Robert Downey Jr.'],clue:'Biopic de Christopher Nolan (2023)'},
+  {title:'Barbie',id:346698,actors:['Margot Robbie','Ryan Gosling','America Ferrera'],clue:'Comédie fantastique de Greta Gerwig (2023)'},
+  {title:'Dune',id:438631,actors:['Timothée Chalamet','Zendaya','Rebecca Ferguson','Oscar Isaac'],clue:'Science-fiction de Denis Villeneuve (2021)'},
+  {title:'No Time to Die',id:370172,actors:['Daniel Craig','Rami Malek','Léa Seydoux','Ana de Armas'],clue:'James Bond de Cary Fukunaga (2021)'},
+  {title:'Intouchables',id:77338,actors:['François Cluzet','Omar Sy'],clue:'Comédie dramatique de Nakache et Toledano (2011)'},
+];
+
+async function fetchCastingQuestions(count){
+  const pool=shuffle([...CASTING_FILMS]).slice(0,count);
+  return pool.map(film=>{
+    const others=shuffle(CASTING_FILMS.filter(f=>f.id!==film.id)).slice(0,3).map(f=>f.title);
+    const answers=shuffle([film.title,...others]);
+    return{type:'casting',title:film.title,actors:film.actors,clue:film.clue,answers,correct:answers.indexOf(film.title),difficulty:'medium',category:'Le Casting'};
+  });
+}
+
+// Acteurs celebres - IDs TMDB verifies + profile_path de secours
+// Le fetch live recupere la photo actuelle via l ID fixe (garanti = bonne personne)
+const KNOWN_ACTORS=[
+  // Hommes
+  {id:31,      name:'Tom Hanks',           path:'/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg'},
+  {id:287,     name:'Brad Pitt',           path:'/kU3B75TyRiCgE270EyZnHjfivoq.jpg'},
+  {id:6193,    name:'Leonardo DiCaprio',   path:'/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg'},
+  {id:192,     name:'Morgan Freeman',      path:'/jPssioIGQMDczvUU7GHoImhFQMk.jpg'},
+  {id:500,     name:'Tom Cruise',          path:'/aemBIlLBFzRxKbdE4y8OAZG8Xtz.jpg'},
+  {id:2232,    name:'Keanu Reeves',        path:'/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg'},
+  {id:3223,    name:'Robert Downey Jr.',   path:'/im9SAqJPZKEbVZGmjXuLI4O7RvM.jpg'},
+  {id:2524,    name:'Joaquin Phoenix',     path:'/nXMzvVF6xR3k5FBjNcQ5uBkZPHW.jpg'},
+  {id:74568,   name:'Chris Hemsworth',     path:'/jpurJ9jAcLCYjgHHfYF32m3zJYm.jpg'},
+  {id:16851,   name:'Ryan Gosling',        path:'/lyUyVARQKhGxaxy0FbPJCQRpiaW.jpg'},
+  {id:819,     name:'Edward Norton',       path:'/8nytsqL59SFJTVYMgB5V2CBiSUb.jpg'},
+  {id:64,      name:'Gary Oldman',         path:'/2v9FVVBUrrkW2m3QOcYkuhq9A6o.jpg'},
+  {id:2888,    name:'Will Smith',          path:'/7F3HQMoVvqHODLwbHJPNMNuPfpY.jpg'},
+  {id:380,     name:'Russell Crowe',       path:'/xRlFBCRjXlzl4YEJftqJj7AKCHe.jpg'},
+  {id:1373737, name:'Timothee Chalamet',   path:'/BE2sdjpgsa2rNTFa66f7upkaOP.jpg'},
+  {id:514,     name:'Denzel Washington',   path:'/jj2Gcobpopokal0YstuCQW0ldnOQ.jpg'},
+  {id:10859,   name:'Christian Bale',      path:'/qCpZn2e3dimwbryLnqxZuI88PTi.jpg'},
+  {id:52571,   name:'Chris Evans',         path:'/3bOGNse2LkVJAk18sAxKAWCLFTj.jpg'},
+  {id:932,     name:'Cillian Murphy',      path:'/dm6V24NjjvjMiCtbMkc8Y2WPm2e.jpg'},
+  {id:2037,    name:'Robert De Niro',      path:'/cT8htcckIuyI1iba0fykaxsEovn.jpg'},
+  {id:8891,    name:'Matt Damon',          path:'/ycAv4UJbbf3jUEHMn1PxFpzKUlg.jpg'},
+  {id:3776,    name:'Hugh Jackman',        path:'/t4768kJFH1HiKNXrDqoAFCOdkiO.jpg'},
+  {id:1023139, name:'Pedro Pascal',        path:'/iDlJFYcTMg81nAtU4wBj6DJDSS5.jpg'},
+  {id:10980,   name:'Viggo Mortensen',     path:'/vH5gVSpHAMhDaFWfh0Q7BG61O1y.jpg'},
+  {id:3,       name:'Clint Eastwood',      path:'/tHRqb9QQ6BDTMO23sifs0hCKnQq.jpg'},
+  {id:13798,   name:'Jake Gyllenhaal',     path:'/tgEeIDba1GzSMQ1AiQrCGsYJksc.jpg'},
+  {id:16483,   name:'Sylvester Stallone',  path:'/mMRBECqxfCqMOCghDnKaMPIaXjf.jpg'},
+  {id:1327,    name:'Javier Bardem',       path:'/AsHsX5gELBxCeVnP27BAPe3loNY.jpg'},
+  // Femmes
+  {id:1245,    name:'Scarlett Johansson',  path:'/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg'},
+  {id:8784,    name:'Meryl Streep',        path:'/UGnM7fzECb3P3BmYQOGHBF8LW5.jpg'},
+  {id:1892,    name:'Cate Blanchett',      path:'/2843XeSBkBu9B5wYHyYVBxYGqUk.jpg'},
+  {id:1813461, name:'Florence Pugh',       path:'/3bG0MoFMtRZBKZsHNFLiaqA5XDE.jpg'},
+  {id:1190668, name:'Zendaya',             path:'/6TE2AlOUqEnIfiilxkSdgP9oM2Y.jpg'},
+  {id:1136406, name:'Ana de Armas',        path:'/3vxvsmYLNGBDkAp1IiM1pnFsI8S.jpg'},
+  {id:234352,  name:'Margot Robbie',       path:'/euDPyqLnuwaWMHajcU3oZ9uZezR.jpg'},
+  {id:5049,    name:'Kate Winslet',        path:'/e3tdop3WhseRnn8prldBSsQswFk.jpg'},
+  {id:53639,   name:'Emily Blunt',         path:'/pQHJSBInhBGMXe7Mf7HnCDETzz3.jpg'},
+  {id:2227,    name:'Halle Berry',         path:'/p9GBB5GmDMCQDRMKyOCKcIbAVBs.jpg'},
+  {id:1136,    name:'Natalie Portman',     path:'/rC0mLzNNHJTSmNm7cXZqJ2CHvXX.jpg'},
+  // Charlize Theron - ID correct
+  {id:6885,    name:'Charlize Theron',     path:'/AxMxflMFDqkstZZFGzOPFIwMRrX.jpg'},
+];
+
+async function fetchActorQuestions(count){
+  const pool=shuffle([...KNOWN_ACTORS]).slice(0, Math.min(count+12, KNOWN_ACTORS.length));
+  const result=[];
+  for(const actor of pool){
+    if(result.length>=count)break;
+    try{
+      // Fetch live pour avoir le path le plus recent
+      const r=await fetch(`https://api.themoviedb.org/3/person/${actor.id}?api_key=${TK}`);
+      const d=await r.json();
+      // Verifier que le nom correspond (garde-fou anti-mauvais ID)
+      if(!d.profile_path||!d.name)continue;
+      // Si le nom TMDB ne match pas du tout, ignorer
+      const tmdbName=d.name.toLowerCase().replace(/[^a-z]/g,'');
+      const expectedName=actor.name.toLowerCase().replace(/[^a-z]/g,'');
+      if(tmdbName!==expectedName&&!tmdbName.includes(expectedName.slice(0,5))){
+        console.warn('ID mismatch:',actor.id,d.name,'!=',actor.name);
+        continue;
+      }
+      const photo=`https://image.tmdb.org/t/p/w342${d.profile_path}`;
+      const wrongs=shuffle(KNOWN_ACTORS.filter(a=>a.id!==actor.id)).slice(0,3).map(a=>a.name);
+      const answers=shuffle([actor.name,...wrongs]);
+      result.push({type:'acteur',name:actor.name,photo,answers,correct:answers.indexOf(actor.name),difficulty:'medium',category:'Acteur Mystere'});
+    }catch(e){
+      // Fallback sur le path hardcode si le fetch echoue
+      if(actor.path){
+        const photo=`https://image.tmdb.org/t/p/w342${actor.path}`;
+        const wrongs=shuffle(KNOWN_ACTORS.filter(a=>a.id!==actor.id)).slice(0,3).map(a=>a.name);
+        const answers=shuffle([actor.name,...wrongs]);
+        result.push({type:'acteur',name:actor.name,photo,answers,correct:answers.indexOf(actor.name),difficulty:'medium',category:'Acteur Mystere'});
+      }
+    }
+  }
+  return result.slice(0,count);
+}
+
+// ==============================
+// TRIVIA
+// ==============================
+async function fetchTrivia(){
+  const r=await fetch(`https://opentdb.com/api.php?amount=${TOTAL}&category=11&type=multiple&encode=url3986`);
+  const d=await r.json();
+  if(d.response_code!==0)throw new Error('API');
+  return d.results.map(q=>({text:decodeURIComponent(q.question),correct:decodeURIComponent(q.correct_answer),wrong:q.incorrect_answers.map(a=>decodeURIComponent(a)),difficulty:q.difficulty,category:decodeURIComponent(q.category)}));
+}
+async function txText(t){try{const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(t)+'&langpair=en|fr&de=cinequiz@quiz.fr',{signal:AbortSignal.timeout(9000)});const d=await r.json();if(d.responseStatus===200&&d.responseData?.translatedText)return d.responseData.translatedText;return t;}catch{return t;}}
+const CATMAP={'Entertainment: Film':'Cinéma','Entertainment: Television':'Télévision','Entertainment: Music':'Musique','Entertainment: Video Games':'Jeux vidéo','General Knowledge':'Culture générale'};
+async function txQuestions(raw){
+  const SEP='\n||||\n';
+  return Promise.all(raw.map(async q=>{
+    try{const b=[q.text,q.correct,...q.wrong].join(SEP);const tr=await txText(b);const p=tr.split('||||').map(s=>s.trim());if(p.length<5)throw 0;const ans=shuffle([p[1],...p.slice(2)]);return{type:'trivia',text:p[0],answers:ans,correct:ans.indexOf(p[1]),difficulty:q.difficulty,category:CATMAP[q.category]||q.category};}
+    catch{const ans=shuffle([q.correct,...q.wrong]);return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:CATMAP[q.category]||q.category};}
+  }));
+}
+
+// ==============================
+// UI
+// ==============================
+const go=id=>{
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  // Fond accueil - canvas projecteur + vignette
+  const isHome=id==='home';
+  const _hbg=document.getElementById('home-bg');
+  if(_hbg)_hbg.classList.toggle('visible',isHome);
+  // Fond de jeu par mode
+  const gbg=document.getElementById('game-bg');
+  if(gbg){
+    const gameScreens=['game','lvlup','result'];
+    if(gameScreens.includes(id)){
+      gbg.className=`on mode-${selMode}`;
+    } else {
+      gbg.classList.remove('on');
+    }
+  }
+  // Musique
+  if(id==='game'){
+    switchMusic(selMode,0.22);
+  } else if(id==='home'){
+    switchMusic('home',0.3);
+  } else if(['result','lvlup'].includes(id)){
+    fadeMus(0.15,600);
+  }
+};
+const dh=s=>{const el=document.createElement('div');el.innerHTML=s;return el.textContent||'';};
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function sltxt(t){const el=document.getElementById('ltxt');if(el)el.textContent=t;}
+function initSteps(steps){const c=document.getElementById('lsteps');if(!c)return;c.innerHTML=steps.map((s,i)=>`<div class="lstep" id="ls${i}"><span class="lsi">${s.icon}</span><span>${s.label}</span></div>`).join('');}
+function setStep(i,st){const el=document.getElementById('ls'+i);if(!el)return;el.className='lstep '+st;if(st==='don')el.querySelector('.lsi').textContent='✅';}
+
+// themes
+const THEMES=[{id:null,l:'Tous 🎬'},{id:'Action',l:'Action 💥'},{id:'Science-Fiction',l:'SF 🚀'},{id:'Drame',l:'Drame 🎭'},{id:'Horreur',l:'Horreur 👻'},{id:'Animation',l:'Animation 🎨'},{id:'Comédie',l:'Comédie 😂'}];
+let selTheme=null,selMode='quiz';
+function renderThemes(){const row=document.getElementById('trow');row.innerHTML=THEMES.map(t=>`<div class="tc${selTheme===t.id?' sel':''}" onclick="pickTheme(${JSON.stringify(t.id)},this)">${t.l}</div>`).join('');}
+function pickTheme(id,el){selTheme=id;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selectMode(m,el){selMode=m;document.querySelectorAll('.mc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+
+function refHome(){
+  const s=ls();const{l,nxt,pct}=gxp(s.xp);const lv=LEVELS[l],nlv=LEVELS[Math.min(l+1,LEVELS.length-1)];
+  document.getElementById('h-nm').textContent=lv.name;
+  document.getElementById('h-nl').textContent=s.xp+' / '+nxt+' XP';
+  document.getElementById('h-xpb').style.width=pct+'%';
+  document.getElementById('h-ln').textContent='Niveau '+(l+1);
+  document.getElementById('h-nx').textContent=l<LEVELS.length-1?'→ '+nlv.name:'★ Max';
+  document.getElementById('h-str').textContent=s.streak;
+  document.getElementById('h-bst').textContent=s.best;
+  document.getElementById('h-gms').textContent=s.games;
+  const ul=s.unlocked.length;
+  document.getElementById('h-bct').textContent=ul+' débloqué'+(ul>1?'s':'');
+  // Trier : débloqués en premier, puis verrouillés
+  const sorted=[...BADGES].sort((a,b)=>{const ao=s.unlocked.includes(a.id),bo=s.unlocked.includes(b.id);return ao===bo?0:ao?-1:1;});
+  document.getElementById('h-bdg').innerHTML=sorted.map(b=>{
+    const ok=s.unlocked.includes(b.id);
+    const isNew=ok&&!(s.seen||[]).includes(b.id);
+    return`<div class="bc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')">${isNew?'<div class="bc-new"></div>':''}<div class="bci">${b.icon}</div><div class="bcn">${b.name}</div></div>`;
+  }).join('');
+}
+function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);}
+function refProfile(){
+  const s=ls();const{l}=gxp(s.xp);const lv=LEVELS[l];
+  const pct=s.questions>0?Math.round((s.correct/s.questions)*100):0;
+  document.getElementById('p-av').textContent=s.avatar||lv.icon;
+  document.getElementById('p-nm').textContent=lv.name;
+  document.getElementById('p-tt').textContent='Niveau '+(l+1);
+  document.getElementById('p-xp').textContent=s.xp;
+  document.getElementById('p-gm').textContent=s.games;
+  document.getElementById('p-pc').textContent=pct+'%';
+  document.getElementById('p-sk').textContent=s.maxStreak;
+  document.getElementById('p-pt').textContent=fmtT(s.playtime||0);
+  document.getElementById('p-bs').textContent=s.best;
+  document.getElementById('p-bc').textContent=s.unlocked.length+'/'+BADGES.length;
+  document.getElementById('p-bgrid').innerHTML=BADGES.map(b=>{const ok=s.unlocked.includes(b.id);return`<div class="pbc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')"><div class="pbci">${b.icon}</div><div class="pbcn">${b.name}</div></div>`;}).join('');
+  const hist=document.getElementById('p-hist');hist.innerHTML='';
+  const rec=[...(s.history||[])].reverse().slice(0,6);
+  if(!rec.length)hist.innerHTML='<div style="color:var(--mt);font-size:13px;text-align:center;padding:18px 0">Aucune partie pour l\'instant</div>';
+  else rec.forEach(h=>{const icons=['😅','🎬','⭐','🏆','🎭'];const idx=Math.min(Math.floor((h.correct/h.total)*4),4);const mi=h.mode==='photo'?'📸':h.mode==='year'?'📅':h.mode==='duo'?'🎭':h.mode==='boxoffice'?'💰':h.mode==='replique'?'🗣️':h.mode==='acteur'?'🎭':h.mode==='bande'?'🎞️':'⚡';hist.innerHTML+=`<div class="hitem"><div class="hi">${icons[idx]}</div><div class="hinfo"><div class="hs">${h.score} pts</div><div class="hd">${mi} ${h.correct}/${h.total} · +${h.xp} XP</div></div><div class="hdate">${h.date}</div></div>`;});
+}
+
+function openHelp(){document.getElementById('help-modal').classList.add('on');}
+function closeHelp(e){if(!e||e.target===document.getElementById('help-modal'))document.getElementById('help-modal').classList.remove('on');}
+
+function openBadge(id){
+  const b=BADGES.find(x=>x.id===id);if(!b)return;
+  const s=ls();const ok=s.unlocked.includes(id);
+  // Marquer comme vu si débloqué
+  if(ok&&!(s.seen||[]).includes(id)){
+    s.seen=[...(s.seen||[]),id];ss(s);
+    // Retirer la pastille du badge cliqué
+    const el=document.querySelector(`[onclick="openBadge('${id}')"] .bc-new`);
+    if(el)el.remove();
+  }
+  document.getElementById('mbi').textContent=b.icon;
+  document.getElementById('mbn').textContent=b.name;
+  document.getElementById('mbd').textContent=b.desc;
+  document.getElementById('mbs').innerHTML=ok?'<span style="color:var(--green);font-weight:600">✅ Débloqué !</span>':'<span style="color:var(--mt)">🔒 Pas encore débloqué</span>';
+  document.getElementById('bmod').classList.add('on');
+}
+function closeMod(e){if(!e||e.target===document.getElementById('bmod'))document.getElementById('bmod').classList.remove('on');}
+
+// ==============================
+// GAME STATE
+// ==============================
+let qs=[],curQ=0,score=0,tInt=null,tLeft=20,ansed=false;
+let combo=0,okCnt=0,bestM=1,times=[],dotRes=[],fastCnt=0,photoOkCnt=0,tStart=0;
+let revInt=null,revStage=0,lvlFn=null;
+let nextQTimer=null;
+const TOTAL=10,MAXT=20;
+
+// Box-office drag state
+let dragIdx=null,dragOrder=[];
+
+async function startGame(){
+  resume();
+  score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];dotRes=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
+  tStart=Date.now();
+  go('loading');
+  try{
+    if(selMode==='photo'){
+      sltxt('Chargement des affiches…');
+      initSteps([{icon:'🖼️',label:'Récupération des affiches'},{icon:'🎬',label:'Préparation du quiz'}]);
+      setStep(0,'act');
+      const pool=selTheme&&GENRE_IDS[selTheme]?await fetchGenreMovies(selTheme,TOTAL):await fetchMovies(POOL,TOTAL);
+      if(pool.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');
+      qs=pool.map((m,i)=>{const others=pool.filter((_,j)=>j!==i);const w=shuffle(others).slice(0,3).map(o=>o.title);const a=shuffle([m.title,...w]);return{type:'photo',title:m.title,poster:m.poster,year:m.year,genre:m.genre,answers:a,correct:a.indexOf(m.title),difficulty:'medium',category:'Affiche Mystère'};});
+      setStep(1,'don');
+    } else if(selMode==='year'){
+      sltxt('Chargement des films…');
+      initSteps([{icon:'📅',label:'Récupération des films'},{icon:'🎬',label:'Préparation'}]);
+      setStep(0,'act');
+      const movies=await fetchMovies(POOL,TOTAL+8);
+      const ok=movies.filter(m=>m.year>=1960&&m.year<=2024);
+      if(ok.length<TOTAL)throw new Error('Not enough');
+      qs=ok.slice(0,TOTAL).map(m=>({type:'year',title:m.title,poster:m.poster,year:m.year,genre:m.genre,difficulty:'medium',category:'Quelle Année ?'}));
+      setStep(0,'don');setStep(1,'act');setStep(1,'don');
+    } else if(selMode==='bo'){
+      sltxt('Chargement des indices…');
+      initSteps([{icon:'🎵',label:'Récupération des films'},{icon:'🔍',label:'Collecte des indices'},{icon:'🎬',label:'Préparation'}]);
+      setStep(0,'act');
+      const boPool=await fetchMovies(POOL,TOTAL+15);
+      if(boPool.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');
+      const boAll=[];
+      for(const m of boPool){
+        if(boAll.length>=TOTAL)break;
+        try{
+          const r=await fetch(`https://api.themoviedb.org/3/movie/${m.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`);
+          const d=await r.json();
+          const director=(d.credits?.crew||[]).find(c=>c.job==='Director');
+          const cast=(d.credits?.cast||[]).slice(0,2).map(a=>a.name).join(' & ');
+          const decade=Math.floor(m.year/10)*10+'s';
+          const tagline=d.tagline||'';
+          const clues=[
+            `Genre : ${m.genre}`,
+            `Époque : années ${decade}`,
+            cast?`Avec ${cast}`:'Distribution internationale',
+            director?`Réalisé par ${director.name}`:'Réalisateur acclamé',
+            tagline?`"${tagline.slice(0,60)}"`:`Sorti en ${m.year}`,
+          ];
+          const others=shuffle(boPool.filter(x=>x.id!==m.id)).slice(0,3).map(x=>x.title);
+          const answers=shuffle([m.title,...others]);
+          boAll.push({type:'bo',title:m.title,year:m.year,genre:m.genre,clues,answers,correct:answers.indexOf(m.title),difficulty:'medium',category:'Indices Mystère'});
+        }catch(e){}
+      }
+      if(boAll.length<4)throw new Error('Not enough BO');
+      qs=boAll.slice(0,TOTAL);
+      setStep(1,'don');setStep(2,'act');await new Promise(r=>setTimeout(r,200));setStep(2,'don');
+    } else if(selMode==='boxoffice'){
+      sltxt('Chargement du box-office…');
+      initSteps([{icon:'💰',label:'Récupération des recettes'},{icon:'🎬',label:'Préparation'}]);
+      setStep(0,'act');
+      // Each "question" is one 4-film ranking round. We build TOTAL of them.
+      const boQs=[];
+      const movies=await fetchMovies(POOL,TOTAL*4+20);
+      const withRev=movies.filter(m=>m.revenue>0);
+      if(withRev.length<8)throw new Error('Not enough BO');
+      // Build TOTAL rounds of 4 films each
+      const shuffled=shuffle(withRev);
+      for(let i=0;i<TOTAL&&(i+1)*4<=shuffled.length;i++){
+        const pick=shuffled.slice(i*4,(i+1)*4);
+        const sorted=[...pick].sort((a,b)=>b.revenue-a.revenue);
+        boQs.push({type:'boxoffice',movies:pick,correctOrder:sorted.map(m=>m.id),difficulty:'medium',category:'Box-office'});
+      }
+      if(boQs.length<4)throw new Error('Not enough BO rounds');
+      qs=boQs.slice(0,TOTAL);
+      setStep(0,'don');setStep(1,'act');setStep(1,'don');
+    } else if(selMode==='replique'){
+      sltxt('Chargement des répliques…');
+      initSteps([{icon:'🎭',label:'Sélection des répliques cultes'},{icon:'🎬',label:'Préparation du quiz'}]);
+      setStep(0,'act');
+      await new Promise(r=>setTimeout(r,300));
+      qs=buildRepliqueQuestions();
+      if(qs.length<4)throw new Error('Not enough quotes');
+      setStep(0,'don');setStep(1,'act');
+      await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='acteur'){
+      sltxt('Chargement des acteurs…');
+      initSteps([{icon:'🎭',label:'Récupération des photos'},{icon:'🎬',label:'Préparation'}]);
+      setStep(0,'act');
+      qs=await fetchActorQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough actors');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='bande'){
+      sltxt('Chargement des films…');
+      initSteps([{icon:'🎞️',label:'Récupération des films'},{icon:'🔍',label:'Enrichissement'},{icon:'🎬',label:'Préparation'}]);
+      setStep(0,'act');
+      qs=await fetchBandeAnnonceQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough movies');
+      setStep(0,'don');setStep(1,'act');setStep(1,'don');setStep(2,'act');
+      await new Promise(r=>setTimeout(r,200));setStep(2,'don');
+
+    } else if(selMode==='generique'){
+      sltxt('Chargement des generiques...');
+      initSteps([{icon:'📋',label:'Selection des films'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      qs=fetchGeneriqueQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='location'){
+      sltxt('Chargement des lieux...');
+      initSteps([{icon:'🌍',label:'Selection des lieux'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      qs=fetchLocationQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='casting'){
+      sltxt('Chargement du casting...');
+      initSteps([{icon:'🧩',label:'Selection des films'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      qs=await fetchCastingQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough casting');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='training'){
+      sltxt('Chargement des questions...');
+      initSteps([{icon:'📚',label:'Selection des questions'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      const rawT=await fetchTrivia();
+      setStep(0,'don');setStep(1,'act');
+      qs=await txQuestions(rawT);
+      qs.forEach(q=>{q.training=true;});
+      setStep(1,'don');
+    } else {
+      sltxt('Chargement des questions...');
+      initSteps([{icon:'🌐',label:'Questions'},{icon:'FR',label:'Traduction'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      const raw=await fetchTrivia();
+      setStep(0,'don');setStep(1,'act');
+      qs=await txQuestions(raw);
+      setStep(1,'don');setStep(2,'act');
+      await new Promise(r=>setTimeout(r,200));setStep(2,'don');
+    }
+    setTimeout(()=>{curQ=0;score=0;go('game');loadQ();},350);
     }catch(e){src.connect(ctx.destination);}
 }
 
