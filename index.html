@@ -15,43 +15,36 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .scr.on{opacity:1;pointer-events:all;}
 
-/* ── FOND GLOBAL (couvre tout l'écran) ━━━━━━━━━━━━━
-   Remplace  fond.jpg  par le nom de ton fichier image
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ── FOND PROJECTEUR ANIMÉ ── */
 #home-bg{
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  background-image: url('fond.jpg');
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  /* Visible uniquement quand home est actif */
-  opacity:0;
-  transition:opacity .4s ease;
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity .6s ease;
+  background:#0a0a0f;
 }
 #home-bg.visible{opacity:1;}
-
-/* Vignette par-dessus */
-#home-bg::after{
-  content:'';
-  position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 90% 80% at 50% 40%, transparent 20%, rgba(0,0,0,.65) 100%),
-    linear-gradient(to bottom, rgba(0,0,0,.4) 0%, transparent 18%, transparent 72%, rgba(0,0,0,.55) 100%);
+/* Canvas du projecteur — par-dessus le fond */
+#projector-canvas{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  opacity:0;transition:opacity .6s ease;
 }
+#projector-canvas.visible{opacity:1;}
+/* Vignette cinéma par-dessus tout */
+#home-vignette{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse 85% 75% at 50% 40%,transparent 25%,rgba(0,0,0,.72) 100%);
+  opacity:0;transition:opacity .6s ease;
+}
+#home-vignette.visible{opacity:1;}
 
 /* ── HOME ── */
 #home{
-  padding:max(52px,calc(env(safe-area-inset-top) + 14px)) 20px max(36px,calc(env(safe-area-inset-bottom) + 20px));
+  padding:max(52px,calc(env(safe-area-inset-top) + 14px)) 18px max(28px,calc(env(safe-area-inset-bottom) + 12px));
   position:relative;
   background:transparent;
-  min-height:100%;
 }
 
 /* Contenu home au-dessus du fond */
-#home > *{position:relative;z-index:2;}
+#home > *{position:relative;z-index:3;}
 /* Logo lumineux */
 .logo{
   font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:3px;line-height:1;
@@ -112,11 +105,11 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .bc-new{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:var(--red);border-radius:50%;border:2px solid transparent;}
 
 /* ── MODE CARDS redesign ── */
-.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
 .mc{
   background:rgba(10,8,5,.65);
   border:1px solid rgba(255,255,255,.09);
-  border-radius:18px;padding:20px 10px 16px;
+  border-radius:14px;padding:12px 8px 10px;
   text-align:center;cursor:pointer;
   transition:all .22s cubic-bezier(.34,1.56,.64,1);
   position:relative;overflow:hidden;
@@ -135,10 +128,10 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .mc.sel{border-color:var(--mc-color,var(--gold));background:var(--mc-bg,rgba(245,200,66,.1));transform:scale(1.04);}
 .mc.sel::after{background:var(--mc-color,var(--gold));opacity:1;}
 .mc:not(.sel):active{transform:scale(.96);}
-.mci{display:flex;align-items:center;justify-content:center;margin:0 auto 9px;width:34px;height:34px;opacity:.8;transition:opacity .2s;color:rgba(255,255,255,.6);}
-.mci svg{width:30px;height:30px;}
+.mci{display:flex;align-items:center;justify-content:center;margin:0 auto 6px;width:24px;height:24px;opacity:.75;transition:opacity .2s;color:rgba(255,255,255,.6);}
+.mci svg{width:22px;height:22px;}
 .mc.sel .mci{opacity:1;color:var(--mc-color,var(--gold));}
-.mc-label{font-size:12px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.2px;display:block;transition:color .2s;line-height:1.2;}
+.mc-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.2px;display:block;transition:color .2s;line-height:1.2;}
 .mc.sel .mc-label{color:var(--mc-color,var(--gold));}
 .mnew{
   position:absolute;top:7px;right:7px;
@@ -556,8 +549,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 <body>
 <div class="wrap" id="wrap">
 
-  <!-- FOND — position:fixed, couvre tout l'écran -->
+  <!-- FOND PROJECTEUR ANIMÉ -->
   <div id="home-bg"></div>
+  <canvas id="projector-canvas"></canvas>
+  <div id="home-vignette"></div>
 
   <!-- HOME -->
   <div class="scr on" id="home">
@@ -1341,9 +1336,11 @@ async function txQuestions(raw){
 const go=id=>{
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
-  // Fond accueil
-  const bg=document.getElementById('home-bg');
-  if(bg)bg.classList.toggle('visible',id==='home');
+  // Fond accueil — canvas projecteur + vignette
+  const isHome=id==='home';
+  ['home-bg','projector-canvas','home-vignette'].forEach(elId=>{
+    const e=document.getElementById(elId);if(e)e.classList.toggle('visible',isHome);
+  });
   // Fond de jeu par mode
   const gbg=document.getElementById('game-bg');
   if(gbg){
@@ -2311,9 +2308,84 @@ function closeAvModal(e){
 // ── INIT ──
 refHome();
 applyNewBadges();
-// Affiche le fond dès le départ
+// Fond accueil
 const _bg=document.getElementById('home-bg');
 if(_bg)_bg.classList.add('visible');
+
+// ── PROJECTEUR ANIMÉ ──
+(()=>{
+  const canvas=document.getElementById('projector-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  const resize=()=>{
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
+  };
+  resize();
+  window.addEventListener('resize',resize);
+
+  // 4 halos qui bougent indépendamment
+  const spots=[
+    {x:.5, y:.25, vx:.0004, vy:.0003, r:.55, color:'rgba(245,160,30,',   a:.18},
+    {x:.2, y:.6,  vx:-.0003,vy:.0004, r:.45, color:'rgba(180,60,20,',    a:.14},
+    {x:.8, y:.5,  vx:.0003, vy:-.0003,r:.4,  color:'rgba(30,80,160,',    a:.12},
+    {x:.5, y:.85, vx:-.0002,vy:-.0004,r:.5,  color:'rgba(100,30,150,',   a:.10},
+  ];
+  // Phase initiale aléatoire
+  spots.forEach(s=>{s.px=s.x+Math.random()*2*Math.PI;s.py=s.y+Math.random()*2*Math.PI;});
+
+  let t=0;
+  function draw(){
+    if(!canvas.classList.contains('visible')){requestAnimationFrame(draw);return;}
+    ctx.clearRect(0,0,W,H);
+    // Fond de base très sombre
+    ctx.fillStyle='#08070d';
+    ctx.fillRect(0,0,W,H);
+
+    t+=0.004;
+    spots.forEach(s=>{
+      // Mouvement sinusoïdal lent
+      const cx=(s.x+Math.sin(t*s.vx*1000+s.px||t)*.18)*W;
+      const cy=(s.y+Math.cos(t*s.vy*1000+s.py||t)*.22)*H;
+      const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,s.r*Math.max(W,H));
+      grad.addColorStop(0,  s.color+(s.a)+')');
+      grad.addColorStop(.4, s.color+(s.a*.5)+')');
+      grad.addColorStop(1,  s.color+'0)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,W,H);
+    });
+
+    setTimeout(()=>requestAnimationFrame(draw),32); // ~30fps, léger
+  }
+  // Initialise les positions avec vraie sinusoïde
+  let tInit=0;
+  spots.forEach((s,i)=>{s._phase=i*1.5;});
+  function drawReal(){
+    if(!canvas.classList.contains('visible')){requestAnimationFrame(drawReal);return;}
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#08070d';
+    ctx.fillRect(0,0,W,H);
+    tInit+=0.004;
+    spots.forEach(s=>{
+      const cx=(s.x+Math.sin(tInit+s._phase)*.2)*W;
+      const cy=(s.y+Math.cos(tInit*0.7+s._phase)*.18)*H;
+      const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,s.r*Math.max(W,H));
+      grad.addColorStop(0,  s.color+s.a+')');
+      grad.addColorStop(.45,s.color+(s.a*.4)+')');
+      grad.addColorStop(1,  s.color+'0)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,W,H);
+    });
+    setTimeout(()=>requestAnimationFrame(drawReal),32);
+  }
+  drawReal();
+
+  // Afficher le canvas et la vignette au démarrage
+  ['projector-canvas','home-vignette'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.classList.add('visible');
+  });
+})();
 </script>
 </body>
 </html>
