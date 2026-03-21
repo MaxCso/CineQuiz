@@ -416,6 +416,42 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 .tpts{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-bottom:3px;}
 .tmsg{font-size:12px;color:var(--mt);}
 .tans{font-size:11px;color:var(--tx);margin-top:4px;font-style:italic;line-height:1.4;}
+/* ── MODE DEVINE LA BO (indices texte) ── */
+.bo-clues-wrap{
+  width:100%;display:flex;flex-direction:column;gap:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;padding:16px;
+  backdrop-filter:blur(12px);
+}
+.bo-clues-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.bo-clues-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);}
+.bo-clues-sub{font-size:11px;color:var(--gold);font-weight:600;}
+.bo-clues-list{display:flex;flex-direction:column;gap:8px;min-height:100px;}
+.bo-clue-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  animation:qs .35s ease both;
+}
+.bo-clue-item.bo-clue-new{
+  border-color:rgba(245,200,66,.3);
+  background:rgba(245,200,66,.07);
+  animation:clueappear .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes clueappear{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+.bo-clue-num{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(245,200,66,.15);border:1px solid rgba(245,200,66,.3);
+  color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.bo-clue-txt{font-size:13px;color:rgba(255,255,255,.85);line-height:1.4;}
+.bo-clues-bar{display:flex;gap:4px;margin-top:4px;}
+.bo-bar-pip{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .4s;}
+.bo-bar-pip.on{background:var(--gold);}
+
 /* ── Mode Qui est-ce ? ── */
 .acteur-wrap{width:100%;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);flex-shrink:1;min-height:0;}
 .acteur-wrap img{width:100%;aspect-ratio:1;object-fit:cover;object-position:top;display:block;}
@@ -1420,21 +1456,37 @@ async function startGame(){
       qs=ok.slice(0,TOTAL).map(m=>({type:'year',title:m.title,poster:m.poster,year:m.year,genre:m.genre,difficulty:'medium',category:'Année Mystère'}));
       setStep(0,'don');setStep(1,'act');setStep(1,'don');
     } else if(selMode==='bo'){
-      sltxt('Chargement des films…');
-      initSteps([{icon:'🎵',label:'Sélection des films'},{icon:'🎬',label:'Préparation'}]);
+      sltxt('Chargement des indices…');
+      initSteps([{icon:'🎵',label:'Récupération des films'},{icon:'🔍',label:'Collecte des indices'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');
-      const boPool=await fetchMovies(POOL,TOTAL+10);
+      const boPool=await fetchMovies(POOL,TOTAL+15);
       if(boPool.length<4)throw new Error('Not enough');
-      const boAll=boPool.slice(0,TOTAL);
-      qs=boAll.map(m=>{
-        const others=shuffle(boAll.filter(x=>x.id!==m.id)).slice(0,3).map(x=>x.title);
-        const answers=shuffle([m.title,...others]);
-        return{type:'bo',title:m.title,poster:m.poster,year:m.year,genre:m.genre,
-          answers,correct:answers.indexOf(m.title),
-          clues:[m.genre+' · '+m.year, m.year<2000?'Film du siècle dernier':'Film des années 2000+', 'Affiche se révèle…'],
-          difficulty:'medium',category:'Devine la BO'};
-      });
-      setStep(0,'don');setStep(1,'act');setStep(1,'don');
+      setStep(0,'don');setStep(1,'act');
+      const boAll=[];
+      for(const m of boPool){
+        if(boAll.length>=TOTAL)break;
+        try{
+          const r=await fetch(`https://api.themoviedb.org/3/movie/${m.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`);
+          const d=await r.json();
+          const director=(d.credits?.crew||[]).find(c=>c.job==='Director');
+          const cast=(d.credits?.cast||[]).slice(0,2).map(a=>a.name).join(' & ');
+          const decade=Math.floor(m.year/10)*10+'s';
+          const tagline=d.tagline||'';
+          const clues=[
+            `Genre : ${m.genre}`,
+            `Époque : années ${decade}`,
+            cast?`Avec ${cast}`:'Distribution internationale',
+            director?`Réalisé par ${director.name}`:'Réalisateur acclamé',
+            tagline?`"${tagline.slice(0,60)}"`:`Sorti en ${m.year}`,
+          ];
+          const others=shuffle(boPool.filter(x=>x.id!==m.id)).slice(0,3).map(x=>x.title);
+          const answers=shuffle([m.title,...others]);
+          boAll.push({type:'bo',title:m.title,year:m.year,genre:m.genre,clues,answers,correct:answers.indexOf(m.title),difficulty:'medium',category:'Devine la BO'});
+        }catch(e){}
+      }
+      if(boAll.length<4)throw new Error('Not enough BO');
+      qs=boAll.slice(0,TOTAL);
+      setStep(1,'don');setStep(2,'act');await new Promise(r=>setTimeout(r,200));setStep(2,'don');
     } else if(selMode==='boxoffice'){
       sltxt('Chargement du box-office…');
       initSteps([{icon:'💰',label:'Récupération des recettes'},{icon:'🎬',label:'Préparation'}]);
@@ -1572,28 +1624,39 @@ function loadQ(){
 
   } else if(q.type==='bo'){
     game.style.overflowY='hidden';
-    revStage=0;
     document.getElementById('dbadge').textContent='🎵 BO';
     document.getElementById('dbadge').className='dbd dm';
+    let boClueIdx=0;
+    const renderClues=()=>{
+      const visible=q.clues.slice(0,boClueIdx+1);
+      document.getElementById('bo-clues-list').innerHTML=visible.map((c,i)=>`
+        <div class="bo-clue-item ${i===boClueIdx?'bo-clue-new':''}" style="animation-delay:${i===boClueIdx?.1:0}s">
+          <span class="bo-clue-num">${i+1}</span>
+          <span class="bo-clue-txt">${c}</span>
+        </div>`).join('');
+    };
     qa.innerHTML=`
       <div class="qtl">🎵 Devine la BO</div>
-      <div class="pmw" id="pmw">
-        <img id="pimg" src="${q.poster}" alt="?" style="filter:blur(28px) brightness(.45) saturate(.3);transition:filter 2s ease;" crossorigin="anonymous">
-        <div class="pmo"></div>
-        <div class="prhint">🎵 Quel film ?</div>
-        <div class="prbar"><div class="prp" id="pp0"></div><div class="prp" id="pp1"></div><div class="prp" id="pp2"></div><div class="prp" id="pp3"></div></div>
-      </div>
-      <div class="htxt" id="bo-clue">💡 ${q.clues[0]}</div>`;
-    let boRevStage=0;
+      <div class="bo-clues-wrap">
+        <div class="bo-clues-header">
+          <span class="bo-clues-title">De quel film s'agit-il ?</span>
+          <span class="bo-clues-sub" id="bo-clues-sub">Indice 1/${q.clues.length}</span>
+        </div>
+        <div class="bo-clues-list" id="bo-clues-list"></div>
+        <div class="bo-clues-bar">
+          ${q.clues.map((_,i)=>`<div class="bo-bar-pip" id="bop${i}"></div>`).join('')}
+        </div>
+      </div>`;
+    renderClues();
+    document.getElementById('bop0')?.classList.add('on');
     revInt=setInterval(()=>{
       if(ansed)return;
-      boRevStage=Math.min(boRevStage+1,3);
-      const bl=[28,18,8,0],sat=[.3,.55,.8,1];
-      const img=document.getElementById('pimg');
-      if(img)img.style.filter=`blur(${bl[boRevStage]}px) brightness(${.45+boRevStage*.18}) saturate(${sat[boRevStage]})`;
-      const p=document.getElementById('pp'+boRevStage);if(p)p.classList.add('on');
-      const clueEl=document.getElementById('bo-clue');
-      if(clueEl&&q.clues[boRevStage])clueEl.textContent='💡 '+q.clues[boRevStage];
+      boClueIdx=Math.min(boClueIdx+1,q.clues.length-1);
+      renderClues();
+      document.getElementById(`bop${boClueIdx}`)?.classList.add('on');
+      const sub=document.getElementById('bo-clues-sub');
+      if(sub)sub.textContent=`Indice ${boClueIdx+1}/${q.clues.length}`;
+      if(boClueIdx>=q.clues.length-1)clearInterval(revInt);
     },5000);
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     startTimer();
@@ -2061,7 +2124,7 @@ function handleAnswer(idx){
   times.push(Math.round(elapsed));
   const btns=Array.from(document.querySelectorAll('#agrid .ab'));btns.forEach(b=>b.disabled=true);
   const ok=idx===q.correct;dotRes[curQ]=ok;
-  if(q.type==='photo'||q.type==='bo'){const img=document.getElementById('pimg');if(img)img.style.filter='blur(0) brightness(1) saturate(1)';document.querySelectorAll('.prp').forEach(p=>p.classList.add('on'));}
+  if(q.type==='photo'){const img=document.getElementById('pimg');if(img)img.style.filter='blur(0) brightness(1)';document.querySelectorAll('.prp').forEach(p=>p.classList.add('on'));}
   if(q.type==='acteur'){const img=document.getElementById('acteur-img');if(img)img.style.filter='blur(0) brightness(1)';document.querySelectorAll('.acteur-reveal-bar .prp').forEach(p=>p.classList.add('on'));}
   // Pour réplique : toujours afficher l'indice après réponse
   if(q.type==='replique'){const h=document.getElementById('rq-hint');if(h)h.classList.add('on');}
