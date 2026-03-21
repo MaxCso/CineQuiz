@@ -2524,6 +2524,36 @@ async function startGame(){
       qs=buildFilmographieQuestions(TOTAL);
       if(qs.length<4)throw new Error('Not enough');
       setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='realisateur'){
+      sltxt('Chargement des films...');
+      initSteps([{icon:'🎬',label:'Recuperation des affiches'},{icon:'🎭',label:'Preparation'}]);
+      setStep(0,'act');
+      qs=await fetchRealisateurQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='location'){
+      sltxt('Chargement des lieux...');
+      initSteps([{icon:'🌍',label:'Selection des lieux'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      qs=fetchLocationQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='casting'){
+      sltxt('Chargement du casting...');
+      initSteps([{icon:'🧩',label:'Selection des films'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      qs=await fetchCastingQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='training'){
+      sltxt('Mode entrainement...');
+      initSteps([{icon:'📚',label:'Chargement des questions'},{icon:'🎬',label:'Preparation'}]);
+      setStep(0,'act');
+      const rawTrain=await fetchTrivia();
+      setStep(0,'don');setStep(1,'act');
+      qs=await txQuestions(rawTrain);
+      qs.forEach(q=>{q.training=true;});
+      setStep(1,'don');
     } else {
       sltxt('Chargement des questions…');
       initSteps([{icon:'🌐',label:'Récupération des questions'},{icon:'🇫🇷',label:'Traduction en français'},{icon:'🎬',label:'Préparation'}]);
