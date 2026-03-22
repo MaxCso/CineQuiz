@@ -1650,7 +1650,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
   <!-- PROFILE -->
   <div class="scr" id="profile">
-    <button class="bkbtn" onclick="go('home')">← Retour</button>
+    <button class="bkbtn" onclick="onLeaveProfile();go('home')">← Retour</button>
     <div class="phero">
       <div class="pav" id="p-av" onclick="openAvModal()" style="cursor:pointer;border-radius:18px;width:68px;height:68px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:38px;transition:all .3s;" title="Changer d'avatar">🎭</div>
       <div style="font-size:11px;color:var(--mt);margin-bottom:3px;cursor:pointer;" onclick="openAvModal()">Changer d'avatar ✏️</div>
@@ -1911,7 +1911,6 @@ const _trackPositions={};
 
 // Cache des objets Audio + Blob URLs perso
 if(!window._musicCache) window._musicCache={};
-if(!window._customBlobs) window._customBlobs={};   // {key: blobURL}
 if(!window._previewTrack) window._previewTrack=null;
 
 // Fichiers par défaut (relatifs au HTML)
@@ -1957,8 +1956,9 @@ const MUSIC_LABELS={
 };
 
 function _getSrc(key){
-  // Priorité : blob perso > fichier par défaut
-  return window._customBlobs[key]||MUSIC_FILES[key]||null;
+  // La piste 'home' joue la piste ambiante choisie par l'utilisateur
+  const resolvedKey=(key==='home')?getAmbientKey():key;
+  return MUSIC_FILES[resolvedKey]||null;
 }
 
 function getTrack(key){
@@ -2058,77 +2058,102 @@ function toggleMusic(){
 // ── GESTIONNAIRE MUSIQUE (profil) ──
 const MUSIC_MANAGER_KEYS=['home','quiz','photo','year','replique','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','trailer','versus','training'];
 
+function getAmbientKey(){
+  try{return localStorage.getItem('cq_ambient_key')||'home';}catch{return'home';}
+}
+function setAmbientKey(key){
+  try{localStorage.setItem('cq_ambient_key',key);}catch{}
+  // Invalider le cache de 'home' pour qu'il recharge avec la nouvelle source
+  if(window._musicCache['home']){
+    window._musicCache['home'].pause();
+    delete window._musicCache['home'];
+  }
+  delete _trackPositions['home'];
+}
+
+function chooseAmbientTrack(key){
+  // Arrêter tout preview en cours
+  if(_previewKey){stopPreviewTrack(_previewKey);}
+  setAmbientKey(key);
+  buildMusicManager();
+  if(_curMode==='home'&&musOn) switchMusic('home',0.3);
+  const info=MUSIC_LABELS[key]||{icon:'🎵',label:key};
+  showBadgeToast({icon:info.icon,name:`${info.label} définie comme ambiance`});
+}
+
+// Appelé quand l'utilisateur quitte le profil — reprend la musique d'ambiance
+// sans couper brusquement si le preview était la même piste
+function onLeaveProfile(){
+  if(window._previewAudio){
+    window._previewAudio.pause();
+    window._previewAudio=null;
+  }
+  if(_previewKey){
+    const ob=document.getElementById('mpb-'+_previewKey);
+    if(ob){ob.textContent='▶';ob.classList.remove('playing');}
+    _previewKey=null;
+  }
+  // Relancer la musique d'ambiance en douceur
+  if(musOn) switchMusic('home',0.3);
+}
+
 function buildMusicManager(){
   const wrap=document.getElementById('music-manager');
   if(!wrap)return;
-  wrap.innerHTML=MUSIC_MANAGER_KEYS.map(k=>{
-    const info=MUSIC_LABELS[k]||{icon:'🎵',label:k};
-    const hasCustom=!!window._customBlobs[k];
-    const fileName=window._customBlobNames&&window._customBlobNames[k]||'';
-    return`<div class="music-track-row${hasCustom?' has-custom':''}" id="mtr-${k}">
-      <span class="music-track-icon">${info.icon}</span>
-      <div class="music-track-info">
-        <div class="music-track-label">${info.label}</div>
-        <div class="music-track-file${hasCustom?' ok':''}" id="mtf-${k}">${hasCustom?'✓ '+fileName:'Fichier par défaut'}</div>
-      </div>
-      <button class="music-play-btn" id="mpb-${k}" onclick="previewMusicTrack('${k}')" title="Play / Pause">▶</button>
-      <button class="music-del-btn" onclick="stopPreviewTrack('${k}')" title="Stop" style="font-size:13px;">■</button>
-      ${hasCustom?`<button class="music-del-btn" onclick="clearMusicTrack('${k}')" title="Supprimer le fichier perso" style="border-color:rgba(232,52,74,.3);">✕</button>`:''}
-      <label class="music-upload-btn${hasCustom?' has':''}" title="Choisir un fichier .mp3">
-        ${hasCustom?'Changer':'+ MP3'}
-        <input type="file" accept=".mp3,audio/*" style="display:none" onchange="loadMusicFile(event,'${k}')">
-      </label>
-    </div>`;
-  }).join('');
+  const ambientKey=getAmbientKey();
+
+  // Intro
+  wrap.innerHTML=`
+    <div style="background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.25);border-radius:14px;padding:11px 14px;margin-bottom:10px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.55;">
+      🎶 Prévisualise une piste avec <strong style="color:rgba(255,255,255,.75)">▶</strong>, puis clique sur
+      <strong style="color:var(--gold)">☀ Ambiance</strong> pour la définir comme musique de fond de l'accueil.
+      La piste choisie continuera en arrière-plan.
+    </div>
+    ${MUSIC_MANAGER_KEYS.map(k=>{
+      const info=MUSIC_LABELS[k]||{icon:'🎵',label:k};
+      const isAmbient=k===ambientKey;
+      return`<div class="music-track-row${isAmbient?' has-custom':''}" id="mtr-${k}">
+        <span class="music-track-icon">${info.icon}</span>
+        <div class="music-track-info">
+          <div class="music-track-label">${info.label}${isAmbient?' <span style="font-size:9px;background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.4);border-radius:6px;padding:1px 6px;color:var(--gold);letter-spacing:.5px;">AMBIANCE</span>':''}</div>
+          <div class="music-track-file" id="mtf-${k}">${MUSIC_FILES[k]||'—'}</div>
+        </div>
+        <button class="music-play-btn" id="mpb-${k}" onclick="previewMusicTrack('${k}')" title="Play / Pause">▶</button>
+        <button class="music-del-btn" onclick="stopPreviewTrack('${k}')" title="Stop" style="font-size:13px;">■</button>
+        <button onclick="chooseAmbientTrack('${k}')" title="Définir comme ambiance"
+          style="flex-shrink:0;padding:5px 9px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap;
+          border:1px solid ${isAmbient?'rgba(245,200,66,.5)':'rgba(255,255,255,.14)'};
+          background:${isAmbient?'rgba(245,200,66,.18)':'rgba(255,255,255,.06)'};
+          color:${isAmbient?'var(--gold)':'rgba(255,255,255,.4)'};">
+          ${isAmbient?'✓ Actif':'☀'}
+        </button>
+      </div>`;
+    }).join('')}`;
 }
 
-function loadMusicFile(event,key){
-  const file=event.target.files[0];
-  if(!file)return;
-  // Révoquer l'ancien blob si existe
-  if(window._customBlobs[key]) URL.revokeObjectURL(window._customBlobs[key]);
-  const url=URL.createObjectURL(file);
-  if(!window._customBlobs) window._customBlobs={};
-  if(!window._customBlobNames) window._customBlobNames={};
-  window._customBlobs[key]=url;
-  window._customBlobNames[key]=file.name;
-  // Réinitialiser le cache pour cette piste
-  if(window._musicCache[key]){
-    window._musicCache[key].pause();
-    delete window._musicCache[key];
+function chooseAmbientTrack(key){
+  // Arrêter le preview en cours
+  if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
+  if(_previewKey){
+    const ob=document.getElementById('mpb-'+_previewKey);
+    if(ob){ob.textContent='▶';ob.classList.remove('playing');}
+    _previewKey=null;
   }
-  delete _trackPositions[key];
-  // Rafraîchir l'UI
+  setAmbientKey(key);
   buildMusicManager();
-  // Si c'est la piste active, la relancer avec le nouveau fichier
-  if(_curMode===key&&musOn) switchMusic(key,0.22);
   // Feedback
-  showBadgeToast({icon:'🎵',name:`Musique chargée — ${file.name.slice(0,22)}…`});
-}
-
-function clearMusicTrack(key){
-  if(window._customBlobs&&window._customBlobs[key]){
-    URL.revokeObjectURL(window._customBlobs[key]);
-    delete window._customBlobs[key];
-    delete window._customBlobNames[key];
-  }
-  if(window._musicCache[key]){
-    window._musicCache[key].pause();
-    delete window._musicCache[key];
-  }
-  delete _trackPositions[key];
-  buildMusicManager();
-  if(_curMode===key&&musOn) switchMusic(key,0.22);
+  const info=MUSIC_LABELS[key]||{icon:'🎵',label:key};
+  showBadgeToast({icon:info.icon,name:`${info.label} définie comme ambiance`});
 }
 
 let _previewKey=null;
 function previewMusicTrack(key){
   const btn=document.getElementById('mpb-'+key);
 
-  // — Stop de TOUTE musique de jeu en arrière-plan —
+  // Couper la musique de jeu en arrière-plan
   stopMus();
 
-  // — Si déjà en lecture sur cette piste → pause/reprise —
+  // Même piste → pause/reprise
   if(_previewKey===key&&window._previewAudio){
     if(!window._previewAudio.paused){
       window._previewAudio.pause();
@@ -2140,17 +2165,16 @@ function previewMusicTrack(key){
     return;
   }
 
-  // — Arrêter l'éventuel preview d'une autre piste —
+  // Arrêter l'autre preview
   if(_previewKey&&_previewKey!==key){
     if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
-    const oldBtn=document.getElementById('mpb-'+_previewKey);
-    if(oldBtn){oldBtn.textContent='▶';oldBtn.classList.remove('playing');}
+    const ob=document.getElementById('mpb-'+_previewKey);
+    if(ob){ob.textContent='▶';ob.classList.remove('playing');}
     _previewKey=null;
   }
 
-  // — Lancer le preview —
-  const src=_getSrc(key);
-  if(!src){if(btn){btn.textContent='?';} return;}
+  const src=MUSIC_FILES[key]||null;
+  if(!src){if(btn)btn.textContent='?';return;}
   const a=new Audio(src);
   a.volume=0.6;
   a.play().catch(()=>{});
@@ -2168,6 +2192,8 @@ function previewMusicTrack(key){
 }
 
 function stopPreviewTrack(key){
+  if(!key) key=_previewKey;
+  if(!key) return;
   if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
   if(_previewKey===key) _previewKey=null;
   const btn=document.getElementById('mpb-'+key);
