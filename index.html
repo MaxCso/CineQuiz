@@ -1960,7 +1960,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
     <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span> JOUER</button>
     <!-- Dernière partie -->
-    <div id="h-last" style="display:none;flex-direction:column;align-items:center;margin-top:8px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);gap:2px;"></div>
+    <div id="h-last" onclick="openRecentGames()" style="display:none;flex-direction:column;align-items:center;margin-top:8px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);gap:2px;cursor:pointer;transition:background .18s;"></div>
   </div>
 
   <!-- MODE INFO MODAL -->
@@ -2304,6 +2304,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <!-- Grille -->
       <div class="av-grid" id="av-grid"></div>
       <button class="mbcl" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" onclick="saveAvatar()">ENREGISTRER</button>
+    </div>
+  </div>
+
+  <!-- Recent Games Modal -->
+  <div class="mover" id="recent-games-modal" onclick="if(event.target===this)closeRecentGames()">
+    <div class="msh" style="max-height:82vh;overflow-y:auto;">
+      <div class="mhdl"></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:14px;">🎬 DERNIÈRES PARTIES</div>
+      <div id="recent-games-content"></div>
+      <button class="mbcl" style="margin-top:4px;" onclick="closeRecentGames()">FERMER</button>
     </div>
   </div>
 
@@ -2991,6 +3001,51 @@ function doQuit(){
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='';
   go('home');refHome();
 }
+
+// ── DERNIÈRES PARTIES ──
+function openRecentGames(){
+  const s=ls();
+  const hist=[...(s.history||[])].reverse().slice(0,20);
+  const modeNames={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',decennie:'Décennie',quiadit:'Qui a dit ça ?',versus:'2 Joueurs'};
+  const scoreIcons=['😅','🎬','⭐','🏆','🎭'];
+  const el=document.getElementById('recent-games-content');
+  if(!hist.length){
+    el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;font-size:13px;">Aucune partie jouée pour l\'instant.</div>';
+  } else {
+    el.innerHTML=hist.map(h=>{
+      const idx=Math.min(Math.floor(((h.correct||0)/(h.total||10))*4),4);
+      const icon=scoreIcons[idx];
+      const pct=Math.round(((h.correct||0)/(h.total||10))*100);
+      const barColor=pct>=80?'var(--green)':pct>=50?'var(--gold)':'var(--red)';
+      const dots=Array.from({length:h.total||10},(_,i)=>`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${i<(h.correct||0)?'var(--green)':'rgba(232,52,74,.5)'};margin:1px;"></span>`).join('');
+      return`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:7px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:22px;">${icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${modeNames[h.mode]||h.mode||'Quiz'}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;">${h.date||''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);letter-spacing:1px;">${h.score||0}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.3);">pts</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;background:rgba(255,255,255,.07);border-radius:3px;height:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .6s;"></div>
+          </div>
+          <span style="font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;">${h.correct||0}/${h.total||10} · +${h.xp||0} XP</span>
+        </div>
+        <div style="margin-top:7px;">${dots}</div>
+      </div>`;
+    }).join('');
+  }
+  const modal=document.getElementById('recent-games-modal');
+  modal.classList.add('on');
+  const sh=modal.querySelector('.msh');
+  if(sh)setupSwipeDown(sh,closeRecentGames);
+}
+function closeRecentGames(){document.getElementById('recent-games-modal').classList.remove('on');}
 
 // ── Canvas roundRect polyfill (iOS Safari < 16) ──
 if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect){
