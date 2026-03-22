@@ -2071,8 +2071,9 @@ function buildMusicManager(){
         <div class="music-track-label">${info.label}</div>
         <div class="music-track-file${hasCustom?' ok':''}" id="mtf-${k}">${hasCustom?'✓ '+fileName:'Fichier par défaut'}</div>
       </div>
-      <button class="music-play-btn" id="mpb-${k}" onclick="previewMusicTrack('${k}')" title="Écouter">▶</button>
-      ${hasCustom?`<button class="music-del-btn" onclick="clearMusicTrack('${k}')" title="Supprimer">✕</button>`:''}
+      <button class="music-play-btn" id="mpb-${k}" onclick="previewMusicTrack('${k}')" title="Play / Pause">▶</button>
+      <button class="music-del-btn" onclick="stopPreviewTrack('${k}')" title="Stop" style="font-size:13px;">■</button>
+      ${hasCustom?`<button class="music-del-btn" onclick="clearMusicTrack('${k}')" title="Supprimer le fichier perso" style="border-color:rgba(232,52,74,.3);">✕</button>`:''}
       <label class="music-upload-btn${hasCustom?' has':''}" title="Choisir un fichier .mp3">
         ${hasCustom?'Changer':'+ MP3'}
         <input type="file" accept=".mp3,audio/*" style="display:none" onchange="loadMusicFile(event,'${k}')">
@@ -2124,52 +2125,53 @@ let _previewKey=null;
 function previewMusicTrack(key){
   const btn=document.getElementById('mpb-'+key);
 
-  // — Arrêter tout preview en cours (même key ou autre) —
-  if(window._previewAudio){
-    window._previewAudio.pause();
-    window._previewAudio=null;
-  }
-  if(_previewKey){
-    // Remettre le bouton précédent à l'état ▶
-    const oldBtn=document.getElementById('mpb-'+_previewKey);
-    if(oldBtn){oldBtn.textContent='▶';oldBtn.classList.remove('playing');}
-    const wasKey=_previewKey;
-    _previewKey=null;
-    // Si on reclique sur la même piste → stop, c'est tout
-    if(wasKey===key) return;
+  // — Stop de TOUTE musique de jeu en arrière-plan —
+  stopMus();
+
+  // — Si déjà en lecture sur cette piste → pause/reprise —
+  if(_previewKey===key&&window._previewAudio){
+    if(!window._previewAudio.paused){
+      window._previewAudio.pause();
+      if(btn){btn.textContent='▶';btn.classList.remove('playing');}
+    } else {
+      window._previewAudio.play().catch(()=>{});
+      if(btn){btn.textContent='⏸';btn.classList.add('playing');}
+    }
+    return;
   }
 
-  // — Lancer le nouveau preview —
+  // — Arrêter l'éventuel preview d'une autre piste —
+  if(_previewKey&&_previewKey!==key){
+    if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
+    const oldBtn=document.getElementById('mpb-'+_previewKey);
+    if(oldBtn){oldBtn.textContent='▶';oldBtn.classList.remove('playing');}
+    _previewKey=null;
+  }
+
+  // — Lancer le preview —
   const src=_getSrc(key);
-  if(!src){if(btn)btn.textContent='✗';return;}
+  if(!src){if(btn){btn.textContent='?';} return;}
   const a=new Audio(src);
-  a.volume=0.55;
+  a.volume=0.6;
   a.play().catch(()=>{});
   window._previewAudio=a;
   _previewKey=key;
-  if(btn){btn.textContent='■';btn.classList.add('playing');}
+  if(btn){btn.textContent='⏸';btn.classList.add('playing');}
 
-  // Arrêt automatique après 8s
-  const stopTimer=setTimeout(()=>{
-    if(_previewKey===key){
-      a.pause();
-      window._previewAudio=null;
-      _previewKey=null;
-      const b=document.getElementById('mpb-'+key);
-      if(b){b.textContent='▶';b.classList.remove('playing');}
-    }
-  },8000);
-
-  // Arrêt si la piste se termine avant 8s
   a.addEventListener('ended',()=>{
-    clearTimeout(stopTimer);
     if(_previewKey===key){
-      window._previewAudio=null;
-      _previewKey=null;
+      window._previewAudio=null;_previewKey=null;
       const b=document.getElementById('mpb-'+key);
       if(b){b.textContent='▶';b.classList.remove('playing');}
     }
   },{once:true});
+}
+
+function stopPreviewTrack(key){
+  if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
+  if(_previewKey===key) _previewKey=null;
+  const btn=document.getElementById('mpb-'+key);
+  if(btn){btn.textContent='▶';btn.classList.remove('playing');}
 }
 
 // ==============================
