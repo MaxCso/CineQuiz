@@ -1320,9 +1320,9 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .loc-img-box img{
   position:absolute;inset:0;width:100%;height:100%;
   object-fit:cover;display:block;
-  opacity:0;transition:opacity .5s ease;
+  opacity:1;transition:opacity .5s ease;
 }
-.loc-img-box.loaded img{opacity:1;}
+.loc-img-box.loading img{opacity:0;}
 /* Placeholder quand pas d'image */
 .loc-placeholder{
   display:flex;flex-direction:column;align-items:center;gap:8px;
@@ -1476,8 +1476,16 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 #game{display:flex;flex-direction:column;height:100%;overflow:hidden;}
 .ghd{
   padding:max(14px,env(safe-area-inset-top,14px)) 18px 4px;
-  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px;
 }
+.quit-btn{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);
+  color:rgba(255,255,255,.45);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s;
+}
+.quit-btn:active{background:rgba(232,52,74,.15);border-color:rgba(232,52,74,.3);color:var(--red);transform:scale(.92);}
 .qnl{font-family:'Bebas Neue',sans-serif;font-size:14px;color:rgba(255,255,255,.45);letter-spacing:1.5px;}
 .qcl{font-size:9px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-top:1px;opacity:.7;}
 /* Multiplicateur badge */
@@ -1982,7 +1990,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="ob-step-dots" id="ob-dots"></div>
       <span class="ob-icon" id="ob-icon">🎬</span>
       <div class="ob-title" id="ob-title">Bienvenue sur CinéQuiz !</div>
-      <div class="ob-desc" id="ob-desc">Le quiz du 7ème art. 15 modes de jeu, des centaines de questions sur le cinéma.</div>
+      <div class="ob-desc" id="ob-desc">Le quiz du 7ème art. 18 modes de jeu, 400+ questions, 273 répliques cultes et 10 niveaux de progression.</div>
       <div class="ob-demo" id="ob-demo" style="display:none;"></div>
       <button class="ob-next" id="ob-next" onclick="obNext()">SUIVANT →</button>
       <span class="ob-skip" onclick="obSkip()">Passer le tutoriel</span>
@@ -2110,8 +2118,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="splash-curtain-r"></div>
     </div>
     <div class="splash-logo-wrap" id="splash-logo">
-      <div class="splash-logo">CineQuiz</div>
-      <div class="splash-tagline">Le quiz du 7eme art</div>
+      <div class="splash-logo">CinéQuiz</div>
+      <div class="splash-tagline">Le quiz du 7ème art</div>
       <div class="splash-tap">Appuie pour commencer</div>
     </div>
   </div>
@@ -2125,6 +2133,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
   <!-- GAME -->
   <div class="scr" id="game">
     <div class="ghd">
+      <button class="quit-btn" onclick="confirmQuit()" title="Quitter la partie">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
+      </button>
       <div><div class="qnl" id="qnum">Q 1/10</div><div class="qcl" id="qcat">Cinéma</div></div>
       <div class="mb mx3" id="mbadge">x3</div>
       <div class="shd2" id="scorehd">0 pts</div>
@@ -2225,31 +2236,43 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
         <div class="help-title">Comment jouer ?</div>
         <div class="help-x" onclick="closeHelp()">✕</div>
       </div>
-      <p class="help-intro">CinéQuiz est un jeu de culture cinéma. Réponds aux questions avant la fin du chrono — plus tu es rapide, plus tu marques de points grâce au <strong style="color:var(--gold)">multiplicateur x3</strong>. Enchaîne les bonnes réponses pour déclencher des <strong style="color:#ff6b35">combos</strong> enflammés !</p>
+      <p class="help-intro">CinéQuiz est un jeu de culture cinéma avec <strong style="color:var(--gold)">18 modes</strong>, plus de 400 questions, 273 répliques, 90 lieux de tournage et 10 niveaux de progression. Réponds avant la fin du chrono — plus tu es rapide, plus tu scores grâce au <strong style="color:var(--gold)">multiplicateur x3</strong>. Enchaîne les bonnes réponses pour déclencher des <strong style="color:#ff6b35">combos</strong> !</p>
 
-      <div class="help-sep">Les 14 modes de jeu</div>
-      <div class="help-mode"><div class="help-mode-icon">⚡</div><div><div class="help-mode-name">Trivia Ciné</div><div class="help-mode-desc">Questions classiques sur les films, acteurs et réalisateurs. Choisis un thème (Action, SF, Horreur…) pour cibler tes connaissances.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🎬</div><div><div class="help-mode-name">Affiche Mystère</div><div class="help-mode-desc">Une affiche floutée se révèle progressivement. Identifie le film le plus vite possible — chaque seconde compte !</div></div></div>
+      <div class="help-sep">Les 18 modes de jeu</div>
+      <div class="help-mode"><div class="help-mode-icon">⚡</div><div><div class="help-mode-name">Trivia Ciné</div><div class="help-mode-desc">387 questions sur les films, acteurs, réalisateurs et l'histoire du cinéma. Des sujets variés pour tester toute ta culture ciné !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎬</div><div><div class="help-mode-name">Affiche Mystère</div><div class="help-mode-desc">Une affiche floutée se révèle progressivement. Identifie le film parmi plus de 260 affiches — chaque seconde compte !</div></div></div>
       <div class="help-mode"><div class="help-mode-icon">📅</div><div><div class="help-mode-name">Quelle Année ?</div><div class="help-mode-desc">Glisse le curseur pour deviner l'année de sortie. Exact = 300 pts · ±2 ans = 200 pts · ±5 ans = 100 pts.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">💡</div><div><div class="help-mode-name">Indices Mystère</div><div class="help-mode-desc">Des indices sur le film apparaissent toutes les 5 secondes : genre, époque, casting, réalisateur… Trouve le film parmi 4 propositions !</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">💰</div><div><div class="help-mode-name">Box-office</div><div class="help-mode-desc">Classe 4 films du plus au moins rentable en les faisant glisser. 25 pts par bonne position. Maintiens le handle ⠿ pour déplacer.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">💬</div><div><div class="help-mode-name">La Réplique</div><div class="help-mode-desc">Une réplique iconique se révèle mot par mot. Identifie le film d'origine le plus vite possible. Un indice apparaît après 8 secondes.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">👤</div><div><div class="help-mode-name">Acteur Mystère</div><div class="help-mode-desc">La photo d'un acteur célèbre est floutée et se révèle progressivement. Identifie-le avant que l'image soit entièrement nette !</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🎥</div><div><div class="help-mode-name">Réalisateur</div><div class="help-mode-desc">Une affiche de film s'affiche avec un indice. À toi de retrouver qui a réalisé ce chef-d'œuvre parmi 4 propositions.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🌍</div><div><div class="help-mode-name">Lieu de tournage</div><div class="help-mode-desc">Une photo d'un lieu réel s'affiche. Retrouve dans quel film ce décor iconique a été utilisé !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">💡</div><div><div class="help-mode-name">Indices Mystère</div><div class="help-mode-desc">Des indices sur le film apparaissent progressivement : genre, époque, casting, réalisateur… Trouve le film parmi 4 propositions !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">💰</div><div><div class="help-mode-name">Box-office</div><div class="help-mode-desc">Classe 4 films du plus au moins rentable par glisser-déposer. 25 pts par bonne position. Maintiens ⠿ pour déplacer.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">💬</div><div><div class="help-mode-name">La Réplique</div><div class="help-mode-desc">Une réplique iconique se révèle mot par mot parmi 273 répliques cultes. Identifie le film le plus vite possible.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">👤</div><div><div class="help-mode-name">Acteur Mystère</div><div class="help-mode-desc">La photo d'un acteur célèbre est floutée et se révèle progressivement. Identifie-le avant que l'image soit nette !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎥</div><div><div class="help-mode-name">Réalisateur</div><div class="help-mode-desc">Une affiche de film s'affiche avec un indice. Retrouve qui a réalisé ce chef-d'œuvre parmi 4 propositions.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🌍</div><div><div class="help-mode-name">Lieu de tournage</div><div class="help-mode-desc">La photo réelle du lieu de tournage s'affiche avec son nom et son pays. Retrouve dans quel film ce décor a été utilisé parmi 90 lieux !</div></div></div>
       <div class="help-mode"><div class="help-mode-icon">📜</div><div><div class="help-mode-name">Le Générique</div><div class="help-mode-desc">Les acteurs d'un film sont révélés un à un avec leur rôle. Identifie le film dès que possible — moins tu attends, plus tu scores !</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🧩</div><div><div class="help-mode-name">Le Casting</div><div class="help-mode-desc">Les acteurs qui ont tourné ensemble sont révélés progressivement. À toi de trouver dans quel film ils se retrouvent !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🧩</div><div><div class="help-mode-name">Le Casting</div><div class="help-mode-desc">Des acteurs qui ont tourné ensemble sont révélés progressivement. Dans quel film se retrouvent-ils ?</div></div></div>
       <div class="help-mode"><div class="help-mode-icon">🎭</div><div><div class="help-mode-name">Filmographie</div><div class="help-mode-desc">4 films sont listés. Quel acteur a joué dans tous ces films ? Une question de culture ciné pure !</div></div></div>
       <div class="help-mode"><div class="help-mode-icon">🎼</div><div><div class="help-mode-name">Compositeur</div><div class="help-mode-desc">L'affiche d'un film s'affiche avec un indice sur sa bande originale. Retrouve qui a composé la musique !</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">📚</div><div><div class="help-mode-name">Entraînement</div><div class="help-mode-desc">Pas de chrono, pas de pression ! Mode idéal pour apprendre à ton rythme. La bonne réponse est toujours affichée.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎯</div><div><div class="help-mode-name">Vrai ou Faux</div><div class="help-mode-desc">100 affirmations sur le cinéma — vraies ou fausses ? Une explication apparaît après ta réponse pour apprendre en jouant.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">📅</div><div><div class="help-mode-name">Décennie</div><div class="help-mode-desc">Une affiche s'affiche sans date. À quelle décennie appartient ce film ? Des années 70 aux années 2020 sur 100 films.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🗣️</div><div><div class="help-mode-name">Qui a dit ça ?</div><div class="help-mode-desc">Une réplique iconique s'affiche en VO avec effet machine à écrire. Parmi 4 acteurs, lequel l'a prononcée ?</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">⚔️</div><div><div class="help-mode-name">2 Joueurs</div><div class="help-mode-desc">Jouez à deux en vous passant le téléphone. Choisissez le nombre de questions (5 à 20), puis le meilleur score l'emporte !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">📚</div><div><div class="help-mode-name">Entraînement</div><div class="help-mode-desc">Pas de chrono, pas de pression ! Mode idéal pour progresser à ton rythme. La bonne réponse est toujours affichée.</div></div></div>
 
-      <div class="help-sep">Astuces</div>
+      <div class="help-sep">Nouveautés</div>
+      <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>Prochain badge</strong> — Sur l'accueil, une carte affiche le badge le plus proche d'être débloqué avec sa barre de progression.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🎬</div><div class="help-tip-text"><strong>Anecdote du jour</strong> — Une anecdote ciné différente chaque jour sur l'accueil. Swipe pour en voir 3 par jour !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">←</div><div class="help-tip-text"><strong>Quitter une partie</strong> — Le bouton ← en haut à gauche pendant une partie permet de revenir à l'accueil à tout moment.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">📊</div><div class="help-tip-text"><strong>Stats détaillées</strong> — Dans ton profil, clique sur chaque statistique (XP, parties, réussite…) pour voir le détail complet.</div></div>
+
+      <div class="help-sep">Progression & récompenses</div>
       <div class="help-tip"><div class="help-tip-icon">⚡</div><div class="help-tip-text"><strong>Multiplicateur</strong> — Réponds en moins de 6s = x3 · Entre 6 et 13s = x2. Plus tu es rapide, plus tu scores !</div></div>
-      <div class="help-tip"><div class="help-tip-icon">🔥</div><div class="help-tip-text"><strong>Combos</strong> — Enchaîne les bonnes réponses pour déclencher un combo. Dès x3, un banner s'affiche. Le combo monte jusqu'à x8 !</div></div>
-      <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>Badges</strong> — Plus de 40 succès à débloquer. Clique sur n'importe quel badge pour voir sa condition de déblocage.</div></div>
-      <div class="help-tip"><div class="help-tip-icon">🎨</div><div class="help-tip-text"><strong>Thèmes</strong> — 12 thèmes visuels à choisir dans ton profil : Doré, Néon, Vintage, Crimson, Océan, Forêt, Aurora, Sunset, Ice, Émeraude, Sépia…</div></div>
-      <div class="help-tip"><div class="help-tip-icon">📅</div><div class="help-tip-text"><strong>Série quotidienne</strong> — Joue chaque jour pour maintenir ta flamme 🔥 et débloquer des badges exclusifs de régularité.</div></div>
-      <div class="help-tip"><div class="help-tip-icon">📊</div><div class="help-tip-text"><strong>Partage</strong> — À la fin de chaque partie, partage ta grille de résultats (🟩🟥) directement depuis l'écran des résultats !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🔥</div><div class="help-tip-text"><strong>Combos</strong> — Enchaîne les bonnes réponses pour déclencher un combo qui monte jusqu'à x8 !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>40+ badges</strong> — Clique sur n'importe quel badge pour voir sa condition de déblocage. Le badge Légende Absolue nécessite 500 parties, 10 000 XP et un streak de 30 jours.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🎭</div><div class="help-tip-text"><strong>10 niveaux</strong> — De Figurant à Légende, chaque XP gagnée te fait progresser. Clique sur ta jauge d'accueil pour voir tous les paliers.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🎨</div><div class="help-tip-text"><strong>12 thèmes</strong> — Doré, Néon, Vintage, Crimson, Océan, Forêt, Aurora, Sunset, Ice, Émeraude, Sépia… à débloquer dans le profil.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🎵</div><div class="help-tip-text"><strong>19 musiques</strong> — Chaque mode a sa propre musique. Dans le profil, écoute-les et choisis laquelle joue en fond d'accueil.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🏆</div><div class="help-tip-text"><strong>Défi du Jour</strong> — Un défi quotidien identique pour tous les joueurs. Revient chaque nuit à minuit !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">📤</div><div class="help-tip-text"><strong>Partage</strong> — À la fin de chaque partie, partage ta grille de résultats vers tes apps préférées.</div></div>
 
       <button class="help-close" onclick="closeHelp()">C'EST PARTI ! 🎬</button>
     </div>
@@ -2281,6 +2304,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <!-- Grille -->
       <div class="av-grid" id="av-grid"></div>
       <button class="mbcl" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" onclick="saveAvatar()">ENREGISTRER</button>
+    </div>
+  </div>
+
+  <!-- Quit game modal -->
+  <div class="mover" id="quit-modal" onclick="if(event.target===this)closeQuit()">
+    <div class="msh" style="max-height:auto;padding-bottom:max(28px,env(safe-area-inset-bottom,28px));">
+      <div class="mhdl"></div>
+      <div style="text-align:center;padding:8px 0 20px;">
+        <div style="font-size:40px;margin-bottom:10px;">🎬</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--tx);margin-bottom:6px;">Quitter la partie ?</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;" id="quit-info">Ta progression sera perdue.</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeQuit()" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Continuer ▶</button>
+        <button onclick="doQuit()" style="flex:1;background:rgba(232,52,74,.15);border:1px solid rgba(232,52,74,.3);border-radius:16px;padding:14px;color:var(--red);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Quitter</button>
+      </div>
     </div>
   </div>
 
@@ -2929,6 +2968,29 @@ function sndClap(){
   }catch(e){}
 }
 function toggleSound(){sndOn=!sndOn;const b=document.getElementById('btn-sound');b.style.opacity=sndOn?'1':'.38';}
+
+// ── QUITTER LA PARTIE ──
+function confirmQuit(){
+  clearInterval(tInt);clearInterval(revInt);
+  if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
+  const infoEl=document.getElementById('quit-info');
+  if(infoEl){
+    if(curQ>0)infoEl.textContent=`${curQ} question${curQ>1?'s':''} répondue${curQ>1?'s':''} · ${score} pts. Tout sera perdu.`;
+    else infoEl.textContent='La partie n\'a pas encore commencé.';
+  }
+  document.getElementById('quit-modal').classList.add('on');
+}
+function closeQuit(){
+  document.getElementById('quit-modal').classList.remove('on');
+  if(!ansed&&curQ<TOTAL)startTimer();
+}
+function doQuit(){
+  document.getElementById('quit-modal').classList.remove('on');
+  clearInterval(tInt);clearInterval(revInt);
+  hideToast();
+  const gbg=document.getElementById('game-bg');if(gbg)gbg.className='';
+  go('home');refHome();
+}
 
 // ── Canvas roundRect polyfill (iOS Safari < 16) ──
 if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect){
@@ -3621,12 +3683,50 @@ function buildRepliqueQuestions(){
 const TK='2dca580c2a14b55200e784d157207b4d';
 const TI='https://image.tmdb.org/t/p/w500';
 const TA='https://image.tmdb.org/t/p/w185';
-const POOL=[550,278,238,424,19404,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,438631,11,1891,1892,11138,9806,10681,585,10193,862,12,245891,372058,244786,503919,398818,724089,808,14836,218,629,641,857,769,280,2062,77338,197,578,324857,299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,82702,254128,293660,260513,321612,313369,76341,420818,346,361743,118340,283995,299537,284053,49521,38757,694919,700391,787699,385687,653346,872585,614933,569094,718789,822119,823464,976573,385128,414906,447332,573435,675353,634649,453395,616037,399170,505642,438148,566525,460465,503736,395992,556574,
-// Classiques
-348,769,107,637,624,598,77,8587,10530,671,762,207,429,274,559,101,453,105,4935,10020,9806,4247,792,1422,857,226,161,8965,22,11324,423,578,264,9619,510,578,1724,8966,297762,
-// Films récents 2018-2025
-299534,299536,299537,299538,458156,385128,497698,566525,569094,572154,580489,585511,597208,614917,634649,635302,646385,653346,661374,667257,675353,678512,680,693134,696374,718789,724089,726209,734253,748783,760104,762509,774752,787699,791226,799379,822119,823464,829799,839033,848326,872585,877817,882598,889737,912649,915935,933260,940551,945961,951891,955555,957452,965150,975359,976573,978796,984736,985939,1010600,1013860,1022789,1029575,1035048,1041613,1043905,1075794,1087822,1094138,1100782,1126166,1131459,1138194,1156593,1166489,1184918,1214314,1241982,1252171];
-
+const POOL=[
+// ── Classics & monuments ──
+550,278,238,424,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,
+11,1891,1892,11138,9806,10681,585,10193,862,12,218,629,641,857,769,280,197,578,
+346,107,624,598,77,8587,671,762,207,429,274,559,101,453,105,4935,10020,4247,792,
+1422,226,161,8965,22,11324,423,264,9619,510,1724,8966,297762,
+// ── Films français ──
+194,194662,194,1877,614,1394,10529,45612,539,264264,10780,22803,19404,79600,
+41078,11658,36211,26836,75174,72105,91491,14611,233208,14160,242224,
+// ── Horreur ──
+694919,348,245891,372058,244786,503919,398818,724089,808,14836,82702,254128,
+293660,260513,321612,313369,76341,420818,361743,77338,2062,
+// ── Animation ──
+862,585,10193,12,129,9806,38757,10681,820818,11138,315162,920,228,420,354912,
+324857,425,109445,157350,150540,332562,260514,508439,920,496243,
+// ── Science-fiction ──
+27205,157336,438631,335984,11,1891,1892,118340,283995,299537,284053,49521,
+693134,726209,823464,822119,718789,569094,614933,872585,438148,566525,953,679,
+330459,181808,181812,260513,10138,102382,284052,283995,
+// ── Drames primés ──
+503919,244786,372058,475557,424,240,389,637,497,155,680,13,122,278,238,
+496243,399055,581734,476669,467244,438631,274,207,674324,578701,765245,
+// ── Action & blockbusters ──
+299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,
+299538,458156,385128,497698,580489,585511,614917,634649,635302,646385,653346,
+661374,667257,675353,678512,696374,734253,748783,762509,791226,829799,
+// ── Comédies & feel-good ──
+68718,862,9806,10193,13,585,14836,808,197,77338,2062,578,264,101,453,
+181533,559969,603,639933,624860,614906,567811,
+// ── Thrillers & polars ──
+209,680,155,272,11324,629,769,641,77338,4197,1824,2501,1422,792,510,226,
+161,105,107,792,423,264,9619,
+// ── Récents 2020-2025 ──
+566525,569094,572154,580489,585511,597208,614917,634649,635302,646385,653346,
+661374,667257,675353,678512,680,693134,696374,718789,724089,726209,734253,
+748783,760104,762509,774752,787699,791226,799379,822119,823464,829799,839033,
+848326,872585,877817,882598,889737,912649,915935,933260,940551,945961,951891,
+955555,957452,965150,975359,976573,978796,984736,985939,1010600,1013860,
+1022789,1029575,1035048,1041613,1043905,1075794,1087822,1094138,1100782,
+1126166,1131459,1138194,1156593,1166489,1184918,1214314,1241982,1252171,
+// ── Cinéma du monde ──
+19404,129,194662,10529,45612,21519,79186,35,43905,496243,765245,674324,
+696374,557342,520763,674,10020,34,44217,17177,10590,8587,14160,242224,
+];
 
 const GENRE_IDS={Action:28,'Science-Fiction':878,Drame:18,Horreur:27,Animation:16,Comédie:35};
 
@@ -5832,23 +5932,22 @@ function loadQ(){
     qa.innerHTML=`
       <div class="qtl">🌍 Lieu de tournage</div>
       <div class="loc-wrap">
-        <div class="loc-img-box" id="loc-img-box" style="flex:1;min-height:0;">
+        <div class="loc-img-box loading" id="loc-img-box" style="flex:1;min-height:0;">
           <div class="loc-placeholder" id="loc-placeholder">
             <span class="loc-placeholder-icon">🌍</span>
-            <span>Chargement…</span>
           </div>
-          <img src="${q.photo}" alt="${q.place}" crossorigin="anonymous"
+          <img src="${q.photo}" alt="${q.place}"
             onload="
               const box=document.getElementById('loc-img-box');
               const ph=document.getElementById('loc-placeholder');
-              if(box)box.classList.add('loaded');
+              if(box)box.classList.remove('loading');
               if(ph)ph.style.display='none';
             "
             onerror="
               const ph=document.getElementById('loc-placeholder');
-              if(ph){ph.innerHTML='<span style=\'font-size:40px;opacity:.3\'>🌍</span><span style=\'font-size:11px\'>${q.place}</span>';}
+              if(ph){ph.innerHTML='<span style=\'font-size:36px;opacity:.3\'>🌍</span><span style=\'font-size:11px;color:rgba(255,255,255,.3)\'>${q.place}</span>';}
               const box=document.getElementById('loc-img-box');
-              if(box)box.classList.add('loaded');
+              if(box)box.classList.remove('loading');
             ">
           <div class="loc-overlay">
             <div class="loc-country">${q.country}</div>
@@ -6697,11 +6796,12 @@ const AVATARS=['🎬','🎥','🎭','🎞️','🏆','⭐','🎟️','🎪','�
 
 // ── TUTORIEL INTERACTIF ──
 const OB_STEPS=[
-  {icon:'🎬',title:'Bienvenue sur CinéQuiz !',desc:'Le quiz du 7ème art. 15 modes de jeu, des centaines de questions sur les films, acteurs et réalisateurs.',demo:null,btn:'SUIVANT →'},
-  {icon:'⚡',title:'Le Multiplicateur',desc:'Réponds vite ! Moins de 6 secondes = x3 points. Entre 6 et 13 secondes = x2. Après 13s = x1.',demo:null,btn:'SUIVANT →'},
-  {icon:'🔥',title:'Les Combos',desc:'Enchaîne les bonnes réponses sans erreur. Dès 3 bonnes d\'affilée, un combo s\'active et te donne des bonus !',demo:null,btn:'ESSAIE UNE QUESTION !'},
-  {icon:'🎯',title:'Essaie toi-même',desc:'Quel film a remporté la Palme d\'Or en 2019 ?',demo:{q:'Quel film a remporté la Palme d\'Or en 2019 ?',ans:['Parasite','Joker','Once Upon a Time','1917'],correct:0},btn:null},
-  {icon:'🏆',title:'C\'est parti !',desc:'Tu es prêt. Gagne de l\'XP, débloque des badges et tente le Défi Quotidien chaque jour à minuit !',demo:null,btn:'COMMENCER 🎬'},
+  {icon:'🎬',title:'Bienvenue sur CinéQuiz !',desc:'Le quiz du 7ème art. 18 modes de jeu, 400+ questions, 273 répliques cultes et 10 niveaux de progression. Chaque mode explore le cinéma différemment.',demo:null,btn:'SUIVANT →'},
+  {icon:'⚡',title:'Le Multiplicateur',desc:'Réponds vite ! Moins de 6 secondes = x3 points. Entre 6 et 13 secondes = x2. Après 13s = x1. La rapidité fait toute la différence !',demo:null,btn:'SUIVANT →'},
+  {icon:'🔥',title:'Les Combos',desc:'Enchaîne les bonnes réponses sans erreur. Dès 3 bonnes réponses d\'affilée, un combo s\'active et multiplie encore tes points !',demo:null,btn:'ESSAIE UNE QUESTION !'},
+  {icon:'🎯',title:'Essaie toi-même',desc:'Quel film a remporté la Palme d\'Or à Cannes en 2019 ?',demo:{q:'Quel film a remporté la Palme d\'Or en 2019 ?',ans:['Parasite','Joker','Once Upon a Time','1917'],correct:0},btn:null},
+  {icon:'🌟',title:'Progression & Badges',desc:'Gagne de l\'XP à chaque partie pour passer de Figurant à Légende (10 niveaux). Débloque 40+ badges, personnalise ton thème et relève le Défi du Jour !',demo:null,btn:'SUIVANT →'},
+  {icon:'🏆',title:'C\'est parti !',desc:'Tes stats, tes badges et tes meilleurs scores sont sauvegardés automatiquement. Une anecdote ciné t\'attend chaque jour sur l\'accueil. Bonne chance !',demo:null,btn:'COMMENCER 🎬'},
 ];
 let obStep=0;
 let obDemoAnswered=false;
