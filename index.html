@@ -341,8 +341,14 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;
   cursor:pointer;transition:transform .15s,box-shadow .15s;
   box-shadow:0 4px 20px rgba(0,0,0,.3);
+  position:relative;overflow:hidden;
 }
-.mode-info-play:active{transform:scale(.97);}
+.mode-info-play::after{
+  content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+  animation:btnglare 2.8s ease 1s infinite;pointer-events:none;
+}
+.mode-info-play:active{transform:scale(.97);animation:none;}
 .mode-info-close{
   flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);
   border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;
@@ -502,7 +508,11 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .daily-countdown{color:var(--gold);font-weight:600;}
 /* Score count-up résultats */
 @keyframes scoreCountUp{0%{opacity:0;transform:translateY(16px) scale(.7);}60%{opacity:1;transform:translateY(-4px) scale(1.09);}80%{transform:translateY(2px) scale(.97);}100%{transform:translateY(0) scale(1);}}
-/* Badge débloqué flash */
+/* Carte mode jouée — pas d'animation parasite */
+.mc.done{opacity:.72;}
+.mc.done .mc-shimmer::after{animation:none !important;}
+.mc.done::before{content:none;}
+.mc.done.sel{animation:none;}
 @keyframes badgeUnlock{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.18) rotate(4deg);}80%{transform:scale(.94);}100%{transform:scale(1);opacity:1;}}
 .badge-unlock-flash{animation:badgeUnlock .55s cubic-bezier(.34,1.56,.64,1) both;}
 
@@ -1140,7 +1150,16 @@ body.theme-sepia .mc.sel{box-shadow:0 0 20px rgba(212,168,71,.3);}
 
 /* -- PROFILE -- */
 #profile{padding:max(48px,env(safe-area-inset-top,48px)) 22px 32px;}
-.bkbtn{background:none;border:none;color:var(--mt);font-size:13px;cursor:pointer;margin-bottom:18px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;}
+.bkbtn{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;padding:8px 16px 8px 12px;
+  color:rgba(255,255,255,.65);font-size:13px;font-weight:600;
+  cursor:pointer;margin-bottom:18px;
+  font-family:'DM Sans',sans-serif;
+  transition:all .18s;backdrop-filter:blur(8px);
+}
+.bkbtn:active{transform:scale(.95);background:rgba(255,255,255,.12);}
 .phero{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:20px;margin-bottom:11px;text-align:center;}
 .pav{font-size:48px;margin-bottom:6px;}
 .pnm{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:2px;}
@@ -1868,11 +1887,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:14px;">PERSONNALISER</div>
       <!-- Aperçu -->
       <div style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 18px;margin-bottom:14px;">
-        <div id="av-preview" style="width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;transition:all .3s;"></div>
-        <div>
+        <div id="av-preview" style="width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;transition:all .3s;overflow:hidden;"></div>
+        <div style="flex:1;min-width:0;">
           <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">Aperçu</div>
           <div id="av-preview-name" style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:1px;"></div>
         </div>
+        <!-- Bouton photo perso -->
+        <label style="flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 12px;cursor:pointer;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:6px;transition:all .18s;white-space:nowrap;" id="photo-upload-lbl">
+          📷 Photo
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="loadProfilePhoto(event)">
+        </label>
       </div>
       <!-- Couleur de fond -->
       <div style="font-size:10px;color:rgba(255,255,255,.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Couleur de fond</div>
@@ -2193,8 +2217,20 @@ function stopPreviewTrack(key){
 // AUDIO FX - Sound design cinéma
 // ==============================
 let _ac=null,sndOn=true,lastTick=-1;
-const ac=()=>{if(!_ac){try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _ac;};
-const resume=()=>{const c=ac();if(c&&c.state==='suspended')c.resume();};
+
+// iOS Safari exige que l'AudioContext soit créé ET résumé
+// dans un gestionnaire d'événement utilisateur direct (touch/click)
+function _initAC(){
+  if(_ac)return _ac;
+  try{
+    _ac=new(window.AudioContext||window.webkitAudioContext)();
+    // Sur iOS, l'état peut être 'suspended' même juste après création
+    if(_ac.state==='suspended')_ac.resume();
+  }catch(e){}
+  return _ac;
+}
+const ac=()=>_ac;
+const resume=()=>{if(_ac&&_ac.state==='suspended')_ac.resume();};
 
 // ─── helpers ───────────────────────────────────────────────────
 function mkGain(ctx,vol,t,decay){
@@ -2455,22 +2491,39 @@ function haptic(type){
 // -- SON CLAQUETTE (splash) --
 function sndClap(){
   if(!sndOn)return;
+  const ctx=ac();if(!ctx)return;
   try{
-    const ctx=ac();if(!ctx)return;
     const t=ctx.currentTime;
-    // Impact sec - claquette de cinéma
-    const g1=ctx.createGain();g1.gain.setValueAtTime(.35,t);g1.gain.exponentialRampToValueAtTime(.0001,t+.08);g1.connect(ctx.destination);
-    const n1=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*.08),ctx.sampleRate);
-    const d=n1.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
-    const src=ctx.createBufferSource();src.buffer=n1;src.connect(g1);src.start(t);
-    // Click tonique
-    const g2=ctx.createGain();g2.gain.setValueAtTime(.25,t);g2.gain.exponentialRampToValueAtTime(.0001,t+.06);g2.connect(ctx.destination);
-    const o=ctx.createOscillator();o.type='square';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(200,t+.06);
-    o.connect(g2);o.start(t);o.stop(t+.07);
-    // Résonance bois
-    const g3=ctx.createGain();g3.gain.setValueAtTime(.15,t+.01);g3.gain.exponentialRampToValueAtTime(.0001,t+.15);g3.connect(ctx.destination);
-    const o2=ctx.createOscillator();o2.type='triangle';o2.frequency.value=280;
-    o2.connect(g3);o2.start(t+.01);o2.stop(t+.16);
+
+    // ① Whoosh doux — air qui se déplace (fade in/out)
+    const bufLen=Math.ceil(ctx.sampleRate*.55);
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const bd=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++){
+      const env=Math.sin(Math.PI*i/bufLen); // cloche
+      bd[i]=(Math.random()*2-1)*env*.18;
+    }
+    const whoosh=ctx.createBufferSource();whoosh.buffer=buf;
+    const wf=ctx.createBiquadFilter();wf.type='bandpass';wf.frequency.value=600;wf.Q.value=.8;
+    const wg=ctx.createGain();wg.gain.setValueAtTime(0,t);wg.gain.linearRampToValueAtTime(.28,t+.12);wg.gain.exponentialRampToValueAtTime(.0001,t+.55);
+    whoosh.connect(wf);wf.connect(wg);wg.connect(ctx.destination);
+    whoosh.start(t);
+
+    // ② Tintement délicat — cristal (deux notes harmonieuses)
+    [[1047,.14,.0],[1319,.09,.04],[1568,.06,.09]].forEach(([freq,vol,delay])=>{
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0,t+delay);
+      g.gain.linearRampToValueAtTime(vol,t+delay+.025);
+      g.gain.exponentialRampToValueAtTime(.0001,t+delay+.8);
+      const o=ctx.createOscillator();o.type='sine';o.frequency.value=freq;
+      o.connect(g);g.connect(ctx.destination);
+      o.start(t+delay);o.stop(t+delay+.85);
+    });
+
+    // ③ Résonance grave douce — caisse de cinéma
+    const gr=ctx.createGain();gr.gain.setValueAtTime(.09,t+.05);gr.gain.exponentialRampToValueAtTime(.0001,t+.7);
+    const or=ctx.createOscillator();or.type='sine';or.frequency.setValueAtTime(80,t+.05);or.frequency.exponentialRampToValueAtTime(55,t+.6);
+    or.connect(gr);gr.connect(ctx.destination);or.start(t+.05);or.stop(t+.72);
   }catch(e){}
 }
 function toggleSound(){sndOn=!sndOn;const b=document.getElementById('btn-sound');b.style.opacity=sndOn?'1':'.38';}
@@ -3928,13 +3981,7 @@ function refProfile(){
   const pct=s.questions>0?Math.round((s.correct/s.questions)*100):0;
   const displayName=s.pseudo||(lv.name);
   const avEl=document.getElementById('p-av');
-  if(avEl){
-    avEl.textContent=s.avatar||lv.icon;
-    const colIdx=s.avatarColor||0;
-    const avBg=AVATAR_COLORS&&AVATAR_COLORS[colIdx]?AVATAR_COLORS[colIdx].bg:'rgba(20,15,10,.85)';
-    avEl.style.background=avBg;
-    avEl.style.boxShadow='0 4px 20px rgba(0,0,0,.4)';
-  }
+  _applyAvatarToEl(avEl,s);
   document.getElementById('p-nm').innerHTML=`${displayName} <span style="font-size:13px;opacity:.35">✏️</span>`;
   document.getElementById('p-tt').textContent='Niveau '+(l+1)+' · '+lv.name;
   document.getElementById('p-xp').textContent=s.xp;
@@ -4216,7 +4263,7 @@ function loadQ(){
     qa.innerHTML=`
       <div class="qtl">📅 Quelle Année ?</div>
       <div class="pmw">
-        <img id="yimg" src="${q.poster}" alt="?" style="filter:blur(14px) brightness(.7);transition:filter .5s;" crossorigin="anonymous">
+        <img id="yimg" src="${q.poster}" alt="?" style="object-fit:contain;border-radius:10px;" crossorigin="anonymous">
         <div class="pmo"></div>
       </div>
       <div class="yslider-wrap">
@@ -4912,7 +4959,7 @@ function startTimer(){
   }
   tLeft=MAXT;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);if(!ansed)handleAnswer(-1);}},100);
 }
-function startTimerYear(){tLeft=30;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));const img=document.getElementById('yimg');if(img){const bl=Math.max(0,14*(tLeft/30));img.style.filter=`blur(${bl.toFixed(1)}px) brightness(${.7+.3*(1-tLeft/30)})`;}if(tLeft<=0){clearInterval(tInt);if(!ansed)handleYearAnswer();}},100);}
+function startTimerYear(){tLeft=30;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);if(!ansed)handleYearAnswer();}},100);}
 
 function updateTimerUI(){
   const maxT=selMode==='year'||selMode==='boxoffice'?30:MAXT;
@@ -5037,11 +5084,13 @@ function applyNewBadges(){
   document.querySelectorAll('.mc .mnew').forEach(el=>{
     const mc=el.closest('.mc');
     if(!mc)return;
-    // Support both openModeInfo('mode') and selectMode('mode') patterns
     const onclick=mc.getAttribute('onclick')||'';
     const match=onclick.match(/(?:openModeInfo|selectMode)\('(\w+)'/);
     if(!match)return;
-    if(localStorage.getItem('cq_played_'+match[1]))el.style.display='none';
+    if(localStorage.getItem('cq_played_'+match[1])){
+      el.style.display='none';
+      mc.classList.add('done'); // ← plus d'effet sur les cartes jouées
+    }
   });
 }
 
@@ -5397,25 +5446,53 @@ const AVATAR_COLORS=[
 ];
 
 let _avSelEmoji=null, _avSelColor=0, _avSelCat='cinema';
+let _avPhotoDataUrl=null; // photo perso chargée en session
+
+function loadProfilePhoto(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _avPhotoDataUrl=e.target.result;
+    _avSelEmoji=null; // désactiver l'emoji si photo choisie
+    const prev=document.getElementById('av-preview');
+    if(prev){
+      prev.style.background='none';
+      prev.innerHTML=`<img src="${_avPhotoDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+    }
+    const lbl=document.getElementById('photo-upload-lbl');
+    if(lbl)lbl.style.borderColor='rgba(46,204,113,.4)';
+    document.querySelectorAll('.av-opt').forEach(x=>x.classList.remove('av-sel'));
+  };
+  reader.readAsDataURL(file);
+}
 
 function openAvModal(){
   const s=ls();
   _avSelEmoji=s.avatar||'🎬';
   _avSelColor=s.avatarColor||0;
   _avSelCat='cinema';
+  // Restaurer la photo perso si elle existe dans le localStorage
+  _avPhotoDataUrl=s.avatarPhoto||null;
   _renderAvModal();
   document.getElementById('av-modal').classList.add('on');
 }
 
 function _renderAvModal(){
   const s=ls();
-  // Preview
   const prev=document.getElementById('av-preview');
   const prevName=document.getElementById('av-preview-name');
   if(prev){
-    prev.textContent=_avSelEmoji||'🎬';
-    prev.style.background=AVATAR_COLORS[_avSelColor].bg;
-    prev.style.boxShadow='0 4px 16px rgba(0,0,0,.4)';
+    if(_avPhotoDataUrl){
+      prev.style.background='none';
+      prev.style.boxShadow='0 4px 16px rgba(0,0,0,.4)';
+      prev.innerHTML=`<img src="${_avPhotoDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`;
+    } else {
+      prev.innerHTML='';
+      prev.textContent=_avSelEmoji||'🎬';
+      prev.style.background=AVATAR_COLORS[_avSelColor].bg;
+      prev.style.boxShadow='0 4px 16px rgba(0,0,0,.4)';
+    }
   }
   if(prevName)prevName.textContent=s.pseudo||(LEVELS[gxp(s.xp).l].name);
 
@@ -5457,19 +5534,39 @@ function pickAvatar(encoded){
 
 function saveAvatar(){
   const s=ls();
-  s.avatar=_avSelEmoji;
+  if(_avPhotoDataUrl){
+    // Photo perso — stocker en base64 dans localStorage
+    // Note : les grandes images peuvent dépasser le quota ; on redimensionne
+    s.avatarPhoto=_avPhotoDataUrl;
+    s.avatar=null; // pas d'emoji si photo
+  } else {
+    s.avatar=_avSelEmoji;
+    s.avatarPhoto=null;
+  }
   s.avatarColor=_avSelColor;
   ss(s);
-  // Update profile display
-  const pav=document.getElementById('p-av');
-  if(pav){
-    pav.textContent=_avSelEmoji;
-    pav.style.background=AVATAR_COLORS[_avSelColor].bg;
-    pav.style.borderRadius='16px';
-    pav.style.width='64px';pav.style.height='64px';
-    pav.style.display='flex';pav.style.alignItems='center';pav.style.justifyContent='center';
-  }
+  // Mettre à jour l'affichage profil immédiatement
+  _applyAvatarToEl(document.getElementById('p-av'),s);
   closeAvModal();
+}
+
+function _applyAvatarToEl(el,s){
+  if(!el)return;
+  el.style.borderRadius='18px';
+  el.style.width='68px';el.style.height='68px';
+  el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';
+  el.style.overflow='hidden';
+  if(s.avatarPhoto){
+    el.style.background='none';
+    el.innerHTML=`<img src="${s.avatarPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">`;
+  } else {
+    el.innerHTML='';
+    const colIdx=s.avatarColor||0;
+    el.style.background=AVATAR_COLORS&&AVATAR_COLORS[colIdx]?AVATAR_COLORS[colIdx].bg:'rgba(20,15,10,.85)';
+    el.style.fontSize='38px';
+    el.textContent=s.avatar||LEVELS[gxp(s.xp).l].icon;
+    el.style.boxShadow='0 4px 20px rgba(0,0,0,.4)';
+  }
 }
 
 function closeAvModal(e){
@@ -5503,6 +5600,7 @@ function runSplash(){
   const onTap=()=>{
     splash.removeEventListener('touchend',onTap);
     splash.removeEventListener('click',onTap);
+    _initAC();   // ← iOS Safari : AudioContext créé dans le gestionnaire utilisateur
     startSequence();
   };
   splash.addEventListener('touchend',onTap,{once:true});
@@ -5881,8 +5979,11 @@ setInterval(updateDailyCountdown,60000);
 runSplash();
 const _hbg2=document.getElementById('home-bg');
 if(_hbg2)_hbg2.classList.add('visible');
-// Tutoriel au premier lancement (décalé après le splash)
-setTimeout(initOnboarding,2200);
+// Tutoriel : seulement au 1er lancement, jamais après
+const _s=ls();
+if(!_s.onboardingDone){
+  setTimeout(initOnboarding,2200);
+}
 
 </script>
 <!-- PWA Service Worker -->
