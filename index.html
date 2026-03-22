@@ -1991,6 +1991,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
   </div>
 
   <!-- Stat Detail Modal -->
+  <!-- Profile Stat Detail Modal -->
+  <div class="mover" id="pstat-modal" onclick="if(event.target===this)closePstatModal()">
+    <div class="msh" style="max-height:82vh;overflow-y:auto;">
+      <div class="mhdl"></div>
+      <div id="pstat-content"></div>
+      <button class="mbcl" style="margin-top:4px;" onclick="closePstatModal()">FERMER</button>
+    </div>
+  </div>
+
   <div class="mover" id="stat-detail-modal" onclick="if(event.target===this)closeStatDetail()">
     <div class="msh" style="max-height:70vh;overflow-y:auto;">
       <div class="mhdl"></div>
@@ -2021,15 +2030,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="heatmap-wrap" id="mode-heatmap"></div>
     </div>
     <div class="sgrid">
-      <div class="sc"><div class="sv" id="p-xp">0</div><div class="sl">XP Total</div></div>
-      <div class="sc"><div class="sv" id="p-gm">0</div><div class="sl">Parties jouées</div></div>
-      <div class="sc"><div class="sv" id="p-pc">0%</div><div class="sl">Taux de réussite</div></div>
-      <div class="sc"><div class="sv" id="p-sk">0</div><div class="sl">Série max 🔥</div></div>
-      <div class="sc"><div class="sv" id="p-pt">0min</div><div class="sl">Temps de jeu</div></div>
-      <div class="sc"><div class="sv" id="p-bs">0</div><div class="sl">Meilleur score</div></div>
+      <div class="sc" onclick="openProfileStat('xp')" style="cursor:pointer;"><div class="sv" id="p-xp">0</div><div class="sl">XP Total</div></div>
+      <div class="sc" onclick="openProfileStat('games')" style="cursor:pointer;"><div class="sv" id="p-gm">0</div><div class="sl">Parties jouées</div></div>
+      <div class="sc" onclick="openProfileStat('accuracy')" style="cursor:pointer;"><div class="sv" id="p-pc">0%</div><div class="sl">Taux de réussite</div></div>
+      <div class="sc" onclick="openProfileStat('streak')" style="cursor:pointer;"><div class="sv" id="p-sk">0</div><div class="sl">Série max 🔥</div></div>
+      <div class="sc" onclick="openProfileStat('time')" style="cursor:pointer;"><div class="sv" id="p-pt">0min</div><div class="sl">Temps de jeu</div></div>
+      <div class="sc" onclick="openProfileStat('best')" style="cursor:pointer;"><div class="sv" id="p-bs">0</div><div class="sl">Meilleur score</div></div>
     </div>
     <div class="shd" style="margin-bottom:8px;">Meilleurs scores par mode</div>
-    <div id="p-best-scores" style="margin-bottom:22px;"></div>
+    <div id="p-best-scores" style="margin-bottom:22px;cursor:pointer;" onclick="openProfileStat('bestscores')"></div>
     <div class="shd" style="margin-bottom:8px;">Theme <span style="color:var(--mt);font-size:9px;">Débloquer en jouant</span></div>
     <div class="theme-picker" id="theme-picker">
       <div class="theme-opt active" data-theme="" onclick="applyTheme('',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#f5c842,#0a0a0f)"></div>Défaut</div>
@@ -3029,6 +3038,157 @@ function openStatDetail(type){
   if(statSh)setupSwipeDown(statSh,closeStatDetail);
 }
 function closeStatDetail(){document.getElementById('stat-detail-modal').classList.remove('on');}
+
+function closePstatModal(){document.getElementById('pstat-modal').classList.remove('on');}
+
+function openProfileStat(type){
+  const s=ls();
+  const hist=s.history||[];
+  const modeNames={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',decennie:'Décennie',quiadit:'Qui a dit ça ?',versus:'2 Joueurs'};
+  let title='', html='';
+
+  if(type==='xp'){
+    title='⚡ XP Total';
+    const{l}=gxp(s.xp||0);
+    const xpPerGame=hist.length?Math.round((s.xp||0)/hist.length):0;
+    html=`<div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--gold);text-shadow:0 0 30px rgba(245,200,66,.3);">${(s.xp||0).toLocaleString()}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">points d'expérience</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      ${[{l:'Niveau actuel',v:'Niveau '+(l+1)+' — '+LEVELS[l].name},{l:'XP par partie',v:xpPerGame+' XP'},{l:'Prochain niveau',v:l<LEVELS.length-1?LEVELS[l+1].name+' ('+LEVELS[l+1].xp+' XP)':'Max !'},{l:'Parties jouées',v:s.games||0}].map(i=>`
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);line-height:1.2;">${i.v}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:3px;">${i.l}</div>
+      </div>`).join('')}
+    </div>`;
+  } else if(type==='games'){
+    title='🎬 Parties jouées';
+    const modeCount={};
+    hist.forEach(h=>{if(h.mode)modeCount[h.mode]=(modeCount[h.mode]||0)+1;});
+    const sorted=Object.entries(modeCount).sort((a,b)=>b[1]-a[1]);
+    const perfectGames=hist.filter(h=>h.correct===10).length;
+    html=`<div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--green);">${s.games||0}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">parties totales</div>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border-radius:14px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Parties par mode</div>
+      ${sorted.map(([mode,count])=>{
+        const pct=Math.round((count/(s.games||1))*100);
+        return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="font-size:11px;color:rgba(255,255,255,.6);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${modeNames[mode]||mode}</div>
+          <div style="flex:2;background:rgba(255,255,255,.07);border-radius:3px;height:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:var(--gold);border-radius:3px;"></div>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:rgba(255,255,255,.5);min-width:24px;text-align:right;">${count}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:12px;padding:11px 14px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--green);">${perfectGames}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;">parties parfaites 10/10</div>
+    </div>`;
+  } else if(type==='accuracy'){
+    title='🎯 Taux de réussite';
+    const pct=s.questions>0?Math.round((s.correct/s.questions)*100):0;
+    const modeAcc={};
+    hist.forEach(h=>{if(!h.mode)return;if(!modeAcc[h.mode])modeAcc[h.mode]={ok:0,tot:0};modeAcc[h.mode].ok+=h.correct||0;modeAcc[h.mode].tot+=h.total||10;});
+    const sortedAcc=Object.entries(modeAcc).map(([m,d])=>({m,pct:Math.round((d.ok/d.tot)*100)})).sort((a,b)=>b.pct-a.pct);
+    html=`<div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--gold);">${pct}%</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">${s.correct||0} / ${s.questions||0} réponses correctes</div>
+    </div>
+    ${sortedAcc.length?`<div style="background:rgba(255,255,255,.04);border-radius:14px;padding:12px 14px;">
+      <div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Par mode</div>
+      ${sortedAcc.map(({m,pct})=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="font-size:11px;color:rgba(255,255,255,.6);flex:1;">${modeNames[m]||m}</div>
+        <div style="flex:2;background:rgba(255,255,255,.07);border-radius:3px;height:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${pct>=80?'var(--green)':pct>=50?'var(--gold)':'var(--red)'};border-radius:3px;"></div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:rgba(255,255,255,.5);min-width:36px;text-align:right;">${pct}%</div>
+      </div>`).join('')}
+    </div>`:''}`;
+  } else if(type==='streak'){
+    title='🔥 Série max';
+    html=`<div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:#ff7040;">${s.maxStreak||0}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">jours consécutifs record</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="background:rgba(255,80,20,.1);border:1px solid rgba(255,80,20,.2);border-radius:14px;padding:16px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#ff7040;">${s.streak||0}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;">Actuelle</div>
+      </div>
+      <div style="background:rgba(255,80,20,.06);border:1px solid rgba(255,80,20,.12);border-radius:14px;padding:16px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:rgba(255,112,64,.5);">${s.maxStreak||0}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;">Record</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;">
+      ${(s.streak||0)>=7?'🔥 Incroyable série !':(s.streak||0)>=3?'⚡ Continue comme ça !':(s.streak||0)>=1?'🎬 Lance ta série !':'Joue chaque jour pour construire ta série.'} Reviens demain avant minuit pour continuer.
+    </div>`;
+  } else if(type==='time'){
+    title='⏱️ Temps de jeu';
+    const t=s.playtime||0;
+    const h=Math.floor(t/3600),m=Math.floor((t%3600)/60);
+    html=`<div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--gold);">${h>0?h+'h ':''} ${m}min</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">${t} secondes au total</div>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;">
+      Temps moyen par partie : ${s.games?Math.round(t/s.games):0}s · Équivalent de ${Math.round(t/90)} films courts regardés.
+    </div>`;
+  } else if(type==='best'){
+    title='⭐ Meilleur score';
+    const allScores=hist.map(h=>h.score).filter(Boolean);
+    const top5=[...allScores].sort((a,b)=>b-a).slice(0,5);
+    const avg=allScores.length?Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length):0;
+    html=`<div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--gold);text-shadow:0 0 30px rgba(245,200,66,.35);">${s.best||0}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">points</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);">${avg}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Moyenne</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);">${allScores.length}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Scores enregistrés</div>
+      </div>
+    </div>
+    ${top5.length?`<div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Top 5 personnel</div>
+    ${top5.map((sc,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${i===0?'#f5c842':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,.3)'};width:20px;">${i+1}</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:rgba(255,255,255,.8);">${sc}</span>
+      <span style="font-size:10px;color:rgba(255,255,255,.3);">pts</span>
+    </div>`).join('')}`:''}`;
+  } else if(type==='bestscores'){
+    title='🏆 Meilleurs scores par mode';
+    const bests={};
+    hist.forEach(h=>{if(!h.mode||!h.score)return;if(!bests[h.mode]||h.score>bests[h.mode].score)bests[h.mode]={score:h.score,correct:h.correct||0,total:h.total||10,date:h.date||''};});
+    const entries=Object.entries(bests).sort((a,b)=>b[1].score-a[1].score);
+    html=!entries.length?`<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Joue pour voir tes records !</div>`
+    :`${entries.map(([mode,d],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${i===0?'#f5c842':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,.28)'};width:20px;text-align:center;">${i+1}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${modeNames[mode]||mode}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:1px;">${d.correct}/${d.total} correct · ${d.date||''}</div>
+      </div>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${i===0?'var(--gold)':'rgba(255,255,255,.55)'};">${d.score}</span>
+      <span style="font-size:9px;color:rgba(255,255,255,.28);">pts</span>
+    </div>`).join('')}`;
+  }
+
+  document.getElementById('pstat-content').innerHTML=`
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:16px;">${title}</div>
+    ${html}`;
+  const modal=document.getElementById('pstat-modal');
+  modal.classList.add('on');
+  const sh=modal.querySelector('.msh');
+  if(sh)setupSwipeDown(sh,closePstatModal);
+}
 
 // ==============================
 // LEVELS & BADGES
@@ -4925,7 +5085,7 @@ function launchFromInfo(){
 }
 
 function refHome(){
-  const s=ls();const{l,nxt,pct}=gxp(s.xp);const lv=LEVELS[l],nlv=LEVELS[Math.min(l+1,LEVELS.length-1)];
+  const s=ls();const{l,nxt,pct:rawPct}=gxp(s.xp);const pct=Math.round(rawPct);const lv=LEVELS[l],nlv=LEVELS[Math.min(l+1,LEVELS.length-1)];
   const displayName=s.pseudo||lv.name;
   // Widget XP — nouveaux éléments
   const iconEl=document.getElementById('h-icon');
@@ -5000,22 +5160,56 @@ function renderNextBadge(s){
   </div>`;
 }
 
+let _anecIdx=0;
+
 function renderDailyAnecdote(){
   const el=document.getElementById('h-anecdote');
   if(!el)return;
   const d=new Date();
   const seed=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
-  const a=ANECDOTES[seed%ANECDOTES.length];
+  // 3 anecdotes distinctes pour ce jour
+  const anecs=[
+    ANECDOTES[seed%ANECDOTES.length],
+    ANECDOTES[(seed+7)%ANECDOTES.length],
+    ANECDOTES[(seed+17)%ANECDOTES.length],
+  ];
   const dateStr=d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-  el.innerHTML=`<div class="anecdote-card">
-    <div class="anecdote-header">
-      <div class="anecdote-dot"></div>
-      <span class="anecdote-label">Le saviez-vous ?</span>
-      <span class="anecdote-date">${dateStr}</span>
-    </div>
-    <div class="anecdote-text">${a.text}</div>
-    <span class="anecdote-tag">${a.tag}</span>
-  </div>`;
+  _anecIdx=0;
+
+  function render(i){
+    const a=anecs[i];
+    el.innerHTML=`<div class="anecdote-card" id="anec-inner">
+      <div class="anecdote-header">
+        <div class="anecdote-dot"></div>
+        <span class="anecdote-label">Le saviez-vous ?</span>
+        <span class="anecdote-date">${dateStr}</span>
+      </div>
+      <div class="anecdote-text" id="anec-text">${a.text}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+        <span class="anecdote-tag">${a.tag}</span>
+        <div style="display:flex;gap:5px;align-items:center;">
+          ${anecs.map((_,j)=>`<div style="width:6px;height:6px;border-radius:50%;background:${j===i?'var(--gold)':'rgba(255,255,255,.2)'};transition:background .2s;"></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+    // Swipe gauche/droite
+    const card=el.querySelector('.anecdote-card');
+    setupSwipeHoriz(card,
+      ()=>{ _anecIdx=(_anecIdx+1)%3; render(_anecIdx); },
+      ()=>{ _anecIdx=(_anecIdx+2)%3; render(_anecIdx); }
+    );
+  }
+  render(0);
+}
+
+function setupSwipeHoriz(el,onLeft,onRight){
+  let sx=0,sy=0;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=Math.abs(e.changedTouches[0].clientY-sy);
+    if(Math.abs(dx)>50&&dy<40){dx<0?onLeft():onRight();}
+  },{passive:true});
 }
 function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);buildMusicManager();}
 function refProfile(){
@@ -5037,7 +5231,13 @@ function refProfile(){
   const hist=document.getElementById('p-hist');hist.innerHTML='';
   const rec=[...(s.history||[])].reverse().slice(0,6);
   if(!rec.length)hist.innerHTML='<div style="color:var(--mt);font-size:13px;text-align:center;padding:18px 0">Aucune partie pour l\'instant</div>';
-  else rec.forEach(h=>{const icons=['😅','🎬','⭐','🏆','🎭'];const idx=Math.min(Math.floor((h.correct/h.total)*4),4);const mi=h.mode==='photo'?'📸':h.mode==='year'?'📅':h.mode==='duo'?'🎭':h.mode==='boxoffice'?'💰':h.mode==='replique'?'💬':h.mode==='acteur'?'👤':h.mode==='compositeur'?'🎼':h.mode==='filmographie'?'🎭':h.mode==='realisateur'?'🎥':h.mode==='vraifaux'?'🎯':h.mode==='versus'?'⚔️':'⚡';hist.innerHTML+=`<div class="hitem"><div class="hi">${icons[idx]}</div><div class="hinfo"><div class="hs">${h.score} pts</div><div class="hd">${mi} ${h.correct}/${h.total} · +${h.xp} XP</div></div><div class="hdate">${h.date}</div></div>`;});
+  else rec.forEach(h=>{
+    const icons=['😅','🎬','⭐','🏆','🎭'];
+    const idx=Math.min(Math.floor((h.correct/h.total)*4),4);
+    const modeNames={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',decennie:'Décennie',quiadit:'Qui a dit ça ?',versus:'2 Joueurs'};
+    const modeName=modeNames[h.mode]||h.mode||'Quiz';
+    hist.innerHTML+=`<div class="hitem"><div class="hi">${icons[idx]}</div><div class="hinfo"><div class="hs">${h.score} pts</div><div class="hd" style="font-size:11px;">${modeName} · ${h.correct}/${h.total} · +${h.xp} XP</div></div><div class="hdate">${h.date}</div></div>`;
+  });
   // Stats avancées
   setTimeout(()=>{buildSparkline(s);buildModeHeatmap(s);buildGlobalStats(s);},50);
 }
