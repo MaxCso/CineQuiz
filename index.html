@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<title>CinéQuiz v46</title>
+<title>CinéQuiz</title>
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CinéQuiz">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="description" content="Le quiz du 7ème art — 14 modes, 100% cinéma">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Cin%C3%A9Quiz%22%2C%22short_name%22%3A%22Cin%C3%A9Quiz%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%220a0a0f%22%2C%22theme_color%22%3A%22%230a0a0f%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D%2527http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%3D%25270%25200%2520512%2520512%2527%253E%253Crect%2520width%3D%2527512%2527%2520height%3D%2527512%2527%2520rx%3D%252780%2527%2520fill%3D%2527%25230a0a0f%2527%2F%253E%253Ctext%2520x%3D%2527256%2527%2520y%3D%2527340%2527%2520text-anchor%3D%2527middle%2527%2520font-size%3D%2527280%2527%253E%25F0%259F%258E%25AC%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0f;--sf:#13131a;--sf2:#1c1c28;--gold:#f5c842;--gold2:#e8a800;--red:#e8344a;--green:#2ecc71;--blue:#4a9eff;--tx:#f0f0f0;--mt:#6b6b80;--bd:rgba(255,255,255,0.07);}
@@ -163,7 +171,37 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   box-shadow:0 2px 8px rgba(232,52,74,.5);
 }
 
-/* -- Shimmer sur carte mode sélectionnée -- */
+/* -- MICRO-DÉTAILS -- */
+/* Timer warning : flash rouge + glow quand <5s */
+.tfil.warn{
+  background:linear-gradient(90deg,var(--red),#ff8c42);
+  box-shadow:0 0 8px rgba(232,52,74,.4);
+  animation:timerPulse .6s ease-in-out infinite;
+}
+@keyframes timerPulse{0%,100%{box-shadow:0 0 6px rgba(232,52,74,.3);}50%{box-shadow:0 0 16px rgba(232,52,74,.7);}}
+
+/* Score résultats : drop-shadow doré */
+.rscore{
+  font-family:'Bebas Neue',sans-serif;font-size:80px;line-height:1;
+  color:var(--gold);letter-spacing:2px;
+  animation:scoreReveal .7s cubic-bezier(.34,1.56,.64,1) .35s both;
+  text-shadow:0 0 30px rgba(245,200,66,.4);
+}
+
+/* Bouton jouer : pulse subtil quand rien n'est en cours */
+@keyframes playPulse{0%,100%{box-shadow:0 6px 32px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}50%{box-shadow:0 8px 40px rgba(245,200,66,.7),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}}
+.pbtn{animation:playPulse 3s ease-in-out 2s infinite;}
+.pbtn:active{animation:none;}
+
+/* XP bar : glow animé */
+.xpbf{box-shadow:0 0 8px rgba(245,200,66,.35);}
+
+/* Dots progression : transition plus fluide */
+.dot{transition:background .4s cubic-bezier(.34,1.56,.64,1);}
+.dot.dv{box-shadow:0 0 4px rgba(46,204,113,.4);}
+
+/* Badge toast keyframe (used inline) */
+@keyframes badgeSlideUp{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .mc.sel::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
@@ -182,7 +220,44 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   60%,100%{left:160%;}
 }
 
-/* -- MODE INFO MODAL -- */
+/* -- MODE BANDE-ANNONCE -- */
+.mc[data-mode="trailer"]{--mc-color:#ef4444;--mc-bg:rgba(239,68,68,.1);}
+#game-bg.mode-trailer{background:radial-gradient(ellipse 65% 55% at 50% 30%,rgba(120,0,0,.9) 0%,#060000 65%);}
+.trailer-wrap{width:100%;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;}
+.trailer-player{
+  flex:1;min-height:0;border-radius:16px;overflow:hidden;
+  background:#000;position:relative;
+}
+.trailer-player iframe{width:100%;height:100%;border:none;display:block;}
+.trailer-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.0);
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.trailer-countdown{
+  position:absolute;top:10px;right:12px;
+  background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;padding:4px 10px;
+  font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;
+  letter-spacing:1px;backdrop-filter:blur(8px);
+}
+.trailer-hint{
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
+  border-radius:12px;padding:8px 14px;font-size:12px;
+  color:rgba(255,255,255,.55);text-align:center;flex-shrink:0;
+}
+/* -- PROFIL PARTAGÉ -- */
+.share-card-btn{
+  width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:12px 16px;margin-top:8px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:all .2s;color:rgba(255,255,255,.6);font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:500;
+}
+.share-card-btn:active{transform:scale(.97);}
+.share-card-btn svg{flex-shrink:0;}
+/* Canvas hors-écran pour la carte */
+#profile-share-canvas{display:none;}
 .mode-info-over{
   position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:700;
   display:flex;align-items:flex-end;justify-content:center;
@@ -242,6 +317,37 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   cursor:pointer;transition:transform .15s;
 }
 .mode-info-close:active{transform:scale(.97);}
+/* -- DÉFI QUOTIDIEN -- */
+.daily-card{
+  background:linear-gradient(135deg,rgba(245,200,66,.14),rgba(232,168,0,.06));
+  border:1.5px solid rgba(245,200,66,.35);
+  border-radius:18px;padding:14px 16px;margin-bottom:9px;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .18s,box-shadow .18s;
+}
+.daily-card:active{transform:scale(.98);}
+.daily-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(245,200,66,.07),transparent);
+  animation:btnglare 3.5s ease 2s infinite;
+}
+.daily-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.daily-label{display:flex;align-items:center;gap:8px;}
+.daily-flame{font-size:20px;animation:comboBounce .5s ease infinite alternate;}
+.daily-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);}
+.daily-badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.4);color:var(--gold);border-radius:8px;padding:3px 9px;}
+.daily-badge.done{background:rgba(46,204,113,.15);border-color:rgba(46,204,113,.4);color:var(--green);}
+.daily-desc{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px;line-height:1.5;}
+.daily-bar-wrap{background:rgba(255,255,255,.07);border-radius:4px;height:5px;overflow:hidden;}
+.daily-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+.daily-meta{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:rgba(255,255,255,.35);}
+.daily-countdown{color:var(--gold);font-weight:600;}
+/* Score count-up résultats */
+@keyframes scoreCountUp{0%{opacity:0;transform:translateY(16px) scale(.7);}60%{opacity:1;transform:translateY(-4px) scale(1.09);}80%{transform:translateY(2px) scale(.97);}100%{transform:translateY(0) scale(1);}}
+/* Badge débloqué flash */
+@keyframes badgeUnlock{0%{transform:scale(0) rotate(-15deg);opacity:0;}60%{transform:scale(1.18) rotate(4deg);}80%{transform:scale(.94);}100%{transform:scale(1);opacity:1;}}
+.badge-unlock-flash{animation:badgeUnlock .55s cubic-bezier(.34,1.56,.64,1) both;}
+
 .trow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none;}
 .trow::-webkit-scrollbar{display:none;}
 .tc{flex-shrink:0;background:rgba(10,8,5,.6);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:7px 14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;transition:all .2s;white-space:nowrap;}
@@ -426,12 +532,6 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 @keyframes rIconPop{from{transform:scale(0) rotate(-25deg);opacity:0;}60%{transform:scale(1.18) rotate(4deg);opacity:1;}80%{transform:scale(.94) rotate(-2deg);}100%{transform:scale(1) rotate(0deg);}}
 .rtit{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:var(--gold);margin-top:6px;animation:fadeScaleIn .4s ease .2s both;}
 .rsub{font-size:13px;color:rgba(255,255,255,.5);margin-top:3px;animation:fadeScaleIn .4s ease .3s both;}
-.rscore{
-  font-family:'Bebas Neue',sans-serif;font-size:80px;line-height:1;
-  color:var(--gold);letter-spacing:2px;
-  animation:scoreReveal .7s cubic-bezier(.34,1.56,.64,1) .35s both;
-  filter:drop-shadow(0 0 20px rgba(245,200,66,.35));
-}
 @keyframes scoreReveal{
   0%{opacity:0;transform:translateY(20px) scale(.7);}
   60%{opacity:1;transform:translateY(-4px) scale(1.08);}
@@ -1143,6 +1243,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="sm sm-gold"><span class="sm-icon">⭐</span><span class="smv c-gold" id="h-bst">0</span><div class="sml">Record</div></div>
       <div class="sm sm-green"><span class="sm-icon">🎬</span><span class="smv c-green" id="h-gms">0</span><div class="sml">Parties</div></div>
     </div>
+    <!-- Défi Quotidien -->
+    <div class="daily-card" id="daily-card" onclick="openDaily()">
+      <div class="daily-card-top">
+        <div class="daily-label">
+          <span class="daily-flame">🎬</span>
+          <span class="daily-title">DÉFI DU JOUR</span>
+        </div>
+        <span class="daily-badge" id="daily-card-badge">À JOUER</span>
+      </div>
+      <div class="daily-desc" id="daily-card-desc">10 questions spéciales, le même défi pour tout le monde aujourd'hui. Revient chaque jour à minuit !</div>
+      <div class="daily-bar-wrap"><div class="daily-bar" id="daily-card-bar" style="width:0%"></div></div>
+      <div class="daily-meta">
+        <span id="daily-card-score">Ton meilleur : —</span>
+        <span class="daily-countdown" id="daily-countdown">⏳ —</span>
+      </div>
+    </div>
     <!-- Badges -->
     <div class="shd"><span>Badges</span><span id="h-bct" style="color:var(--gold)">0 débloqué</span></div>
     <div class="bscroll" id="h-bdg"></div>
@@ -1163,6 +1279,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <div class="mc" data-mode="training" onclick="openModeInfo('training',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M5 3L2 6m17-3l3 3"/></svg></span><span class="mc-label">Entraînement</span></div>
       <div class="mc" data-mode="filmographie" onclick="openModeInfo('filmographie',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg></span><span class="mc-label">Filmographie</span><span class="mnew">NEW</span></div>
       <div class="mc" data-mode="compositeur" onclick="openModeInfo('compositeur',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="mc-label">Compositeur</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="trailer" onclick="openModeInfo('trailer',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><polygon points="5 3 19 12 5 21 5 3"/></svg></span><span class="mc-label">Bande-annonce</span><span class="mnew">NEW</span></div>
     </div>
 
     <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span> JOUER</button>
@@ -1229,6 +1346,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     <div class="pbgrid" id="p-bgrid"></div>
     <div class="shd" style="margin-bottom:9px;">Historique récent</div>
     <div id="p-hist"></div>
+    <!-- Partager sa carte profil -->
+    <button class="share-card-btn" onclick="shareProfileCard()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Partager ma carte CinéQuiz
+    </button>
+    <canvas id="profile-share-canvas" width="800" height="500"></canvas>
   </div>
 
   <!-- LOADING -->
@@ -1431,6 +1554,7 @@ const MUSIC_FILES={
   casting: 'music-casting.mp3',
   generique:'music-generique.mp3',
   location:'music-location.mp3',
+  trailer:'music-quiz.mp3',
 };
 
 function getTrack(key){
@@ -1589,107 +1713,97 @@ const sndOk=(m)=>{
 // Deux tons descendants - agréable mais clairement négatif
 const sndNo=()=>{
   if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
-
-  // Deux tons descendants (comme un "uh-oh" discret)
-  [[300,.15,220,.18],[220,.13,180,.14]].forEach(([f1,v,f2,d],i)=>{
-    const delay=i*.16;
+  // Accord mineur descendant — cinématique, pas irritant
+  [[370,.13,280,.2],[280,.11,220,.18],[220,.09,180,.15]].forEach(([f1,v,f2,d],i)=>{
+    const delay=i*.13;
     const g=c.createGain();
-    g.gain.setValueAtTime(v,t+delay);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+delay+d+.1);
-    const o=c.createOscillator();o.type='sine';
+    g.gain.setValueAtTime(0,t+delay);
+    g.gain.linearRampToValueAtTime(v,t+delay+.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+delay+d+.12);
+    const o=c.createOscillator();o.type='triangle';
     o.frequency.setValueAtTime(f1,t+delay);
-    o.frequency.linearRampToValueAtTime(f2,t+delay+d);
-    o.connect(g);g.connect(c.destination);o.start(t+delay);o.stop(t+delay+d+.15);
+    o.frequency.exponentialRampToValueAtTime(f2,t+delay+d);
+    o.connect(g);g.connect(c.destination);o.start(t+delay);o.stop(t+delay+d+.18);
   });
-
-  // Légère teinte de "bois" - pas agressif
-  const gn=c.createGain();gn.gain.setValueAtTime(.04,t+.02);gn.gain.exponentialRampToValueAtTime(0.0001,t+.1);
-  noise(c,gn,t+.02,.08);
+  // Résonance grave cinéma (le "braaam" atténué)
+  const gb=c.createGain();gb.gain.setValueAtTime(.07,t+.05);gb.gain.exponentialRampToValueAtTime(0.0001,t+.45);
+  osc(c,'sine',60,gb,t+.05,.4);
 };
 
 // ─── sndLvl : level up ─────────────────────────────────────────
-// Fanfare courte mais satisfaisante
 const sndLvl=()=>{
   if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
-
-  // Montée mélodique - do majeur
-  const melody=[392,494,587,659,784,880];
+  // Montée épique 6 notes
+  const melody=[392,494,587,659,784,880,1047];
   melody.forEach((f,i)=>{
-    const delay=i*.1;
+    const delay=i*.085;
     const g=c.createGain();
     g.gain.setValueAtTime(0,t+delay);
-    g.gain.linearRampToValueAtTime(.2,t+delay+.03);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.3);
-    osc(c,'triangle',f,g,t+delay,.35);
-    // Basse harmonique
-    const gb=c.createGain();gb.gain.setValueAtTime(.1,t+delay);gb.gain.exponentialRampToValueAtTime(0.0001,t+delay+.28);
-    osc(c,'sine',f/2,gb,t+delay,.3);
+    g.gain.linearRampToValueAtTime(.22,t+delay+.025);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.32);
+    osc(c,'triangle',f,g,t+delay,.38);
+    const gb=c.createGain();gb.gain.setValueAtTime(.12,t+delay);gb.gain.exponentialRampToValueAtTime(0.0001,t+delay+.30);
+    osc(c,'sine',f/2,gb,t+delay,.32);
   });
-
-  // Accord final tenu
+  // Accord final plein + shimmer
   setTimeout(()=>{
     const c2=ac();if(!c2)return;const t2=c2.currentTime;
-    [523,659,784,1047].forEach((f,i)=>{
+    [523,659,784,1047,1319].forEach((f,i)=>{
       const g=c2.createGain();
-      g.gain.setValueAtTime(0,t2);g.gain.linearRampToValueAtTime(.18,t2+.05);
-      g.gain.exponentialRampToValueAtTime(0.0001,t2+.9);
-      osc(c2,'sine',f,g,t2,.95);
+      g.gain.setValueAtTime(0,t2);g.gain.linearRampToValueAtTime(.2,t2+.06);
+      g.gain.exponentialRampToValueAtTime(0.0001,t2+1.1);
+      osc(c2,i%2===0?'triangle':'sine',f,g,t2,1.15);
     });
-  },640);
+  },620);
 };
 
-// ─── sndResult : ecran de résultats ───────────────────────────
+// ─── sndResult : écran résultats ───────────────────────────────
 const sndResult=(s)=>{
   if(!sndOn)return;resume();const c=ac();if(!c)return;const t=c.currentTime;
   const p=s/(TOTAL*100);
-
   if(p>=.8){
-    // Victoire - arpège majeur joyeux
-    [523,659,784,1047,1319].forEach((f,i)=>{
-      const delay=i*.09;
-      const g=c.createGain();g.gain.setValueAtTime(0,t+delay);g.gain.linearRampToValueAtTime(.18,t+delay+.03);g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.5);
-      osc(c,'triangle',f,g,t+delay,.55);
+    // Grande victoire - fanfare ascendante en do majeur
+    [523,659,784,880,1047,1319].forEach((f,i)=>{
+      const delay=i*.08;
+      const g=c.createGain();g.gain.setValueAtTime(0,t+delay);g.gain.linearRampToValueAtTime(.2,t+delay+.025);g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.55);
+      osc(c,'triangle',f,g,t+delay,.60);
     });
     setTimeout(()=>{
       const c2=ac();if(!c2)return;const t2=c2.currentTime;
-      [523,659,784,1047].forEach((f,i)=>{const g=c2.createGain();g.gain.setValueAtTime(.15,t2+i*.06);g.gain.exponentialRampToValueAtTime(0.0001,t2+i*.06+.6);osc(c2,'sine',f,g,t2+i*.06,.65);});
-    },500);
+      [523,659,784,1047].forEach((f,i)=>{const g=c2.createGain();g.gain.setValueAtTime(.18,t2+i*.055);g.gain.exponentialRampToValueAtTime(0.0001,t2+i*.055+.75);osc(c2,'sine',f,g,t2+i*.055,.80);});
+    },520);
   } else if(p>=.5){
-    // Correct - accord neutre satisfaisant
-    [440,554,659].forEach((f,i)=>{
-      const delay=i*.1;
-      const g=c.createGain();g.gain.setValueAtTime(0,t+delay);g.gain.linearRampToValueAtTime(.16,t+delay+.03);g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.45);
-      osc(c,'triangle',f,g,t+delay,.5);
+    [440,554,659,880].forEach((f,i)=>{
+      const delay=i*.09;
+      const g=c.createGain();g.gain.setValueAtTime(0,t+delay);g.gain.linearRampToValueAtTime(.17,t+delay+.03);g.gain.exponentialRampToValueAtTime(0.0001,t+delay+.48);
+      osc(c,'triangle',f,g,t+delay,.52);
     });
   } else {
-    // Faible - deux tons doux descendants, pas punitifs
-    [[440,.15],[330,.13]].forEach(([f,v],i)=>{
-      const g=c.createGain();g.gain.setValueAtTime(v,t+i*.22);g.gain.exponentialRampToValueAtTime(0.0001,t+i*.22+.5);
-      osc(c,'sine',f,g,t+i*.22,.55,f*.85);
+    [[370,.14,300,.55],[270,.11,220,.50]].forEach(([f,v,f2,d],i)=>{
+      const g=c.createGain();g.gain.setValueAtTime(v,t+i*.25);g.gain.exponentialRampToValueAtTime(0.0001,t+i*.25+d);
+      osc(c,'sine',f,g,t+i*.25,d,f2);
     });
   }
 };
 
 // ─── beep : chrono ─────────────────────────────────────────────
-// Son de tic discret - pas stressant avant les 5 dernières secondes
 function beep(s){
   if(s!==lastTick){
     lastTick=s;
     if(!sndOn||s<=0)return;
     resume();const c=ac();if(!c)return;const t=c.currentTime;
-    if(s<=5){
-      // Tic tendu mais propre - ton court aigü
-      const g=c.createGain();g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.06);
-      osc(c,'sine',880,g,t,.07);
-      // Double-tic à 3s et moins
-      if(s<=3){
-        const g2=c.createGain();g2.gain.setValueAtTime(.09,t+.08);g2.gain.exponentialRampToValueAtTime(0.0001,t+.13);
-        osc(c,'sine',1100,g2,t+.08,.06);
-      }
+    if(s<=3){
+      // Triple tic intense — horloge qui s'emballe
+      const g=c.createGain();g.gain.setValueAtTime(.16,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.07);osc(c,'sine',1100,g,t,.08);
+      const g2=c.createGain();g2.gain.setValueAtTime(.11,t+.09);g2.gain.exponentialRampToValueAtTime(0.0001,t+.14);osc(c,'sine',1320,g2,t+.09,.06);
+      const g3=c.createGain();g3.gain.setValueAtTime(.07,t+.17);g3.gain.exponentialRampToValueAtTime(0.0001,t+.21);osc(c,'sine',880,g3,t+.17,.05);
+    } else if(s<=5){
+      // Double tic tendu
+      const g=c.createGain();g.gain.setValueAtTime(.13,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.065);osc(c,'sine',990,g,t,.075);
+      const g2=c.createGain();g2.gain.setValueAtTime(.08,t+.09);g2.gain.exponentialRampToValueAtTime(0.0001,t+.135);osc(c,'sine',1100,g2,t+.09,.055);
     } else if(s<=10){
-      // Tic doux et minimal
-      const g=c.createGain();g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.05);
-      osc(c,'sine',660,g,t,.06);
+      // Tic simple, doux
+      const g=c.createGain();g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(0.0001,t+.055);osc(c,'sine',720,g,t,.065);
     }
   }
 }
@@ -1734,6 +1848,7 @@ function renderModeStats(s){
     {key:'generique', label:'📜 Le Générique',      games:s.generiqueGames||0},
     {key:'location',  label:'🌍 Lieu de tournage',  games:s.locationGames||0},
     {key:'training',  label:'📚 Entraînement',      games:s.trainingGames||0},
+    {key:'trailer',   label:'▶️ Bande-annonce',      games:s.trailerGames||0},
   ].filter(m=>m.games>0);
   if(!modes.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);font-size:12px;padding:10px;">Joue pour voir tes statistiques par mode !</div>';return;}
   grid.innerHTML=modes.map(m=>{
@@ -1855,7 +1970,8 @@ const BADGES=[
   {id:'g200',    icon:'🏛️',name:'Vétéran absolu',       desc:'200 parties jouées',                   cond:s=>s.games>=200},
   {id:'perf10',  icon:'👑',name:'Perfectionniste',       desc:'10 parties parfaites',                 cond:s=>(s.perfects||0)>=10},
   {id:'allModes',icon:'🎭',name:'Explorateur',           desc:'Joue tous les modes au moins une fois',cond:s=>s.photoGames>=1&&s.yearGames>=1&&s.boGames>=1&&s.repliqueGames>=1&&s.acteurGames>=1&&s.baGames>=1&&s.boMusicGames>=1},
-  {id:'cineaste', icon:'🎞️',name:'Cinéaste',            desc:'Maîtrise totale : joue les 14 modes au moins une fois',cond:s=>s.photoGames>=1&&s.yearGames>=1&&s.boGames>=1&&s.repliqueGames>=1&&s.acteurGames>=1&&s.boMusicGames>=1&&s.boGames>=1&&s.compositeurGames>=1&&s.filmographieGames>=1&&s.realisateurGames>=1&&s.castingGames>=1&&s.generiqueGames>=1&&s.locationGames>=1&&s.trainingGames>=1},
+  {id:'ptrailer',  icon:'▶️',name:'Cinéaste en herbe',    desc:'Joue une partie Bande-annonce',         cond:s=>s.trailerGames>=1},
+  {id:'cineaste', icon:'🎞️',name:'Cinéaste',            desc:'Maîtrise totale : joue les 15 modes au moins une fois',cond:s=>s.photoGames>=1&&s.yearGames>=1&&s.boGames>=1&&s.repliqueGames>=1&&s.acteurGames>=1&&s.boMusicGames>=1&&s.boGames>=1&&s.compositeurGames>=1&&s.filmographieGames>=1&&s.realisateurGames>=1&&s.castingGames>=1&&s.generiqueGames>=1&&s.locationGames>=1&&s.trainingGames>=1&&s.trailerGames>=1},
 ];
 
 const DEF={xp:0,games:0,correct:0,questions:0,best:0,streak:0,maxStreak:0,lastDate:null,perfects:0,fast:0,photoOk:0,photoGames:0,yearGames:0,duoGames:0,boGames:0,boMusicGames:0,repliqueGames:0,repliqueOk:0,repliquePerfects:0,acteurGames:0,baGames:0,baPerfects:0,bestCombo:0,avatar:'',unlocked:[],history:[],playtime:0};
@@ -1967,6 +2083,51 @@ const REPLIQUES=[
   {quote:"Je suis le maître du monde !",film:"Titanic",actor:"Leonardo DiCaprio",year:1997,hint:"Un jeune homme les bras écartés à la proue du navire",id:597},
   {quote:"N'aie pas peur du noir. Aie peur de ce qu'il cache.",film:"Alien",actor:"Sigourney Weaver",year:1979,hint:"Une femme seule dans un couloir spatial",id:348},
   {quote:"Tout ce qui ne nous tue pas nous rend plus forts.",film:"Conan le Barbare",actor:"Arnold Schwarzenegger",year:1982,hint:"Un guerrier musclé face à un sorcier",id:9387},
+  // Pack 2 — Répliques cultes additionnelles
+  {quote:"À l'infini et au-delà !",film:"Toy Story",actor:"Tim Allen",year:1995,hint:"Un astronaute jouet qui ouvre ses ailes",id:862},
+  {quote:"Je sens une perturbation dans la Force.",film:"Star Wars - L'Empire contre-attaque",actor:"David Prowse",year:1980,hint:"Un homme en armure noire respirant lourdement",id:1891},
+  {quote:"Cours, Forrest, cours !",film:"Forrest Gump",actor:"Robin Wright",year:1994,hint:"Une fille crie depuis le bord d'une route",id:13},
+  {quote:"Tu me fais tourner la tête.",film:"Vertigo",actor:"James Stewart",year:1958,hint:"Un détective regardant une femme dans un escalier en colimaçon",id:4151},
+  {quote:"Si tu le construis, il viendra.",film:"Jusqu'au bout du rêve",actor:"Kevin Costner",year:1989,hint:"Un homme au milieu d'un champ de maïs la nuit",id:2454},
+  {quote:"La peur est la voie vers le côté obscur.",film:"La Menace fantôme",actor:"Frank Oz",year:1999,hint:"Un petit être vert aux longues oreilles",id:1893},
+  {quote:"On est à l'apogée de notre gloire.",film:"Sunset Boulevard",actor:"Gloria Swanson",year:1950,hint:"Une star déchue du muet devant des caméras",id:11202},
+  {quote:"Et que la Force soit avec vous.",film:"Star Wars",actor:"Alex Guinness",year:1977,hint:"Un vieux maître Jedi sur une planète désertique",id:11},
+  {quote:"Je suis ta mère.",film:"Star Wars - L'Empire contre-attaque",actor:"David Prowse",year:1980,hint:"Un duel au sabre laser dans une station spatiale",id:1891},
+  {quote:"Serpents. Pourquoi ce sont toujours des serpents ?",film:"Les Aventuriers de l'arche perdue",actor:"Harrison Ford",year:1981,hint:"Un archéologue avec un chapeau dans un tombeau",id:85},
+  {quote:"La vie est belle, capitaine.",film:"La Vie est belle",actor:"Roberto Benigni",year:1997,hint:"Un père sourit à son fils dans un camp",id:637},
+  {quote:"Je suis une idole, pas une personne.",film:"Sunset Boulevard",actor:"Gloria Swanson",year:1950,hint:"Une femme dans une villa décadente Hollywood",id:11202},
+  {quote:"Que le meilleur gagne.",film:"Les Jeux de la faim",actor:"Elizabeth Banks",year:2012,hint:"Une femme en costume extravagant dans une arène",id:70160},
+  {quote:"L'espoir est le seul luxe des condamnés.",film:"Le Comte de Monte-Cristo",actor:"Jim Caviezel",year:2002,hint:"Un homme dans une cellule de château",id:10625},
+  {quote:"Je suis vivant !",film:"Cast Away",actor:"Tom Hanks",year:2000,hint:"Un homme seul sur une île crie vers le ciel",id:1586},
+  {quote:"Toi et moi contre le monde.",film:"Bonnie and Clyde",actor:"Warren Beatty",year:1967,hint:"Deux gangsters souriants devant une Ford V8",id:8842},
+  {quote:"Il y a des hommes qui tueraient pour une médiocrité pareille.",film:"Amadeus",actor:"F. Murray Abraham",year:1984,hint:"Un compositeur jaloux fouillant dans des partitions",id:197},
+  {quote:"Ce soir, on mange en enfer !",film:"300",actor:"Gerard Butler",year:2006,hint:"Un guerrier spartiate au bord d'un puits",id:1271},
+  {quote:"Tous les rêves peuvent devenir réels.",film:"Harvey",actor:"James Stewart",year:1950,hint:"Un homme souriant avec un lapin invisible",id:38050},
+  {quote:"Je suis le capitaine de cette âme.",film:"Invictus",actor:"Morgan Freeman",year:2009,hint:"Nelson Mandela en costume souriant sur un terrain de rugby",id:24886},
+  {quote:"Le chaos est un escalier.",film:"Game of Thrones",actor:"Aidan Gillen",year:2012,hint:"Un homme rusé dans une ruelle sombre",id:0},
+  {quote:"Je reviendrai pour toi.",film:"Terminator 2",actor:"Arnold Schwarzenegger",year:1991,hint:"Un cyborg de dos marchant vers une explosion",id:280},
+  {quote:"C'est une belle journée pour mourir.",film:"Die Hard",actor:"Bruce Willis",year:1988,hint:"Un policier en débardeur dans un gratte-ciel",id:562},
+  {quote:"Avec grand pouvoir vient grande responsabilité.",film:"Spider-Man",actor:"Cliff Robertson",year:2002,hint:"Un oncle âgé sur son lit de mort",id:557},
+  {quote:"Je suis le lion.",film:"La Reine des damnés",actor:"Stuart Townsend",year:2002,hint:"Un vampire rock star sur scène",id:10828},
+  {quote:"La perfection n'existe pas.",film:"Black Swan",actor:"Natalie Portman",year:2010,hint:"Une danseuse étoile épuisée en tutu blanc",id:107},
+  {quote:"Seras-tu mon ami ?",film:"Harvey",actor:"James Stewart",year:1950,hint:"Un homme et un lapin imaginaire de deux mètres",id:38050},
+  {quote:"L'art de vivre c'est mélanger les rêves avec la réalité.",film:"La La Land",actor:"Ryan Gosling",year:2016,hint:"Un pianiste et une actrice sur une colline illuminée",id:313369},
+  {quote:"Ce que nous faisons dans notre vie se répercute dans l'éternité.",film:"Gladiator",actor:"Russell Crowe",year:2000,hint:"Un général en armure avant la bataille",id:98},
+  {quote:"Je ne t'aime plus.",film:"Eternal Sunshine of the Spotless Mind",actor:"Jim Carrey",year:2004,hint:"Un homme sous la neige dans un couloir de mémoire",id:38},
+  {quote:"Nous serons toujours ensemble.",film:"Titanic",actor:"Kate Winslet",year:1997,hint:"Une vieille femme regardant par un hublot",id:597},
+  {quote:"Je dois briser ces chaînes.",film:"12 Years a Slave",actor:"Chiwetel Ejiofor",year:2013,hint:"Un homme enchaîné dans un champ de coton",id:96721},
+  {quote:"Il n'y a rien de plus dangereux qu'un homme qui n'a plus rien à perdre.",film:"Heat",actor:"Robert De Niro",year:1995,hint:"Deux hommes se faisant face dans un café de nuit",id:949},
+  {quote:"Ne laisse jamais personne te dire que tu ne peux pas faire quelque chose.",film:"La Poursuite du bonheur",actor:"Will Smith",year:2006,hint:"Un père et son fils dans une salle de bain d'urgence",id:5258},
+  {quote:"Je peux tout arrêter sauf toi.",film:"Presque célèbre",actor:"Billy Crudup",year:2000,hint:"Un rockeur sur scène avec des fans en délire",id:1902},
+  {quote:"Tout le monde mérite une deuxième chance.",film:"Gran Torino",actor:"Clint Eastwood",year:2008,hint:"Un vieil homme boudant derrière sa clôture",id:14674},
+  {quote:"Le monde entier est un théâtre.",film:"A propos d'Adam",actor:"Bryan Adams",year:2000,hint:"Aucune image connue",id:0},
+  {quote:"Vous devrez me tuer d'abord.",film:"Les Misérables",actor:"Hugh Jackman",year:2012,hint:"Un homme en haillons face à un inspecteur implacable",id:61791},
+  {quote:"Je chante pour survivre.",film:"La La Land",actor:"Emma Stone",year:2016,hint:"Une actrice chantant seule dans une chambre",id:313369},
+  {quote:"Je suis trop vieux pour ça.",film:"L'Arme fatale",actor:"Danny Glover",year:1987,hint:"Un policier qui soupire face à son coéquipier fou",id:941},
+  {quote:"Et voilà pour le reste de ta vie.",film:"Pulp Fiction",actor:"John Travolta",year:1994,hint:"Un homme en smoking injectant de l'adrénaline",id:680},
+  {quote:"Tuer est facile, avoir la paix c'est difficile.",film:"Full Metal Jacket",actor:"Matthew Modine",year:1987,hint:"Un soldat avec un casque et des insignes contradictoires",id:600},
+  {quote:"J'ai vu des choses que vous ne croiriez pas.",film:"Blade Runner",actor:"Rutger Hauer",year:1982,hint:"Un réplicant mourant sous la pluie sur un toit",id:78},
+  {quote:"Quelquefois il faut reculer pour mieux sauter.",film:"Retour vers le Futur",actor:"Michael J. Fox",year:1985,hint:"Un ado regardant une DeLorean accélérer vers lui",id:105},
 ];
 
 function buildRepliqueQuestions(){
@@ -2130,6 +2291,64 @@ async function fetchBoxOfficeRound(){
 
 
 // -- GENERIQUE DATA --
+// ==============================
+// MODE BANDE-ANNONCE
+// Chaque entrée : videoId YouTube, start (secondes), film, 3 leurres, hint
+// ==============================
+const TRAILER_DATA=[
+  {videoId:'dQw4w9WgXcQ',start:0, // placeholder — sera overridé par les vrais IDs
+   film:'Inception',       wrong:['Interstellar','Tenet','The Matrix'],hint:'Un voleur entre dans les rêves',id:27205,
+   realVideoId:'YoHD9XEInc0'},
+  {film:'Interstellar',    wrong:['Gravity','The Martian','Ad Astra'],hint:'Des astronautes traversent un trou de ver',id:157336,
+   realVideoId:'zSWdZVtXT7E'},
+  {film:'The Dark Knight', wrong:['Batman Begins','Joker','Batman v Superman'],hint:'Le Joker sème le chaos à Gotham',id:155,
+   realVideoId:'kmJLuwP3MbY'},
+  {film:'Gladiator',       wrong:['Troy','Ben-Hur','Braveheart'],hint:'Un général romain réduit en esclavage',id:98,
+   realVideoId:'P5ieIbInFpg'},
+  {film:'Avengers: Endgame',wrong:['Infinity War','Age of Ultron','Civil War'],hint:'Les héros Marvel face à leur dernier combat',id:299534,
+   realVideoId:'TcMBFSGVi1c'},
+  {film:'Parasite',        wrong:['Burning','Mother','Memories of Murder'],hint:'Deux familles coréennes aux destins croisés',id:496243,
+   realVideoId:'5xH0HfJHsaY'},
+  {film:'Mad Max: Fury Road',wrong:['Waterworld','The Road','Dune'],hint:'Une course-poursuite apocalyptique dans le désert',id:76341,
+   realVideoId:'hEJnMQG9ev8'},
+  {film:'Pulp Fiction',    wrong:['Reservoir Dogs','Jackie Brown','Kill Bill'],hint:'Des gangsters, une mallette et des dialogues cultes',id:680,
+   realVideoId:'s7EdQ4FqbhY'},
+  {film:'Le Parrain',      wrong:['Casino','Goodfellas','Scarface'],hint:'La famille Corleone fait une offre irrésistible',id:238,
+   realVideoId:'sY1S34973zA'},
+  {film:'Titanic',         wrong:['The Poseidon Adventure','Deepwater Horizon','Pearl Harbor'],hint:'Une romance sur le paquebot le plus célèbre',id:597,
+   realVideoId:'CHekZpWPEMs'},
+  {film:'Joker',           wrong:['Batman','Suicide Squad','Birds of Prey'],hint:'La naissance d\'un clown criminel de Gotham',id:475557,
+   realVideoId:'zAGVQLHvwOY'},
+  {film:'Dune',            wrong:['Star Wars','Ender\'s Game','Starship Troopers'],hint:'Paul Atreides découvre la planète Arrakis',id:438631,
+   realVideoId:'8g18jFHCLXk'},
+  {film:'Oppenheimer',     wrong:['Manhattan Project','Fat Man and Little Boy','Einstein and the Bomb'],hint:'Le père de la bombe atomique face à ses démons',id:872585,
+   realVideoId:'uYPbbksJxIg'},
+  {film:'Barbie',          wrong:['Legally Blonde','Clueless','Mean Girls'],hint:'Bienvenue à Barbieland — et dans le monde réel',id:346698,
+   realVideoId:'pBk4NYhWNMM'},
+  {film:'Forrest Gump',    wrong:['Big','Philadelphia','Cast Away'],hint:'La vie comme une boîte de chocolats',id:13,
+   realVideoId:'bLvqoHBptjg'},
+  {film:'Matrix',          wrong:['Dark City','eXistenZ','The Thirteenth Floor'],hint:'Pilule rouge ou pilule bleue ?',id:603,
+   realVideoId:'vKQi3bBA1y8'},
+  {film:'Fight Club',      wrong:['Seven','The Game','Zodiac'],hint:'La première règle ne se dit pas',id:550,
+   realVideoId:'SUXWAEX2jlg'},
+  {film:'Intouchables',    wrong:['The Upside','Amigos','Buddy'],hint:'Un philanthrope et son aide-soignant improbable',id:77338,
+   realVideoId:'E_6kODUdOlU'},
+  {film:'La La Land',      wrong:['Whiplash','A Star is Born','Moulin Rouge'],hint:'Un pianiste de jazz et une actrice à Los Angeles',id:313369,
+   realVideoId:'0pdqf4P9MB8'},
+  {film:'Whiplash',        wrong:['Black Swan','The Pianist','Bohemian Rhapsody'],hint:'Un étudiant en jazz face à un professeur tyrannique',id:244786,
+   realVideoId:'7d_jQycdQGo'},
+];
+
+function fetchTrailerQuestions(count){
+  const pool=shuffle([...TRAILER_DATA]).slice(0,count);
+  return pool.map(q=>{
+    const ans=shuffle([q.film,...q.wrong]);
+    return{type:'trailer',film:q.film,videoId:q.realVideoId||q.videoId,
+      start:q.start||0,hint:q.hint,answers:ans,correct:ans.indexOf(q.film),
+      difficulty:'medium',category:'Bande-annonce'};
+  });
+}
+
 const GENERIQUE_FILMS=[
   {title:'Inception',year:2010,genre:'Science-fiction',
    cast:[{name:'Leonardo DiCaprio',role:'Dom Cobb'},{name:'Joseph Gordon-Levitt',role:'Arthur'},{name:'Elliot Page',role:'Ariadne'},{name:'Tom Hardy',role:'Eames'},{name:'Cillian Murphy',role:'Fischer'},{name:'Marion Cotillard',role:'Mal'}]},
@@ -2199,6 +2418,20 @@ const LOCATION_FILMS=[
   {title:"Jurassic Park",country:"Hawaï",place:"Kualoa Ranch",hint:"Vallee luxuriante sur Oahu utilisee pour les dinosaures",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Kaaawa_Valley.jpg/640px-Kaaawa_Valley.jpg"},
   {title:"Amélie Poulain",country:"France",place:"Montmartre",hint:"Cafe des 2 Moulins et la basilique au sommet de la butte",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Sacre_Coeur_Montmartre.jpg/640px-Sacre_Coeur_Montmartre.jpg"},
   {title:"Spectre",country:"Mexique",place:"Mexico City",hint:"Défilé du Jour des Morts dans les rues de la capitale",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Day_of_the_Dead_procession_in_Mexico_City.jpg/640px-Day_of_the_Dead_procession_in_Mexico_City.jpg"},
+  {title:"Midnight in Paris",country:"France",place:"Pont de Bir-Hakeim",hint:"Viaduc métallique parisien au bord de la Seine",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Pont_de_Bir-Hakeim.jpg/640px-Pont_de_Bir-Hakeim.jpg"},
+  {title:"Da Vinci Code",country:"France",place:"Musée du Louvre",hint:"La pyramide de verre au cœur du plus grand musée du monde",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Louvre_Museum_Wikimedia_Commons.jpg/640px-Louvre_Museum_Wikimedia_Commons.jpg"},
+  {title:"The Dark Knight",country:"Etats-Unis",place:"Chicago",hint:"La skyline de Chicago doublait Gotham City",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Willis_tower_from_adler_edit.jpg/640px-Willis_tower_from_adler_edit.jpg"},
+  {title:"Transporter",country:"France",place:"Monaco",hint:"Tunnels et virages autour du Rocher de Monaco",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Monaco_montecarlo.jpg/640px-Monaco_montecarlo.jpg"},
+  {title:"Mission Impossible",country:"Maroc",place:"Marrakech",hint:"Medina et souks comme toile de fond pour la CIA",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Jemaa_el_Fna_at_Night.jpg/640px-Jemaa_el_Fna_at_Night.jpg"},
+  {title:"Inception",country:"France",place:"Paris (rue pliée)",hint:"La rue Rue Saint-Nicolas rendue verticale par les effets spéciaux",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Rue_Saint-Nicolas_Paris.jpg/640px-Rue_Saint-Nicolas_Paris.jpg"},
+  {title:"Avengers",country:"Etats-Unis",place:"New York",hint:"Le Zuccotti Park et Wall Street sous attaque alien",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/2010-10-23_14-54-08_United_States_New_York_City_Lower_Manhattan.jpg/640px-2010-10-23_14-54-08_United_States_New_York_City_Lower_Manhattan.jpg"},
+  {title:"No Country for Old Men",country:"Etats-Unis",place:"Désert du Texas",hint:"Plaines arides texanes pour une chasse à l'homme implacable",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Big_Bend_National_Park_view.jpg/640px-Big_Bend_National_Park_view.jpg"},
+  {title:"Dances with Wolves",country:"Etats-Unis",place:"Dakota du Sud",hint:"Prairies infinies des plaines indiennes",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Badlands_National_Park.jpg/640px-Badlands_National_Park.jpg"},
+  {title:"Forrest Gump",country:"Etats-Unis",place:"Savannah (Chippewa Square)",hint:"Le banc de parc où Forrest raconte sa vie",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Chippewa_Square_Savannah_Georgia.jpg/640px-Chippewa_Square_Savannah_Georgia.jpg"},
+  {title:"The Beach",country:"Thaïlande",place:"Ko Phi Phi Leh",hint:"Plage secrète entourée de falaises calcaires",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Maya_Bay_in_Thailand.jpg/640px-Maya_Bay_in_Thailand.jpg"},
+  {title:"James Bond - Casino Royale",country:"Montenegro/Tchéquie",place:"Spa de Karlovy Vary",hint:"Le casino de Monte Noir est en réalité cette ville thermale",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Karlovy_Vary_-_panorama.jpg/640px-Karlovy_Vary_-_panorama.jpg"},
+  {title:"Le Voyage de Chihiro",country:"Japon",place:"Jiufen",hint:"Village de montagne taïwanais avec lanternes rouges",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Jiufen_Old_Street.jpg/640px-Jiufen_Old_Street.jpg"},
+  {title:"Doctor Strange",country:"Maroc",place:"Jemaa el-Fna",hint:"La grande place de Marrakech transformée en Katmandou mystique",photo:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Jemaa_el_Fna_at_Night.jpg/640px-Jemaa_el_Fna_at_Night.jpg"},
 ];
 
 function fetchLocationQuestions(count){
@@ -2564,7 +2797,147 @@ async function fetchRealisateurQuestions(count){
 // ==============================
 // TRIVIA
 // ==============================
+// ==============================
+// BASE TRIVIA FRANÇAISE CURATÉE
+// ==============================
+const TRIVIA_FR=[
+  // Oscars & Prix
+  {text:"Quel film a remporté l'Oscar du meilleur film en 2020 ?",correct:"Parasite",wrong:["1917","Joker","Le Mans 66"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film français a remporté l'Oscar du meilleur film international en 2012 ?",correct:"The Artist",wrong:["Intouchables","De rouille et d'os","Amour"],difficulty:"medium",category:"Cinéma"},
+  {text:"Combien de fois Meryl Streep a-t-elle remporté l'Oscar de la meilleure actrice ?",correct:"3 fois",wrong:["2 fois","4 fois","1 fois"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel réalisateur a remporté l'Oscar pour 'Oppenheimer' en 2024 ?",correct:"Christopher Nolan",wrong:["Denis Villeneuve","Martin Scorsese","Steven Spielberg"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui a remporté l'Oscar du meilleur acteur pour 'The Revenant' ?",correct:"Leonardo DiCaprio",wrong:["Tom Hardy","Matt Damon","Michael Fassbender"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film détient le record du plus grand nombre d'Oscars (11) ?",correct:"Ben-Hur, Titanic et Le Retour du Roi",wrong:["Lawrence d'Arabie","Casablanca","Il était une fois dans l'Ouest"],difficulty:"hard",category:"Cinéma"},
+  // Cannes
+  {text:"Quelle est la plus haute récompense décernée au Festival de Cannes ?",correct:"La Palme d'Or",wrong:["Le Lion d'Or","L'Ours d'Or","La Caméra d'Or"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de Quentin Tarantino a remporté la Palme d'Or en 1994 ?",correct:"Pulp Fiction",wrong:["Kill Bill","Reservoir Dogs","Jackie Brown"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film coréen a remporté la Palme d'Or en 2019 ?",correct:"Parasite",wrong:["Mademoiselle","The Wailing","Burning"],difficulty:"medium",category:"Cinéma"},
+  {text:"Combien de Palmes d'Or Michael Haneke a-t-il remportées ?",correct:"2",wrong:["1","3","0"],difficulty:"hard",category:"Cinéma"},
+  // Box-office mondial
+  {text:"Quel film est le plus grand succès du box-office mondial de tous les temps (inflation comprise) ?",correct:"Autant en emporte le vent",wrong:["Avatar","Avengers: Endgame","Titanic"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film Marvel est le plus rentable de tous les temps ?",correct:"Avengers: Endgame",wrong:["Avengers: Infinity War","Spider-Man: No Way Home","Black Panther"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film James Cameron a dépassé le milliard de dollars au box-office deux fois à 13 ans d'intervalle ?",correct:"Avatar",wrong:["Titanic","Aliens","Terminator 2"],difficulty:"medium",category:"Cinéma"},
+  // Réalisateurs
+  {text:"Quel réalisateur est connu pour sa technique de 'Dogme 95' ?",correct:"Lars von Trier",wrong:["Ingmar Bergman","Werner Herzog","Michael Haneke"],difficulty:"hard",category:"Cinéma"},
+  {text:"Qui a réalisé 'La Trilogie des Dollars' (western spaghetti) ?",correct:"Sergio Leone",wrong:["Dario Argento","Federico Fellini","Luchino Visconti"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel réalisateur n'a jamais gagné d'Oscar malgré de nombreuses nominations (Hitchcock, Kubrick, Lynch…) ?",correct:"Stanley Kubrick",wrong:["Billy Wilder","Francis Ford Coppola","Steven Spielberg"],difficulty:"hard",category:"Cinéma"},
+  {text:"Qui a réalisé 'Eyes Wide Shut', son dernier film avant sa mort ?",correct:"Stanley Kubrick",wrong:["Ridley Scott","Michael Mann","Adrian Lyne"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel réalisateur français est connu pour la trilogie 'Amour', 'Caché' et 'Funny Games' ?",correct:"Michael Haneke",wrong:["Claude Miller","Bertrand Tavernier","Jean-Pierre Jeunet"],difficulty:"medium",category:"Cinéma"},
+  {text:"Qui a réalisé 'Dunkerque', 'Interstellar' et 'Inception' ?",correct:"Christopher Nolan",wrong:["Ridley Scott","J.J. Abrams","Zack Snyder"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel réalisateur espagnol est célèbre pour 'Tout sur ma mère' et 'Volver' ?",correct:"Pedro Almodóvar",wrong:["Carlos Saura","Victor Erice","Bigas Luna"],difficulty:"medium",category:"Cinéma"},
+  // Acteurs & records
+  {text:"Quel acteur a joué dans le plus de films Marvel ?",correct:"Samuel L. Jackson",wrong:["Robert Downey Jr.","Chris Evans","Scarlett Johansson"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel acteur français a remporté l'Oscar du meilleur acteur pour 'The Artist' ?",correct:"Jean Dujardin",wrong:["Omar Sy","Vincent Cassel","Mathieu Amalric"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quelle actrice a remporté l'Oscar pour 'La Vie en rose' en jouant Édith Piaf ?",correct:"Marion Cotillard",wrong:["Audrey Tautou","Isabelle Huppert","Sophie Marceau"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui est le seul acteur à avoir joué dans tous les films de la franchise Indiana Jones ?",correct:"Harrison Ford",wrong:["Shia LaBeouf","Sean Connery","John Rhys-Davies"],difficulty:"easy",category:"Cinéma"},
+  {text:"Combien d'acteurs différents ont interprété James Bond au cinéma ?",correct:"7",wrong:["5","6","8"],difficulty:"hard",category:"Cinéma"},
+  // Cinéma français
+  {text:"Quel film de Luc Besson a été le plus grand succès du cinéma français à l'international ?",correct:"Le Cinquième Élément",wrong:["Nikita","Léon","Le Grand Bleu"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quelle est la comédie française la plus vue de tous les temps en France ?",correct:"Bienvenue chez les Ch'tis",wrong:["Les Visiteurs","La Grande Vadrouille","Le Dîner de cons"],difficulty:"medium",category:"Cinéma"},
+  {text:"Qui a réalisé 'Les 400 coups', fondateur de la Nouvelle Vague ?",correct:"François Truffaut",wrong:["Jean-Luc Godard","Claude Chabrol","Louis Malle"],difficulty:"medium",category:"Cinéma"},
+  {text:"Dans quel film le personnage d'Amélie Poulain est-il interprété ?",correct:"Le Fabuleux Destin d'Amélie Poulain",wrong:["Paris, je t'aime","Un long dimanche de fiançailles","Jeux d'enfants"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de Michel Gondry avec Jim Carrey explore la mémoire ?",correct:"Eternal Sunshine of the Spotless Mind",wrong:["The Truman Show","Ace Ventura","Bruce Almighty"],difficulty:"medium",category:"Cinéma"},
+  // Techniques & histoire du cinéma
+  {text:"Dans quel film Orson Welles utilise pour la première fois le plan-séquence de façon magistrale ?",correct:"Citizen Kane",wrong:["Touch of Evil","La Soif du mal","Macbeth"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel fut le premier film de l'histoire du cinéma parlant sorti en 1927 ?",correct:"Le Chanteur de jazz",wrong:["Nosferatu","Metropolis","La Passion de Jeanne d'Arc"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quelle technique de filmage consiste à garder la mise au point sur un sujet en avant-plan tout en dézoomant la caméra ?",correct:"L'effet Vertigo / Dolly Zoom",wrong:["Tilt-shift","Steadicam","Rack Focus"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film de Denis Villeneuve se déroule sur la planète Arrakis ?",correct:"Dune",wrong:["Blade Runner 2049","Premier Contact","Enemy"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel studio américain a créé les films Pixar ?",correct:"Pixar / Disney",wrong:["DreamWorks","Universal","Warner Bros"],difficulty:"easy",category:"Cinéma"},
+  // Univers cinématographiques
+  {text:"Dans quel ordre chronologique de publication sont les 3 films de la trilogie Dark Knight ?",correct:"Batman Begins, The Dark Knight, The Dark Knight Rises",wrong:["The Dark Knight, Batman Begins, The Dark Knight Rises","Batman Begins, The Dark Knight Rises, The Dark Knight","The Dark Knight, The Dark Knight Rises, Batman Begins"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel acteur a été le premier à incarner Iron Man dans le MCU ?",correct:"Robert Downey Jr.",wrong:["Chris Evans","Benedict Cumberbatch","Don Cheadle"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans quel film Ridley Scott présente-t-il pour la première fois le Xenomorph ?",correct:"Alien",wrong:["Aliens","Alien 3","Prometheus"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans quelle ville se déroule principalement 'The Dark Knight' ?",correct:"Gotham City",wrong:["Metropolis","Star City","Central City"],difficulty:"easy",category:"Cinéma"},
+  // Musique de film
+  {text:"Qui a composé la musique de la saga 'Star Wars' ?",correct:"John Williams",wrong:["Hans Zimmer","Ennio Morricone","Howard Shore"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui a composé la célèbre musique du film 'Le bon, la brute et le truand' ?",correct:"Ennio Morricone",wrong:["Nino Rota","John Barry","Bernard Herrmann"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quelle chanson des Beatles est utilisée dans la scène d'ouverture de 'Good Morning Vietnam' ?",correct:"Good Morning Vietnam n'utilise pas les Beatles",wrong:["Hey Jude","Come Together","Let It Be"],difficulty:"hard",category:"Cinéma"},
+  // Anecdotes célèbres
+  {text:"Quel acteur a refusé l'Oscar du meilleur acteur en 1972 pour protester contre le traitement des Amérindiens ?",correct:"Marlon Brando",wrong:["George C. Scott","Jack Nicholson","Al Pacino"],difficulty:"hard",category:"Cinéma"},
+  {text:"Dans quel film Harrison Ford a-t-il improvisé la scène où il tire sur le sabreur au lieu de se battre ?",correct:"Raiders of the Lost Ark (Indiana Jones)",wrong:["Star Wars","Blade Runner","The Fugitive"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de Kubrick a été retiré par son réalisateur des cinémas britanniques après des incidents ?",correct:"Orange Mécanique",wrong:["2001 l'Odyssée de l'espace","Shining","Full Metal Jacket"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel célèbre réalisateur fait souvent des apparitions dans ses propres films ('caméo') ?",correct:"Alfred Hitchcock",wrong:["Stanley Kubrick","Orson Welles","Billy Wilder"],difficulty:"easy",category:"Cinéma"},
+  // Films cultes
+  {text:"Quel film de Spielberg a déclenché la peur de la mer dans les années 70 ?",correct:"Les Dents de la mer",wrong:["Titanic","Abysse","Deep Blue Sea"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Pulp Fiction', quelle danse John Travolta et Uma Thurman interprètent-ils ?",correct:"Le Twist",wrong:["Le Madison","Le Charleston","Le Jive"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel est le vrai prénom du personnage 'Forrest Gump' dans le film ?",correct:"Forrest",wrong:["John","Tom","Bobby"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Shining', quel numéro a la chambre hantée de l'Overlook Hotel ?",correct:"237",wrong:["217","313","666"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de Tim Burton avec Michael Keaton a relancé Batman en 1989 ?",correct:"Batman",wrong:["Batman Returns","Batman Forever","Batman & Robin"],difficulty:"easy",category:"Cinéma"},
+  // Pack Deuxième vague — 60 nouvelles questions
+  {text:"Qui a réalisé 'Parasite', Palme d'Or 2019 ?",correct:"Bong Joon-ho",wrong:["Park Chan-wook","Lee Chang-dong","Kim Jee-woon"],difficulty:"medium",category:"Cinéma"},
+  {text:"Dans quel film Audrey Hepburn chante 'Moon River' ?",correct:"Diamants sur canapé",wrong:["Sabrina","Roman Holiday","My Fair Lady"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel acteur joue James Bond dans 'Casino Royale' de 2006 ?",correct:"Daniel Craig",wrong:["Pierce Brosnan","Timothy Dalton","Roger Moore"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film Pixar se déroule dans un monde de monstres chargés d'effrayer des enfants ?",correct:"Monstres & Cie",wrong:["Monstres Academy","The Good Dinosaur","Elemental"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui a joué Hannibal Lecter dans 'Le Silence des agneaux' ?",correct:"Anthony Hopkins",wrong:["Gary Oldman","Ian McKellen","Timothy Dalton"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans quelle ville se passe principalement l'action de 'Midnight in Paris' de Woody Allen ?",correct:"Paris",wrong:["Rome","New York","Barcelone"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de 1968 de Stanley Kubrick traite du voyage vers Jupiter ?",correct:"2001 : L'Odyssée de l'espace",wrong:["Orange Mécanique","Shining","Full Metal Jacket"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quelle actrice joue la sorcière Ursula dans 'La Petite Sirène' de 1989 ?",correct:"Pat Carroll",wrong:["Jodi Benson","Rene Auberjonois","Samuel E. Wright"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film de 1994 est le premier film entièrement en images de synthèse de Pixar ?",correct:"Toy Story",wrong:["A Bug's Life","Monsters Inc","Finding Nemo"],difficulty:"medium",category:"Cinéma"},
+  {text:"Qui réalise la saga 'Indiana Jones' ?",correct:"Steven Spielberg",wrong:["George Lucas","John Hughes","James Cameron"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Gladiator', quel est le nom du personnage joué par Russell Crowe ?",correct:"Maximus Decimus Meridius",wrong:["Proximo","Commode","Juba"],difficulty:"medium",category:"Cinéma"},
+  {text:"Combien de films a réalisé Stanley Kubrick en tout ?",correct:"13",wrong:["9","16","20"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film raconte l'histoire d'un espion qui doit sauver le monde en 24 heures ?",correct:"Mission Impossible",wrong:["Jason Bourne","Salt","Spy"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui a écrit et réalisé 'Reservoir Dogs', son premier long métrage ?",correct:"Quentin Tarantino",wrong:["Joel Coen","Guy Ritchie","Robert Rodriguez"],difficulty:"medium",category:"Cinéma"},
+  {text:"Dans 'Le Roi Lion', comment s'appelle le méchant oncle de Simba ?",correct:"Scar",wrong:["Mufasa","Rafiki","Ed"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de Steven Spielberg de 1993 met en scène des dinosaures ?",correct:"Jurassic Park",wrong:["Jurassic World","The Lost World","Land Before Time"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Harry Potter', qui est le réalisateur des deux premiers films ?",correct:"Chris Columbus",wrong:["Alfonso Cuarón","Mike Newell","David Yates"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel personnage de 'Star Wars' dit 'Que la Force soit avec toi' pour la première fois ?",correct:"General Dodonna",wrong:["Obi-Wan Kenobi","Yoda","Luke Skywalker"],difficulty:"hard",category:"Cinéma"},
+  {text:"Qui joue Tony Montana dans 'Scarface' de Brian De Palma ?",correct:"Al Pacino",wrong:["Robert De Niro","Joe Pesci","Harvey Keitel"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans quel pays a été tournée la majorité de 'Mad Max : Fury Road' ?",correct:"Namibie et Australie",wrong:["Afrique du Sud","Maroc","Kenya"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film de Wes Anderson met en scène un hôtel fantaisiste dans les Alpes ?",correct:"The Grand Budapest Hotel",wrong:["Moonrise Kingdom","The French Dispatch","Asteroid City"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quelle actrice joue la protagoniste Furiosa dans 'Mad Max Fury Road' ?",correct:"Charlize Theron",wrong:["Cate Blanchett","Halle Berry","Jessica Alba"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 1999 met en scène un architecte dont la maison devient intelligente et meurtrière ?",correct:"Dark City",wrong:["Smart House","eXistenZ","Pi"],difficulty:"hard",category:"Cinéma"},
+  {text:"Combien de films composent la saga 'Le Seigneur des Anneaux' de Peter Jackson ?",correct:"3",wrong:["2","4","6"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Avengers: Endgame', quel personnage dit 'Je suis inévitable' ?",correct:"Thanos",wrong:["Ultron","Loki","Hela"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 2020 avec Chadwick Boseman est sorti après sa mort ?",correct:"Ma Rainey's Black Bottom",wrong:["Black Panther","21 Bridges","Da 5 Bloods"],difficulty:"hard",category:"Cinéma"},
+  {text:"Qui a composé la musique de 'Les Temps modernes' de Charlie Chaplin ?",correct:"Charlie Chaplin lui-même",wrong:["Bernard Herrmann","Franz Waxman","Max Steiner"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film de David Lynch reçut la Palme d'Or en 1990 ?",correct:"Sailor et Lula",wrong:["Blue Velvet","Mulholland Drive","Eraserhead"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quelle est la durée du plan-séquence d'ouverture de 'Touch of Evil' d'Orson Welles ?",correct:"3 minutes 20 secondes",wrong:["1 minute","5 minutes","8 minutes"],difficulty:"hard",category:"Cinéma"},
+  {text:"Dans 'Forrest Gump', quelle star de rock rencontre Forrest à la Maison Blanche ?",correct:"John Lennon",wrong:["Elvis Presley","Bob Dylan","Jim Morrison"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel acteur joue le rôle principal dans 'Taxi Driver' de Scorsese ?",correct:"Robert De Niro",wrong:["Harvey Keitel","Cybill Shepherd","Jodie Foster"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Inception', combien de niveaux de rêves les personnages explorent-ils ?",correct:"4",wrong:["3","5","2"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 2010 a été tourné en IMAX et comporte des effets pratiques majeurs ?",correct:"Inception",wrong:["Interstellar","The Dark Knight","Tenet"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quelle année est sorti le premier film de la saga 'Fast and Furious' ?",correct:"2001",wrong:["1999","2003","2005"],difficulty:"medium",category:"Cinéma"},
+  {text:"Dans 'La Vie est belle' de Capra, qui joue l'ange Clarence ?",correct:"Henry Travers",wrong:["James Stewart","Lionel Barrymore","Thomas Mitchell"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel réalisateur a tourné à la fois 'Arrête-moi si tu peux' et 'La Liste de Schindler' ?",correct:"Steven Spielberg",wrong:["Ron Howard","Ridley Scott","Martin Scorsese"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de Darren Aronofsky traite de l'addiction à la drogue dans Brooklyn ?",correct:"Requiem for a Dream",wrong:["Pi","Black Swan","The Wrestler"],difficulty:"medium",category:"Cinéma"},
+  {text:"Qui joue le rôle de Michael Corleone jeune dans 'Le Parrain II' ?",correct:"Al Pacino",wrong:["Robert De Niro","James Caan","Robert Duvall"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de Cuarón a été entièrement filmé en apesanteur simulée ?",correct:"Gravity",wrong:["Children of Men","Roma","Harry Potter et le Prisonnier d'Azkaban"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel est le seul film d'animation à avoir remporté la Palme d'Or ?",correct:"Aucun — le jury y est traditionnellement opposé",wrong:["Spirit","Waltz with Bashir","The Cat's Meow"],difficulty:"hard",category:"Cinéma"},
+  {text:"Qui joue le rôle de Don Corleone dans 'Le Parrain' ?",correct:"Marlon Brando",wrong:["Al Pacino","James Caan","Robert Duvall"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans 'Fight Club', qui est la voix narrative ?",correct:"Edward Norton",wrong:["Brad Pitt","Helena Bonham Carter","Jared Leto"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 2023 met en vedette Ryan Gosling en Ken ?",correct:"Barbie",wrong:["The Fall Guy","Blade Runner 2049","Drive"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel acteur joue Deadpool dans les films Marvel ?",correct:"Ryan Reynolds",wrong:["Ryan Gosling","Chris Pratt","Tom Holland"],difficulty:"easy",category:"Cinéma"},
+  {text:"Dans quel film Joaquin Phoenix joue-t-il un homme amoureux d'une IA ?",correct:"Her",wrong:["Joker","The Master","Inherent Vice"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 2022 a relancé Tom Cruise avec un record pour Paramount ?",correct:"Top Gun : Maverick",wrong:["Mission Impossible 7","Jack Reacher","Oblivion"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui a réalisé 'Blade Runner 2049' ?",correct:"Denis Villeneuve",wrong:["Ridley Scott","Christopher Nolan","J.J. Abrams"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 1994 de Robert Zemeckis mélange animation et prises de vue réelles ?",correct:"Forrest Gump",wrong:["Roger Rabbit","Casper","The Mask"],difficulty:"medium",category:"Cinéma"},
+  {text:"Dans 'Whiplash', quel instrument joue le personnage principal ?",correct:"Batterie",wrong:["Piano","Trompette","Saxophone"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel est le premier film de la saga 'Pirates des Caraïbes' ?",correct:"La Malédiction du Black Pearl",wrong:["Le Secret du coffre maudit","Jusqu'au bout du monde","La Fontaine de Jouvence"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui joue Gandalf dans 'Le Seigneur des Anneaux' ?",correct:"Ian McKellen",wrong:["Ian Holm","Christopher Lee","Hugo Weaving"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de Paolo Sorrentino a remporté l'Oscar du meilleur film étranger en 2014 ?",correct:"La Grande Bellezza",wrong:["Youth","Il Divo","Loro"],difficulty:"hard",category:"Cinéma"},
+  {text:"Dans 'La La Land', qui interprète la chanson 'City of Stars' ?",correct:"Ryan Gosling et Emma Stone",wrong:["Justin Hurwitz","John Legend","Sia"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de Luc Besson met en scène un tueur à gages et une petite fille ?",correct:"Léon",wrong:["Nikita","Le Cinquième Élément","Lucy"],difficulty:"easy",category:"Cinéma"},
+  {text:"Qui a doublé la voix de Mufasa dans le 'Roi Lion' original de 1994 ?",correct:"James Earl Jones",wrong:["Morgan Freeman","Samuel L. Jackson","Laurence Fishburne"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de 2001 raconte l'histoire d'un journaliste qui doit trouver une femme disparue ?",correct:"Millenium - Les Hommes qui n'aimaient pas les femmes",wrong:["Zodiac","Prisoners","Se7en"],difficulty:"hard",category:"Cinéma"},
+  {text:"Dans 'Good Will Hunting', qui joue le thérapeute face à Matt Damon ?",correct:"Robin Williams",wrong:["Ben Affleck","Minnie Driver","Stellan Skarsgård"],difficulty:"medium",category:"Cinéma"},
+  {text:"Quel film de Coen Brothers a remporté l'Oscar du meilleur film en 2008 ?",correct:"No Country for Old Men",wrong:["Fargo","True Grit","Burn After Reading"],difficulty:"medium",category:"Cinéma"},
+  {text:"Qui joue l'agent John Wick dans la saga du même nom ?",correct:"Keanu Reeves",wrong:["Tom Hardy","Chris Hemsworth","Chris Pratt"],difficulty:"easy",category:"Cinéma"},
+  {text:"Quel film de 2019 de Quentin Tarantino se déroule à Hollywood en 1969 ?",correct:"Once Upon a Time... in Hollywood",wrong:["Hateful Eight","Django Unchained","Inglourious Basterds"],difficulty:"medium",category:"Cinéma"},
+  {text:"Qui joue le scientifique fou Henry Jekyll dans les films d'horreur classiques ?",correct:"Fredric March (version 1931)",wrong:["Boris Karloff","Bela Lugosi","Claude Rains"],difficulty:"hard",category:"Cinéma"},
+  {text:"Quel film de 2021 de Denis Villeneuve est basé sur le roman de Frank Herbert ?",correct:"Dune",wrong:["Blade Runner 2049","Arrival","Enemy"],difficulty:"easy",category:"Cinéma"},
+];
+
 async function fetchTrivia(){
+  // Essayer d'abord la base française curatée, sinon OpenTDB
+  if(TRIVIA_FR.length>=TOTAL){
+    const pool=shuffle([...TRIVIA_FR]).slice(0,TOTAL);
+    return pool.map(q=>{
+      const ans=shuffle([q.correct,...q.wrong]);
+      return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:q.category};
+    });
+  }
+  // Fallback OpenTDB
   const r=await fetch(`https://opentdb.com/api.php?amount=${TOTAL}&category=11&type=multiple&encode=url3986`);
   const d=await r.json();
   if(d.response_code!==0)throw new Error('API');
@@ -2573,6 +2946,8 @@ async function fetchTrivia(){
 async function txText(t){try{const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(t)+'&langpair=en|fr&de=cinequiz@quiz.fr',{signal:AbortSignal.timeout(9000)});const d=await r.json();if(d.responseStatus===200&&d.responseData?.translatedText)return d.responseData.translatedText;return t;}catch{return t;}}
 const CATMAP={'Entertainment: Film':'Cinéma','Entertainment: Television':'Télévision','Entertainment: Music':'Musique','Entertainment: Video Games':'Jeux vidéo','General Knowledge':'Culture générale'};
 async function txQuestions(raw){
+  // Si déjà en français (base curatée), retourner directement
+  if(raw[0]&&raw[0].type==='trivia')return raw;
   const SEP='\n||||\n';
   return Promise.all(raw.map(async q=>{
     try{const b=[q.text,q.correct,...q.wrong].join(SEP);const tr=await txText(b);const p=tr.split('||||').map(s=>s.trim());if(p.length<5)throw 0;const ans=shuffle([p[1],...p.slice(2)]);return{type:'trivia',text:p[0],answers:ans,correct:ans.indexOf(p[1]),difficulty:q.difficulty,category:CATMAP[q.category]||q.category};}
@@ -2698,6 +3073,11 @@ const MODE_INFO={
     tips:[{i:'😌',t:'Aucune limite de temps — prends le temps de réfléchir'},
           {i:'✅',t:'La bonne réponse s\'affiche toujours, même si tu réponds correctement'},
           {i:'📈',t:'Idéal pour apprendre avant de se lancer dans les modes chronométrés'}]},
+  trailer:{icon:'▶️',label:'Bande-annonce',sub:'Identifie le film depuis sa BA',color:'#ef4444',bg:'rgba(239,68,68,.12)',
+    desc:'Une bande-annonce YouTube se lance automatiquement. Regarde les images, écoute la musique et identifie le film parmi 4 propositions — avant la fin du chrono de 30 secondes !',
+    tips:[{i:'🎬',t:'La vidéo démarre immédiatement — écoute la musique et les voix'},
+          {i:'💡',t:'Un indice textuel est affiché sous la vidéo pour t\'aider'},
+          {i:'⚡',t:'30 secondes pour répondre — plus tu réponds tôt, plus tu marques'}]},
 };
 
 function openModeInfo(m,el){
@@ -2953,6 +3333,13 @@ async function startGame(){
       qs=await fetchCastingQuestions(TOTAL);
       if(qs.length<4)throw new Error('Not enough');
       setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
+    } else if(selMode==='trailer'){
+      sltxt('Chargement des bandes-annonces…');
+      initSteps([{icon:'🎬',label:'Sélection des films'},{icon:'▶️',label:'Préparation'}]);
+      setStep(0,'act');
+      qs=fetchTrailerQuestions(TOTAL);
+      if(qs.length<4)throw new Error('Not enough trailers');
+      setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,300));setStep(1,'don');
     } else if(selMode==='training'){
       sltxt('Mode entrainement...');
       initSteps([{icon:'📚',label:'Chargement des questions'},{icon:'🎬',label:'Preparation'}]);
@@ -3276,6 +3663,38 @@ function loadQ(){
       </div>`;
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     startTimer();
+
+  } else if(q.type==='trailer'){
+    game.style.overflowY='hidden';
+    qa.style.justifyContent='flex-start';
+    document.getElementById('dbadge').textContent='▶️ Bande-annonce';
+    document.getElementById('dbadge').className='dbd de';
+    document.getElementById('mbadge').style.display='none';
+    // Embed YouTube — autoplay, muted pour iOS, no controls cachés
+    const ytSrc=`https://www.youtube-nocookie.com/embed/${q.videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&start=${q.start||0}&enablejsapi=0`;
+    qa.innerHTML=`
+      <div class="qtl">▶️ Bande-annonce</div>
+      <div class="trailer-wrap">
+        <div class="trailer-player">
+          <iframe src="${ytSrc}" allow="autoplay;encrypted-media" allowfullscreen loading="lazy" title="Bande-annonce"></iframe>
+          <div class="trailer-countdown" id="trailer-cd">30s</div>
+        </div>
+        <div class="trailer-hint">💡 ${q.hint}</div>
+      </div>`;
+    q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+    // Timer spécial trailer — 30s avec affichage dédié, pas de beep
+    tLeft=30;
+    document.getElementById('tfil').style.width='100%';
+    document.getElementById('tv').textContent='30s';
+    tInt=setInterval(()=>{
+      tLeft=Math.max(0,tLeft-.1);
+      const pct=(tLeft/30)*100;
+      const f=document.getElementById('tfil');
+      if(f){f.style.width=pct+'%';f.className='tfil'+(pct<25?' warn':'');}
+      const tv=document.getElementById('tv');if(tv)tv.textContent=Math.ceil(tLeft)+'s';
+      const cd=document.getElementById('trailer-cd');if(cd)cd.textContent=Math.ceil(tLeft)+'s';
+      if(tLeft<=0){clearInterval(tInt);if(!ansed)handleAnswer(-1);}
+    },100);
 
   } else if(q.type==='generique'){
     game.style.overflowY='auto';
@@ -3716,7 +4135,7 @@ function endGame(){
   let s=ls();const oldLvl=glv(s.xp);
   s=chkStreak(s);
   const base=Math.floor(score/10);
-  const bonus=(okCnt===TOTAL?50:0)+(selMode==='photo'?30:0)+(selMode==='duo'?25:0)+(selMode==='bo'?25:0)+(selMode==='boxoffice'?35:0)+(selMode==='year'?20:0)+(selMode==='replique'?25:0)+(selMode==='acteur'?25:0)+(selMode==='compositeur'?30:0)+(selMode==='casting'?30:0)+(selMode==='realisateur'?30:0)+(selMode==='location'?25:0);
+  const bonus=(okCnt===TOTAL?50:0)+(selMode==='photo'?30:0)+(selMode==='duo'?25:0)+(selMode==='bo'?25:0)+(selMode==='boxoffice'?35:0)+(selMode==='year'?20:0)+(selMode==='replique'?25:0)+(selMode==='acteur'?25:0)+(selMode==='compositeur'?30:0)+(selMode==='casting'?30:0)+(selMode==='realisateur'?30:0)+(selMode==='location'?25:0)+(selMode==='trailer'?40:0);
   const xp=Math.floor(base+bonus);
   s.xp+=xp;s.games++;s.correct+=okCnt;s.questions+=TOTAL;
   if(score>s.best)s.best=score;
@@ -3730,6 +4149,7 @@ function endGame(){
   if(selMode==='bo')s.boMusicGames=(s.boMusicGames||0)+1;
   if(selMode==='training')s.trainingGames=(s.trainingGames||0)+1;
   if(selMode==='casting')s.castingGames=(s.castingGames||0)+1;
+  if(selMode==='trailer')s.trailerGames=(s.trailerGames||0)+1;
   if(selMode==='generique')s.generiqueGames=(s.generiqueGames||0)+1;
   if(selMode==='realisateur')s.realisateurGames=(s.realisateurGames||0)+1;
   if(selMode==='location')s.locationGames=(s.locationGames||0)+1;
@@ -3793,7 +4213,7 @@ function showResult(s,xp){
   setTimeout(()=>{document.getElementById('rxpf').style.width=xpPct+'%';},100);
   go('result');
   // Mode badge
-  const modeLabels={quiz:'⚡ Trivia Ciné',photo:'🎬 Affiche Mystère',year:'📅 Quelle Année ?',bo:'💡 Indices Mystère',boxoffice:'💰 Box-office',replique:'💬 La Réplique',acteur:'👤 Acteur Mystère',compositeur:'🎼 Compositeur',filmographie:'🎭 Filmographie',realisateur:'🎥 Réalisateur',casting:'🧩 Le Casting',generique:'📜 Le Générique',location:'🌍 Lieu de tournage',training:'📚 Entraînement'};
+  const modeLabels={quiz:'⚡ Trivia Ciné',photo:'🎬 Affiche Mystère',year:'📅 Quelle Année ?',bo:'💡 Indices Mystère',boxoffice:'💰 Box-office',replique:'💬 La Réplique',acteur:'👤 Acteur Mystère',compositeur:'🎼 Compositeur',filmographie:'🎭 Filmographie',realisateur:'🎥 Réalisateur',casting:'🧩 Le Casting',generique:'📜 Le Générique',location:'🌍 Lieu de tournage',training:'📚 Entraînement',trailer:'▶️ Bande-annonce'};
   const mbEl=document.getElementById('r-mode-badge');
   if(mbEl)mbEl.textContent=modeLabels[selMode]||'🎬 CinéQuiz';
   setTimeout(buildResultChart,200);
@@ -4011,15 +4431,251 @@ function buildResultChart(){
   }
 }
 
+// ==============================
+// DÉFI QUOTIDIEN
+// ==============================
+function dailySeed(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
+function seededRandom(seed){let s=seed;return()=>{s=Math.sin(s)*10000;return s-Math.floor(s);};}
+function shuffleSeeded(arr,rng){const b=[...arr];for(let i=b.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function getDailyKey(){const d=new Date();return`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
+function getDailyData(){try{const r=localStorage.getItem('cq_daily');return r?JSON.parse(r):{};}catch{return{};}}
+function saveDailyData(data){try{localStorage.setItem('cq_daily',JSON.stringify(data));}catch{}}
+
+let isDailyMode=false;
+
+function buildDailyQuestions(){
+  const rng=seededRandom(dailySeed());
+  const pool=shuffleSeeded([...TRIVIA_FR],rng).slice(0,TOTAL);
+  return pool.map(q=>{
+    const ans=shuffleSeeded([q.correct,...q.wrong],rng);
+    return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:'🎬 Défi du Jour'};
+  });
+}
+
+function updateDailyCard(){
+  const key=getDailyKey();const data=getDailyData();const today=data[key];
+  const badge=document.getElementById('daily-card-badge');
+  const bar=document.getElementById('daily-card-bar');
+  const scoreEl=document.getElementById('daily-card-score');
+  if(today){
+    if(badge){badge.textContent='✅ TERMINÉ';badge.className='daily-badge done';}
+    if(bar)bar.style.width=Math.round((today.correct/TOTAL)*100)+'%';
+    if(scoreEl)scoreEl.textContent=`Ton score : ${today.score} pts · ${today.correct}/${TOTAL}`;
+  } else {
+    if(badge){badge.textContent='À JOUER';badge.className='daily-badge';}
+    if(bar)setTimeout(()=>{if(bar)bar.style.width='0%';},50);
+    if(scoreEl)scoreEl.textContent='Pas encore joué aujourd\'hui';
+  }
+  updateDailyCountdown();
+}
+
+function updateDailyCountdown(){
+  const el=document.getElementById('daily-countdown');if(!el)return;
+  const now=new Date();const midnight=new Date(now);midnight.setHours(24,0,0,0);
+  const diff=midnight-now;const h=Math.floor(diff/3600000);const m=Math.floor((diff%3600000)/60000);
+  el.textContent=`⏳ Nouveau dans ${h}h${m<10?'0':''}${m}m`;
+}
+
+function openDaily(){
+  isDailyMode=true;
+  const key=getDailyKey();const data=getDailyData();
+  if(data[key]){_showDailyDone(data[key]);return;}
+  qs=buildDailyQuestions();
+  score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];dotRes=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
+  tStart=Date.now();selMode='quiz';
+  const gbg=document.getElementById('game-bg');if(gbg)gbg.className='on mode-quiz';
+  go('game');loadQ();
+}
+
+function _showDailyDone(d){
+  const pct=Math.round((d.correct/TOTAL)*100);
+  document.getElementById('ricon').textContent=pct>=90?'🏆':pct>=70?'⭐':pct>=50?'🎬':'😅';
+  document.getElementById('rtit').textContent=pct>=90?'Légende':pct>=70?'Critique':pct>=50?'Cinéphile':'Débutant';
+  document.getElementById('rsub').textContent='Défi du '+(new Date()).toLocaleDateString('fr-FR');
+  document.getElementById('rscore').textContent=d.score;
+  document.getElementById('rxp').textContent='+'+Math.floor(d.score/10)+' XP';
+  document.getElementById('rco').textContent=d.correct+'/'+TOTAL;
+  document.getElementById('rmu').textContent='x'+(d.bestM||1);
+  document.getElementById('rav').textContent=(d.avg||0)+'s';
+  const mb=document.getElementById('r-mode-badge');if(mb)mb.textContent='🎬 Défi du Jour';
+  // Reconstruire dotRes pour le graphique
+  if(d.dots){dotRes=d.dots.split('').filter(c=>c==='🟩'||c==='🟥').map(c=>c==='🟩');}
+  go('result');setTimeout(buildResultChart,200);
+}
+
+// Score count-up animation
+function animateScoreEl(target,durationMs=900){
+  const el=document.getElementById('rscore');if(!el)return;
+  el.textContent='0';
+  let startTs=null;
+  const step=ts=>{
+    if(!startTs)startTs=ts;
+    const p=Math.min((ts-startTs)/durationMs,1);
+    const ease=1-Math.pow(1-p,3);
+    el.textContent=Math.round(target*ease);
+    if(p<1)requestAnimationFrame(step);else el.textContent=target;
+  };
+  requestAnimationFrame(step);
+}
+
+// Wrap showResult pour injecter l'animation + sauvegarde défi
+const _origShowResult=showResult;
+showResult=function(s,xp){
+  _origShowResult(s,xp);
+  // Count-up
+  setTimeout(()=>animateScoreEl(score,900),100);
+  // Sauvegarde défi
+  if(isDailyMode){
+    isDailyMode=false;
+    const key=getDailyKey();const data=getDailyData();
+    if(!data[key]){
+      const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):0;
+      data[key]={score,correct:okCnt,bestM,avg,dots:dotRes.map(r=>r?'🟩':'🟥').join('')};
+      saveDailyData(data);
+      updateDailyCard();
+    }
+  }
+};
+
+// Animation badge débloqué — remplacer la logique de base
+const _origChkBadges=chkBadges;
+chkBadges=function(s){
+  const result=_origChkBadges(s);
+  if(result.nb&&result.nb.length>0){
+    result.nb.forEach((b,i)=>{
+      setTimeout(()=>showBadgeToast(b),i*600);
+    });
+  }
+  return result;
+};
+
+function showBadgeToast(badge){
+  const existing=document.getElementById('badge-toast');
+  if(existing)existing.remove();
+  const el=document.createElement('div');
+  el.id='badge-toast';
+  el.style.cssText='position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+90px);left:50%;transform:translateX(-50%);background:rgba(10,10,15,.96);border:1.5px solid rgba(245,200,66,.4);border-radius:18px;padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:9000;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 20px rgba(245,200,66,.12);animation:badgeUnlock .5s cubic-bezier(.34,1.56,.64,1) both;max-width:300px;';
+  el.innerHTML=`<span style="font-size:30px;animation:comboBounce .4s ease infinite alternate">${badge.icon}</span><div><div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--gold)">${badge.name}</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:1px">Badge débloqué !</div></div>`;
+  document.getElementById('wrap').appendChild(el);
+  setTimeout(()=>{el.style.animation='comboFade .4s ease both';setTimeout(()=>el.remove(),400);},2800);
+}
+
+// ── CARTE PROFIL PARTAGEABLE ──
+function shareProfileCard(){
+  const s=ls();
+  const{l}=gxp(s.xp);
+  const lv=LEVELS[l];
+  const pct=s.questions>0?Math.round((s.correct/s.questions)*100):0;
+  const canvas=document.getElementById('profile-share-canvas');
+  if(!canvas)return;
+  canvas.style.display='block';
+  const ctx=canvas.getContext('2d');
+  const W=800,H=500;
+  canvas.width=W;canvas.height=H;
+
+  // Fond dégradé sombre
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#0a0a0f');bg.addColorStop(1,'#1a1020');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  // Halos projecteur
+  const h1=ctx.createRadialGradient(200,150,0,200,150,320);
+  h1.addColorStop(0,'rgba(200,140,20,.35)');h1.addColorStop(1,'transparent');
+  ctx.fillStyle=h1;ctx.fillRect(0,0,W,H);
+  const h2=ctx.createRadialGradient(620,380,0,620,380,280);
+  h2.addColorStop(0,'rgba(20,60,155,.28)');h2.addColorStop(1,'transparent');
+  ctx.fillStyle=h2;ctx.fillRect(0,0,W,H);
+
+  // Bordure or
+  ctx.strokeStyle='rgba(245,200,66,.35)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(12,12,W-24,H-24,20);ctx.stroke();
+
+  // Logo
+  ctx.font='bold 26px sans-serif';ctx.fillStyle='rgba(245,200,66,.9)';
+  ctx.fillText('🎬 CINÉQUIZ',44,66);
+
+  // Trait séparateur
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(44,82);ctx.lineTo(W-44,82);ctx.stroke();
+
+  // Avatar + Niveau
+  ctx.font='60px serif';ctx.fillText(s.avatar||lv.icon,44,168);
+  ctx.font='bold 42px \'Bebas Neue\', sans-serif';
+  const gNm=ctx.createLinearGradient(120,120,380,160);
+  gNm.addColorStop(0,'#fff3c0');gNm.addColorStop(.5,'#f5c842');gNm.addColorStop(1,'#e8a800');
+  ctx.fillStyle=gNm;ctx.fillText(lv.name.toUpperCase(),120,165);
+  ctx.font='16px sans-serif';ctx.fillStyle='rgba(255,255,255,.45)';
+  ctx.fillText(`Niveau ${l+1} · ${s.xp} XP`,120,190);
+
+  // Stats en grille
+  const stats=[
+    {label:'PARTIES',val:s.games},
+    {label:'RÉUSSITE',val:pct+'%'},
+    {label:'RECORD',val:s.best+' pts'},
+    {label:'BADGES',val:`${s.unlocked.length}/${BADGES.length}`},
+    {label:'STREAK',val:s.streak+'🔥'},
+    {label:'PLAYTIME',val:fmtT(s.playtime||0)},
+  ];
+  stats.forEach((st,i)=>{
+    const col=i%3;const row=Math.floor(i/3);
+    const x=44+col*246;const y=240+row*100;
+    // Card bg
+    ctx.fillStyle='rgba(255,255,255,.06)';
+    ctx.beginPath();ctx.roundRect(x,y,220,80,12);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(x,y,220,80,12);ctx.stroke();
+    // Values
+    ctx.font='bold 30px \'Bebas Neue\', sans-serif';ctx.fillStyle='#f5c842';
+    ctx.fillText(String(st.val),x+16,y+48);
+    ctx.font='11px sans-serif';ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.fillText(st.label,x+16,y+70);
+  });
+
+  // Footer
+  ctx.font='13px sans-serif';ctx.fillStyle='rgba(255,255,255,.25)';
+  ctx.fillText('Le quiz du 7ème art',W-220,H-24);
+
+  canvas.style.display='none';
+
+  // Partage
+  canvas.toBlob(blob=>{
+    if(!blob)return;
+    const file=new File([blob],'cinequiz-profil.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({title:'Mon profil CinéQuiz',files:[file]}).catch(()=>{});
+    } else {
+      // Fallback : télécharger
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='cinequiz-profil.png';a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+  },'image/png');
+}
+
 // -- INIT --
 refHome();
 applyNewBadges();
 loadTheme();
+updateDailyCard();
+setInterval(updateDailyCountdown,60000);
 runSplash();
-// Fond accueil
 const _hbg2=document.getElementById('home-bg');
 if(_hbg2)_hbg2.classList.add('visible');
 
 </script>
-</body>
-</html>
+<!-- PWA Service Worker -->
+<script>
+if('serviceWorker' in navigator){
+  const _swCode=`
+    const CACHE='cinequiz-v48';
+    const STATIC=['./',location.pathname];
+    self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)));self.skipWaiting();});
+    self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
+    self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});
+  `;
+  const _swBlob=new Blob([_swCode],{type:'application/javascript'});
+  const _swUrl=URL.createObjectURL(_swBlob);
+  navigator.serviceWorker.register(_swUrl).catch(()=>{});
+}
+</script>
+</body></html>
