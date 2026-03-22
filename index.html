@@ -2122,37 +2122,54 @@ function clearMusicTrack(key){
 
 let _previewKey=null;
 function previewMusicTrack(key){
-  // Arrêter preview en cours
-  if(_previewKey&&_previewKey!==key){
-    const old=document.getElementById('mpb-'+_previewKey);
-    if(old)old.classList.remove('playing');
-    if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
-    _previewKey=null;
-  }
   const btn=document.getElementById('mpb-'+key);
-  if(_previewKey===key){
-    // Stop
-    if(window._previewAudio){window._previewAudio.pause();window._previewAudio=null;}
-    if(btn)btn.classList.remove('playing');
-    _previewKey=null;
-    return;
+
+  // — Arrêter tout preview en cours (même key ou autre) —
+  if(window._previewAudio){
+    window._previewAudio.pause();
+    window._previewAudio=null;
   }
+  if(_previewKey){
+    // Remettre le bouton précédent à l'état ▶
+    const oldBtn=document.getElementById('mpb-'+_previewKey);
+    if(oldBtn){oldBtn.textContent='▶';oldBtn.classList.remove('playing');}
+    const wasKey=_previewKey;
+    _previewKey=null;
+    // Si on reclique sur la même piste → stop, c'est tout
+    if(wasKey===key) return;
+  }
+
+  // — Lancer le nouveau preview —
   const src=_getSrc(key);
-  if(!src){btn&&(btn.textContent='✗');return;}
+  if(!src){if(btn)btn.textContent='✗';return;}
   const a=new Audio(src);
-  a.volume=0.5;
+  a.volume=0.55;
   a.play().catch(()=>{});
   window._previewAudio=a;
   _previewKey=key;
   if(btn){btn.textContent='■';btn.classList.add('playing');}
-  // Auto-stop après 8s
-  setTimeout(()=>{
+
+  // Arrêt automatique après 8s
+  const stopTimer=setTimeout(()=>{
     if(_previewKey===key){
-      a.pause();window._previewAudio=null;_previewKey=null;
+      a.pause();
+      window._previewAudio=null;
+      _previewKey=null;
       const b=document.getElementById('mpb-'+key);
       if(b){b.textContent='▶';b.classList.remove('playing');}
     }
   },8000);
+
+  // Arrêt si la piste se termine avant 8s
+  a.addEventListener('ended',()=>{
+    clearTimeout(stopTimer);
+    if(_previewKey===key){
+      window._previewAudio=null;
+      _previewKey=null;
+      const b=document.getElementById('mpb-'+key);
+      if(b){b.textContent='▶';b.classList.remove('playing');}
+    }
+  },{once:true});
 }
 
 // ==============================
