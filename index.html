@@ -163,7 +163,85 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   box-shadow:0 2px 8px rgba(232,52,74,.5);
 }
 
-/* theme row */
+/* -- Shimmer sur carte mode sélectionnée -- */
+.mc.sel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+}
+.mc-shimmer{
+  position:absolute;inset:0;border-radius:14px;overflow:hidden;pointer-events:none;
+}
+.mc-shimmer::after{
+  content:'';
+  position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent);
+  animation:mcShimmer 2.4s ease-in-out infinite;
+}
+@keyframes mcShimmer{
+  0%{left:-80%;}
+  60%,100%{left:160%;}
+}
+
+/* -- MODE INFO MODAL -- */
+.mode-info-over{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:700;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.mode-info-over.on{opacity:1;pointer-events:all;}
+.mode-info-sh{
+  background:var(--sf);border-radius:26px 26px 0 0;
+  padding:22px 22px max(32px,env(safe-area-inset-bottom,32px));
+  width:100%;max-width:500px;
+  transform:translateY(60px);
+  transition:transform .32s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+}
+.mode-info-over.on .mode-info-sh{transform:translateY(0);}
+/* Barre de couleur du mode en haut */
+.mode-info-accent{
+  position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:26px 26px 0 0;
+  background:var(--mi-color,var(--gold));
+}
+.mode-info-hdl{width:38px;height:4px;border-radius:2px;background:rgba(255,255,255,.14);margin:0 auto 18px;}
+.mode-info-head{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.mode-info-icon{
+  width:52px;height:52px;border-radius:16px;
+  background:var(--mi-bg,rgba(245,200,66,.12));
+  border:1.5px solid var(--mi-color,var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+}
+.mode-info-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--mi-color,var(--gold));}
+.mode-info-sub{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.mode-info-desc{
+  font-size:14px;color:rgba(255,255,255,.7);line-height:1.65;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:14px 16px;margin-bottom:14px;
+}
+.mode-info-tips{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.mode-info-tip{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;
+}
+.mode-info-tip-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.mode-info-btns{display:flex;gap:10px;}
+.mode-info-play{
+  flex:2;background:var(--mi-color,var(--gold));color:#000;
+  border:none;border-radius:16px;padding:16px;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.mode-info-play:active{transform:scale(.97);}
+.mode-info-close{
+  flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);
+  border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:transform .15s;
+}
+.mode-info-close:active{transform:scale(.97);}
 .trow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none;}
 .trow::-webkit-scrollbar{display:none;}
 .tc{flex-shrink:0;background:rgba(10,8,5,.6);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:7px 14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;transition:all .2s;white-space:nowrap;}
@@ -1071,25 +1149,46 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     <!-- Modes -->
     <div class="shd" style="margin-bottom:8px;">Mode de jeu</div>
     <div class="mgrid">
-      <div class="mc sel" data-mode="quiz" onclick="selectMode('quiz',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span><span class="mc-label">Trivia Ciné</span></div>
-      <div class="mc" data-mode="photo" onclick="selectMode('photo',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="mc-label">Affiche Mystère</span></div>
-      <div class="mc" data-mode="year" onclick="selectMode('year',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="mc-label">Quelle Année ?</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="bo" onclick="selectMode('bo',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="mc-label">Indices Mystère</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="boxoffice" onclick="selectMode('boxoffice',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="mc-label">Box-office</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="replique" onclick="selectMode('replique',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="mc-label">La Réplique</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="acteur" onclick="selectMode('acteur',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="mc-label">Acteur Mystère</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="realisateur" onclick="selectMode('realisateur',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M12 3v9"/><path d="m8 9 4 3 4-3"/></svg></span><span class="mc-label">Realisateur</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="location" onclick="selectMode('location',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="mc-label">Lieu de tournage</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="generique" onclick="selectMode('generique',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="mc-label">Le Generique</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="casting" onclick="selectMode('casting',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="mc-label">Le Casting</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="training" onclick="selectMode('training',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M5 3L2 6m17-3l3 3"/></svg></span><span class="mc-label">Entraînement</span></div>
-      <div class="mc" data-mode="filmographie" onclick="selectMode('filmographie',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg></span><span class="mc-label">Filmographie</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="compositeur" onclick="selectMode('compositeur',this)"><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="mc-label">Compositeur</span><span class="mnew">NEW</span></div>
+      <div class="mc sel" data-mode="quiz" onclick="openModeInfo('quiz',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span><span class="mc-label">Trivia Ciné</span></div>
+      <div class="mc" data-mode="photo" onclick="openModeInfo('photo',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="mc-label">Affiche Mystère</span></div>
+      <div class="mc" data-mode="year" onclick="openModeInfo('year',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="mc-label">Quelle Année ?</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="bo" onclick="openModeInfo('bo',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="mc-label">Indices Mystère</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="boxoffice" onclick="openModeInfo('boxoffice',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="mc-label">Box-office</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="replique" onclick="openModeInfo('replique',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="mc-label">La Réplique</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="acteur" onclick="openModeInfo('acteur',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="mc-label">Acteur Mystère</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="realisateur" onclick="openModeInfo('realisateur',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M12 3v9"/><path d="m8 9 4 3 4-3"/></svg></span><span class="mc-label">Réalisateur</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="location" onclick="openModeInfo('location',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="mc-label">Lieu de tournage</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="generique" onclick="openModeInfo('generique',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="mc-label">Le Générique</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="casting" onclick="openModeInfo('casting',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="mc-label">Le Casting</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="training" onclick="openModeInfo('training',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M5 3L2 6m17-3l3 3"/></svg></span><span class="mc-label">Entraînement</span></div>
+      <div class="mc" data-mode="filmographie" onclick="openModeInfo('filmographie',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg></span><span class="mc-label">Filmographie</span><span class="mnew">NEW</span></div>
+      <div class="mc" data-mode="compositeur" onclick="openModeInfo('compositeur',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="mc-label">Compositeur</span><span class="mnew">NEW</span></div>
     </div>
 
     <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span> JOUER</button>
     <!-- Dernière partie -->
     <div id="h-last" style="display:none;flex-direction:column;align-items:center;margin-top:8px;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);gap:2px;"></div>
+  </div>
+
+  <!-- MODE INFO MODAL -->
+  <div class="mode-info-over" id="mode-info-modal">
+    <div class="mode-info-sh" id="mode-info-sh">
+      <div class="mode-info-accent" id="mode-info-accent"></div>
+      <div class="mode-info-hdl"></div>
+      <div class="mode-info-head">
+        <div class="mode-info-icon" id="mode-info-icon">🎬</div>
+        <div>
+          <div class="mode-info-title" id="mode-info-title">Mode</div>
+          <div class="mode-info-sub" id="mode-info-sub">Mode de jeu</div>
+        </div>
+      </div>
+      <div class="mode-info-desc" id="mode-info-desc">Description du mode.</div>
+      <div class="mode-info-tips" id="mode-info-tips"></div>
+      <div class="mode-info-btns">
+        <button class="mode-info-play" id="mode-info-play" onclick="launchFromInfo()">🎬 JOUER</button>
+        <button class="mode-info-close" onclick="closeModeInfo()">✕ Fermer</button>
+      </div>
+    </div>
   </div>
 
   <!-- PROFILE -->
@@ -1263,20 +1362,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
         <div class="help-title">Comment jouer ?</div>
         <div class="help-x" onclick="closeHelp()">✕</div>
       </div>
-      <p class="help-intro">CinéQuiz est un jeu de culture cinéma. Réponds aux questions avant la fin du chrono — plus tu es rapide, plus tu marques de points grâce au <strong style="color:var(--gold)">multiplicateur x3</strong>. Enchaîne les bonnes réponses pour déclencher des <strong style="color:#ff6b35">combos</strong> !</p>
+      <p class="help-intro">CinéQuiz est un jeu de culture cinéma. Réponds aux questions avant la fin du chrono — plus tu es rapide, plus tu marques de points grâce au <strong style="color:var(--gold)">multiplicateur x3</strong>. Enchaîne les bonnes réponses pour déclencher des <strong style="color:#ff6b35">combos</strong> enflammés !</p>
 
-      <div class="help-sep">Modes de jeu</div>
+      <div class="help-sep">Les 14 modes de jeu</div>
       <div class="help-mode"><div class="help-mode-icon">⚡</div><div><div class="help-mode-name">Trivia Ciné</div><div class="help-mode-desc">Questions classiques sur les films, acteurs et réalisateurs. Choisis un thème (Action, SF, Horreur…) pour cibler tes connaissances.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🎬</div><div><div class="help-mode-name">Affiche Mystère</div><div class="help-mode-desc">Une affiche s'affiche floutée et se révèle progressivement. Identifie le film avant la révélation complète pour plus de points.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">📅</div><div><div class="help-mode-name">Quelle Année ?</div><div class="help-mode-desc">Déplace le curseur pour deviner l'année de sortie du film. Exact = 300 pts · ±2 ans = 200 pts · ±5 ans = 100 pts.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🎵</div><div><div class="help-mode-name">Indices Mystère</div><div class="help-mode-desc">Une affiche de film s'affiche floutée et se révèle progressivement. Des indices apparaissent toutes les 5s. Trouve le film parmi 4 propositions !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎬</div><div><div class="help-mode-name">Affiche Mystère</div><div class="help-mode-desc">Une affiche floutée se révèle progressivement. Identifie le film le plus vite possible — chaque seconde compte !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">📅</div><div><div class="help-mode-name">Quelle Année ?</div><div class="help-mode-desc">Glisse le curseur pour deviner l'année de sortie. Exact = 300 pts · ±2 ans = 200 pts · ±5 ans = 100 pts.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">💡</div><div><div class="help-mode-name">Indices Mystère</div><div class="help-mode-desc">Des indices sur le film apparaissent toutes les 5 secondes : genre, époque, casting, réalisateur… Trouve le film parmi 4 propositions !</div></div></div>
       <div class="help-mode"><div class="help-mode-icon">💰</div><div><div class="help-mode-name">Box-office</div><div class="help-mode-desc">Classe 4 films du plus au moins rentable en les faisant glisser. 25 pts par bonne position. Maintiens le handle ⠿ pour déplacer.</div></div></div>
-      <div class="help-mode"><div class="help-mode-icon">🗣️</div><div><div class="help-mode-name">La Réplique</div><div class="help-mode-desc">Une réplique iconique se révèle mot par mot. Identifie le film d'origine le plus vite possible pour un score maximum.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">💬</div><div><div class="help-mode-name">La Réplique</div><div class="help-mode-desc">Une réplique iconique se révèle mot par mot. Identifie le film d'origine le plus vite possible. Un indice apparaît après 8 secondes.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">👤</div><div><div class="help-mode-name">Acteur Mystère</div><div class="help-mode-desc">La photo d'un acteur célèbre est floutée et se révèle progressivement. Identifie-le avant que l'image soit entièrement nette !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎥</div><div><div class="help-mode-name">Réalisateur</div><div class="help-mode-desc">Une affiche de film s'affiche avec un indice. À toi de retrouver qui a réalisé ce chef-d'œuvre parmi 4 propositions.</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🌍</div><div><div class="help-mode-name">Lieu de tournage</div><div class="help-mode-desc">Une photo d'un lieu réel s'affiche. Retrouve dans quel film ce décor iconique a été utilisé !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">📜</div><div><div class="help-mode-name">Le Générique</div><div class="help-mode-desc">Les acteurs d'un film sont révélés un à un avec leur rôle. Identifie le film dès que possible — moins tu attends, plus tu scores !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🧩</div><div><div class="help-mode-name">Le Casting</div><div class="help-mode-desc">Les acteurs qui ont tourné ensemble sont révélés progressivement. À toi de trouver dans quel film ils se retrouvent !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎭</div><div><div class="help-mode-name">Filmographie</div><div class="help-mode-desc">4 films sont listés. Quel acteur a joué dans tous ces films ? Une question de culture ciné pure !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">🎼</div><div><div class="help-mode-name">Compositeur</div><div class="help-mode-desc">L'affiche d'un film s'affiche avec un indice sur sa bande originale. Retrouve qui a composé la musique !</div></div></div>
+      <div class="help-mode"><div class="help-mode-icon">📚</div><div><div class="help-mode-name">Entraînement</div><div class="help-mode-desc">Pas de chrono, pas de pression ! Mode idéal pour apprendre à ton rythme. La bonne réponse est toujours affichée.</div></div></div>
 
       <div class="help-sep">Astuces</div>
-      <div class="help-tip"><div class="help-tip-icon">⚡</div><div class="help-tip-text"><strong>Multiplicateur</strong> — Moins de 6s = x3 · Entre 6 et 13s = x2. Enchaîne les bonnes réponses pour des bonus de combo !</div></div>
-      <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>Badges</strong> — Des succès se débloquent selon tes exploits. Clique sur n'importe quel badge pour voir sa condition.</div></div>
-      <div class="help-tip"><div class="help-tip-icon">🔥</div><div class="help-tip-text"><strong>Série quotidienne</strong> — Joue chaque jour pour maintenir ta flamme et débloquer des badges exclusifs.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">⚡</div><div class="help-tip-text"><strong>Multiplicateur</strong> — Réponds en moins de 6s = x3 · Entre 6 et 13s = x2. Plus tu es rapide, plus tu scores !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🔥</div><div class="help-tip-text"><strong>Combos</strong> — Enchaîne les bonnes réponses pour déclencher un combo. Dès x3, un banner s'affiche. Le combo monte jusqu'à x8 !</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🏅</div><div class="help-tip-text"><strong>Badges</strong> — Plus de 40 succès à débloquer. Clique sur n'importe quel badge pour voir sa condition de déblocage.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">🎨</div><div class="help-tip-text"><strong>Thèmes</strong> — 12 thèmes visuels à choisir dans ton profil : Doré, Néon, Vintage, Crimson, Océan, Forêt, Aurora, Sunset, Ice, Émeraude, Sépia…</div></div>
+      <div class="help-tip"><div class="help-tip-icon">📅</div><div class="help-tip-text"><strong>Série quotidienne</strong> — Joue chaque jour pour maintenir ta flamme 🔥 et débloquer des badges exclusifs de régularité.</div></div>
+      <div class="help-tip"><div class="help-tip-icon">📊</div><div class="help-tip-text"><strong>Partage</strong> — À la fin de chaque partie, partage ta grille de résultats (🟩🟥) directement depuis l'écran des résultats !</div></div>
 
       <button class="help-close" onclick="closeHelp()">C'EST PARTI ! 🎬</button>
     </div>
@@ -2510,7 +2620,118 @@ const THEMES=[{id:null,l:'Tous 🎬'},{id:'Action',l:'Action 💥'},{id:'Science
 let selTheme=null,selMode='quiz';
 function renderThemes(){const row=document.getElementById('trow');row.innerHTML=THEMES.map(t=>`<div class="tc${selTheme===t.id?' sel':''}" onclick="pickTheme(${JSON.stringify(t.id)},this)">${t.l}</div>`).join('');}
 function pickTheme(id,el){selTheme=id;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-function selectMode(m,el){selMode=m;document.querySelectorAll('.mc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function selectMode(m,el){
+  selMode=m;
+  document.querySelectorAll('.mc').forEach(c=>c.classList.remove('sel'));
+  if(el)el.classList.add('sel');
+}
+
+// ── MODE INFO MODAL ──
+const MODE_INFO={
+  quiz:{icon:'⚡',label:'Trivia Ciné',sub:'Questions culture ciné',color:'#f5c842',bg:'rgba(245,200,66,.12)',
+    desc:'Questions classiques sur les films, acteurs, réalisateurs et le cinéma en général. Tu peux filtrer par thème (Action, SF, Horreur…) pour tester des connaissances bien précises.',
+    tips:[{i:'🎯',t:'Choisis un thème dans la liste pour cibler ta culture'},
+          {i:'⚡',t:'Réponds en moins de 6s pour le multiplicateur x3'},
+          {i:'🔥',t:'Enchaîne les bonnes réponses pour déclencher un combo'}]},
+  photo:{icon:'🎬',label:'Affiche Mystère',sub:'Dévoile le film',color:'#60a5fa',bg:'rgba(96,165,250,.12)',
+    desc:'Une affiche de film est floutée et se révèle progressivement toutes les 5 secondes. Identifie le film parmi 4 propositions — plus vite tu réponds, plus tu marques de points !',
+    tips:[{i:'👁️',t:'Attends que l\'affiche se précise si tu n\'es pas sûr'},
+          {i:'🎨',t:'Le genre et l\'année sont affichés comme indices'},
+          {i:'⚡',t:'Répondre dès le flou maximum = score maximal'}]},
+  year:{icon:'📅',label:'Quelle Année ?',sub:'Devine l\'année de sortie',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
+    desc:'Une affiche de film s\'affiche. Glisse le curseur pour deviner l\'année de sortie exacte, puis confirme.',
+    tips:[{i:'📏',t:'Exact = 300 pts · ±2 ans = 200 pts · ±5 ans = 100 pts'},
+          {i:'📸',t:'L\'image reste floutée pendant le chrono pour plus de challenge'},
+          {i:'🎬',t:'Pense aux décennies : look du film, style des acteurs, effets spéciaux'}]},
+  bo:{icon:'💡',label:'Indices Mystère',sub:'Découvre avec les indices',color:'#f472b6',bg:'rgba(244,114,182,.12)',
+    desc:'5 indices sur un film apparaissent un à un toutes les 5 secondes : genre, époque, acteurs principaux, réalisateur, tagline. Trouve le film le plus tôt possible !',
+    tips:[{i:'💡',t:'Chaque indice en moins = plus de points potentiels'},
+          {i:'🎭',t:'Le casting est souvent l\'indice le plus reconnaissable'},
+          {i:'⏱️',t:'Le chrono est de 30 secondes pour ce mode'}]},
+  boxoffice:{icon:'💰',label:'Box-office',sub:'Classe par rentabilité',color:'#34d399',bg:'rgba(52,211,153,.12)',
+    desc:'4 films s\'affichent avec leur affiche et leur année. Classe-les du plus au moins rentable en maintenant le handle ⠿ et en glissant. Valide quand tu es prêt !',
+    tips:[{i:'⠿',t:'Maintiens le handle à droite pour déplacer un film'},
+          {i:'💵',t:'25 pts par position correcte, soit 100 pts max'},
+          {i:'⏱️',t:'45 secondes pour réfléchir et classer'}]},
+  replique:{icon:'💬',label:'La Réplique',sub:'Identifie le film',color:'#fb923c',bg:'rgba(251,146,60,.12)',
+    desc:'Une réplique culte du cinéma se révèle mot par mot en machine à écrire. Identifie le film d\'origine parmi 4 propositions. Un indice visuel apparaît après 8 secondes.',
+    tips:[{i:'✍️',t:'La réplique se tape progressivement — lis attentivement'},
+          {i:'💡',t:'Un indice sur la scène apparaît après 8 secondes'},
+          {i:'🎬',t:'Plus de 90 répliques cultes dans la base de données'}]},
+  acteur:{icon:'👤',label:'Acteur Mystère',sub:'Reconnais la star',color:'#e879f9',bg:'rgba(232,121,249,.12)',
+    desc:'La photo d\'un acteur ou d\'une actrice célèbre est floutée et se révèle progressivement. Identifie-le parmi 4 noms avant que l\'image soit entièrement nette !',
+    tips:[{i:'👁️',t:'4 étapes de révélation toutes les 5 secondes'},
+          {i:'🎭',t:'Plus de 50 acteurs et actrices internationaux'},
+          {i:'⚡',t:'Répondre tôt dans le flou = score maximum'}]},
+  realisateur:{icon:'🎥',label:'Réalisateur',sub:'Qui a réalisé ce film ?',color:'#f97316',bg:'rgba(249,115,22,.12)',
+    desc:'L\'affiche d\'un film s\'affiche avec un indice sur l\'histoire. À toi de retrouver parmi 4 noms qui en est le réalisateur ou la réalisatrice !',
+    tips:[{i:'🎬',t:'Les grands réalisateurs ont un style visuel reconnaissable'},
+          {i:'💡',t:'L\'indice décrit une scène ou l\'ambiance du film'},
+          {i:'📚',t:'De Spielberg à Villeneuve, 30 réalisateurs dans la base'}]},
+  location:{icon:'🌍',label:'Lieu de tournage',sub:'Où a été tourné ce film ?',color:'#34d399',bg:'rgba(52,211,153,.12)',
+    desc:'Une photo d\'un lieu réel iconique s\'affiche : désert, château, ville… Retrouve dans quel film célèbre ce décor a été utilisé !',
+    tips:[{i:'🗺️',t:'Le pays et le nom du lieu sont affichés comme indices'},
+          {i:'📸',t:'Des lieux du monde entier : Jordanie, Nouvelle-Zélande, Écosse…'},
+          {i:'💡',t:'L\'indice décrit pourquoi ce lieu est célèbre dans le cinéma'}]},
+  generique:{icon:'📜',label:'Le Générique',sub:'Identifie le film',color:'#f97316',bg:'rgba(249,115,22,.12)',
+    desc:'Les noms des acteurs d\'un film sont révélés un à un avec leur rôle, toutes les 5 secondes. Identifie le film le plus tôt possible parmi 4 propositions !',
+    tips:[{i:'👀',t:'Le premier acteur peut suffire pour les grands films'},
+          {i:'🎭',t:'Les rôles sont indiqués — un nom de personnage peut aider'},
+          {i:'⏱️',t:'Plus tu attends d\'acteurs, plus le score potentiel baisse'}]},
+  casting:{icon:'🧩',label:'Le Casting',sub:'Quel film regroupe ces acteurs ?',color:'#fbbf24',bg:'rgba(251,191,36,.12)',
+    desc:'Plusieurs acteurs célèbres sont révélés progressivement. Ils ont tous tourné ensemble dans le même film ! À toi de l\'identifier parmi 4 propositions.',
+    tips:[{i:'🎬',t:'Un indice sur le film (réalisateur, année, genre) est toujours affiché'},
+          {i:'🧩',t:'Les acteurs sont révélés un par un toutes les 4,5 secondes'},
+          {i:'💡',t:'Parfois un seul nom suffit pour reconnaître le film'}]},
+  filmographie:{icon:'🎭',label:'Filmographie',sub:'Quel acteur a joué dans ces 4 films ?',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
+    desc:'4 films sont listés. Un seul acteur ou actrice a joué dans tous ces films. Retrouve-le parmi 4 propositions ! Un test de mémoire filmique pure.',
+    tips:[{i:'🎬',t:'Cherche l\'acteur qui relie tous les films entre eux'},
+          {i:'🧠',t:'Certains acteurs ont des filmographies très éclectiques !'},
+          {i:'📚',t:'30 acteurs et actrices dans la base, des classiques aux récents'}]},
+  compositeur:{icon:'🎼',label:'Compositeur',sub:'Qui a signé cette BO ?',color:'#38bdf8',bg:'rgba(56,189,248,.12)',
+    desc:'L\'affiche d\'un film s\'affiche avec un indice sur le style de sa bande originale. À toi de retrouver parmi 4 noms qui a composé la musique !',
+    tips:[{i:'🎵',t:'L\'indice décrit le style musical ou un morceau iconique'},
+          {i:'🎼',t:'Hans Zimmer, John Williams, Ennio Morricone… les plus grands'},
+          {i:'💡',t:'Certains compositeurs ont des signatures sonores très reconnaissables'}]},
+  training:{icon:'📚',label:'Entraînement',sub:'Sans chrono, pour apprendre',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
+    desc:'Le mode parfait pour progresser sans pression ! Pas de chrono, pas de multiplicateur. La bonne réponse est toujours affichée après chaque question.',
+    tips:[{i:'😌',t:'Aucune limite de temps — prends le temps de réfléchir'},
+          {i:'✅',t:'La bonne réponse s\'affiche toujours, même si tu réponds correctement'},
+          {i:'📈',t:'Idéal pour apprendre avant de se lancer dans les modes chronométrés'}]},
+};
+
+function openModeInfo(m,el){
+  const info=MODE_INFO[m];if(!info)return;
+  // Sélectionner la carte
+  selectMode(m,el);
+  const over=document.getElementById('mode-info-modal');
+  const sh=document.getElementById('mode-info-sh');
+  // Injecter le contenu
+  document.getElementById('mode-info-icon').textContent=info.icon;
+  document.getElementById('mode-info-icon').style.background=info.bg;
+  document.getElementById('mode-info-icon').style.borderColor=info.color;
+  document.getElementById('mode-info-title').textContent=info.label;
+  document.getElementById('mode-info-title').style.color=info.color;
+  document.getElementById('mode-info-sub').textContent=info.sub;
+  document.getElementById('mode-info-desc').textContent=info.desc;
+  document.getElementById('mode-info-accent').style.background=info.color;
+  sh.style.setProperty('--mi-color',info.color);
+  sh.style.setProperty('--mi-bg',info.bg);
+  const tipsEl=document.getElementById('mode-info-tips');
+  tipsEl.innerHTML=info.tips.map(t=>`<div class="mode-info-tip"><span class="mode-info-tip-icon">${t.i}</span><span>${t.t}</span></div>`).join('');
+  document.getElementById('mode-info-play').style.background=info.color;
+  document.getElementById('mode-info-play').style.color=(['#f5c842','#34d399','#fbbf24','#a8d8f0'].includes(info.color)?'#000':'#fff');
+  over.classList.add('on');
+  // Swipe vers le bas pour fermer
+  setupSwipeDown(sh,closeModeInfo);
+}
+function closeModeInfo(){
+  document.getElementById('mode-info-modal').classList.remove('on');
+}
+function launchFromInfo(){
+  closeModeInfo();
+  setTimeout(startGame,120);
+}
 
 function refHome(){
   const s=ls();const{l,nxt,pct}=gxp(s.xp);const lv=LEVELS[l],nlv=LEVELS[Math.min(l+1,LEVELS.length-1)];
@@ -3660,7 +3881,69 @@ function runSplash(){
   splash.addEventListener('click',onTap,{once:true});
 }
 
-// ── TRANSITIONS ──
+// ── SWIPE GESTURES ──
+function setupSwipeDown(el,onClose){
+  let startY=0,startX=0,dragging=false;
+  const onStart=e=>{
+    const t=e.touches?e.touches[0]:e;
+    startY=t.clientY;startX=t.clientX;dragging=true;
+  };
+  const onMove=e=>{
+    if(!dragging)return;
+    const t=e.touches?e.touches[0]:e;
+    const dy=t.clientY-startY;
+    const dx=Math.abs(t.clientX-startX);
+    if(dy>0&&dy>dx){
+      e.preventDefault();
+      el.style.transform=`translateY(${Math.min(dy*.6,120)}px)`;
+      el.style.transition='none';
+    }
+  };
+  const onEnd=e=>{
+    if(!dragging)return;dragging=false;
+    const t=e.changedTouches?e.changedTouches[0]:e;
+    const dy=t.clientY-startY;
+    el.style.transform='';el.style.transition='';
+    if(dy>80)onClose();
+  };
+  el.addEventListener('touchstart',onStart,{passive:true});
+  el.addEventListener('touchmove',onMove,{passive:false});
+  el.addEventListener('touchend',onEnd,{passive:true});
+}
+
+function setupSwipeRight(el,onClose){
+  let startX=0,startY=0,dragging=false;
+  el.addEventListener('touchstart',e=>{
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=true;
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    const dx=e.touches[0].clientX-startX;
+    const dy=Math.abs(e.touches[0].clientY-startY);
+    if(dx>0&&dx>dy){
+      e.preventDefault();
+      el.style.transform=`translateX(${Math.min(dx*.55,100)}px)`;
+      el.style.transition='none';
+      el.style.opacity=Math.max(0.4,1-dx/300);
+    }
+  },{passive:false});
+  el.addEventListener('touchend',e=>{
+    if(!dragging)return;dragging=false;
+    const dx=e.changedTouches[0].clientX-startX;
+    el.style.transform='';el.style.opacity='';el.style.transition='';
+    if(dx>80)onClose();
+  },{passive:true});
+}
+
+// Init swipes après le DOM
+setTimeout(()=>{
+  // Profil : swipe droite → retour
+  const profileEl=document.getElementById('profile');
+  if(profileEl)setupSwipeRight(profileEl,()=>go('home'));
+  // Badge modal : swipe bas → fermer
+  const bmodSh=document.querySelector('#bmod .msh');
+  if(bmodSh)setupSwipeDown(bmodSh,()=>document.getElementById('bmod').classList.remove('on'));
+},400);
 function animateQTransition(cb){
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
