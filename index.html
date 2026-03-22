@@ -1234,9 +1234,11 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
   border:1.5px solid rgba(255,255,255,.1);
   text-align:center;cursor:pointer;font-size:10px;font-weight:700;
   color:rgba(255,255,255,.5);letter-spacing:.5px;text-transform:uppercase;
-  transition:all .2s;
+  transition:all .2s;position:relative;
 }
 .theme-opt.active{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.08);}
+.theme-opt.locked{opacity:.45;cursor:default;filter:grayscale(.6);}
+.theme-opt.locked::after{content:'🔒';position:absolute;top:4px;right:5px;font-size:9px;}
 .theme-opt-dot{width:18px;height:18px;border-radius:50%;margin:0 auto 5px;}
 
 
@@ -1882,7 +1884,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="tbr">
         <div class="ibtn" onclick="openHelp()" title="Comment jouer ?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></div>
         <div class="ibtn" id="btn-music" onclick="toggleMusic()" title="Musique"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-        <div class="ibtn" id="btn-sound" onclick="toggleSound()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div>
         <div class="ibtn" onclick="goProfile()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
       </div>
     </div>
@@ -2052,15 +2053,15 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="ptt" id="p-tt">Niveau 1</div>
     </div>
     <!-- Stats avancées : sparkline 7 jours -->
-    <div class="stats-chart-wrap" id="stats-sparkline-wrap">
-      <div class="stats-chart-title">Scores — 14 derniers jours <span id="sparkline-avg" style="font-weight:400;color:rgba(255,255,255,.4);font-size:10px;"></span></div>
+    <div class="stats-chart-wrap" onclick="openProfileStat('scores7')" style="cursor:pointer;" id="stats-sparkline-wrap">
+      <div class="stats-chart-title">Scores — 7 derniers jours <span id="sparkline-avg" style="font-weight:400;color:rgba(255,255,255,.4);font-size:10px;"></span><span style="float:right;font-size:9px;color:rgba(255,255,255,.25);">Détail →</span></div>
       <div id="p-global-stats"></div>
       <div class="sparkline-wrap" id="sparkline-bars"></div>
       <div class="spark-labels" id="sparkline-labels"></div>
     </div>
     <!-- Heatmap par mode -->
-    <div class="stats-chart-wrap">
-      <div class="stats-chart-title">Parties par mode <span style="color:rgba(255,255,255,.3);font-size:9px">+ = plus joué</span></div>
+    <div class="stats-chart-wrap" onclick="openProfileStat('games')" style="cursor:pointer;">
+      <div class="stats-chart-title">Parties par mode <span style="color:rgba(255,255,255,.3);font-size:9px">Appuie pour le détail →</span></div>
       <div class="heatmap-wrap" id="mode-heatmap"></div>
     </div>
     <div class="sgrid">
@@ -2074,20 +2075,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div class="shd" style="margin-bottom:8px;">Meilleurs scores par mode</div>
     <div id="p-best-scores" style="margin-bottom:22px;cursor:pointer;" onclick="openProfileStat('bestscores')"></div>
     <div class="shd" style="margin-bottom:8px;">Theme <span style="color:var(--mt);font-size:9px;">Débloquer en jouant</span></div>
-    <div class="theme-picker" id="theme-picker">
-      <div class="theme-opt active" data-theme="" onclick="applyTheme('',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#f5c842,#0a0a0f)"></div>Défaut</div>
-      <div class="theme-opt" data-theme="gold" onclick="applyTheme('gold',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#f5c842,#a06828)"></div>Doré</div>
-      <div class="theme-opt" data-theme="neon" onclick="applyTheme('neon',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#b94fff,#00ccff)"></div>Néon</div>
-      <div class="theme-opt" data-theme="classic" onclick="applyTheme('classic',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#c8924a,#0a0700)"></div>Vintage</div>
-      <div class="theme-opt" data-theme="crimson" onclick="applyTheme('crimson',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#ff4d6d,#2a000a)"></div>Crimson</div>
-      <div class="theme-opt" data-theme="ocean" onclick="applyTheme('ocean',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#00c8ff,#000a12)"></div>Océan</div>
-      <div class="theme-opt" data-theme="forest" onclick="applyTheme('forest',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#00e676,#000a05)"></div>Forêt</div>
-      <div class="theme-opt" data-theme="aurora" onclick="applyTheme('aurora',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#69f0ae,#da77f2,#ff6eb4)"></div>Aurora</div>
-      <div class="theme-opt" data-theme="sunset" onclick="applyTheme('sunset',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#ff7c2a,#e85c00,#ff4e6a)"></div>Sunset</div>
-      <div class="theme-opt" data-theme="ice" onclick="applyTheme('ice',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#e0f4ff,#5eb8e8,#38c8f8)"></div>Ice</div>
-      <div class="theme-opt" data-theme="emerald" onclick="applyTheme('emerald',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#6ee7b7,#34d399,#059669)"></div>Émeraude</div>
-      <div class="theme-opt" data-theme="sepia" onclick="applyTheme('sepia',this)"><div class="theme-opt-dot" style="background:linear-gradient(135deg,#ffe9a0,#d4a847,#a07828)"></div>Sépia</div>
-    </div>
+    <div class="theme-picker" id="theme-picker"></div>
     <!-- 🎵 Musiques personnalisées -->
     <div class="shd" style="margin-bottom:8px;">
       Musiques
@@ -2156,7 +2144,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     </div>
     <div class="qa" id="qa"></div>
     <div class="agrid" id="agrid"></div>
-    <div class="tst" id="toast">
+    <div class="tst" id="toast" onclick="if(nextQTimer){clearTimeout(nextQTimer);hideToast();advanceQ();}">
       <div class="tpts" id="tpts">+300</div>
       <div class="tmsg" id="tmsg">Excellent !</div>
       <div class="tans" id="tans"></div>
@@ -2599,7 +2587,6 @@ function buildMusicManager(){
       <div class="music-track-icon-box">${info.icon}</div>
       <div class="music-track-info">
         <div class="music-track-label">${trackName}</div>
-        <div class="music-track-file">${info.label}</div>
       </div>
       <div class="music-btns">
         <button class="mbtn${isPlay?' playing':''}" id="mpb-${k}" onclick="previewMusicTrack('${k}')">${isPlay?svgPause:svgPlay}</button>
@@ -2859,9 +2846,55 @@ function beep(s){
 
 // -- THÈMES --
 const THEMES_UNLOCK={neon:5,classic:10}; // parties requises pour débloquer
+// ── THÈMES — conditions de déverrouillage ──
+const THEMES=[
+  {id:'',      name:'Défaut',   dot:'linear-gradient(135deg,#f5c842,#0a0a0f)', cond:()=>true},
+  {id:'gold',  name:'Doré',     dot:'linear-gradient(135deg,#f5c842,#a06828)', cond:s=>s.games>=5},
+  {id:'classic',name:'Vintage', dot:'linear-gradient(135deg,#c8924a,#0a0700)', cond:s=>s.games>=10},
+  {id:'neon',  name:'Néon',     dot:'linear-gradient(135deg,#b94fff,#00ccff)', cond:s=>(s.xp||0)>=500},
+  {id:'crimson',name:'Crimson', dot:'linear-gradient(135deg,#ff4d6d,#2a000a)', cond:s=>(s.best||0)>=1000},
+  {id:'ocean', name:'Océan',    dot:'linear-gradient(135deg,#00c8ff,#000a12)', cond:s=>s.games>=25},
+  {id:'forest',name:'Forêt',    dot:'linear-gradient(135deg,#00e676,#000a05)', cond:s=>(s.xp||0)>=1000},
+  {id:'sunset',name:'Sunset',   dot:'linear-gradient(135deg,#ff7c2a,#e85c00,#ff4e6a)', cond:s=>(s.streak||0)>=3},
+  {id:'ice',   name:'Ice',      dot:'linear-gradient(135deg,#e0f4ff,#5eb8e8,#38c8f8)', cond:s=>(s.perfects||0)>=3},
+  {id:'aurora',name:'Aurora',   dot:'linear-gradient(135deg,#69f0ae,#da77f2,#ff6eb4)', cond:s=>(s.xp||0)>=2500},
+  {id:'emerald',name:'Émeraude',dot:'linear-gradient(135deg,#6ee7b7,#34d399,#059669)', cond:s=>s.games>=50},
+  {id:'sepia', name:'Sépia',    dot:'linear-gradient(135deg,#ffe9a0,#d4a847,#a07828)', cond:s=>(s.unlocked||[]).length>=15},
+];
+
+function renderThemePicker(){
+  const s=ls();
+  const picker=document.getElementById('theme-picker');
+  if(!picker)return;
+  picker.innerHTML=THEMES.map(t=>{
+    const unlocked=t.cond(s);
+    const active=(s.theme||'')===(t.id);
+    const hint=unlocked?'':(()=>{
+      if(t.id==='gold') return '5 parties';
+      if(t.id==='classic') return '10 parties';
+      if(t.id==='neon') return '500 XP';
+      if(t.id==='crimson') return '1000 pts';
+      if(t.id==='ocean') return '25 parties';
+      if(t.id==='forest') return '1000 XP';
+      if(t.id==='sunset') return 'Série 3j';
+      if(t.id==='ice') return '3 parfaites';
+      if(t.id==='aurora') return '2500 XP';
+      if(t.id==='emerald') return '50 parties';
+      if(t.id==='sepia') return '15 badges';
+      return '';
+    })();
+    return`<div class="theme-opt${active?' active':''}${unlocked?'':' locked'}"
+      data-theme="${t.id}"
+      onclick="${unlocked?`applyTheme('${t.id}',this)`:`showToastMsg('🔒 ${hint} pour débloquer')`}">
+      <div class="theme-opt-dot" style="background:${t.dot}"></div>
+      ${t.name}
+      ${!unlocked?`<div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px;">${hint}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
 function applyTheme(name,el){
   const s=ls();
-  // Tous les thèmes sont libres
   document.body.className=name?'theme-'+name:'';
   document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('active'));
   if(el)el.classList.add('active');
@@ -2928,7 +2961,12 @@ function renderModeStats(s){renderBestScores(s);}
 
 function loadTheme(){
   const s=ls();
-  if(s.theme)applyTheme(s.theme,document.querySelector('.theme-opt[data-theme="'+s.theme+'"]'));
+  if(s.theme){
+    const t=THEMES.find(t=>t.id===s.theme);
+    // Vérifier que le thème est toujours déverrouillé
+    if(t&&t.cond(s))applyTheme(s.theme,null);
+    else{s.theme='';ss(s);}
+  }
 }
 
 // -- HAPTIQUE iOS (Web Vibration API + iOS Taptic via AudioContext trick) --
@@ -2993,7 +3031,19 @@ function sndClap(){
     or.connect(gr);gr.connect(ctx.destination);or.start(t+.05);or.stop(t+.72);
   }catch(e){}
 }
-function toggleSound(){sndOn=!sndOn;const b=document.getElementById('btn-sound');b.style.opacity=sndOn?'1':'.38';}
+function toggleSound(){sndOn=!sndOn;}
+
+// Fix iOS throttling: if page becomes visible and toast is stuck, advance
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&nextQTimer){
+    const t=document.getElementById('toast');
+    if(t&&t.classList.contains('on')){
+      clearTimeout(nextQTimer);
+      hideToast();
+      advanceQ();
+    }
+  }
+});
 
 // ── QUITTER LA PARTIE ──
 function confirmQuit(){
@@ -3351,6 +3401,45 @@ function openProfileStat(type){
       </div>
       <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${i===0?'var(--gold)':'rgba(255,255,255,.55)'};">${d.score}</span>
       <span style="font-size:9px;color:rgba(255,255,255,.28);">pts</span>
+    </div>`).join('')}`;
+  } else if(type==='scores7'){
+    title='📊 Scores — 7 derniers jours';
+    const today=new Date();
+    const days7Data=[];
+    for(let d=6;d>=0;d--){
+      const dt=new Date(today);dt.setDate(dt.getDate()-d);
+      const key=`${dt.getDate()}/${dt.getMonth()+1}`;
+      const dayLabel=dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      const games=hist.filter(h=>h.date===key);
+      const best=games.length?Math.max(...games.map(h=>h.score)):null;
+      const total=games.reduce((a,h)=>a+h.score,0);
+      days7Data.push({key,dayLabel,best,total,count:games.length,isToday:d===0,games});
+    }
+    const totalGames7=days7Data.reduce((a,d)=>a+d.count,0);
+    const activeDays=days7Data.filter(d=>d.count>0);
+    const avgScore=activeDays.length?Math.round(activeDays.reduce((a,d)=>a+(d.best||0),0)/activeDays.length):0;
+    html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);">${totalGames7}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;">Parties</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);">${avgScore||'—'}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;">Moy. pts</div>
+      </div>
+    </div>
+    ${days7Data.map(d=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      <div style="width:70px;font-size:11px;color:${d.isToday?'var(--gold)':'rgba(255,255,255,.4)'};flex-shrink:0;font-weight:${d.isToday?700:400};">${d.dayLabel}</div>
+      ${d.count>0?`
+        <div style="flex:1;background:rgba(255,255,255,.07);border-radius:3px;height:5px;overflow:hidden;">
+          <div style="height:100%;border-radius:3px;background:var(--gold);width:${Math.round((d.best||0)/Math.max(...days7Data.map(x=>x.best||0),1)*100)}%;"></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:rgba(255,255,255,.75);">${d.best}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.28);">${d.count} partie${d.count>1?'s':''}</div>
+        </div>`
+      :`<div style="flex:1;background:rgba(255,255,255,.03);border-radius:3px;height:5px;"></div>
+        <div style="font-size:10px;color:rgba(255,255,255,.2);">—</div>`}
     </div>`).join('')}`;
   }
 
@@ -5247,9 +5336,9 @@ function initSteps(steps){const c=document.getElementById('lsteps');if(!c)return
 function setStep(i,st){const el=document.getElementById('ls'+i);if(!el)return;el.className='lstep '+st;if(st==='don')el.querySelector('.lsi').textContent='✅';}
 
 // themes
-const THEMES=[{id:null,l:'Tous 🎬'},{id:'Action',l:'Action 💥'},{id:'Science-Fiction',l:'SF 🚀'},{id:'Drame',l:'Drame 🎭'},{id:'Horreur',l:'Horreur 👻'},{id:'Animation',l:'Animation 🎨'},{id:'Comédie',l:'Comédie 😂'}];
+const QUIZ_THEMES=[{id:null,l:'Tous 🎬'},{id:'Action',l:'Action 💥'},{id:'Science-Fiction',l:'SF 🚀'},{id:'Drame',l:'Drame 🎭'},{id:'Horreur',l:'Horreur 👻'},{id:'Animation',l:'Animation 🎨'},{id:'Comédie',l:'Comédie 😂'}];
 let selTheme=null,selMode='quiz';
-function renderThemes(){const row=document.getElementById('trow');row.innerHTML=THEMES.map(t=>`<div class="tc${selTheme===t.id?' sel':''}" onclick="pickTheme(${JSON.stringify(t.id)},this)">${t.l}</div>`).join('');}
+function renderThemes(){const row=document.getElementById('trow');row.innerHTML=QUIZ_THEMES.map(t=>`<div class="tc${selTheme===t.id?' sel':''}" onclick="pickTheme(${JSON.stringify(t.id)},this)">${t.l}</div>`).join('');}
 function pickTheme(id,el){selTheme=id;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 function selectMode(m,el){
   selMode=m;
@@ -5552,7 +5641,7 @@ function setupSwipeHoriz(el,onLeft,onRight){
     if(Math.abs(dx)>50&&dy<40){dx<0?onLeft():onRight();}
   },{passive:true});
 }
-function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);buildMusicManager();}
+function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);buildMusicManager();renderThemePicker();}
 
 let _badgeFilter='all';
 function filterBadges(filter){
@@ -6608,14 +6697,18 @@ function showToast(ok,pts,m,ans){
     // Bonne réponse : petite bulle verte, auto-dismiss
     const t=document.getElementById('toast');
     t.className='tst ok';
+    t.style.cursor='pointer';
     document.getElementById('tpts').style.color='var(--green)';
     document.getElementById('tpts').textContent='+'+pts+' pts';
     document.getElementById('tmsg').textContent=m===3?'⚡ Ultra rapide ! x3':m===2?'👍 Bien joué ! x2':'✓ Correct';
     document.getElementById('tans').textContent=ans||'';
     t.classList.add('on');
-    // auto-dismiss après 1.6s
+    // Tap sur le toast = passe à la suite immédiatement
+    const skipFn=()=>{t.removeEventListener('click',skipFn);if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}hideToast();advanceQ();};
+    t.addEventListener('click',skipFn,{once:true});
+    // auto-dismiss après 1.4s (réduit pour éviter le bug iOS throttle)
     if(nextQTimer)clearTimeout(nextQTimer);
-    nextQTimer=setTimeout(()=>{hideToast();advanceQ();},1600);
+    nextQTimer=setTimeout(()=>{t.removeEventListener('click',skipFn);hideToast();advanceQ();},1400);
   } else {
     // Mauvaise réponse : panneau bas persistant
     const q=qs[curQ];
@@ -7045,7 +7138,7 @@ function buildSparkline(s){
   const avgEl=document.getElementById('sparkline-avg');
   if(!bars||!labels)return;
   const hist=[...(s.history||[])].reverse();
-  const days=14; // étendu à 14 jours
+  const days=7;
   const today=new Date();
   const dayData=[];
   for(let d=days-1;d>=0;d--){
@@ -7567,20 +7660,28 @@ function runSplash(){
 
 // ── SWIPE GESTURES ──
 function setupSwipeDown(el,onClose){
-  let startY=0,startX=0,dragging=false;
+  let startY=0,startX=0,dragging=false,canSwipe=false;
   const onStart=e=>{
     const t=e.touches?e.touches[0]:e;
-    startY=t.clientY;startX=t.clientX;dragging=true;
+    startY=t.clientY;startX=t.clientX;
+    dragging=true;
+    // Autoriser le swipe seulement si le contenu est en haut
+    canSwipe=(el.scrollTop||0)<=2;
   };
   const onMove=e=>{
-    if(!dragging)return;
+    if(!dragging||!canSwipe)return;
     const t=e.touches?e.touches[0]:e;
     const dy=t.clientY-startY;
     const dx=Math.abs(t.clientX-startX);
-    if(dy>0&&dy>dx){
+    // Si l'utilisateur scroll vers le haut (dy>0) et c'est plus vertical qu'horizontal
+    if(dy>5&&dy>dx*1.2){
       e.preventDefault();
-      el.style.transform=`translateY(${Math.min(dy*.6,120)}px)`;
+      el.style.transform=`translateY(${Math.min(dy*.5,100)}px)`;
       el.style.transition='none';
+    } else if(dy<-5){
+      // Scroll vers le bas = abandon du swipe
+      canSwipe=false;
+      el.style.transform='';el.style.transition='';
     }
   };
   const onEnd=e=>{
@@ -7588,7 +7689,7 @@ function setupSwipeDown(el,onClose){
     const t=e.changedTouches?e.changedTouches[0]:e;
     const dy=t.clientY-startY;
     el.style.transform='';el.style.transition='';
-    if(dy>80)onClose();
+    if(canSwipe&&dy>90)onClose();
   };
   el.addEventListener('touchstart',onStart,{passive:true});
   el.addEventListener('touchmove',onMove,{passive:false});
