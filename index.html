@@ -1301,23 +1301,46 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .mc[data-mode="location"]{--mc-color:#34d399;--mc-bg:rgba(52,211,153,.1);}
 #game-bg.mode-location{background:radial-gradient(ellipse 65% 55% at 40% 60%,rgba(0,60,40,.9) 0%,#000503 65%);}
 
-.loc-wrap{width:100%;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;}
+.loc-wrap{width:100%;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;}
 .loc-img-box{
   flex:1;min-height:0;position:relative;
-  border-radius:16px;overflow:hidden;background:var(--sf2);
+  border-radius:16px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(20,18,14,.95),rgba(14,12,8,.9));
+  display:flex;align-items:center;justify-content:center;
 }
-.loc-img-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+/* Shimmer de chargement */
+.loc-img-box::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 30%,rgba(255,255,255,.04) 50%,transparent 70%);
+  animation:locShimmer 1.8s ease-in-out infinite;
+  pointer-events:none;z-index:1;
+}
+@keyframes locShimmer{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+.loc-img-box.loaded::before{display:none;}
+.loc-img-box img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;
+  opacity:0;transition:opacity .5s ease;
+}
+.loc-img-box.loaded img{opacity:1;}
+/* Placeholder quand pas d'image */
+.loc-placeholder{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:rgba(255,255,255,.2);font-size:13px;z-index:2;
+}
+.loc-placeholder-icon{font-size:40px;opacity:.3;}
 .loc-overlay{
   position:absolute;bottom:0;left:0;right:0;
-  background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
-  padding:12px 14px 10px;
+  background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.4) 50%,transparent 100%);
+  padding:16px 14px 12px;z-index:3;
 }
-.loc-country{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:2px;text-transform:uppercase;}
-.loc-place{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;margin-top:2px;}
+.loc-country{font-size:10px;color:rgba(255,255,255,.55);letter-spacing:2.5px;text-transform:uppercase;}
+.loc-place{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:1px;margin-top:3px;text-shadow:0 2px 8px rgba(0,0,0,.6);}
 .loc-hint{
-  background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);
-  border-radius:12px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.55);
-  text-align:center;
+  flex-shrink:0;
+  background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);
+  border-radius:12px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.5);
+  text-align:center;line-height:1.4;
 }
 
 
@@ -5803,14 +5826,30 @@ function loadQ(){
   } else if(q.type==='location'){
     game.style.overflowY='hidden';
     qa.style.justifyContent='flex-start';
+    qa.style.gap='8px';
     document.getElementById('dbadge').textContent='🌍 Lieu';
     document.getElementById('dbadge').className='dbd dm';
     qa.innerHTML=`
       <div class="qtl">🌍 Lieu de tournage</div>
-      <div class="loc-wrap" style="flex:1;min-height:0;">
-        <div class="loc-img-box" style="flex:1;min-height:0;max-height:calc(100% - 42px);">
+      <div class="loc-wrap">
+        <div class="loc-img-box" id="loc-img-box" style="flex:1;min-height:0;">
+          <div class="loc-placeholder" id="loc-placeholder">
+            <span class="loc-placeholder-icon">🌍</span>
+            <span>Chargement…</span>
+          </div>
           <img src="${q.photo}" alt="${q.place}" crossorigin="anonymous"
-            style="object-fit:cover;" onerror="this.style.display='none'">
+            onload="
+              const box=document.getElementById('loc-img-box');
+              const ph=document.getElementById('loc-placeholder');
+              if(box)box.classList.add('loaded');
+              if(ph)ph.style.display='none';
+            "
+            onerror="
+              const ph=document.getElementById('loc-placeholder');
+              if(ph){ph.innerHTML='<span style=\'font-size:40px;opacity:.3\'>🌍</span><span style=\'font-size:11px\'>${q.place}</span>';}
+              const box=document.getElementById('loc-img-box');
+              if(box)box.classList.add('loaded');
+            ">
           <div class="loc-overlay">
             <div class="loc-country">${q.country}</div>
             <div class="loc-place">${q.place}</div>
