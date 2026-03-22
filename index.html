@@ -1624,7 +1624,7 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .bo-info{flex:1;min-width:0;}
 .bo-title{font-size:14px;font-weight:600;line-height:1.3;white-space:normal;word-break:break-word;}
 .bo-year{font-size:11px;color:var(--mt);margin-top:3px;}
-.bo-handle{font-size:22px;color:rgba(255,255,255,.25);flex-shrink:0;padding:4px 2px;cursor:grab;line-height:1;}
+.bo-handle{font-size:22px;color:rgba(255,255,255,.3);flex-shrink:0;padding:10px 8px;cursor:grab;line-height:1;min-width:36px;text-align:center;}
 .bo-handle:active{cursor:grabbing;}
 .bo-confirm{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:14px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;margin-top:10px;flex-shrink:0;transition:transform .15s;}
 .bo-confirm:active{transform:scale(.97);}
@@ -1693,7 +1693,8 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .ydisp{font-family:'Bebas Neue',sans-serif;font-size:60px;color:var(--gold);letter-spacing:4px;line-height:1;}
 .yfilm{font-size:12px;color:var(--mt);text-align:center;}
 input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:5px;background:var(--sf2);outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 0 4px rgba(245,200,66,.22);}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:36px;height:36px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 0 5px rgba(245,200,66,.22);}
+input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;background:var(--gold);cursor:pointer;border:none;box-shadow:0 0 0 5px rgba(245,200,66,.22);}
 
 /* answers grid */
 /* agrid/ab — see definitions above */
@@ -1934,6 +1935,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 
     <!-- Anecdote du jour -->
     <div id="h-anecdote" style="margin-bottom:10px;"></div>
+    <!-- Suggestion de mode -->
+    <div id="h-mode-suggest" style="margin-bottom:10px;display:none;"></div>
 
     <!-- Modes -->
     <div class="shd" style="margin-bottom:8px;">Mode de jeu</div>
@@ -2091,6 +2094,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     </div>
     <div id="music-manager" style="margin-bottom:20px;"></div>
     <div class="shd" style="margin-bottom:9px;">Badges <span id="p-bc" style="color:var(--gold)"></span></div>
+    <!-- Filtres badges -->
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button id="pbf-all" onclick="filterBadges('all')" style="flex:1;padding:7px 4px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .18s;background:rgba(245,200,66,.15);border:1px solid rgba(245,200,66,.4);color:var(--gold);">Tous</button>
+      <button id="pbf-ok" onclick="filterBadges('ok')" style="flex:1;padding:7px 4px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .18s;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);">✓ Débloqués</button>
+      <button id="pbf-lk" onclick="filterBadges('lk')" style="flex:1;padding:7px 4px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .18s;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);">🔒 À faire</button>
+    </div>
     <div class="pbgrid" id="p-bgrid"></div>
     <div class="shd" style="margin-bottom:9px;">Historique récent</div>
     <div id="p-hist"></div>
@@ -2179,6 +2188,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
     <div id="r-mode-badge" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 14px;font-size:11px;color:rgba(255,255,255,.55);letter-spacing:1px;margin-bottom:10px;animation:fadeScaleIn .4s ease .15s both;"></div>
     <div class="rscore" id="rscore">0</div>
     <div class="rscl">points</div>
+    <!-- Nouveau record -->
+    <div id="r-new-best" style="display:none;align-items:center;gap:8px;background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.35);border-radius:12px;padding:8px 16px;margin-bottom:6px;animation:fadeScaleIn .5s cubic-bezier(.34,1.56,.64,1) .2s both;">
+      <span style="font-size:20px;">🏆</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--gold);">NOUVEAU RECORD !</span>
+    </div>
     <div class="r-chart">
       <div class="r-chart-title">Réponses par question</div>
       <div class="r-bars" id="r-bars"></div>
@@ -2196,6 +2210,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
       <button class="rbp" onclick="startGame()">↺ REJOUER</button>
       <button class="rbs" onclick="go('home');refHome();applyNewBadges()">← Accueil</button>
     </div>
+    <!-- Streak tip -->
+    <div id="r-streak-tip" style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.35);text-align:center;letter-spacing:.3px;animation:fadeScaleIn .4s ease .9s both;"></div>
     <!-- Share button -->
     <button id="r-share" onclick="shareScore()" style="margin-top:9px;width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;color:rgba(255,255,255,.6);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;animation:fadeScaleIn .4s ease .75s both;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -2999,7 +3015,7 @@ function doQuit(){
   clearInterval(tInt);clearInterval(revInt);
   hideToast();
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='';
-  go('home');refHome();
+  go('home');refHome();applyNewBadges();
 }
 
 // ── DERNIÈRES PARTIES ──
@@ -5409,9 +5425,10 @@ function refHome(){
   } else if(lastEl){
     lastEl.style.display='none';
   }
-  // Prochain badge & anecdote
+  // Prochain badge & anecdote & suggestion mode
   renderNextBadge(s);
   renderDailyAnecdote();
+  renderModeSuggestion(s);
 }
 
 function renderNextBadge(s){
@@ -5445,6 +5462,46 @@ function renderNextBadge(s){
 }
 
 let _anecIdx=0;
+
+function renderModeSuggestion(s){
+  const el=document.getElementById('h-mode-suggest');
+  if(!el)return;
+  const hist=s.history||[];
+  if(hist.length<3){el.style.display='none';return;}
+  // Trouver un mode pas joué depuis longtemps
+  const modeLabels={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',vraifaux:'Vrai ou Faux',decennie:'Décennie',quiadit:'Qui a dit ça ?',versus:'2 Joueurs',training:'Entraînement'};
+  const modeIcons={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',generique:'📜',location:'🌍',vraifaux:'🎯',decennie:'📅',quiadit:'🗣️',versus:'⚔️',training:'📚'};
+  const allModes=Object.keys(modeLabels);
+  // Date dernière partie par mode (index dans l'historique — plus grand = plus récent)
+  const lastIdx={};
+  hist.forEach((h,i)=>{if(h.mode)lastIdx[h.mode]=i;});
+  // Trouver le mode joué et le plus ancien
+  const played=Object.keys(lastIdx);
+  if(!played.length){el.style.display='none';return;}
+  // Mode le plus ancien parmi les joués (priorité aux jamais joués)
+  const neverPlayed=allModes.filter(m=>!lastIdx[m]&&m!=='training'&&m!=='versus');
+  const suggest=neverPlayed.length>0
+    ?neverPlayed[Math.floor(Math.random()*Math.min(3,neverPlayed.length))]
+    :played.sort((a,b)=>(lastIdx[a]||0)-(lastIdx[b]||0))[0];
+  if(!suggest){el.style.display='none';return;}
+  const nGames=(lastIdx[suggest]!==undefined)?hist.length-lastIdx[suggest]:null;
+  const msg=nGames===null?'Tu n\'as pas encore essayé ce mode !':`Pas joué depuis ${nGames} partie${nGames>1?'s':''} !`;
+  el.style.display='block';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:11px 14px;cursor:pointer;transition:all .18s;" onclick="selectModeAndOpen('${suggest}')">
+    <span style="font-size:26px;flex-shrink:0;">${modeIcons[suggest]||'🎬'}</span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;">Essaie ce mode</div>
+      <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.75);">${modeLabels[suggest]}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:1px;">${msg}</div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+  </div>`;
+}
+
+function selectModeAndOpen(mode){
+  const mc=document.querySelector(`.mc[data-mode="${mode}"]`);
+  if(mc)openModeInfo(mode,mc);
+}
 
 function renderDailyAnecdote(){
   const el=document.getElementById('h-anecdote');
@@ -5496,6 +5553,27 @@ function setupSwipeHoriz(el,onLeft,onRight){
   },{passive:true});
 }
 function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);buildMusicManager();}
+
+let _badgeFilter='all';
+function filterBadges(filter){
+  _badgeFilter=filter;
+  const s=ls();
+  const btns={all:document.getElementById('pbf-all'),ok:document.getElementById('pbf-ok'),lk:document.getElementById('pbf-lk')};
+  const activeStyle='background:rgba(245,200,66,.15);border:1px solid rgba(245,200,66,.4);color:var(--gold);';
+  const inactiveStyle='background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);';
+  Object.entries(btns).forEach(([k,el])=>{if(el)el.style.cssText=el.style.cssText.replace(/background:[^;]+;border:[^;]+;color:[^;]+;/,'')+((k===filter)?activeStyle:inactiveStyle);});
+  const list=BADGES.filter(b=>{
+    const ok=s.unlocked.includes(b.id);
+    if(filter==='ok')return ok;
+    if(filter==='lk')return !ok;
+    return true;
+  });
+  const grid=document.getElementById('p-bgrid');
+  if(!grid)return;
+  grid.innerHTML=list.length
+    ?list.map(b=>{const ok=s.unlocked.includes(b.id);return`<div class="pbc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')"><div class="pbci">${b.icon}</div><div class="pbcn">${b.name}</div></div>`;}).join('')
+    :`<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);font-size:12px;padding:16px;">${filter==='ok'?'Aucun badge débloqué pour l\'instant.':'Tous les badges sont débloqués ! 🏆'}</div>`;
+}
 function refProfile(){
   const s=ls();const{l}=gxp(s.xp);const lv=LEVELS[l];
   const pct=s.questions>0?Math.round((s.correct/s.questions)*100):0;
@@ -5511,7 +5589,7 @@ function refProfile(){
   document.getElementById('p-pt').textContent=fmtT(s.playtime||0);
   document.getElementById('p-bs').textContent=s.best;
   document.getElementById('p-bc').textContent=s.unlocked.length+'/'+BADGES.length;
-  document.getElementById('p-bgrid').innerHTML=BADGES.map(b=>{const ok=s.unlocked.includes(b.id);return`<div class="pbc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')"><div class="pbci">${b.icon}</div><div class="pbcn">${b.name}</div></div>`;}).join('');
+  filterBadges('all');
   const hist=document.getElementById('p-hist');hist.innerHTML='';
   const rec=[...(s.history||[])].reverse().slice(0,6);
   if(!rec.length)hist.innerHTML='<div style="color:var(--mt);font-size:13px;text-align:center;padding:18px 0">Aucune partie pour l\'instant</div>';
@@ -6597,7 +6675,7 @@ function endGame(){
   const bonus=(okCnt===TOTAL?50:0)+(selMode==='photo'?30:0)+(selMode==='duo'?25:0)+(selMode==='bo'?25:0)+(selMode==='boxoffice'?35:0)+(selMode==='year'?20:0)+(selMode==='replique'?25:0)+(selMode==='acteur'?25:0)+(selMode==='compositeur'?30:0)+(selMode==='casting'?30:0)+(selMode==='realisateur'?30:0)+(selMode==='location'?25:0)+(selMode==='vraifaux'?20:0)+(selMode==='decennie'?20:0)+(selMode==='quiadit'?25:0);
   const xp=Math.floor(base+bonus);
   s.xp+=xp;s.games++;s.correct+=okCnt;s.questions+=TOTAL;
-  if(score>s.best)s.best=score;
+  if(score>s.best){s.best=score;s._newBest=true;}else{s._newBest=false;}
   if(okCnt===TOTAL)s.perfects=(s.perfects||0)+1;
   s.fast=(s.fast||0)+fastCnt;s.photoOk=(s.photoOk||0)+photoOkCnt;s.playtime=(s.playtime||0)+playSec;
   if((combo||0)>(s.bestCombo||0))s.bestCombo=combo||0;
@@ -6806,6 +6884,15 @@ function showResult(s,xp){
   document.getElementById('rav').textContent=avg+'s';
   const{pct:xpPct}=gxp(s.xp);
   setTimeout(()=>{document.getElementById('rxpf').style.width=xpPct+'%';},100);
+  // Nouveau record
+  const newBestEl=document.getElementById('r-new-best');
+  if(newBestEl)newBestEl.style.display=s._newBest?'flex':'none';
+  // Streak
+  const streakEl=document.getElementById('r-streak-tip');
+  if(streakEl){
+    if(s.streak>1)streakEl.textContent=`🔥 Série de ${s.streak} jours — Reviens demain !`;
+    else streakEl.textContent='📅 Joue chaque jour pour lancer ta série !';
+  }
   go('result');
   // Mode badge
   const modeLabels={quiz:'⚡ Trivia Ciné',photo:'🎬 Affiche Mystère',year:'📅 Quelle Année ?',bo:'💡 Indices Mystère',boxoffice:'💰 Box-office',replique:'💬 La Réplique',acteur:'👤 Acteur Mystère',compositeur:'🎼 Compositeur',filmographie:'🎭 Filmographie',realisateur:'🎥 Réalisateur',casting:'🧩 Le Casting',generique:'📜 Le Générique',location:'🌍 Lieu de tournage',training:'📚 Entraînement',vraifaux:'🎯 Vrai ou Faux',versus:'⚔️ 2 Joueurs',decennie:'📅 Décennie',quiadit:'🎭 Qui a dit ça ?'};
@@ -7683,9 +7770,57 @@ function _showDailyDone(d){
   document.getElementById('rmu').textContent='x'+(d.bestM||1);
   document.getElementById('rav').textContent=(d.avg||0)+'s';
   const mb=document.getElementById('r-mode-badge');if(mb)mb.textContent='🎬 Défi du Jour';
-  // Reconstruire dotRes pour le graphique
   if(d.dots){dotRes=d.dots.split('').filter(c=>c==='🟩'||c==='🟥').map(c=>c==='🟩');}
+  // Nouveau record défi ?
+  const newBestEl=document.getElementById('r-new-best');
+  if(newBestEl)newBestEl.style.display='none';
+  // Streak tip
+  const s=ls();
+  const strEl=document.getElementById('r-streak-tip');
+  if(strEl)strEl.textContent=s.streak>1?`🔥 Série de ${s.streak} jours — Reviens demain !`:'📅 Joue chaque jour pour lancer ta série !';
   go('result');setTimeout(buildResultChart,200);
+  // Injecter le classement local
+  setTimeout(()=>_renderDailyLeaderboard(d.score),300);
+}
+
+function _saveDailyScore(score){
+  const s=ls();
+  const pseudo=s.pseudo||'Toi';
+  const key='cq_dldr_'+getDailyKey();
+  try{
+    let board=JSON.parse(localStorage.getItem(key)||'[]');
+    if(!board.find(e=>e.pseudo===pseudo))board.push({pseudo,score});
+    board.sort((a,b)=>b.score-a.score);
+    localStorage.setItem(key,JSON.stringify(board.slice(0,20)));
+  }catch{}
+}
+
+function _renderDailyLeaderboard(myScore){
+  const key='cq_dldr_'+getDailyKey();
+  let board=[];
+  try{board=JSON.parse(localStorage.getItem(key)||'[]');}catch{}
+  if(!board.length)return;
+  const s=ls();const pseudo=s.pseudo||'Toi';
+  const myRank=board.findIndex(e=>e.pseudo===pseudo)+1;
+  // Trouver ou injecter après le share button
+  let ldrEl=document.getElementById('r-daily-ldr');
+  if(!ldrEl){
+    ldrEl=document.createElement('div');
+    ldrEl.id='r-daily-ldr';
+    const shareBtn=document.getElementById('r-share');
+    if(shareBtn)shareBtn.parentNode.insertBefore(ldrEl,shareBtn.nextSibling);
+  }
+  ldrEl.innerHTML=`<div style="margin-top:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 14px;">
+    <div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">🏆 Classement du jour${myRank?` · Tu es ${myRank}ème`:''}</div>
+    ${board.slice(0,5).map((e,i)=>{
+      const isMe=e.pseudo===pseudo;
+      return`<div style="display:flex;align-items:center;gap:10px;padding:5px 0;${i<4?'border-bottom:1px solid rgba(255,255,255,.05);':''}">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${i===0?'#f5c842':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,.3)'};width:18px;">${i+1}</span>
+        <span style="flex:1;font-size:12px;${isMe?'font-weight:700;color:rgba(255,255,255,.85);':'color:rgba(255,255,255,.55);'}">${e.pseudo}${isMe?' ◀':''}</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${isMe?'var(--gold)':'rgba(255,255,255,.5)'};">${e.score}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 // Score count-up animation
@@ -7718,6 +7853,8 @@ showResult=function(s,xp){
       data[key]={score,correct:okCnt,bestM,avg,dots:dotRes.map(r=>r?'🟩':'🟥').join('')};
       saveDailyData(data);
       updateDailyCard();
+      _saveDailyScore(score);
+      setTimeout(()=>_renderDailyLeaderboard(score),400);
     }
   }
 };
