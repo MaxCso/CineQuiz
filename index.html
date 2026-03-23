@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>CinéQuiz</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
+<link rel="icon" id="favicon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
+<link rel="apple-touch-icon" id="apple-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0f' rx='22'/><text x='50' y='72' text-anchor='middle' font-size='60'>🎥</text></svg>">
 <!-- PWA -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2311,6 +2312,14 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     </div>
   </div>
 
+  <!-- Theme detail modal -->
+  <div class="mover" id="theme-detail-modal" onclick="if(event.target===this)closeThemeDetail()">
+    <div class="msh">
+      <div class="mhdl"></div>
+      <div id="theme-detail-content"></div>
+    </div>
+  </div>
+
   <!-- Recent Games Modal -->
   <div class="mover" id="recent-games-modal" onclick="if(event.target===this)closeRecentGames()">
     <div class="msh" style="max-height:82vh;overflow-y:auto;">
@@ -2848,19 +2857,65 @@ function beep(s){
 const THEMES_UNLOCK={neon:5,classic:10}; // parties requises pour débloquer
 // ── THÈMES — conditions de déverrouillage ──
 const THEMES=[
-  {id:'',      name:'Défaut',   dot:'linear-gradient(135deg,#f5c842,#0a0a0f)', cond:()=>true},
-  {id:'gold',  name:'Doré',     dot:'linear-gradient(135deg,#f5c842,#a06828)', cond:s=>s.games>=5},
-  {id:'classic',name:'Vintage', dot:'linear-gradient(135deg,#c8924a,#0a0700)', cond:s=>s.games>=10},
-  {id:'neon',  name:'Néon',     dot:'linear-gradient(135deg,#b94fff,#00ccff)', cond:s=>(s.xp||0)>=500},
-  {id:'crimson',name:'Crimson', dot:'linear-gradient(135deg,#ff4d6d,#2a000a)', cond:s=>(s.best||0)>=1000},
-  {id:'ocean', name:'Océan',    dot:'linear-gradient(135deg,#00c8ff,#000a12)', cond:s=>s.games>=25},
-  {id:'forest',name:'Forêt',    dot:'linear-gradient(135deg,#00e676,#000a05)', cond:s=>(s.xp||0)>=1000},
-  {id:'sunset',name:'Sunset',   dot:'linear-gradient(135deg,#ff7c2a,#e85c00,#ff4e6a)', cond:s=>(s.streak||0)>=3},
-  {id:'ice',   name:'Ice',      dot:'linear-gradient(135deg,#e0f4ff,#5eb8e8,#38c8f8)', cond:s=>(s.perfects||0)>=3},
-  {id:'aurora',name:'Aurora',   dot:'linear-gradient(135deg,#69f0ae,#da77f2,#ff6eb4)', cond:s=>(s.xp||0)>=2500},
-  {id:'emerald',name:'Émeraude',dot:'linear-gradient(135deg,#6ee7b7,#34d399,#059669)', cond:s=>s.games>=50},
-  {id:'sepia', name:'Sépia',    dot:'linear-gradient(135deg,#ffe9a0,#d4a847,#a07828)', cond:s=>(s.unlocked||[]).length>=15},
+  {id:'',      name:'Défaut',    emoji:'🎬', dot:'linear-gradient(135deg,#f5c842,#0a0a0f)',  cond:()=>true,         hint:'',              desc:'Le thème de base. Toujours disponible.',          prog:()=>1},
+  {id:'gold',  name:'Doré',      emoji:'⭐', dot:'linear-gradient(135deg,#f5c842,#a06828)',  cond:s=>s.games>=5,    hint:'5 parties',     desc:'Joue 5 parties pour débloquer ce thème.',         prog:s=>Math.min(1,(s.games||0)/5)},
+  {id:'classic',name:'Vintage',  emoji:'🎞️', dot:'linear-gradient(135deg,#c8924a,#0a0700)', cond:s=>s.games>=10,   hint:'10 parties',    desc:'Joue 10 parties au total.',                       prog:s=>Math.min(1,(s.games||0)/10)},
+  {id:'neon',  name:'Néon',      emoji:'⚡', dot:'linear-gradient(135deg,#b94fff,#00ccff)',  cond:s=>(s.xp||0)>=500,hint:'500 XP',        desc:'Atteins 500 XP de progression.',                  prog:s=>Math.min(1,(s.xp||0)/500)},
+  {id:'crimson',name:'Crimson',  emoji:'🔥', dot:'linear-gradient(135deg,#ff4d6d,#2a000a)', cond:s=>(s.best||0)>=1000,hint:'1000 pts',   desc:'Réalise un score de 1 000 pts en une partie.',    prog:s=>Math.min(1,(s.best||0)/1000)},
+  {id:'ocean', name:'Océan',     emoji:'🌊', dot:'linear-gradient(135deg,#00c8ff,#000a12)', cond:s=>s.games>=25,   hint:'25 parties',    desc:'Joue 25 parties au total.',                       prog:s=>Math.min(1,(s.games||0)/25)},
+  {id:'forest',name:'Forêt',     emoji:'🌿', dot:'linear-gradient(135deg,#00e676,#000a05)', cond:s=>(s.xp||0)>=1000,hint:'1000 XP',      desc:'Atteins 1 000 XP de progression.',                prog:s=>Math.min(1,(s.xp||0)/1000)},
+  {id:'sunset',name:'Sunset',    emoji:'🌅', dot:'linear-gradient(135deg,#ff7c2a,#e85c00,#ff4e6a)', cond:s=>(s.streak||0)>=3, hint:'Série 3 jours', desc:'Joue 3 jours consécutifs.',        prog:s=>Math.min(1,(s.streak||0)/3)},
+  {id:'ice',   name:'Ice',       emoji:'❄️', dot:'linear-gradient(135deg,#e0f4ff,#5eb8e8,#38c8f8)', cond:s=>(s.perfects||0)>=3, hint:'3 parfaites', desc:'Réalise 3 parties parfaites (10/10).', prog:s=>Math.min(1,(s.perfects||0)/3)},
+  {id:'aurora',name:'Aurora',    emoji:'✨', dot:'linear-gradient(135deg,#69f0ae,#da77f2,#ff6eb4)', cond:s=>(s.xp||0)>=2500, hint:'2500 XP', desc:'Atteins 2 500 XP de progression.',       prog:s=>Math.min(1,(s.xp||0)/2500)},
+  {id:'emerald',name:'Émeraude', emoji:'💎', dot:'linear-gradient(135deg,#6ee7b7,#34d399,#059669)', cond:s=>s.games>=50, hint:'50 parties', desc:'Joue 50 parties au total.',              prog:s=>Math.min(1,(s.games||0)/50)},
+  {id:'sepia', name:'Sépia',     emoji:'🎭', dot:'linear-gradient(135deg,#ffe9a0,#d4a847,#a07828)', cond:s=>(s.unlocked||[]).length>=15, hint:'15 badges', desc:'Débloque 15 badges.', prog:s=>Math.min(1,(s.unlocked||[]).length/15)},
 ];
+
+function openThemeDetail(id){
+  const s=ls();
+  const t=THEMES.find(th=>th.id===id);
+  if(!t)return;
+  const unlocked=t.cond(s);
+  const pct=Math.round(t.prog(s)*100);
+  const modal=document.getElementById('theme-detail-modal');
+  const content=document.getElementById('theme-detail-content');
+  content.innerHTML=`
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:48px;margin-bottom:8px;">${t.emoji}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--gold);">${t.name}</div>
+      <div style="display:inline-block;width:32px;height:32px;border-radius:50%;margin:8px auto 0;background:${t.dot};border:2px solid rgba(255,255,255,.2);"></div>
+    </div>
+    ${unlocked
+      ? `<div style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:14px;padding:14px 16px;text-align:center;margin-bottom:14px;">
+           <span style="font-size:18px;">✅</span>
+           <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--green);margin-top:4px;">Thème débloqué !</div>
+         </div>`
+      : `<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+           <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px;">${t.desc}</div>
+           <div style="font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Progression</div>
+           <div style="background:rgba(255,255,255,.08);border-radius:5px;height:8px;overflow:hidden;margin-bottom:6px;">
+             <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:5px;transition:width .6s ease;"></div>
+           </div>
+           <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);">
+             <span>${pct}%</span><span>${t.hint} requis</span>
+           </div>
+         </div>`
+    }
+    ${unlocked
+      ? `<button onclick="applyTheme('${t.id}',null);closeThemeDetail();renderThemePicker();"
+           style="width:100%;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;border:none;border-radius:16px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;">
+           APPLIQUER CE THÈME
+         </button>`
+      : `<button onclick="closeThemeDetail()"
+           style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;color:rgba(255,255,255,.6);">
+           COMPRIS
+         </button>`
+    }`;
+  modal.classList.add('on');
+  const sh=modal.querySelector('.msh');
+  if(sh)setupSwipeDown(sh,closeThemeDetail);
+}
+function closeThemeDetail(){document.getElementById('theme-detail-modal').classList.remove('on');}
 
 function renderThemePicker(){
   const s=ls();
@@ -2869,26 +2924,13 @@ function renderThemePicker(){
   picker.innerHTML=THEMES.map(t=>{
     const unlocked=t.cond(s);
     const active=(s.theme||'')===(t.id);
-    const hint=unlocked?'':(()=>{
-      if(t.id==='gold') return '5 parties';
-      if(t.id==='classic') return '10 parties';
-      if(t.id==='neon') return '500 XP';
-      if(t.id==='crimson') return '1000 pts';
-      if(t.id==='ocean') return '25 parties';
-      if(t.id==='forest') return '1000 XP';
-      if(t.id==='sunset') return 'Série 3j';
-      if(t.id==='ice') return '3 parfaites';
-      if(t.id==='aurora') return '2500 XP';
-      if(t.id==='emerald') return '50 parties';
-      if(t.id==='sepia') return '15 badges';
-      return '';
-    })();
+    const pct=Math.round(t.prog(s)*100);
     return`<div class="theme-opt${active?' active':''}${unlocked?'':' locked'}"
       data-theme="${t.id}"
-      onclick="${unlocked?`applyTheme('${t.id}',this)`:`showToastMsg('🔒 ${hint} pour débloquer')`}">
+      onclick="openThemeDetail('${t.id}')">
       <div class="theme-opt-dot" style="background:${t.dot}"></div>
       ${t.name}
-      ${!unlocked?`<div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px;">${hint}</div>`:''}
+      ${!unlocked?`<div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px;">${pct}%</div>`:''}
     </div>`;
   }).join('');
 }
