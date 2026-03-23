@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>CinéQuiz</title>
-<link rel="icon" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="icon" id="favicon" href="Icon CineQuiz.png">
+<link rel="apple-touch-icon" id="apple-icon" href="Icon CineQuiz.png">
 <!-- PWA -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2077,6 +2077,9 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div id="p-best-scores" style="margin-bottom:22px;cursor:pointer;" onclick="openProfileStat('bestscores')"></div>
     <div class="shd" style="margin-bottom:8px;">Theme <span style="color:var(--mt);font-size:9px;">Débloquer en jouant</span></div>
     <div class="theme-picker" id="theme-picker"></div>
+    <div class="shd" style="margin-bottom:10px;margin-top:16px;">Icône de l'app</div>
+    <div id="icon-picker" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;"></div>
+    <div id="icon-ios-tip" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;font-size:11px;color:rgba(255,255,255,.45);line-height:1.6;margin-bottom:14px;"></div>
     <!-- 🎵 Musiques personnalisées -->
     <div class="shd" style="margin-bottom:8px;">
       Musiques
@@ -5683,7 +5686,67 @@ function setupSwipeHoriz(el,onLeft,onRight){
     if(Math.abs(dx)>50&&dy<40){dx<0?onLeft():onRight();}
   },{passive:true});
 }
-function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);buildMusicManager();renderThemePicker();}
+function goProfile(){refProfile();go('profile');const s=ls();renderModeStats(s);buildMusicManager();renderThemePicker();renderIconPicker();}
+
+// ── ICÔNES APP (PNG hébergés sur GitHub) ──
+const ICON_PACKS=[
+  {id:'default', file:'Icon CineQuiz.png',     name:'Défaut'},
+  {id:'v1',      file:'Icon CineQuiz v1.png',  name:'v1 — Or bleu'},
+  {id:'v2',      file:'Icon CineQuiz v2.png',  name:'v2 — Engrenages'},
+  {id:'v3',      file:'Icon CineQuiz v3.png',  name:'v3 — Rideau'},
+  {id:'v4',      file:'Icon CineQuiz v4.png',  name:'v4 — Théâtre'},
+  {id:'v5',      file:'Icon CineQuiz v5.png',  name:'v5 — Argent'},
+  {id:'v6',      file:'Icon CineQuiz v6.png',  name:'v6 — Vert doré'},
+  {id:'v7',      file:'Icon CineQuiz v7.png',  name:'v7 — Bordeaux'},
+  {id:'v8',      file:'Icon CineQuiz v8.png',  name:'v8 — Cyber'},
+  {id:'v9',      file:'Icon CineQuiz v9.png',  name:'v9 — Bleu nuit'},
+  {id:'v10',     file:'Icon CineQuiz v10.png', name:'v10 — Art Déco'},
+  {id:'v11',     file:'Icon CineQuiz v11.png', name:'v11 — Bois'},
+  {id:'v12',     file:'Icon CineQuiz v12.png', name:'v12 — Marine'},
+  {id:'v13',     file:'Icon CineQuiz v13.png', name:'v13 — Ardoise'},
+  {id:'v14',     file:'Icon CineQuiz v14.png', name:'v14 — Ivoire'},
+  {id:'v15',     file:'Icon CineQuiz v15.png', name:'v15 — Bronze'},
+];
+
+function renderIconPicker(){
+  const s=ls();
+  const current=s.appIcon||'default';
+  const el=document.getElementById('icon-picker');
+  if(!el)return;
+  el.innerHTML=ICON_PACKS.map(ic=>{
+    const active=ic.id===current;
+    return`<div onclick="setAppIcon('${ic.id}')" style="cursor:pointer;text-align:center;">
+      <div style="
+        border-radius:16px;overflow:hidden;
+        border:2.5px solid ${active?'var(--gold)':'rgba(255,255,255,.1)'};
+        box-shadow:${active?'0 0 14px rgba(245,200,66,.45)':'none'};
+        transition:all .2s;aspect-ratio:1;
+        background:#0a0a0f;
+      ">
+        <img src="${ic.file}" alt="${ic.name}" style="width:100%;height:100%;object-fit:cover;display:block;"
+          onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;\'>🎬</div>'">
+      </div>
+      <div style="font-size:9px;color:${active?'var(--gold)':'rgba(255,255,255,.3)'};margin-top:4px;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ic.name.split('—')[0]}</div>
+    </div>`;
+  }).join('');
+}
+
+function setAppIcon(id){
+  const s=ls();s.appIcon=id;ss(s);
+  const ic=ICON_PACKS.find(i=>i.id===id);
+  if(!ic)return;
+  const fav=document.getElementById('favicon');
+  if(fav)fav.href=ic.file;
+  const apple=document.getElementById('apple-icon');
+  if(apple)apple.href=ic.file;
+  renderIconPicker();
+  // Tip iOS
+  const tip=document.getElementById('icon-ios-tip');
+  if(tip){
+    tip.style.display='block';
+    tip.textContent='📱 Pour mettre à jour l\'icône sur l\'écran d\'accueil iOS : supprime le raccourci existant, puis réajoute CinéQuiz via Partager → Sur l\'écran d\'accueil.';
+  }
+}
 
 let _badgeFilter='all';
 function filterBadges(filter){
@@ -8138,6 +8201,8 @@ function shareProfileCard(){
 refHome();
 applyNewBadges();
 loadTheme();
+// Restaurer l'icône choisie
+(()=>{const _si=ls().appIcon;if(_si&&_si!=='default'){const _ic=ICON_PACKS.find(i=>i.id===_si);if(_ic){const f=document.getElementById('favicon');if(f)f.href=_ic.file;const a=document.getElementById('apple-icon');if(a)a.href=_ic.file;}}})();
 updateDailyCard();
 setInterval(updateDailyCountdown,60000);
 runSplash();
