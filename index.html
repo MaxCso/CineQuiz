@@ -460,36 +460,74 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   box-shadow:0 0 8px rgba(232,52,74,.7);}
 
 /* ─── MODE CARDS ─── */
-.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
 .mc{
-  background:rgba(10,8,5,.65);
-  border:1px solid rgba(255,255,255,.09);
-  border-radius:14px;padding:12px 8px 10px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:12px 8px 10px;
   text-align:center;cursor:pointer;
   transition:all .22s cubic-bezier(.34,1.56,.64,1);
   position:relative;overflow:hidden;
-  backdrop-filter:blur(6px);
 }
-.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);}
-.mc::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:2px;border-radius:2px;background:transparent;transition:background .22s,opacity .22s;opacity:0;}
-.mc.sel{border-color:var(--mc-color,var(--gold));background:var(--mc-bg,rgba(245,200,66,.1));transform:scale(1.04);}
-.mc.sel::after{background:var(--mc-color,var(--gold));opacity:1;}
-.mc:not(.sel):not(.done):active{transform:scale(.96);}
-.mci{display:flex;align-items:center;justify-content:center;margin:0 auto 6px;width:24px;height:24px;opacity:.75;transition:opacity .2s;color:rgba(255,255,255,.6);}
+.mc::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  background:linear-gradient(150deg,var(--mc-bg,rgba(245,200,66,.06)) 0%,transparent 55%);
+  opacity:0;transition:opacity .22s;
+}
+.mc.sel{
+  border-color:var(--mc-color,var(--gold));
+  transform:scale(1.03);
+}
+.mc.sel::before{opacity:1;}
+.mc:not(.sel):not(.done):active{transform:scale(.95);}
+
+.mci{
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 6px;width:24px;height:24px;
+  color:rgba(255,255,255,.55);transition:color .22s;
+}
 .mci svg{width:22px;height:22px;}
-.mc.sel .mci{opacity:1;color:var(--mc-color,var(--gold));}
-.mc-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.2px;display:block;transition:color .2s;line-height:1.2;}
+.mc.sel .mci{color:var(--mc-color,var(--gold));}
+.mc-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.1px;display:block;transition:color .22s;line-height:1.2;}
 .mc.sel .mc-label{color:var(--mc-color,var(--gold));}
-/* Carte jouée — atténuée */
-.mc.done{opacity:.55;}
-.mc.done .mc-shimmer::after{animation:none !important;}
-/* Badge NEW */
+
+/* Badge NEW — discret */
 .mnew{
-  position:absolute;top:7px;right:7px;
-  font-size:8px;background:var(--red);color:#fff;
-  border-radius:5px;padding:2px 6px;font-weight:800;letter-spacing:.5px;
-  box-shadow:0 2px 8px rgba(232,52,74,.5);
+  position:absolute;top:8px;right:8px;
+  font-size:7.5px;font-weight:800;letter-spacing:.5px;
+  background:rgba(232,52,74,.85);color:#fff;
+  border-radius:5px;padding:2px 5px;
+  opacity:.8;
 }
+.mc.done{opacity:.5;}
+.mc.done .mc-shimmer::after{animation:none !important;}
+
+/* Shimmer */
+.mc-shimmer{position:absolute;inset:0;border-radius:18px;overflow:hidden;pointer-events:none;}
+.mc-shimmer::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);}
+.mc.sel .mc-shimmer::after{animation:mcShimmer 2.4s ease-in-out infinite;}
+.mc:has(.mnew):not(.sel) .mc-shimmer::after{animation:mcShimmer 4s ease-in-out infinite;}
+@keyframes mcShimmer{0%{left:-80%;}60%,100%{left:160%;}}
+
+/* Couleur par mode */
+.mc[data-mode="quiz"]          {--mc-color:#f5c842;--mc-bg:rgba(245,200,66,.1);}
+.mc[data-mode="photo"]         {--mc-color:#60a5fa;--mc-bg:rgba(96,165,250,.1);}
+.mc[data-mode="year"]          {--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
+.mc[data-mode="bo"]            {--mc-color:#fbbf24;--mc-bg:rgba(251,191,36,.1);}
+.mc[data-mode="boxoffice"]     {--mc-color:#34d399;--mc-bg:rgba(52,211,153,.1);}
+.mc[data-mode="replique"]      {--mc-color:#f472b6;--mc-bg:rgba(244,114,182,.1);}
+.mc[data-mode="acteur"]        {--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
+.mc[data-mode="realisateur"]   {--mc-color:#f97316;--mc-bg:rgba(249,115,22,.1);}
+.mc[data-mode="compositeur"]   {--mc-color:#2dd4bf;--mc-bg:rgba(45,212,191,.1);}
+.mc[data-mode="filmographie"]  {--mc-color:#818cf8;--mc-bg:rgba(129,140,248,.1);}
+.mc[data-mode="casting"]       {--mc-color:#fbbf24;--mc-bg:rgba(251,191,36,.1);}
+.mc[data-mode="generique"]     {--mc-color:#fb923c;--mc-bg:rgba(251,146,60,.1);}
+.mc[data-mode="location"]      {--mc-color:#4ade80;--mc-bg:rgba(74,222,128,.1);}
+.mc[data-mode="vraifaux"]      {--mc-color:#10b981;--mc-bg:rgba(16,185,129,.1);}
+.mc[data-mode="decennie"]      {--mc-color:#c084fc;--mc-bg:rgba(192,132,252,.1);}
+.mc[data-mode="quiadit"]       {--mc-color:#f472b6;--mc-bg:rgba(244,114,182,.1);}
+.mc[data-mode="versus"]        {--mc-color:#f87171;--mc-bg:rgba(248,113,113,.1);}
+.mc[data-mode="training"]      {--mc-color:#94a3b8;--mc-bg:rgba(148,163,184,.1);}
 
 /* Bouton jouer : pulse subtil quand rien n'est en cours */
 @keyframes playPulse{
@@ -535,9 +573,6 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 
 /* -- MODE BANDE-ANNONCE -- */
-.mc[data-mode="vraifaux"]{--mc-color:#10b981;--mc-bg:rgba(16,185,129,.1);}
-.mc[data-mode="decennie"]{--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
-.mc[data-mode="quiadit"]{--mc-color:#f472b6;--mc-bg:rgba(244,114,182,.1);}
 /* Qui a dit ça — fond rose-mauve */
 #game-bg.mode-quiadit::before{background:
   radial-gradient(ellipse 52% 42% at 55% 28%,rgba(180,0,100,.50) 0%,transparent 58%),
@@ -628,7 +663,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .jk-row:active{background:rgba(255,255,255,.06);}
 .jk-row.active .jk-row-name{color:var(--gold);}
 .jk-row.active .jk-row-icon{background:rgba(245,200,66,.14);border-color:rgba(245,200,66,.3);}
-.jk-row-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:background .2s,border-color .2s;}
+.jk-row-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:background .2s,border-color .2s;user-select:none;-webkit-user-select:none;}
 .jk-row-info{flex:1;min-width:0;}
 .jk-row-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
 .jk-row-label{font-size:9px;color:rgba(255,255,255,.28);margin-top:1px;letter-spacing:.3px;}
@@ -693,7 +728,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .jk-row:active{background:rgba(255,255,255,.06);}
 .jk-row.active .jk-row-name{color:var(--gold);}
 .jk-row.active .jk-row-icon{background:rgba(245,200,66,.14);border-color:rgba(245,200,66,.3);}
-.jk-row-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:background .2s,border-color .2s;}
+.jk-row-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:background .2s,border-color .2s;user-select:none;-webkit-user-select:none;}
 .jk-row-info{flex:1;min-width:0;}
 .jk-row-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
 .jk-row-label{font-size:9px;color:rgba(255,255,255,.28);margin-top:1px;letter-spacing:.3px;}
@@ -807,20 +842,19 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;
 }
 .mode-info-desc{
-  font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.7;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:16px;padding:14px 16px;margin-bottom:16px;
+  font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;
+  margin-bottom:14px;
 }
-.mode-info-tips{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.mode-info-tips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
 .mode-info-tip{
-  display:flex;align-items:center;gap:12px;
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:12px;padding:10px 12px;
-  font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.4;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;padding:6px 10px;
+  font-size:11.5px;color:rgba(255,255,255,.65);
+  white-space:nowrap;
 }
-.mode-info-tip-icon{font-size:16px;flex-shrink:0;}
+.mode-info-tip-icon{font-size:13px;flex-shrink:0;}
 .mode-info-tip-svg{
   width:30px;height:30px;border-radius:8px;flex-shrink:0;
   background:rgba(255,255,255,.06);
@@ -1026,7 +1060,6 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   cursor:pointer;transition:all .18s;text-align:center;
 }
 .vs-nb-btn.on{border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.12);color:var(--gold);}
-.mc[data-mode="versus"]{--mc-color:#ff6b6b;--mc-bg:rgba(255,107,107,.1);}
 #game-bg.mode-versus{background:radial-gradient(ellipse 70% 55% at 50% 45%,rgba(120,0,60,.9) 0%,#06000a 65%);}
 .vs-scoreboard{
   display:flex;align-items:center;gap:8px;
@@ -1839,7 +1872,6 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 
 
 /* -- REALISATEUR -- */
-.mc[data-mode="realisateur"]{--mc-color:#f97316;--mc-bg:rgba(249,115,22,.1);}
 #game-bg.mode-realisateur{background:radial-gradient(ellipse 65% 55% at 50% 40%,rgba(80,30,0,.9) 0%,#060200 65%);}
 
 
@@ -1872,7 +1904,6 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 #agrid.bt-visible .ab:nth-child(4){transition-delay:.18s;}
 
 /* -- LIEU DE TOURNAGE -- */
-.mc[data-mode="location"]{--mc-color:#34d399;--mc-bg:rgba(52,211,153,.1);}
 #game-bg.mode-location{background:radial-gradient(ellipse 65% 55% at 40% 60%,rgba(0,60,40,.9) 0%,#000503 65%);}
 
 .loc-wrap{width:100%;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;}
@@ -1918,7 +1949,6 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 }
 
 
-.mc[data-mode="generique"]{--mc-color:#f97316;--mc-bg:rgba(249,115,22,.1);}
 #game-bg.mode-generique{background:radial-gradient(ellipse 65% 55% at 50% 40%,rgba(80,30,0,.9) 0%,#060200 65%);}
 .gen-wrap{width:100%;display:flex;flex-direction:column;gap:10px;}
 .gen-header{background:rgba(255,255,255,.07);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 16px;}
@@ -1948,7 +1978,6 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 
 
 /* -- MODE FILMOGRAPHIE -- */
-.mc[data-mode="filmographie"]{--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
 #game-bg.mode-filmographie{background:radial-gradient(ellipse 65% 55% at 45% 35%,rgba(50,0,100,.9) 0%,#030008 65%);}
 .filmo-wrap{width:100%;display:flex;flex-direction:column;gap:9px;}
 .filmo-intro{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:2px;}
@@ -1994,8 +2023,6 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
   border-radius:8px;padding:3px 9px;font-size:10px;color:#a78bfa;
   letter-spacing:1px;text-transform:uppercase;font-weight:600;
 }
-.mc[data-mode="training"]{--mc-color:#a78bfa;--mc-bg:rgba(167,139,250,.1);}
-.mc[data-mode="casting"]{--mc-color:#fbbf24;--mc-bg:rgba(251,191,36,.1);}
 
 /* -- PROFILE -- */
 #profile{padding:max(48px,env(safe-area-inset-top,48px)) 22px 32px;}
@@ -2162,7 +2189,7 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .tfil{
   height:100%;border-radius:8px;
   background:linear-gradient(90deg,var(--green),#a8e063,var(--gold));
-  transition:width .1s linear;will-change:width;
+  transition:width .15s linear;will-change:width;transform:translateZ(0);
 }
 .tfil.warn{
   background:linear-gradient(90deg,#ff4e6a,#ff8c42);
@@ -2265,8 +2292,8 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 }
 @keyframes ripple{to{transform:scale(3.5);opacity:0;}}
 .ab:disabled{cursor:default;}
-.pmw{flex:1;min-height:0;position:relative;border-radius:15px;overflow:hidden;background:var(--sf2);}
-.pmw img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:var(--sf2);}
+.pmw{flex:1;min-height:0;position:relative;border-radius:15px;overflow:hidden;background:#000;}
+.pmw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
 .pmo{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(10,10,15,.55) 100%);pointer-events:none;}
 .prbar{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:4px;}
 .prp{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .4s;}
@@ -2618,7 +2645,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div class="shd" style="margin-bottom:8px;">Mode de jeu</div>
     <div class="mgrid">
       <div class="mc sel" data-mode="quiz" onclick="openModeInfo('quiz',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span><span class="mc-label">Trivia Ciné</span><span class="mnew">NEW</span></div>
-      <div class="mc" data-mode="photo" onclick="openModeInfo('photo',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="mc-label">Affiche Mystère</span></div>
+      <div class="mc" data-mode="photo" onclick="openModeInfo('photo',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="mc-label">Affiche Mystère</span><span class="mnew">NEW</span></div>
       <div class="mc" data-mode="year" onclick="openModeInfo('year',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="mc-label">Quelle Année ?</span><span class="mnew">NEW</span></div>
       <div class="mc" data-mode="bo" onclick="openModeInfo('bo',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span><span class="mc-label">Indices Mystère</span><span class="mnew">NEW</span></div>
       <div class="mc" data-mode="boxoffice" onclick="openModeInfo('boxoffice',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span><span class="mc-label">Box-office</span><span class="mnew">NEW</span></div>
@@ -4161,7 +4188,7 @@ document.addEventListener('visibilitychange',()=>{
 
 // ── QUITTER LA PARTIE ──
 function confirmQuit(){
-  clearInterval(tInt);clearInterval(revInt);
+  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);
   if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
   const infoEl=document.getElementById('quit-info');
   if(infoEl){
@@ -4176,7 +4203,7 @@ function closeQuit(){
 }
 function doQuit(){
   document.getElementById('quit-modal').classList.remove('on');
-  clearInterval(tInt);clearInterval(revInt);
+  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);
   hideToast();
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='';
   go('home');refHome();applyNewBadges();
@@ -6583,95 +6610,59 @@ function selectMode(m,el){
 // ── MODE INFO MODAL ──
 const MODE_INFO={
   quiz:{icon:'⚡',label:'Trivia Ciné',sub:'Questions culture ciné',color:'#f5c842',bg:'rgba(245,200,66,.12)',
-    desc:'Questions classiques sur les films, acteurs, réalisateurs et le cinéma en général. Tu peux filtrer par thème (Action, SF, Horreur…) pour tester des connaissances bien précises.',
-    tips:[{i:'🎯',t:'Choisis un thème dans la liste pour cibler ta culture'},
-          {i:'⚡',t:'Réponds en moins de 6s pour le multiplicateur x3'},
-          {i:'🔥',t:'Enchaîne les bonnes réponses pour déclencher un combo'}]},
+    desc:'Questions sur les films, acteurs et réalisateurs. Filtre par genre pour cibler tes connaissances.',
+    tips:[{i:'🎯',t:'Filtre par thème'},{i:'⚡',t:'< 6s = x3'},{i:'🔥',t:'Combos = bonus'}]},
   photo:{icon:'🎬',label:'Affiche Mystère',sub:'Dévoile le film',color:'#60a5fa',bg:'rgba(96,165,250,.12)',
-    desc:'Une affiche de film est floutée et se révèle progressivement toutes les 5 secondes. Identifie le film parmi 4 propositions — plus vite tu réponds, plus tu marques de points !',
-    tips:[{i:'👁️',t:'Attends que l\'affiche se précise si tu n\'es pas sûr'},
-          {i:'🎨',t:'Le genre et l\'année sont affichés comme indices'},
-          {i:'⚡',t:'Répondre dès le flou maximum = score maximal'}]},
+    desc:'Affiche floutée qui se révèle progressivement. Identifie le film parmi 4 propositions.',
+    tips:[{i:'👁️',t:'Révèle toutes les 5s'},{i:'🎨',t:'Genre & année affichés'},{i:'⚡',t:'Répondre tôt = max pts'}]},
   year:{icon:'📅',label:'Quelle Année ?',sub:'Devine l\'année de sortie',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
-    desc:'Une affiche de film s\'affiche. Glisse le curseur pour deviner l\'année de sortie exacte, puis confirme.',
-    tips:[{i:'📏',t:'Exact = 300 pts · ±2 ans = 200 pts · ±5 ans = 100 pts'},
-          {i:'📸',t:'L\'image reste floutée pendant le chrono pour plus de challenge'},
-          {i:'🎬',t:'Pense aux décennies : look du film, style des acteurs, effets spéciaux'}]},
+    desc:'Glisse le curseur pour deviner l\'année de sortie exacte d\'un film.',
+    tips:[{i:'📏',t:'Exact = 300pts'},{i:'±2',t:'±2 ans = 200pts'},{i:'🎬',t:'Style visuel = indice'}]},
   bo:{icon:'💡',label:'Indices Mystère',sub:'Découvre avec les indices',color:'#f472b6',bg:'rgba(244,114,182,.12)',
-    desc:'5 indices sur un film apparaissent un à un toutes les 5 secondes : genre, époque, acteurs principaux, réalisateur, tagline. Trouve le film le plus tôt possible !',
-    tips:[{i:'💡',t:'Chaque indice en moins = plus de points potentiels'},
-          {i:'🎭',t:'Le casting est souvent l\'indice le plus reconnaissable'},
-          {i:'⏱️',t:'Le chrono est de 30 secondes pour ce mode'}]},
+    desc:'5 indices sur un film apparaissent un à un. Trouve-le le plus tôt possible !',
+    tips:[{i:'💡',t:'Moins d\'indices = +pts'},{i:'🎭',t:'Casting = indice clé'},{i:'⏱️',t:'30 secondes'}]},
   boxoffice:{icon:'💰',label:'Box-office',sub:'Classe par rentabilité',color:'#34d399',bg:'rgba(52,211,153,.12)',
-    desc:'4 films s\'affichent avec leur affiche et leur année. Classe-les du plus au moins rentable en maintenant le handle ⠿ et en glissant. Valide quand tu es prêt !',
-    tips:[{i:'⠿',t:'Maintiens le handle à droite pour déplacer un film'},
-          {i:'💵',t:'25 pts par position correcte, soit 100 pts max'},
-          {i:'⏱️',t:'45 secondes pour réfléchir et classer'}]},
+    desc:'Classe 4 films du plus au moins rentable en glissant les affiches.',
+    tips:[{i:'⠿',t:'Glisse le handle'},{i:'💵',t:'25pts / bonne position'},{i:'⏱️',t:'45 secondes'}]},
   replique:{icon:'💬',label:'La Réplique',sub:'Identifie le film',color:'#fb923c',bg:'rgba(251,146,60,.12)',
-    desc:'Une réplique culte du cinéma se révèle mot par mot en machine à écrire. Identifie le film d\'origine parmi 4 propositions. Un indice visuel apparaît après 8 secondes.',
-    tips:[{i:'✍️',t:'La réplique se tape progressivement — lis attentivement'},
-          {i:'💡',t:'Un indice sur la scène apparaît après 8 secondes'},
-          {i:'🎬',t:'Plus de 90 répliques cultes dans la base de données'}]},
+    desc:'Une réplique culte se révèle mot par mot. Retrouve le film d\'origine.',
+    tips:[{i:'✍️',t:'Révèle progressivement'},{i:'💡',t:'Indice après 8s'},{i:'🎬',t:'90+ répliques'}]},
   acteur:{icon:'👤',label:'Acteur Mystère',sub:'Reconnais la star',color:'#e879f9',bg:'rgba(232,121,249,.12)',
-    desc:'La photo d\'un acteur ou d\'une actrice célèbre est floutée et se révèle progressivement. Identifie-le parmi 4 noms avant que l\'image soit entièrement nette !',
-    tips:[{i:'👁️',t:'4 étapes de révélation toutes les 5 secondes'},
-          {i:'🎭',t:'Plus de 50 acteurs et actrices internationaux'},
-          {i:'⚡',t:'Répondre tôt dans le flou = score maximum'}]},
+    desc:'Photo d\'acteur floutée qui se révèle progressivement. Qui est-ce ?',
+    tips:[{i:'👁️',t:'4 étapes de révèl.'},{i:'🎭',t:'50+ acteurs'},{i:'⚡',t:'Tôt = max pts'}]},
   realisateur:{icon:'🎥',label:'Réalisateur',sub:'Qui a réalisé ce film ?',color:'#f97316',bg:'rgba(249,115,22,.12)',
-    desc:'L\'affiche d\'un film s\'affiche avec un indice sur l\'histoire. À toi de retrouver parmi 4 noms qui en est le réalisateur ou la réalisatrice !',
-    tips:[{i:'🎬',t:'Les grands réalisateurs ont un style visuel reconnaissable'},
-          {i:'💡',t:'L\'indice décrit une scène ou l\'ambiance du film'},
-          {i:'📚',t:'De Spielberg à Villeneuve, 30 réalisateurs dans la base'}]},
+    desc:'Affiche + indice de l\'histoire. Retrouve le réalisateur parmi 4 noms.',
+    tips:[{i:'🎬',t:'Style visuel = indice'},{i:'💡',t:'Ambiance du film'},{i:'📚',t:'30 réalisateurs'}]},
   location:{icon:'🌍',label:'Lieu de tournage',sub:'Où a été tourné ce film ?',color:'#34d399',bg:'rgba(52,211,153,.12)',
-    desc:'Une photo d\'un lieu réel iconique s\'affiche : désert, château, ville… Retrouve dans quel film célèbre ce décor a été utilisé !',
-    tips:[{i:'🗺️',t:'Le pays et le nom du lieu sont affichés comme indices'},
-          {i:'📸',t:'Des lieux du monde entier : Jordanie, Nouvelle-Zélande, Écosse…'},
-          {i:'💡',t:'L\'indice décrit pourquoi ce lieu est célèbre dans le cinéma'}]},
+    desc:'Photo d\'un lieu iconique. Dans quel film célèbre ce décor a-t-il été utilisé ?',
+    tips:[{i:'🗺️',t:'Pays & lieu affichés'},{i:'📸',t:'Monde entier'},{i:'💡',t:'Contexte cinéma'}]},
   generique:{icon:'📜',label:'Le Générique',sub:'Identifie le film',color:'#f97316',bg:'rgba(249,115,22,.12)',
-    desc:'Les noms des acteurs d\'un film sont révélés un à un avec leur rôle, toutes les 5 secondes. Identifie le film le plus tôt possible parmi 4 propositions !',
-    tips:[{i:'👀',t:'Le premier acteur peut suffire pour les grands films'},
-          {i:'🎭',t:'Les rôles sont indiqués — un nom de personnage peut aider'},
-          {i:'⏱️',t:'Plus tu attends d\'acteurs, plus le score potentiel baisse'}]},
+    desc:'Les acteurs d\'un film s\'affichent un à un avec leur rôle. Trouve le film !',
+    tips:[{i:'👀',t:'1er acteur = souvent suffisant'},{i:'🎭',t:'Rôles affichés'},{i:'⏱️',t:'+ tu attends, - de pts'}]},
   casting:{icon:'🧩',label:'Le Casting',sub:'Quel film regroupe ces acteurs ?',color:'#fbbf24',bg:'rgba(251,191,36,.12)',
-    desc:'Plusieurs acteurs célèbres sont révélés progressivement. Ils ont tous tourné ensemble dans le même film ! À toi de l\'identifier parmi 4 propositions.',
-    tips:[{i:'🎬',t:'Un indice sur le film (réalisateur, année, genre) est toujours affiché'},
-          {i:'🧩',t:'Les acteurs sont révélés un par un toutes les 4,5 secondes'},
-          {i:'💡',t:'Parfois un seul nom suffit pour reconnaître le film'}]},
+    desc:'Plusieurs acteurs ont tourné ensemble dans le même film. Lequel ?',
+    tips:[{i:'🎬',t:'Indice réal. / année'},{i:'🧩',t:'Révèle toutes les 4.5s'},{i:'💡',t:'1 nom peut suffire'}]},
   filmographie:{icon:'🎭',label:'Filmographie',sub:'Quel acteur a joué dans ces 4 films ?',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
-    desc:'4 films sont listés. Un seul acteur ou actrice a joué dans tous ces films. Retrouve-le parmi 4 propositions ! Un test de mémoire filmique pure.',
-    tips:[{i:'🎬',t:'Cherche l\'acteur qui relie tous les films entre eux'},
-          {i:'🧠',t:'Certains acteurs ont des filmographies très éclectiques !'},
-          {i:'📚',t:'30 acteurs et actrices dans la base, des classiques aux récents'}]},
+    desc:'4 films listés. Un seul acteur a joué dans tous. Qui est-ce ?',
+    tips:[{i:'🎬',t:'Cherche le lien'},{i:'🧠',t:'Filmographies éclectiques'},{i:'📚',t:'30 acteurs'}]},
   compositeur:{icon:'🎼',label:'Compositeur',sub:'Qui a signé cette BO ?',color:'#38bdf8',bg:'rgba(56,189,248,.12)',
-    desc:'L\'affiche d\'un film s\'affiche avec un indice sur le style de sa bande originale. À toi de retrouver parmi 4 noms qui a composé la musique !',
-    tips:[{i:'🎵',t:'L\'indice décrit le style musical ou un morceau iconique'},
-          {i:'🎼',t:'Hans Zimmer, John Williams, Ennio Morricone… les plus grands'},
-          {i:'💡',t:'Certains compositeurs ont des signatures sonores très reconnaissables'}]},
+    desc:'Affiche + indice musical. Retrouve qui a composé la bande originale.',
+    tips:[{i:'🎵',t:'Style musical = indice'},{i:'🎼',t:'Zimmer, Williams…'},{i:'💡',t:'Signatures sonores'}]},
   training:{icon:'📚',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',label:'Entraînement',sub:'Sans chrono, pour apprendre',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
-    desc:'Le mode parfait pour progresser sans pression ! Pas de chrono, pas de multiplicateur. La bonne réponse est toujours affichée après chaque question.',
-    tips:[{i:'😌',t:'Aucune limite de temps — prends le temps de réfléchir'},
-          {i:'✅',t:'La bonne réponse s\'affiche toujours, même si tu réponds correctement'},
-          {i:'📈',t:'Idéal pour apprendre avant de se lancer dans les modes chronométrés'}]},
+    desc:'Pas de chrono, pas de pression. La bonne réponse s\'affiche toujours.',
+    tips:[{i:'😌',t:'Sans limite de temps'},{i:'✅',t:'Réponse toujours visible'},{i:'📈',t:'Idéal pour progresser'}]},
   vraifaux:{icon:'🎯',label:'Vrai ou Faux',sub:'Assertions rapides sur le cinéma',color:'#10b981',bg:'rgba(16,185,129,.12)',
-    desc:'Une affirmation sur le cinéma s\'affiche — réponds VRAI ou FAUX le plus vite possible ! Chaque bonne réponse révèle une explication surprenante. Idéal pour apprendre tout en jouant.',
-    tips:[{i:'⚡',t:'Réponds vite — le multiplicateur x3 s\'applique sous 6 secondes'},
-          {i:'💡',t:'L\'explication s\'affiche après chaque réponse — vraie ou fausse'},
-          {i:'🎬',t:'Couvre acteurs, réalisateurs, anecdotes techniques et records'}]},
+    desc:'Une affirmation ciné — Vrai ou Faux ? Une explication surprenante après chaque réponse.',
+    tips:[{i:'⚡',t:'< 6s = x3'},{i:'💡',t:'Explication après chaque Q'},{i:'🎬',t:'Acteurs, anecdotes, records'}]},
   decennie:{icon:'📅',label:'Décennie',sub:'Dans quelle décennie est sorti ce film ?',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
-    desc:'L\'affiche d\'un film s\'affiche avec son titre. À toi de retrouver dans quelle décennie il est sorti — 70s, 80s, 90s, 2000s, 2010s ou 2020s. Simple, rapide, redoutablement efficace !',
-    tips:[{i:'🎬',t:'100 films dans la base — des classiques aux sorties récentes'},
-          {i:'⚡',t:'Réponds vite — le multiplicateur x3 s\'applique sous 6 secondes'},
-          {i:'💡',t:'Si tu connais l\'acteur ou le style visuel, la décennie devient évidente'}]},
+    desc:'Affiche + titre d\'un film. Dans quelle décennie est-il sorti ? 70s → 2020s.',
+    tips:[{i:'🎬',t:'100 films'},{i:'⚡',t:'< 6s = x3'},{i:'💡',t:'Style visuel = indice'}]},
   quiadit:{icon:'🎭',label:'Qui a dit ça ?',sub:'Retrouve l\'acteur derrière la réplique',color:'#f472b6',bg:'rgba(244,114,182,.12)',
-    desc:'Une réplique iconique s\'affiche en version originale avec le film. À toi d\'identifier quel acteur l\'a prononcée parmi 4 propositions. La traduction française apparaît progressivement.',
-    tips:[{i:'🎬',t:'La réplique est affichée en VO — écoute ce que ça évoque'},
-          {i:'🇫🇷',t:'La traduction française apparaît quelques secondes après la VO'},
-          {i:'⚡',t:'Réponds avant les 20 secondes pour maximiser tes points'}]},
+    desc:'Réplique iconique en VO. Quel acteur l\'a prononcée ? Traduction FR progressive.',
+    tips:[{i:'🎬',t:'Réplique en VO'},{i:'🇫🇷',t:'Traduction après quelques s'},{i:'⚡',t:'20s pour répondre'}]},
   versus:{icon:'⚔️',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/><path d="M3 14l8-8"/><path d="M13 3l3 3-1.5 1.5"/><path d="M18 13l3 3-7 5-4-4 1.5-1.5"/></svg>',label:'2 Joueurs',sub:'Duel sur le même écran',color:'#ff6b6b',bg:'rgba(255,107,107,.12)',
-    desc:'Un duel au tour par tour sur le même téléphone ! Chaque joueur répond à 10 questions en alternance. Chrono, multiplicateurs, combos — tout s\'applique. Le meilleur score gagne !',
-    tips:[{i:'📱',t:'Passez le téléphone entre chaque joueur — un écran de transition s\'affiche'},
-          {i:'⚡',t:'Les multiplicateurs x2 et x3 s\'appliquent à chaque joueur individuellement'},
-          {i:'🏆',t:'Le résultat final affiche les scores et correct/total pour chaque joueur'}]},
+    desc:'Duel au tour par tour sur le même téléphone. Chrono, combos, multiplicateurs — tout s\'applique.',
+    tips:[{i:'📱',t:'Passez le téléphone'},{i:'⚡',t:'x2 / x3 individuels'},{i:'🏆',t:'Meilleur score gagne'}]},
 };
 
 function openModeInfo(m,el){
@@ -7239,7 +7230,7 @@ function buildDots(){
 function loadQ(){
   ansed=false;lastTick=-1;
   if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
-  clearInterval(tInt);clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
+  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
   // Restore mbadge visibility (may have been hidden for boxoffice)
   const _mb=document.getElementById('mbadge');if(_mb)_mb.style.display='';
   const q=qs[curQ];
@@ -7349,7 +7340,7 @@ function loadQ(){
     q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     // Timer plus long pour Indices Mystere - les indices arrivent progressivement
     tLeft=30;updateTimerUI();
-    tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);clearInterval(revInt);if(!ansed)handleAnswer(-1);}},100);
+    tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);tInt=null;clearInterval(revInt);if(!ansed)handleAnswer(-1);}},100);
 
   } else if(q.type==='boxoffice'){
     game.style.overflowY='auto';
@@ -7378,7 +7369,7 @@ function loadQ(){
       const _f=document.getElementById('tfil');
       if(_f){_f.style.width=_pct+'%';_f.className='tfil'+(_pct<20?' warn':'');}
       const _tv=document.getElementById('tv');if(_tv)_tv.textContent=Math.ceil(tLeft)+'s';
-      if(tLeft<=0){clearInterval(tInt);if(!ansed)handleBOAnswer(q);}
+      if(tLeft<=0){cancelAnimationFrame(tInt);tInt=null;if(!ansed)handleBOAnswer(q);}
     },100);
 
   } else if(q.type==='replique'){
@@ -7886,7 +7877,7 @@ function reorderBO(mi,targetPos,q){
 
 function handleBOAnswer(q){
   if(ansed)return;
-  ansed=true;clearInterval(tInt);
+  ansed=true;cancelAnimationFrame(tInt);tInt=null;
   clearSlotHints();
   const userOrder=dragOrder.map(i=>q.movies[i].id);
   const correct=q.correctOrder;
@@ -7938,7 +7929,7 @@ function handleBOAnswer(q){
 
 function handleDuoAnswer(userSaysYes){
   if(ansed)return;
-  ansed=true;clearInterval(tInt);
+  ansed=true;cancelAnimationFrame(tInt);tInt=null;
   const q=qs[curQ];
   const ok=userSaysYes===q.answer;
   dotRes[curQ]=ok;
@@ -7967,7 +7958,7 @@ function handleYearAnswer(){
   if(diff===0)pts=300;
   else if(diff<=2)pts=200;
   else if(diff<=5)pts=100;
-  clearInterval(tInt);ansed=true;
+  cancelAnimationFrame(tInt);tInt=null;ansed=true;
   score+=pts;
   const ok=pts>0;dotRes[curQ]=ok;
   if(ok){okCnt++;sndOk(3);}else sndNo();
@@ -7980,7 +7971,7 @@ function handleYearAnswer(){
 
 function handleAnswer(idx){
   if(ansed)return;
-  ansed=true;clearInterval(tInt);clearInterval(revInt);
+  ansed=true;cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);
   const q=qs[curQ];
   const elapsed=MAXT-tLeft;const m=elapsed<6?3:elapsed<13?2:1;
   times.push(Math.round(elapsed));
@@ -8070,9 +8061,22 @@ function startTimer(){
     const tv=document.getElementById('tv');if(tv)tv.style.opacity='0';
     return;
   }
-  tLeft=MAXT;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);if(!ansed)handleAnswer(-1);}},100);
+  tLeft=MAXT;updateTimerUI();
+  let _lastT=null;
+  function _timerLoop(ts){
+    if(!tInt)return;
+    if(_lastT===null)_lastT=ts;
+    const dt=(ts-_lastT)/1000;
+    _lastT=ts;
+    tLeft=Math.max(0,tLeft-dt);
+    updateTimerUI();
+    beep(Math.ceil(tLeft));
+    if(tLeft<=0){tInt=null;if(!ansed)handleAnswer(-1);return;}
+    tInt=requestAnimationFrame(_timerLoop);
+  }
+  tInt=requestAnimationFrame(_timerLoop);
 }
-function startTimerYear(){tLeft=30;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);if(!ansed)handleYearAnswer();}},100);}
+function startTimerYear(){tLeft=30;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);tInt=null;if(!ansed)handleYearAnswer();}},100);}
 
 function updateTimerUI(){
   const maxT=selMode==='year'||selMode==='boxoffice'?30:MAXT;
@@ -8650,7 +8654,7 @@ function loadVersusQ(){
 
   // Reset état de réponse et timer
   ansed=false;lastTick=-1;
-  clearInterval(tInt);clearInterval(revInt);hideToast();
+  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);hideToast();
 
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
@@ -8695,7 +8699,7 @@ function loadVersusQ(){
 
 function handleVersusAnswer(idx,q){
   if(ansed)return;
-  ansed=true;clearInterval(tInt);
+  ansed=true;cancelAnimationFrame(tInt);tInt=null;
   const elapsed=MAXT-tLeft;
   const m=elapsed<6?3:elapsed<13?2:1;
   const ok=idx===q.correct;
@@ -8746,7 +8750,7 @@ function showVersusHandoff(playerName,cb){
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
   grid.innerHTML='';
-  clearInterval(tInt);
+  cancelAnimationFrame(tInt);tInt=null;
   hideToast();
 
   qa.innerHTML=`
@@ -8765,7 +8769,7 @@ function showVersusHandoff(playerName,cb){
 }
 
 function endVersus(){
-  clearInterval(tInt);
+  cancelAnimationFrame(tInt);tInt=null;
   const s=ls();
   s.versusGames=(s.versusGames||0)+1;
   ss(s);
