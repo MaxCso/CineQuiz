@@ -110,6 +110,15 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .arc-btn-lg:active{transform:scale(.96);}
 /* Morpion */
 #arc-morpion{overflow:hidden !important;}
+#arcade-menu .arc-head{
+  position:relative;top:auto;left:auto;right:auto;
+  padding:max(18px,calc(env(safe-area-inset-top)+10px)) 18px 10px;
+  flex-shrink:0;
+}
+#arcade-menu .arc-center{
+  flex:1;padding:0 18px max(24px,env(safe-area-inset-bottom));
+  justify-content:center;
+}
 #arc-morpion .arc-head{position:relative;top:auto;left:auto;right:auto;padding:max(18px,calc(env(safe-area-inset-top)+10px)) 18px 10px;flex-shrink:0;}
 #arc-morpion .arc-center{flex:1;min-height:0;padding:0 20px max(16px,env(safe-area-inset-bottom));justify-content:center;}
 .morp-vs{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:6px;}
@@ -1968,8 +1977,8 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 
 
 /* -- MODE COMPOSITEUR -- */
-.comp-wrap{width:100%;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;}
-.comp-poster-box{position:relative;border-radius:16px;overflow:hidden;background:var(--sf2);flex:1;min-height:0;max-height:260px;}
+.comp-wrap{width:100%;display:flex;flex-direction:column;gap:6px;flex:1;min-height:0;}
+.comp-poster-box{position:relative;border-radius:16px;overflow:hidden;background:var(--sf2);flex:1;min-height:0;}
 .comp-poster-box img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;filter:brightness(.9);background:var(--sf2);}
 .comp-poster-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.75) 100%);}
 .comp-title{position:absolute;bottom:10px;left:12px;right:12px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8);}
@@ -2009,7 +2018,7 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 
 .real-wrap{width:100%;display:flex;flex-direction:column;gap:10px;}
 .real-poster-box{position:relative;border-radius:16px;overflow:hidden;background:var(--sf2);flex:1;min-height:0;}
-.real-poster-box img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;filter:brightness(.85);background:var(--sf2);}
+.real-poster-box img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;filter:brightness(.9);background:var(--sf2);}
 .real-poster-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,.82) 100%);}
 .real-film-info{position:absolute;bottom:10px;left:12px;right:12px;}
 .real-film-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8);}
@@ -6703,6 +6712,12 @@ function closeModeInfo(){
 }
 function launchFromInfo(){
   closeModeInfo();
+  // Couper le jukebox avant de lancer le jeu
+  if(window._jkAudio){
+    fadeTrack(window._jkAudio,0,400,()=>{if(window._jkAudio){window._jkAudio.pause();window._jkAudio=null;}});
+    _stopProgInterval();
+    updateMiniPlayer();
+  }
   setTimeout(startGame,120);
 }
 
@@ -7447,7 +7462,7 @@ function loadQ(){
     document.getElementById('dbadge').className='dbd dm';
     qa.innerHTML=`<div class="qtl">🎬 Realisateur</div>
       <div class="real-wrap">
-        <div class="real-poster-box" style="min-height:200px;">
+        <div class="real-poster-box" style="min-height:160px;max-height:220px;">
           <img src="${q.poster}" alt="${q.title}" crossorigin="anonymous" onerror="this.style.display='none'">
           <div class="real-poster-overlay"></div>
           <div class="real-film-info">
@@ -7539,7 +7554,7 @@ function loadQ(){
     document.getElementById('dbadge').className='dbd dm';
     qa.innerHTML=`<div class="qtl">🎼 Compositeur</div>
       <div class="comp-wrap">
-        <div class="comp-poster-box" style="min-height:280px;max-height:320px;">
+        <div class="comp-poster-box">
           <img src="${q.poster}" alt="${q.title}" crossorigin="anonymous" onerror="this.style.display='none'">
           <div class="comp-poster-overlay"></div>
           <div class="comp-title">${q.title}<span class="comp-year">${q.year}</span></div>
