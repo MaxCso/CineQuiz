@@ -1094,12 +1094,15 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .stats-chart-wrap{
   background:linear-gradient(150deg,rgba(18,14,5,.95),rgba(10,8,3,.9));
   border:1px solid rgba(245,200,66,.12);
-  border-radius:20px;padding:14px 16px;margin-bottom:10px;
-  position:relative;overflow:hidden;
+  border-radius:20px;padding:14px 16px 16px;margin-bottom:10px;
+  position:relative;
+  cursor:pointer;transition:border-color .2s;
 }
+.stats-chart-wrap:active{border-color:rgba(245,200,66,.3);}
 .stats-chart-wrap::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(245,200,66,.2),transparent);
+  background:linear-gradient(90deg,transparent,rgba(245,200,66,.25),transparent);
+  border-radius:20px 20px 0 0;
 }
 .stats-chart-title{
   font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2.5px;
@@ -1110,12 +1113,12 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .stats-chart-title:not(:last-child){margin-bottom:12px;}
 .stats-chart-title span{color:rgba(245,200,66,.55);font-size:10px;letter-spacing:.3px;}
 /* Sparkline */
-.sparkline-wrap{display:flex;align-items:flex-end;gap:5px;height:56px;margin-bottom:6px;}
+.sparkline-wrap{display:flex;align-items:flex-end;gap:5px;height:56px;margin-bottom:6px;padding-top:4px;}
 .spark-bar{
-  flex:1;border-radius:5px 5px 0 0;
-  background:rgba(245,200,66,.18);min-height:4px;
+  flex:1;border-radius:5px 5px 2px 2px;
+  background:rgba(245,200,66,.14);min-height:8px;
   transition:height .6s cubic-bezier(.34,1.56,.64,1);
-  cursor:pointer;position:relative;
+  position:relative;
 }
 .spark-bar.today{background:var(--gold);box-shadow:0 0 12px rgba(245,200,66,.3);}
 .spark-bar.today::after{
@@ -1127,15 +1130,15 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .spark-label{flex:1;font-size:8px;color:rgba(255,255,255,.22);text-align:center;}
 .spark-label.today{color:var(--gold);font-weight:700;}
 /* Mini stats row */
-.spark-mini-row{display:flex;gap:6px;margin-bottom:12px;}
+.spark-mini-row{display:flex;gap:6px;margin-bottom:10px;}
 .spark-mini{
   flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
-  border-radius:10px;padding:8px 8px 7px;text-align:center;
+  border-radius:10px;padding:9px 6px 8px;text-align:center;min-height:48px;display:flex;flex-direction:column;justify-content:center;
 }
-.spark-mini-val{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);line-height:1;}
-.spark-mini-lbl{font-size:7.5px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.spark-mini-val{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--gold);line-height:1;}
+.spark-mini-lbl{font-size:7px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
 /* Mode bars */
-.mode-bars{display:flex;flex-direction:column;gap:7px;}
+.mode-bars{display:flex;flex-direction:column;gap:7px;padding-top:2px;}
 .mode-bar-row{display:flex;align-items:center;gap:8px;}
 .mode-bar-icon{font-size:13px;width:20px;text-align:center;flex-shrink:0;}
 .mode-bar-track{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
@@ -2330,6 +2333,12 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .tst.on{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:all;}
 .tst.ok{border-color:rgba(46,204,113,.55);box-shadow:0 0 40px rgba(46,204,113,.15),0 8px 40px rgba(0,0,0,.5);}
 .tst.no{border-color:rgba(232,52,74,.4);}
+/* Mode vrai/faux : toast en haut pour ne pas cacher la question */
+.game-vraifaux .tst{
+  top:auto;bottom:calc(130px + max(10px,env(safe-area-inset-bottom)));
+  transform:translate(-50%,0) scale(.8);
+}
+.game-vraifaux .tst.on{transform:translate(-50%,0) scale(1);}
 .tpts{
   font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;margin-bottom:2px;
   animation:ptsPopIn .3s cubic-bezier(.34,1.56,.64,1) both;
@@ -3192,20 +3201,17 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
   <!-- BADGE MODAL -->
   <div class="mover" id="bmod" onclick="closeMod(event)">
-    <div class="msh" style="padding:0;overflow:hidden;">
-      <!-- Header animé -->
-      <div id="bmod-header" style="position:relative;height:130px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;">
-        <div id="bmod-bg" style="position:absolute;inset:0;"></div>
-        <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);"></div>
-        <div id="bmod-icon" style="position:relative;z-index:1;font-size:52px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.4));animation:badgeIconSpin .5s cubic-bezier(.34,1.56,.64,1) both;">🎬</div>
-      </div>
+    <div class="msh" style="padding:0;">
+      <!-- Handle -->
+      <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);margin:14px auto 0;"></div>
       <!-- Contenu -->
-      <div style="padding:16px 20px 20px;">
+      <div style="padding:20px 20px 20px;text-align:center;">
+        <div id="bmod-icon" style="font-size:64px;filter:drop-shadow(0 4px 20px rgba(0,0,0,.5));animation:badgeIconSpin .5s cubic-bezier(.34,1.56,.64,1) both;margin-bottom:14px;line-height:1;">🎬</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div id="bmod-name" style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;line-height:1;">Badge</div>
           <div id="bmod-status"></div>
         </div>
-        <div id="bmod-desc" style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:18px;"></div>
+        <div id="bmod-desc" style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:18px;text-align:left;"></div>
         <button class="mbcl" onclick="closeMod()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:rgba(255,255,255,.5);cursor:pointer;width:100%;">FERMER</button>
       </div>
     </div>
@@ -7626,31 +7632,13 @@ function openBadge(id){
     if(legacyDot)legacyDot.remove();
     updateSectionDots();updateProfileDot();
   }
-  // Header background selon statut
-  const bg=document.getElementById('bmod-bg');
-  if(bg)bg.style.background=ok
-    ? 'linear-gradient(160deg,rgba(30,22,4,.95),rgba(18,13,2,.9))'
-    : 'linear-gradient(160deg,rgba(18,18,28,.95),rgba(10,10,20,.9))';
-  // Halo coloré
-  const halo=ok?'rgba(245,200,66,.08)':'rgba(255,255,255,.04)';
-  if(bg)bg.style.boxShadow='inset 0 0 60px '+halo;
-  // Bande de couleur en haut
-  const header=document.getElementById('bmod-header');
-  if(header){
-    header.style.borderBottom=ok
-      ? '1px solid rgba(245,200,66,.2)'
-      : '1px solid rgba(255,255,255,.07)';
-    header.style.background=ok
-      ? 'linear-gradient(160deg,rgba(35,25,5,.98),rgba(15,11,3,.95))'
-      : 'linear-gradient(160deg,rgba(20,20,32,.98),rgba(10,10,18,.95))';
-  }
   // Icône — reset animation
   const iconEl=document.getElementById('bmod-icon');
   if(iconEl){
     iconEl.style.animation='none';void iconEl.offsetWidth;
     iconEl.textContent=b.icon;
     iconEl.style.animation='badgeIconSpin .5s cubic-bezier(.34,1.56,.64,1) both';
-    iconEl.style.filter=ok?'drop-shadow(0 4px 20px rgba(245,200,66,.35))':'drop-shadow(0 4px 12px rgba(0,0,0,.5)) grayscale(.5)';
+    iconEl.style.filter=ok?'drop-shadow(0 4px 24px rgba(245,200,66,.4))':'drop-shadow(0 4px 12px rgba(0,0,0,.5)) grayscale(.6)';
   }
   document.getElementById('bmod-name').textContent=b.name;
   document.getElementById('bmod-desc').textContent=b.desc;
@@ -7909,6 +7897,8 @@ function loadQ(){
   // Restore mbadge visibility (may have been hidden for boxoffice/versusfilms)
   const _mb=document.getElementById('mbadge');
   if(_mb)_mb.style.display=(selMode==='versusfilms'?'none':'');
+  // Reset vraifaux layout
+  if(selMode!=='vraifaux')document.getElementById('game')?.classList.remove('game-vraifaux');
   const q=qs[curQ];
   document.getElementById('qnum').textContent=selMode==='survie'?`Q ${curQ+1} / ∞`:`Q ${curQ+1}/${TOTAL}`;
   document.getElementById('qcat').textContent=q.category;
@@ -8227,6 +8217,7 @@ function loadQ(){
 
   } else if(q.type==='vraifaux'){
     game.style.overflowY='auto';
+    game.classList.add('game-vraifaux');
     qa.style.justifyContent='flex-start';
     document.getElementById('dbadge').textContent='🎯 Vrai ou Faux';
     document.getElementById('dbadge').className='dbd dm';
@@ -8895,7 +8886,7 @@ function updateTimerUI(){
 // END GAME
 // ==============================
 function endGame(){
-  const playSec=Math.round((Date.now()-tStart)/1000);
+  const playSec=tStart>0?Math.min(Math.round((Date.now()-tStart)/1000),3600):0;
   let s=ls();const oldLvl=glv(s.xp);
   s=chkStreak(s);
   const base=Math.floor(score/10);
@@ -11064,7 +11055,7 @@ if(!_s.onboardingDone){
 <script>
 if('serviceWorker' in navigator){
   const _swCode=`
-    const CACHE='cinequiz-v65';
+    const CACHE='cinequiz-v69';
     const STATIC=['./',location.pathname];
     self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)));self.skipWaiting();});
     self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
