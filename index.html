@@ -112,7 +112,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 #arc-morpion{overflow:hidden !important;}
 #arcade-menu .arc-head{
   position:relative;top:auto;left:auto;right:auto;
-  padding:max(18px,calc(env(safe-area-inset-top)+10px)) 18px 10px;
+  padding:max(52px,calc(env(safe-area-inset-top)+16px)) 18px 12px;
   flex-shrink:0;
 }
 #arcade-menu .arc-center{
@@ -4451,7 +4451,7 @@ document.addEventListener('visibilitychange',()=>{
 
 // ── QUITTER LA PARTIE ──
 function confirmQuit(){
-  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);
   if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
   const infoEl=document.getElementById('quit-info');
   if(infoEl){
@@ -4466,7 +4466,7 @@ function closeQuit(){
 }
 function doQuit(){
   document.getElementById('quit-modal').classList.remove('on');
-  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);
   hideToast();
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='';
   go('home');refHome();applyNewBadges();
@@ -6947,6 +6947,11 @@ const go=id=>{
     switchMusic(selMode,0.22);
   } else if(id==='home'){
     switchMusic('home',0.3);
+  } else if(id==='arcade-menu'){
+    if(musOn) switchMusic('arcade',0.25);
+  } else if(['arc-snake','arc-bricks','arc-morpion','arc-memory','arc-slots'].includes(id)){
+    const gameKey={'arc-snake':'snake','arc-bricks':'bricks','arc-morpion':'morpion','arc-memory':'arcade','arc-slots':'slots'}[id];
+    if(musOn && gameKey) switchMusic(gameKey,0.22);
   } else if(['result','lvlup'].includes(id)){
     fadeMus(0.15,600);
   }
@@ -7372,7 +7377,7 @@ function refreshModeLocks(){
     const newBadge=card.querySelector('.mnew');
     if(unlocked){
       card.classList.remove('locked');
-      if(newBadge)newBadge.style.display='';
+      if(newBadge)newBadge.style.display=localStorage.getItem('cq_played_'+m)?'none':'';
     } else {
       card.classList.add('locked');
       if(newBadge)newBadge.style.display='none';
@@ -7883,7 +7888,7 @@ function buildDots(){
 function loadQ(){
   ansed=false;lastTick=-1;
   if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
-  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
   // Restore mbadge visibility (may have been hidden for boxoffice/versusfilms)
   const _mb=document.getElementById('mbadge');
   if(_mb)_mb.style.display=(selMode==='versusfilms'?'none':'');
@@ -8023,7 +8028,7 @@ function loadQ(){
       const _f=document.getElementById('tfil');
       if(_f){_f.style.width=_pct+'%';_f.className='tfil'+(_pct<20?' warn':'');}
       const _tv=document.getElementById('tv');if(_tv)_tv.textContent=Math.ceil(tLeft)+'s';
-      if(tLeft<=0){cancelAnimationFrame(tInt);tInt=null;if(!ansed)handleBOAnswer(q);}
+      if(tLeft<=0){cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;if(!ansed)handleBOAnswer(q);}
     },100);
 
   } else if(q.type==='replique'){
@@ -8298,7 +8303,7 @@ function loadQ(){
     const _vfAnswer=(idx)=>{
       if(ansed)return;
       ansed=true;
-      cancelAnimationFrame(tInt);tInt=null;
+      cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
       const ok=idx===q.correct;
       const elapsed=MAXT-tLeft;
       const m=elapsed<6?3:elapsed<13?2:1;
@@ -8603,7 +8608,7 @@ function reorderBO(mi,targetPos,q){
 
 function handleBOAnswer(q){
   if(ansed)return;
-  ansed=true;cancelAnimationFrame(tInt);tInt=null;
+  ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   clearSlotHints();
   const userOrder=dragOrder.map(i=>q.movies[i].id);
   const correct=q.correctOrder;
@@ -8655,7 +8660,7 @@ function handleBOAnswer(q){
 
 function handleDuoAnswer(userSaysYes){
   if(ansed)return;
-  ansed=true;cancelAnimationFrame(tInt);tInt=null;
+  ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   const q=qs[curQ];
   const ok=userSaysYes===q.answer;
   dotRes[curQ]=ok;
@@ -8684,7 +8689,7 @@ function handleYearAnswer(){
   if(diff===0)pts=300;
   else if(diff<=2)pts=200;
   else if(diff<=5)pts=100;
-  cancelAnimationFrame(tInt);tInt=null;ansed=true;
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;ansed=true;
   score+=pts;
   const ok=pts>0;dotRes[curQ]=ok;
   if(ok){okCnt++;sndOk(3);}else sndNo();
@@ -8697,7 +8702,7 @@ function handleYearAnswer(){
 
 function handleAnswer(idx){
   if(ansed)return;
-  ansed=true;cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);
+  ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);
   const q=qs[curQ];
   const elapsed=MAXT-tLeft;const m=elapsed<6?3:elapsed<13?2:1;
   times.push(Math.round(elapsed));
@@ -9486,7 +9491,7 @@ function loadVersusQ(){
   const q=vsQs[qIdx];
 
   ansed=false;lastTick=-1;
-  cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);hideToast();
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);hideToast();
 
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
@@ -9525,7 +9530,7 @@ function loadVersusQ(){
 
 function handleVersusAnswer(idx,q){
   if(ansed)return;
-  ansed=true;cancelAnimationFrame(tInt);tInt=null;
+  ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   const elapsed=MAXT-tLeft;
   const m=elapsed<6?3:elapsed<13?2:1;
   const ok=idx===q.correct;
@@ -9571,7 +9576,7 @@ function showVersusHandoff(playerName,cb){
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
   grid.innerHTML='';
-  cancelAnimationFrame(tInt);tInt=null;
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   hideToast();
   const idx=vsPlayers.findIndex(p=>p.name===playerName);
   const color=VS_COLORS[Math.max(0,idx)];
@@ -9590,7 +9595,7 @@ function showVersusHandoff(playerName,cb){
 }
 
 function endVersus(){
-  cancelAnimationFrame(tInt);tInt=null;
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   const s=ls();s.versusGames=(s.versusGames||0)+1;ss(s);
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
@@ -10611,7 +10616,7 @@ function _saveArcadeHS(game,val){
   try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');if(!hs[game]||val>hs[game]){hs[game]=val;localStorage.setItem('cq_arc_hs',JSON.stringify(hs));}}catch(e){}
   setTimeout(updateJkDot,300);
 }
-function openArcade(){go('arcade-menu');_refreshArcadeScores();}
+function openArcade(){go('arcade-menu');_refreshArcadeScores();if(musOn)switchMusic('arcade',0.25);}
 
 // ─── SNAKE ───
 let _snTimer=null,_snSnake,_snDir,_snNextDir,_snFood,_snScore,_snRunning;
