@@ -1099,7 +1099,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .stats-chart-wrap{
   background:linear-gradient(150deg,rgba(18,14,5,.95),rgba(10,8,3,.9));
   border:1px solid rgba(245,200,66,.12);
-  border-radius:20px;padding:16px;margin-bottom:10px;
+  border-radius:20px;padding:14px 16px;margin-bottom:10px;
   position:relative;overflow:hidden;
 }
 .stats-chart-wrap::before{
@@ -1108,9 +1108,11 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 .stats-chart-title{
   font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2.5px;
-  text-transform:uppercase;margin-bottom:14px;
+  text-transform:uppercase;
   display:flex;justify-content:space-between;align-items:center;
+  line-height:1;
 }
+.stats-chart-title:not(:last-child){margin-bottom:12px;}
 .stats-chart-title span{color:rgba(245,200,66,.55);font-size:10px;letter-spacing:.3px;}
 /* Sparkline */
 .sparkline-wrap{display:flex;align-items:flex-end;gap:5px;height:56px;margin-bottom:6px;}
@@ -7585,7 +7587,7 @@ function refProfile(){
     hist.innerHTML+=`<div class="hitem"><div class="hi">${icons[idx]}</div><div class="hinfo"><div class="hs">${h.score} pts</div><div class="hd" style="font-size:11px;">${modeName} · ${h.correct}/${h.total} · +${h.xp} XP</div></div><div class="hdate">${h.date}</div></div>`;
   });
   // Stats avancées
-  setTimeout(()=>{buildSparkline(s);buildModeHeatmap(s);buildGlobalStats(s);},50);
+  buildSparkline(s);buildModeHeatmap(s);buildGlobalStats(s);
 }
 
 function openHelp(){document.getElementById('help-modal').classList.add('on');}
@@ -9312,19 +9314,20 @@ function buildSparkline(s){
   const totalScored=dayData.filter(d=>d.best>0);
   const avg=totalScored.length?Math.round(totalScored.reduce((a,d)=>a+d.best,0)/totalScored.length):0;
   const totalGames=dayData.reduce((a,d)=>a+d.count,0);
-  if(avgEl)avgEl.textContent=avg?`Moy. ${avg} pts · ${totalGames} parties`:'Aucune partie récente';
+  if(avgEl)avgEl.textContent=avg?`Moy. ${avg} pts · ${totalGames} parties`:'Aucune partie cette semaine';
   bars.innerHTML=dayData.map(d=>{
-    const h=Math.max(3,Math.round((d.best/maxScore)*44));
-    const alpha=d.isToday?'1':d.best?'.7':'.2';
-    return`<div class="spark-bar${d.isToday?' today':''}${d.count>1?' multi':''}" style="height:${h}px;opacity:${alpha}" title="${d.key}${d.best?' · '+d.best+' pts':''}${d.count>1?' ('+d.count+'x)':''}"></div>`;
+    const h=d.best?Math.max(8,Math.round((d.best/maxScore)*50)):8;
+    return`<div class="spark-bar${d.isToday?' today':''}${d.count>1?' multi':''}" 
+      style="height:${h}px;opacity:${d.isToday?1:d.best?.7:.15}"
+      data-score="${d.best?d.best+' pts':''}"
+      title="${d.key}${d.best?' · '+d.best+' pts':''}"></div>`;
   }).join('');
   const days7=['L','M','M','J','V','S','D'];
   const todayIdx=today.getDay()===0?6:today.getDay()-1;
   labels.innerHTML=dayData.map((_,i)=>{
     const dayI=(todayIdx-(days-1-i)+7)%7;
-    const isWeekend=dayI===5||dayI===6;
     const isToday=i===days-1;
-    return`<div class="spark-label${isWeekend?' weekend':''}${isToday?' today':''}">${days7[dayI]}</div>`;
+    return`<div class="spark-label${isToday?' today':''}">${days7[dayI]}</div>`;
   }).join('');
 }
 
@@ -11034,7 +11037,7 @@ if(!_s.onboardingDone){
 <script>
 if('serviceWorker' in navigator){
   const _swCode=`
-    const CACHE='cinequiz-v51';
+    const CACHE='cinequiz-v54';
     const STATIC=['./',location.pathname];
     self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)));self.skipWaiting();});
     self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
