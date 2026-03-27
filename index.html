@@ -1112,17 +1112,39 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   display:flex;justify-content:space-between;align-items:center;
 }
 .stats-chart-title span{color:rgba(245,200,66,.55);font-size:10px;letter-spacing:.3px;}
-.sparkline-wrap{display:flex;align-items:flex-end;gap:4px;height:52px;margin-bottom:6px;}
-.spark-bar{flex:1;border-radius:4px 4px 0 0;background:rgba(245,200,66,.2);min-height:3px;transition:height .6s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative;}
-.spark-bar.today{background:var(--gold);box-shadow:0 0 10px rgba(245,200,66,.3);}
-.spark-bar:hover::after,.spark-bar.today::after{
-  content:attr(data-score);position:absolute;bottom:calc(100% + 4px);left:50%;
+/* Sparkline */
+.sparkline-wrap{display:flex;align-items:flex-end;gap:5px;height:56px;margin-bottom:6px;}
+.spark-bar{
+  flex:1;border-radius:5px 5px 0 0;
+  background:rgba(245,200,66,.18);min-height:4px;
+  transition:height .6s cubic-bezier(.34,1.56,.64,1);
+  cursor:pointer;position:relative;
+}
+.spark-bar.today{background:var(--gold);box-shadow:0 0 12px rgba(245,200,66,.3);}
+.spark-bar.today::after{
+  content:attr(data-score);position:absolute;bottom:calc(100% + 5px);left:50%;
   transform:translateX(-50%);background:rgba(10,10,15,.9);color:var(--gold);
   font-size:9px;padding:2px 5px;border-radius:5px;white-space:nowrap;pointer-events:none;
 }
-.spark-labels{display:flex;gap:4px;}
+.spark-labels{display:flex;gap:5px;}
 .spark-label{flex:1;font-size:8px;color:rgba(255,255,255,.22);text-align:center;}
 .spark-label.today{color:var(--gold);font-weight:700;}
+/* Mini stats row */
+.spark-mini-row{display:flex;gap:6px;margin-bottom:12px;}
+.spark-mini{
+  flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:8px 8px 7px;text-align:center;
+}
+.spark-mini-val{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);line-height:1;}
+.spark-mini-lbl{font-size:7.5px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+/* Mode bars */
+.mode-bars{display:flex;flex-direction:column;gap:7px;}
+.mode-bar-row{display:flex;align-items:center;gap:8px;}
+.mode-bar-icon{font-size:13px;width:20px;text-align:center;flex-shrink:0;}
+.mode-bar-track{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.mode-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .6s cubic-bezier(.34,1.56,.64,1);}
+.mode-bar-count{font-size:10px;font-weight:600;color:rgba(255,255,255,.35);width:18px;text-align:right;flex-shrink:0;}
+.mode-bar-name{font-size:10px;color:rgba(255,255,255,.4);width:80px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .heatmap-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:4px;margin-top:8px;}
 .hm-cell{
@@ -1221,6 +1243,15 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .vs-player-score{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);line-height:1;}
 .vs-player.active .vs-player-name{color:var(--gold);}
 .vs-player.active .vs-player-score{filter:drop-shadow(0 0 8px rgba(245,200,66,.5));}
+/* Scoreboard compact 3-4 joueurs */
+.vs-scoreboard{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.vs-scoreboard.many .vs-player-score{font-size:20px;}
+.vs-scoreboard.many .vs-player-name{font-size:9px;}
+/* Setup joueurs */
+.vs-player-count-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px;}
+.vs-pc-btn{padding:10px;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;cursor:pointer;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);transition:all .2s;text-align:center;}
+.vs-pc-btn.on{background:rgba(245,200,66,.14);border-color:rgba(245,200,66,.45);color:var(--gold);}
+.vs-players-inputs{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
 .vs-divider{font-family:'Bebas Neue',sans-serif;font-size:20px;color:rgba(255,255,255,.25);flex-shrink:0;}
 .vs-turn-badge{
   display:flex;align-items:center;gap:6px;
@@ -3002,15 +3033,15 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     </div>
     <!-- Stats avancées : sparkline 7 jours -->
     <div class="stats-chart-wrap" onclick="openProfileStat('scores7')" style="cursor:pointer;" id="stats-sparkline-wrap">
-      <div class="stats-chart-title">Scores <span id="sparkline-avg" style="font-weight:400;color:rgba(255,255,255,.4);font-size:10px;"></span></div>
+      <div class="stats-chart-title">Scores 7 jours <span id="sparkline-avg"></span></div>
       <div id="p-global-stats"></div>
       <div class="sparkline-wrap" id="sparkline-bars"></div>
       <div class="spark-labels" id="sparkline-labels"></div>
     </div>
-    <!-- Heatmap par mode -->
+    <!-- Barres par mode -->
     <div class="stats-chart-wrap" onclick="openProfileStat('games')" style="cursor:pointer;">
-      <div class="stats-chart-title">Parties par mode <span style="color:rgba(255,255,255,.3);font-size:9px">Appuie pour le détail →</span></div>
-      <div class="heatmap-wrap" id="mode-heatmap"></div>
+      <div class="stats-chart-title">Parties par mode <span>Détail →</span></div>
+      <div class="mode-bars" id="mode-heatmap"></div>
     </div>
     <div class="sgrid">
       <div class="sc sc-xp" onclick="openProfileStat('xp')" style="cursor:pointer;">
@@ -7789,9 +7820,9 @@ async function startGame(){
       const rawSurvie=await fetchTrivia();
       setStep(0,'don');setStep(1,'act');
       qs=await txQuestions(rawSurvie);
-      // Mode survie : pool infini, on en génère beaucoup
-      while(qs.length<50){const extra=await fetchTrivia();const moreQ=await txQuestions(extra);qs=[...qs,...moreQ];}
-      TOTAL=qs.length; // pas de limite fixe
+      // Chercher un 2e lot pour avoir plus de questions dispo
+      try{const extra=await fetchTrivia();const moreQ=await txQuestions(extra);qs=[...qs,...moreQ];}catch(e){}
+      TOTAL=Math.max(qs.length,1);
       setStep(1,'don');
     } else if(selMode==='pitch'){
       sltxt('Préparation des pitchs…');
@@ -7842,17 +7873,18 @@ function buildDots(){
     return;
   }
   if(slives)slives.style.display='none';
-  if(pdots){pdots.style.display='flex';pdots.innerHTML='';}
-  const c=pdots;c.innerHTML='';
-  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='dot'+(i<curQ?(dotRes[i]?' dv':' dx'):i===curQ?' dc':'');c.appendChild(d);}
+  if(!pdots)return;
+  pdots.style.display='flex';pdots.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='dot'+(i<curQ?(dotRes[i]?' dv':' dx'):i===curQ?' dc':'');pdots.appendChild(d);}
 }
 
 function loadQ(){
   ansed=false;lastTick=-1;
   if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
   cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
-  // Restore mbadge visibility (may have been hidden for boxoffice)
-  const _mb=document.getElementById('mbadge');if(_mb)_mb.style.display='';
+  // Restore mbadge visibility (may have been hidden for boxoffice/versusfilms)
+  const _mb=document.getElementById('mbadge');
+  if(_mb)_mb.style.display=(selMode==='versusfilms'?'none':'');
   const q=qs[curQ];
   document.getElementById('qnum').textContent=selMode==='survie'?`Q ${curQ+1} / ∞`:`Q ${curQ+1}/${TOTAL}`;
   document.getElementById('qcat').textContent=q.category;
@@ -8251,7 +8283,7 @@ function loadQ(){
         <div class="vf-criterion">Lequel a le plus grand <strong>${q.criterion.emoji} ${q.criterion.label}</strong> ?</div>
         <div class="vf-cards">
           ${q.films.map((f,i)=>`
-          <div class="vf-card" id="vf-card-${i}" onclick="handleAnswer(${i})">
+          <div class="vf-card" id="vf-card-${i}">
             <img class="vf-poster" src="${f.poster}" alt="${f.title}" onerror="this.style.background='var(--sf2)'">
             <div class="vf-info">
               <div class="vf-title">${f.title}</div>
@@ -8261,27 +8293,42 @@ function loadQ(){
           </div>`).join('<div class="vf-vs">VS</div>')}
         </div>
       </div>`;
-    // Override handleAnswer pour afficher le résultat visuellement
-    const _origHA=handleAnswer;
-    window._vfHandleAnswer=(idx)=>{
+    const _vfAnswer=(idx)=>{
       if(ansed)return;
       ansed=true;
       cancelAnimationFrame(tInt);tInt=null;
       const ok=idx===q.correct;
+      const elapsed=MAXT-tLeft;
+      const m=elapsed<6?3:elapsed<13?2:1;
       q.films.forEach((f,i)=>{
         const card=document.getElementById('vf-card-'+i);
         const rev=document.getElementById('vf-rev-'+i);
-        if(i===q.correct){card.classList.add('vf-ok');if(rev)rev.textContent=q.criterion.format(f.value);}
-        else{card.classList.add('vf-no');if(rev)rev.textContent=q.criterion.format(f.value);}
+        if(card){card.classList.add(i===q.correct?'vf-ok':'vf-no');}
+        if(rev)rev.textContent=q.criterion.format(f.value);
       });
-      const pts=ok?Math.round(100*(tLeft/MAXT)*3):0;
-      const m=ok?(tLeft>MAXT*0.7?3:tLeft>MAXT*0.4?2:1):0;
-      if(ok){score+=pts*m;document.getElementById('scorehd').textContent=score+' pts';}
-      setTimeout(()=>showToast(ok,pts*m,m,null),600);
+      const pts=ok?Math.round(100*(elapsed<6?3:elapsed<13?2:1)):0;
+      if(ok){score+=pts;document.getElementById('scorehd').textContent=score+' pts';}
+      // Flash écran
+      const fl=document.getElementById('game-flash');
+      if(fl){fl.className='';void fl.offsetWidth;fl.className=ok?'flash-ok':'flash-no';}
+      sndOk && ok ? sndOk(m) : sndNo && sndNo();
+      // Toast puis avance
+      const t=document.getElementById('toast');
+      if(t){
+        t.className='tst '+(ok?'ok':'');
+        document.getElementById('tpts').style.color=ok?'var(--green)':'var(--red)';
+        document.getElementById('tpts').textContent=ok?`+${pts} pts`:'✗';
+        document.getElementById('tmsg').textContent=ok?`x${m} — ${q.films[q.correct].title}`:`${q.films[q.correct].title}`;
+        document.getElementById('tans').textContent='';
+        t.classList.add('on');
+      }
+      if(ok){okCnt++;combo++;showComboBanner(combo);}else{combo=0;}
+      dotRes[curQ]=ok;
+      if(nextQTimer)clearTimeout(nextQTimer);
+      nextQTimer=setTimeout(()=>{hideToast();advanceQ();},ok?1600:2200);
     };
-    // Patch onclick temporairement
     document.querySelectorAll('.vf-card').forEach((card,i)=>{
-      card.onclick=()=>window._vfHandleAnswer(i);
+      card.onclick=()=>_vfAnswer(i);
     });
     startTimer();
 
@@ -8675,11 +8722,24 @@ function handleAnswer(idx){
       _survieLives=Math.max(0,_survieLives-1);
       _updateSurvieHearts(_survieLives);
       if(_survieLives<=0){
-        // Game over survie après affichage de la mauvaise réponse
-        setTimeout(()=>{hideToast();endGame();},1800);
+        // Dernier cœur : montrer wrong-sheet puis endGame
         showToast(false,0,m,wrongAns);
+        setTimeout(()=>{hideToast();closeWrongSheet();endGame();},2200);
         return;
       }
+      // Il reste des vies : montrer briefly et passer à la suite
+      const ws=document.getElementById('wrong-sheet');
+      const scrim=document.getElementById('ws-scrim');
+      if(ws){
+        document.getElementById('ws-title').textContent=idx===-1?'⏱ Temps écoulé !':'✗ Raté !';
+        const correctAns=wrongAns||(qs[curQ]?.answers?.[qs[curQ]?.correct])||'—';
+        document.getElementById('ws-ans').textContent=correctAns;
+        ws.classList.add('on');if(scrim)scrim.classList.add('on');
+        setTimeout(()=>{ws.classList.remove('on');if(scrim)scrim.classList.remove('on');advanceQ();},1800);
+      } else {
+        setTimeout(advanceQ,1600);
+      }
+      return;
     }
     showToast(false,0,m,wrongAns);
   }
@@ -8765,13 +8825,14 @@ function advanceQ(){
 
 function startTimer(){
   if(selMode==='training'){
-    // Mode entraînement : pas de chrono, barre pleine statique
     tLeft=999;
     const tf=document.getElementById('tfil');if(tf)tf.style.width='100%';
     const tv=document.getElementById('tv');if(tv)tv.style.opacity='0';
     return;
   }
-  tLeft=MAXT;updateTimerUI();
+  // Modes avec plus de temps
+  const modeMaxT=selMode==='pitch'?25:selMode==='versusfilms'?25:MAXT;
+  tLeft=modeMaxT;updateTimerUI();
   let _lastT=null;
   function _timerLoop(ts){
     if(!tInt)return;
@@ -8789,18 +8850,19 @@ function startTimer(){
 function startTimerYear(){tLeft=30;updateTimerUI();tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-.1);updateTimerUI();beep(Math.ceil(tLeft));if(tLeft<=0){clearInterval(tInt);tInt=null;if(!ansed)handleYearAnswer();}},100);}
 
 function updateTimerUI(){
-  const maxT=selMode==='year'||selMode==='boxoffice'?30:MAXT;
+  const maxT=selMode==='year'||selMode==='boxoffice'?30:selMode==='pitch'||selMode==='versusfilms'?25:MAXT;
   const pct=(tLeft/maxT)*100;
   const f=document.getElementById('tfil');f.style.width=pct+'%';f.className='tfil'+(pct<30?' warn':'');
   document.getElementById('tv').textContent=Math.ceil(tLeft)+'s';
-  if(selMode!=='year'&&selMode!=='boxoffice'){
-    const modeMaxT=MAXT;
-    const e=modeMaxT-tLeft;const m=e<6?3:e<13?2:1;
+  if(selMode!=='year'&&selMode!=='boxoffice'&&selMode!=='versusfilms'){
+    const e=maxT-tLeft;const m=e<6?3:e<13?2:1;
     const mb=document.getElementById('mbadge');
-    const newClass='mb mx'+m;
-    if(mb.className!==newClass){
-      mb.textContent='x'+m;mb.className=newClass;
-      mb.classList.add('bump');setTimeout(()=>mb.classList.remove('bump'),400);
+    if(mb){
+      const newClass='mb mx'+m;
+      if(mb.className!==newClass){
+        mb.textContent='x'+m;mb.className=newClass;
+        mb.classList.add('bump');setTimeout(()=>mb.classList.remove('bump'),400);
+      }
     }
   }
 }
@@ -9269,22 +9331,47 @@ function buildSparkline(s){
 function buildModeHeatmap(s){
   const wrap=document.getElementById('mode-heatmap');if(!wrap)return;
   const modes=[
-    {k:'quizGames',l:'⚡'},{k:'photoGames',l:'🎬'},{k:'yearGames',l:'📅'},
-    {k:'boMusicGames',l:'💡'},{k:'boGames',l:'💰'},{k:'repliqueGames',l:'💬'},
-    {k:'acteurGames',l:'👤'},{k:'realisateurGames',l:'🎥'},{k:'locationGames',l:'🌍'},
-    {k:'generiqueGames',l:'📜'},{k:'castingGames',l:'🧩'},{k:'filmographieGames',l:'🎭'},
-    {k:'compositeurGames',l:'🎼'},{k:'trainingGames',l:'📚'},{k:'vraifauxGames',l:'🎯'},{k:'decennieGames',l:'📅'},{k:'quiaditGames',l:'🎭'},
-    {k:'versusGames',l:'⚔️'},
+    {k:'quizGames',    l:'⚡',n:'Trivia Ciné'},
+    {k:'photoGames',   l:'🎬',n:'Affiche Mystère'},
+    {k:'repliqueGames',l:'💬',n:'La Réplique'},
+    {k:'acteurGames',  l:'👤',n:'Acteur Mystère'},
+    {k:'yearGames',    l:'📅',n:'Quelle Année ?'},
+    {k:'boMusicGames', l:'💡',n:'Indices Mystère'},
+    {k:'boGames',      l:'💰',n:'Box-office'},
+    {k:'realisateurGames',l:'🎥',n:'Réalisateur'},
+    {k:'castingGames', l:'🧩',n:'Le Casting'},
+    {k:'vraifauxGames',l:'🎯',n:'Vrai ou Faux'},
+    {k:'filmographieGames',l:'🎭',n:'Filmographie'},
+    {k:'compositeurGames',l:'🎼',n:'Compositeur'},
+    {k:'generiqueGames',l:'📜',n:'Le Générique'},
+    {k:'locationGames',l:'🌍',n:'Lieu tournage'},
+    {k:'decennieGames',l:'📅',n:'Décennie'},
+    {k:'quiaditGames', l:'🎭',n:'Qui a dit ça ?'},
+    {k:'trainingGames',l:'📚',n:'Entraînement'},
+    {k:'versusGames',  l:'⚔️',n:'2+ Joueurs'},
+    {k:'pitchGames',   l:'📝',n:'Le Pitch'},
+    {k:'versusfilmsGames',l:'📊',n:'Versus Films'},
+    {k:'survieGames',  l:'❤️',n:'Survie'},
   ];
-  const max=Math.max(...modes.map(m=>s[m.k]||0),1);
-  wrap.innerHTML=modes.map(m=>{
+  const played=modes.filter(m=>(s[m.k]||0)>0).sort((a,b)=>(s[b.k]||0)-(s[a.k]||0));
+  const max=played.length?Math.max(...played.map(m=>s[m.k])):1;
+  if(!played.length){
+    wrap.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.25);font-size:12px;padding:8px 0;">Joue pour voir tes stats par mode !</div>';
+    return;
+  }
+  wrap.innerHTML=played.map(m=>{
     const v=s[m.k]||0;
-    const level=v===0?0:Math.ceil((v/max)*3);
-    return`<div class="hm-cell hm-${level}${v>0?' hm-has':''}" title="${m.l} · ${v} partie${v!==1?'s':''}">${m.l}</div>`;
+    const pct=Math.round((v/max)*100);
+    return`<div class="mode-bar-row">
+      <div class="mode-bar-icon">${m.l}</div>
+      <div class="mode-bar-name">${m.n}</div>
+      <div class="mode-bar-track"><div class="mode-bar-fill" style="width:${pct}%"></div></div>
+      <div class="mode-bar-count">${v}</div>
+    </div>`;
   }).join('');
 }
 
-// Injecte les stats globales sous le sparkline si pas déjà fait
+// Injecte les stats globales sous le sparkline
 function buildGlobalStats(s){
   const target=document.getElementById('p-global-stats');
   if(!target)return;
@@ -9292,119 +9379,109 @@ function buildGlobalStats(s){
   const allScores=hist.map(h=>h.score).filter(Boolean);
   const best=allScores.length?Math.max(...allScores):0;
   const avg=allScores.length?Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length):0;
-  const totalXP=s.xp||0;
   const streak=s.streak||0;
-  const items=[
-    {icon:'🏆',val:best?best+' pts':'—',label:'Record'},
-    {icon:'📊',val:avg?avg+' pts':'—',label:'Moyenne'},
-    {icon:'⚡',val:totalXP+' XP',label:'Total XP'},
-    {icon:'🔥',val:streak+'j',label:'Streak'},
-  ];
-  target.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
-    ${items.map(it=>`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 6px;text-align:center;">
-      <div style="font-size:16px;margin-bottom:3px;">${it.icon}</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);line-height:1;">${it.val}</div>
-      <div style="font-size:8px;color:rgba(255,255,255,.32);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">${it.label}</div>
-    </div>`).join('')}
+  const total=s.games||0;
+  target.innerHTML=`<div class="spark-mini-row">
+    <div class="spark-mini"><div class="spark-mini-val">${best||'—'}</div><div class="spark-mini-lbl">Record</div></div>
+    <div class="spark-mini"><div class="spark-mini-val">${avg||'—'}</div><div class="spark-mini-lbl">Moyenne</div></div>
+    <div class="spark-mini"><div class="spark-mini-val">${total}</div><div class="spark-mini-lbl">Parties</div></div>
+    <div class="spark-mini"><div class="spark-mini-val">${streak}j</div><div class="spark-mini-lbl">Streak</div></div>
   </div>`;
 }
 
 // ── MULTIJOUEUR VERSUS ──
+// ── VERSUS N JOUEURS ──
+let vsPlayers=[]; // [{name,score,correct,dots}]
+let vsCurIdx=0,vsTurn=0,vsQs=[],vsTotal=10;
 let vsP1={name:'Joueur 1',score:0,correct:0},vsP2={name:'Joueur 2',score:0,correct:0};
-let vsCurPlayer=1,vsTurn=0,vsQs=[],vsTotal=10;
-let vsP1Dots=[],vsP2Dots=[]; // résultats séparés par joueur
+let vsP1Dots=[],vsP2Dots=[];
+const VS_ICONS=['👤','👥','🧑','👨'];
+const VS_COLORS=['var(--gold)','#60a5fa','#4ade80','#f472b6'];
 
 function startVersus(){
-  // Afficher l'écran de setup dans la zone de jeu
   selMode='versus';
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='on mode-versus';
   go('game');
-
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
   grid.innerHTML='';
-
-  // Masquer le header de jeu
-  document.getElementById('qnum').textContent='⚔️ 2 Joueurs';
+  document.getElementById('qnum').textContent='⚔️ Multijoueur';
   document.getElementById('qcat').textContent='';
   document.getElementById('scorehd').textContent='';
   document.getElementById('tfil').style.width='0%';
   document.getElementById('tv').textContent='';
+  document.getElementById('mbadge').style.display='none';
 
-  // Nombre de questions sélectionné
-  let _nbQ=10;
+  let _nbQ=10, _nbP=2;
 
-  qa.innerHTML=`
-    <div class="vs-setup">
-      <div class="vs-setup-title">⚔️ DUEL</div>
-      <div class="vs-setup-sub">Tour par tour, même téléphone</div>
+  const renderSetup=()=>{
+    const inputs=Array.from({length:_nbP},(_,i)=>`
       <div class="vs-player-input">
-        <span class="vs-player-input-icon">👤</span>
-        <input id="vs-p1-name" type="text" maxlength="14" placeholder="Joueur 1…" value="">
-      </div>
-      <div class="vs-player-input">
-        <span class="vs-player-input-icon">👥</span>
-        <input id="vs-p2-name" type="text" maxlength="14" placeholder="Joueur 2…" value="">
-      </div>
-      <div class="vs-nb-label">Nombre de questions</div>
-      <div class="vs-nb-row" id="vs-nb-row">
-        <div class="vs-nb-btn on" onclick="vsSetNb(5,this)">5</div>
-        <div class="vs-nb-btn on" onclick="vsSetNb(10,this)">10</div>
-        <div class="vs-nb-btn" onclick="vsSetNb(15,this)">15</div>
-        <div class="vs-nb-btn" onclick="vsSetNb(20,this)">20</div>
-      </div>
-    </div>`;
-
-  // Sélectionner 10 par défaut visuellement
-  setTimeout(()=>{
-    const row=document.getElementById('vs-nb-row');
-    if(row)row.querySelectorAll('.vs-nb-btn').forEach((b,i)=>{b.classList.toggle('on',i===1);});
-  },50);
-
-  const launchBtn=document.createElement('button');
-  launchBtn.style.cssText='width:100%;grid-column:1/-1;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:16px;font-family:\'Bebas Neue\',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;';
-  launchBtn.innerHTML='🎬 LANCER LE DUEL';
-  launchBtn.onclick=()=>{
-    const n1=(document.getElementById('vs-p1-name')?.value||'').trim()||'Joueur 1';
-    const n2=(document.getElementById('vs-p2-name')?.value||'').trim()||'Joueur 2';
-    vsP1={name:n1,score:0,correct:0};
-    vsP2={name:n2,score:0,correct:0};
-    vsCurPlayer=1;vsTurn=0;
-    vsP1Dots=[];vsP2Dots=[];
-    vsTotal=_nbQ;
-    const pool=shuffle([...TRIVIA_FR]).slice(0,vsTotal);
-    vsQs=pool.map(q=>{
-      const ans=shuffle([q.correct,...q.wrong]);
-      return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:'⚔️ Duel'};
-    });
-    dotRes=[];score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
-    tStart=Date.now();
-    // Premier handoff : présenter P1
-    showVersusHandoff(vsP1.name,()=>loadVersusQ());
+        <span class="vs-player-input-icon">${VS_ICONS[i]}</span>
+        <input id="vs-p${i}-name" type="text" maxlength="14" placeholder="Joueur ${i+1}…" value="">
+      </div>`).join('');
+    qa.innerHTML=`
+      <div class="vs-setup">
+        <div class="vs-setup-title">⚔️ MULTIJOUEUR</div>
+        <div class="vs-setup-sub">Tour par tour · Même téléphone</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Nombre de joueurs</div>
+        <div class="vs-player-count-row">
+          ${[2,3,4].map(n=>`<div class="vs-pc-btn${n===_nbP?' on':''}" onclick="vsSetPlayers(${n},this)">${n}<br><span style="font-size:9px;font-family:'DM Sans',sans-serif;letter-spacing:0">joueurs</span></div>`).join('')}
+        </div>
+        <div class="vs-players-inputs" id="vs-inputs">${inputs}</div>
+        <div class="vs-nb-label">Nombre de questions par joueur</div>
+        <div class="vs-nb-row" id="vs-nb-row">
+          ${[5,10,15,20].map((n,i)=>`<div class="vs-nb-btn${n===_nbQ?' on':''}" onclick="vsSetNb(${n},this)">${n}</div>`).join('')}
+        </div>
+      </div>`;
   };
-  grid.appendChild(launchBtn);
+  renderSetup();
 
+  window._vsSetPlayers=(n)=>{
+    _nbP=n;
+    renderSetup();
+    // Restore launch button
+    const newGrid=document.getElementById('agrid');
+    if(newGrid){newGrid.innerHTML='';newGrid.appendChild(launchBtn);}
+  };
   window._vsSetNb=(n,el)=>{
     _nbQ=n;
     document.querySelectorAll('.vs-nb-btn').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
   };
+
+  const launchBtn=document.createElement('button');
+  launchBtn.style.cssText='width:100%;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:16px;font-family:\'Bebas Neue\',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;';
+  launchBtn.innerHTML='🎬 LANCER LE DUEL';
+  launchBtn.onclick=()=>{
+    vsPlayers=Array.from({length:_nbP},(_,i)=>{
+      const n=(document.getElementById(`vs-p${i}-name`)?.value||'').trim()||`Joueur ${i+1}`;
+      return{name:n,score:0,correct:0,dots:[]};
+    });
+    // Rétro-compat vsP1/vsP2
+    vsP1=vsPlayers[0];vsP2=vsPlayers[1]||vsPlayers[0];
+    vsP1Dots=vsPlayers[0].dots;vsP2Dots=(vsPlayers[1]||vsPlayers[0]).dots;
+    vsCurIdx=0;vsTurn=0;vsTotal=_nbQ;
+    const pool=shuffle([...TRIVIA_FR]).slice(0,vsTotal);
+    vsQs=pool.map(q=>{const ans=shuffle([q.correct,...q.wrong]);return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:'⚔️ Duel'};});
+    dotRes=[];score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
+    tStart=Date.now();
+    showVersusHandoff(vsPlayers[0].name,()=>loadVersusQ());
+  };
+  grid.appendChild(launchBtn);
 }
 
-function vsSetNb(n,el){
-  if(window._vsSetNb)window._vsSetNb(n,el);
-}
+function vsSetPlayers(n,el){if(window._vsSetPlayers)window._vsSetPlayers(n);}
+function vsSetNb(n,el){if(window._vsSetNb)window._vsSetNb(n,el);}
 
 function loadVersusQ(){
-  const qIdx=Math.floor(vsTurn/2);
+  const qIdx=Math.floor(vsTurn/vsPlayers.length);
   if(qIdx>=vsQs.length){endVersus();return;}
 
-  const isP1Turn=vsTurn%2===0;
-  vsCurPlayer=isP1Turn?1:2;
-  const curP=isP1Turn?vsP1:vsP2;
+  vsCurIdx=vsTurn%vsPlayers.length;
+  const curP=vsPlayers[vsCurIdx];
   const q=vsQs[qIdx];
 
-  // Reset état de réponse et timer
   ansed=false;lastTick=-1;
   cancelAnimationFrame(tInt);tInt=null;clearInterval(revInt);hideToast();
 
@@ -9413,27 +9490,23 @@ function loadVersusQ(){
   qa.style.overflow='';qa.style.justifyContent='';
   grid.innerHTML='';
 
-  // Header
   document.getElementById('qnum').textContent=`Q ${qIdx+1}/${vsTotal}`;
-  document.getElementById('qcat').textContent=`${curP.name}`;
+  document.getElementById('qcat').textContent=curP.name;
   document.getElementById('scorehd').textContent=`${curP.score} pts`;
 
-  // Scoreboard compact
+  const isManyPlayers=vsPlayers.length>2;
+  const scoreboard=vsPlayers.map((p,i)=>`
+    <div class="vs-player${i===vsCurIdx?' active':''}">
+      <div class="vs-player-name" style="color:${i===vsCurIdx?VS_COLORS[i]:'rgba(255,255,255,.35)'}">${p.name}</div>
+      <div class="vs-player-score" style="color:${VS_COLORS[i]};font-size:${isManyPlayers?'20px':'28px'}">${p.score}</div>
+    </div>`).join(isManyPlayers?'':
+    '<div class="vs-divider">VS</div>');
+
   qa.innerHTML=`
-    <div class="vs-scoreboard">
-      <div class="vs-player${vsCurPlayer===1?' active':''}">
-        <div class="vs-player-name">${vsP1.name}</div>
-        <div class="vs-player-score">${vsP1.score}</div>
-      </div>
-      <div class="vs-divider">VS</div>
-      <div class="vs-player${vsCurPlayer===2?' active':''}">
-        <div class="vs-player-name">${vsP2.name}</div>
-        <div class="vs-player-score">${vsP2.score}</div>
-      </div>
-    </div>
+    <div class="vs-scoreboard${isManyPlayers?' many':''}">${scoreboard}</div>
     <div class="vs-turn-badge">
-      <span class="vs-turn-icon">${vsCurPlayer===1?'👤':'👥'}</span>
-      Tour de <strong>${curP.name}</strong> — Question ${qIdx+1}
+      <span class="vs-turn-icon">${VS_ICONS[vsCurIdx]}</span>
+      Tour de <strong style="color:${VS_COLORS[vsCurIdx]}">${curP.name}</strong> — Q${qIdx+1}
     </div>
     <div class="qtl">❓ Trivia Ciné</div>
     <div class="qtxt">${q.text}</div>`;
@@ -9443,10 +9516,8 @@ function loadVersusQ(){
     b.onclick=()=>{if(!ansed)handleVersusAnswer(i,q);};
     grid.appendChild(b);
   });
-
   document.getElementById('mbadge').style.display='none';
-  buildDots();
-  startTimer();
+  buildDots();startTimer();
 }
 
 function handleVersusAnswer(idx,q){
@@ -9462,41 +9533,36 @@ function handleVersusAnswer(idx,q){
   if(ok){btns[idx].classList.add('ok');sndOk(m);}
   else{if(idx>=0)btns[idx].classList.add('no');if(btns[q.correct])btns[q.correct].classList.add('ok');sndNo();}
 
-  // Mise à jour scores par joueur
-  if(vsCurPlayer===1){vsP1.score+=pts;if(ok)vsP1.correct++;vsP1Dots.push(ok);}
-  else{vsP2.score+=pts;if(ok)vsP2.correct++;vsP2Dots.push(ok);}
+  const curP=vsPlayers[vsCurIdx];
+  curP.score+=pts;if(ok)curP.correct++;curP.dots.push(ok);
 
-  // Toast résultat
   const t=document.getElementById('toast');
   if(t){
     t.className='tst '+(ok?'ok':'');
-    document.getElementById('tpts').style.color=ok?'var(--green)':'var(--red)';
+    document.getElementById('tpts').style.color=ok?VS_COLORS[vsCurIdx]:'var(--red)';
     document.getElementById('tpts').textContent=ok?`+${pts} pts`:'✗';
-    document.getElementById('tmsg').textContent=ok?`x${m} · ${curPName()} !`:'Raté !';
+    document.getElementById('tmsg').textContent=ok?`x${m} · ${curP.name} !`:'Raté !';
     document.getElementById('tans').textContent='';
     t.classList.add('on');
   }
 
   vsTurn++;
-
-  // Fin de toutes les questions ?
-  if(vsTurn>=vsTotal*2){
+  const qIdx=Math.floor(vsTurn/vsPlayers.length);
+  if(qIdx>=vsQs.length){
     setTimeout(()=>{hideToast();endVersus();},ok?1400:2200);
     return;
   }
 
-  const nextIsP1=vsTurn%2===0;
-  const nextP=nextIsP1?vsP1:vsP2;
-  const switchingPlayer=nextIsP1!==(vsCurPlayer===1); // vrai si on change de joueur
-  // Toujours passer par le handoff lors d'un changement de joueur
+  const nextIdx=vsTurn%vsPlayers.length;
+  const switchingPlayer=nextIdx!==vsCurIdx;
   if(switchingPlayer){
-    setTimeout(()=>{hideToast();showVersusHandoff(nextP.name,()=>loadVersusQ());},ok?1400:2200);
+    setTimeout(()=>{hideToast();showVersusHandoff(vsPlayers[nextIdx].name,()=>loadVersusQ());},ok?1400:2200);
   } else {
     setTimeout(()=>{hideToast();loadVersusQ();},ok?1400:2200);
   }
 }
 
-function curPName(){return vsCurPlayer===1?vsP1.name:vsP2.name;}
+function curPName(){return vsPlayers[vsCurIdx]?.name||'Joueur';}
 
 function showVersusHandoff(playerName,cb){
   const qa=document.getElementById('qa');
@@ -9504,17 +9570,17 @@ function showVersusHandoff(playerName,cb){
   grid.innerHTML='';
   cancelAnimationFrame(tInt);tInt=null;
   hideToast();
-
+  const idx=vsPlayers.findIndex(p=>p.name===playerName);
+  const color=VS_COLORS[Math.max(0,idx)];
   qa.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:16px;padding:28px 20px;text-align:center;">
       <div style="font-size:56px;animation:rIconPop .5s cubic-bezier(.34,1.56,.64,1) both">📱</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);letter-spacing:2px;">PASSE LE TÉLÉPHONE !</div>
-      <div style="font-size:15px;color:rgba(255,255,255,.55);">C'est au tour de<br><strong style="color:var(--tx);font-size:18px;">${playerName}</strong></div>
+      <div style="font-size:15px;color:rgba(255,255,255,.55);">C'est au tour de<br><strong style="color:${color};font-size:18px;">${playerName}</strong></div>
       <div style="font-size:12px;color:rgba(255,255,255,.28);margin-top:-4px;">Couvre l'écran jusqu'à être prêt</div>
     </div>`;
-
   const btn=document.createElement('button');
-  btn.style.cssText='width:100%;grid-column:1/-1;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:16px;font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;';
+  btn.style.cssText=`width:100%;background:${color};color:#000;border:none;border-radius:18px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;`;
   btn.innerHTML=`JE SUIS PRÊT — ${playerName.toUpperCase()} 🎬`;
   btn.onclick=cb;
   grid.appendChild(btn);
@@ -9522,44 +9588,35 @@ function showVersusHandoff(playerName,cb){
 
 function endVersus(){
   cancelAnimationFrame(tInt);tInt=null;
-  const s=ls();
-  s.versusGames=(s.versusGames||0)+1;
-  ss(s);
-
+  const s=ls();s.versusGames=(s.versusGames||0)+1;ss(s);
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
   grid.innerHTML='';
 
-  const p1Wins=vsP1.score>vsP2.score;
-  const tie=vsP1.score===vsP2.score;
-  const winner=tie?null:(p1Wins?vsP1:vsP2);
-
-  // Dots résultats par joueur
-  const mkDots=arr=>arr.map(r=>`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${r?'var(--green)':'var(--red)'};margin:1px;"></span>`).join('');
+  const sorted=[...vsPlayers].sort((a,b)=>b.score-a.score);
+  const winner=sorted[0];
+  const tie=sorted.length>1&&sorted[0].score===sorted[1].score;
+  const mkDots=arr=>arr.map(r=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${r?'var(--green)':'var(--red)'};margin:1px;"></span>`).join('');
 
   qa.innerHTML=`
     <div class="vs-result-wrap" style="padding:8px 0;display:flex;flex-direction:column;align-items:center;">
       <span class="vs-winner-icon">${tie?'🤝':'🏆'}</span>
       <div class="vs-winner-name">${tie?'ÉGALITÉ !':winner.name.toUpperCase()}</div>
       <div class="vs-winner-sub">${tie?'Même niveau — la revanche ?':`Gagne avec ${winner.score} pts !`}</div>
-      <div class="vs-final-scores">
-        <div class="vs-final-card${p1Wins&&!tie?' winner':''}">
-          <div class="vs-final-card-name">${vsP1.name}</div>
-          <div class="vs-final-card-score">${vsP1.score}</div>
-          <div class="vs-final-card-correct">${vsP1.correct}/${vsTotal}</div>
-          <div style="margin-top:6px">${mkDots(vsP1Dots)}</div>
-        </div>
-        <div class="vs-final-card${!p1Wins&&!tie?' winner':''}">
-          <div class="vs-final-card-name">${vsP2.name}</div>
-          <div class="vs-final-card-score">${vsP2.score}</div>
-          <div class="vs-final-card-correct">${vsP2.correct}/${vsTotal}</div>
-          <div style="margin-top:6px">${mkDots(vsP2Dots)}</div>
-        </div>
+      <div class="vs-final-scores" style="flex-wrap:wrap;">
+        ${vsPlayers.map((p,i)=>{
+          const isWinner=!tie&&p.name===winner.name;
+          return`<div class="vs-final-card${isWinner?' winner':''}" style="min-width:80px;">
+            <div class="vs-final-card-name" style="color:${VS_COLORS[i]}">${p.name}</div>
+            <div class="vs-final-card-score" style="color:${VS_COLORS[i]}">${p.score}</div>
+            <div class="vs-final-card-correct">${p.correct}/${vsTotal}</div>
+            <div style="margin-top:6px">${mkDots(p.dots)}</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
 
-  confetti();
-  if(!tie)sndLvl();
+  confetti();if(!tie)sndLvl();
 
   const reBtn=document.createElement('button');
   reBtn.style.cssText='width:100%;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:16px;padding:14px;font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;margin-bottom:8px;';
@@ -10977,7 +11034,7 @@ if(!_s.onboardingDone){
 <script>
 if('serviceWorker' in navigator){
   const _swCode=`
-    const CACHE='cinequiz-v50';
+    const CACHE='cinequiz-v51';
     const STATIC=['./',location.pathname];
     self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)));self.skipWaiting();});
     self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
