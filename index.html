@@ -510,6 +510,24 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 .mc.done{opacity:.5;}
 .mc.done .mc-shimmer::after{animation:none !important;}
+/* Mode verrouillé */
+.mc.locked{opacity:.45;cursor:default;}
+.mc.locked .mc-shimmer::after{animation:none !important;}
+.mc.locked:active{transform:none;}
+.mc-lock{
+  position:absolute;top:6px;right:6px;
+  width:16px;height:16px;border-radius:5px;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+}
+.mc-lock svg{width:9px;height:9px;color:rgba(255,255,255,.5);}
+/* Popup déblocage mode */
+#mode-lock-modal{z-index:750;}
+@keyframes modeUnlock{
+  0%{opacity:0;transform:translateX(-50%) translateY(-12px) scale(.85);}
+  60%{opacity:1;transform:translateX(-50%) translateY(3px) scale(1.03);}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+}
 
 /* Shimmer */
 .mc-shimmer{position:absolute;inset:0;border-radius:18px;overflow:hidden;pointer-events:none;}
@@ -676,6 +694,11 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .jk-row-info{flex:1;min-width:0;}
 .jk-row-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
 .jk-row-label{font-size:9px;color:rgba(255,255,255,.28);margin-top:1px;letter-spacing:.3px;}
+.jk-unlock-hint{font-size:9px;color:rgba(255,255,255,.28);margin-top:2px;letter-spacing:.2px;font-style:italic;}
+.jk-row.locked{opacity:.4;cursor:default;}
+.jk-row.locked:active{background:none;}
+.jk-row-lock{width:28px;height:28px;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;}
+.jk-row-lock svg{width:11px;height:11px;color:rgba(255,255,255,.4);}
 .jk-eq{display:flex;align-items:flex-end;gap:2px;height:14px;flex-shrink:0;padding-right:2px;}
 .jk-eq-bar{width:3px;background:var(--gold);border-radius:1px;animation:jkEq .7s ease-in-out infinite alternate;}
 .jk-eq-bar:nth-child(2){animation-delay:.18s;animation-duration:.9s;}
@@ -2571,7 +2594,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       </div>
       <div class="tbr">
         <div class="ibtn" onclick="openHelp()" title="Comment jouer ?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></div>
-        <div class="ibtn" id="btn-music" onclick="openJukebox()" title="Jukebox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <div class="ibtn" id="btn-music" onclick="openJukebox()" title="Jukebox" style="position:relative;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span id="jk-new-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ff4d6d;border:1.5px solid var(--bg);"></span></div>
         <div class="ibtn" id="btn-profile" onclick="goProfile()" style="position:relative;">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <div id="profile-dot" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff4d6d;border:1.5px solid #0a0a0f;"></div>
@@ -2717,6 +2740,35 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <button class="mode-info-close" onclick="closeModeInfo()">✕ Fermer</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODE VERROUILLÉ -->
+  <div class="mode-info-over" id="mode-lock-modal" onclick="if(event.target===this)closeLockModal()">
+    <div class="mode-info-sh" id="mode-lock-sh">
+      <div class="mode-info-accent" id="mode-lock-accent"></div>
+      <div class="mode-info-hdl"></div>
+      <div class="mode-info-head">
+        <div class="mode-info-icon" id="mode-lock-icon" style="font-size:26px;">🎬</div>
+        <div>
+          <div class="mode-info-title" id="mode-lock-title" style="color:rgba(255,255,255,.7);">Mode</div>
+          <div class="mode-info-sub">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            VERROUILLÉ
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;" id="mode-lock-desc"></div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Progression</div>
+        <div style="background:rgba(255,255,255,.08);border-radius:6px;height:6px;overflow:hidden;margin-bottom:6px;">
+          <div id="mode-lock-bar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .6s ease;width:0%;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);">
+          <span id="mode-lock-pct">0%</span><span id="mode-lock-hint"></span>
+        </div>
+      </div>
+      <button onclick="closeLockModal()" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:rgba(255,255,255,.5);cursor:pointer;">OK, JE CONTINUE À JOUER</button>
     </div>
   </div>
 
@@ -6674,7 +6726,55 @@ const MODE_INFO={
     tips:[{i:'📱',t:'Passez le téléphone'},{i:'⚡',t:'x2 / x3 individuels'},{i:'🏆',t:'Meilleur score gagne'}]},
 };
 
+// ── MODES — conditions de déblocage ──
+const MODE_UNLOCK={
+  quiz:      {cond:()=>true,          hint:'Disponible dès le départ', prog:()=>1},
+  photo:     {cond:()=>true,          hint:'Disponible dès le départ', prog:()=>1},
+  year:      {cond:s=>s.games>=3,     hint:'3 parties jouées',  prog:s=>Math.min(1,(s.games||0)/3)},
+  bo:        {cond:s=>s.games>=3,     hint:'3 parties jouées',  prog:s=>Math.min(1,(s.games||0)/3)},
+  boxoffice: {cond:s=>s.games>=5,     hint:'5 parties jouées',  prog:s=>Math.min(1,(s.games||0)/5)},
+  replique:  {cond:s=>s.games>=5,     hint:'5 parties jouées',  prog:s=>Math.min(1,(s.games||0)/5)},
+  acteur:    {cond:s=>s.games>=8,     hint:'8 parties jouées',  prog:s=>Math.min(1,(s.games||0)/8)},
+  realisateur:{cond:s=>s.games>=8,   hint:'8 parties jouées',  prog:s=>Math.min(1,(s.games||0)/8)},
+  compositeur:{cond:s=>s.games>=10,  hint:'10 parties jouées', prog:s=>Math.min(1,(s.games||0)/10)},
+  generique: {cond:s=>s.games>=10,   hint:'10 parties jouées', prog:s=>Math.min(1,(s.games||0)/10)},
+  casting:   {cond:s=>(s.xp||0)>=200,hint:'200 XP',            prog:s=>Math.min(1,(s.xp||0)/200)},
+  location:  {cond:s=>(s.xp||0)>=200,hint:'200 XP',            prog:s=>Math.min(1,(s.xp||0)/200)},
+  filmographie:{cond:s=>(s.xp||0)>=400,hint:'400 XP',          prog:s=>Math.min(1,(s.xp||0)/400)},
+  vraifaux:  {cond:s=>(s.xp||0)>=400, hint:'400 XP',           prog:s=>Math.min(1,(s.xp||0)/400)},
+  decennie:  {cond:s=>(s.best||0)>=500,hint:'500 pts en une partie', prog:s=>Math.min(1,(s.best||0)/500)},
+  quiadit:   {cond:s=>(s.best||0)>=500,hint:'500 pts en une partie', prog:s=>Math.min(1,(s.best||0)/500)},
+  training:  {cond:s=>s.games>=15,   hint:'15 parties jouées', prog:s=>Math.min(1,(s.games||0)/15)},
+  versus:    {cond:()=>true,          hint:'Disponible dès le départ', prog:()=>1},
+};
+function isModeUnlocked(m){const s=ls();const u=MODE_UNLOCK[m];return!u||u.cond(s);}
+
+function openLockModal(m){
+  const info=MODE_INFO[m];const u=MODE_UNLOCK[m];if(!info||!u)return;
+  const s=ls();const pct=Math.round(u.prog(s)*100);
+  document.getElementById('mode-lock-icon').textContent=info.icon;
+  document.getElementById('mode-lock-icon').style.background=info.bg;
+  document.getElementById('mode-lock-icon').style.borderColor=info.color;
+  document.getElementById('mode-lock-title').textContent=info.label;
+  document.getElementById('mode-lock-accent').style.background=info.color;
+  document.getElementById('mode-lock-desc').textContent=info.desc;
+  document.getElementById('mode-lock-bar').style.width=pct+'%';
+  document.getElementById('mode-lock-pct').textContent=pct+'%';
+  document.getElementById('mode-lock-hint').textContent=u.hint+' requis';
+  document.getElementById('mode-lock-sh').style.setProperty('--mi-color',info.color);
+  const modal=document.getElementById('mode-lock-modal');
+  modal.classList.add('on');
+  setupSwipeDown(document.getElementById('mode-lock-sh'),closeLockModal);
+}
+function closeLockModal(){document.getElementById('mode-lock-modal').classList.remove('on');}
+
+function renderUnlockBadge(m){
+  // Afficher un toast de déblocage
+  const info=MODE_INFO[m];if(!info)return;
+  showBadgeToast({icon:info.icon,name:info.label+' débloqué !',sub:'Nouveau mode de jeu disponible'});
+}
 function openModeInfo(m,el){
+  if(!isModeUnlocked(m)){openLockModal(m);return;}
   const info=MODE_INFO[m];if(!info)return;
   // Sélectionner la carte
   selectMode(m,el);
@@ -6777,6 +6877,33 @@ function refHome(){
   renderNextBadge(s);
   renderDailyAnecdote();
   renderModeSuggestion(s);
+  refreshModeLocks();
+  updateJkDot();
+}
+
+const SVG_LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+
+function refreshModeLocks(){
+  const s=ls();
+  document.querySelectorAll('.mc[data-mode]').forEach(card=>{
+    const m=card.dataset.mode;
+    const u=MODE_UNLOCK[m];
+    if(!u)return;
+    const unlocked=u.cond(s);
+    const old=card.querySelector('.mc-lock');if(old)old.remove();
+    const newBadge=card.querySelector('.mnew');
+    if(unlocked){
+      card.classList.remove('locked');
+      if(newBadge)newBadge.style.display='';
+    } else {
+      card.classList.add('locked');
+      if(newBadge)newBadge.style.display='none';
+      const lock=document.createElement('div');
+      lock.className='mc-lock';
+      lock.innerHTML=SVG_LOCK;
+      card.appendChild(lock);
+    }
+  });
 }
 
 function renderNextBadge(s){
@@ -8148,6 +8275,19 @@ function endGame(){
   const{s:us}=chkBadges(s);const newLvl=glv(us.xp);ss(us);
   markModePlayed(selMode);
   updateProfileDot();
+  // Notifier les pistes jukebox nouvellement débloquées
+  setTimeout(()=>{
+    JK_KEYS.forEach(k=>{
+      const u=TRACK_UNLOCK[k];
+      if(!u||!u.hint)return;
+      const wasLocked=!u.cond(s); // avant save
+      const nowUnlocked=u.cond(us);
+      if(wasLocked&&nowUnlocked){
+        const track=MUSIC_TRACK_NAMES[k]||k;
+        showBadgeToast({icon:'🎵',name:track,sub:'Nouvelle piste jukebox débloquée !'});
+      }
+    });
+  },1200);
   if(newLvl>oldLvl){
     const lv=LEVELS[newLvl];
     document.getElementById('lusb').textContent='Tu passes au niveau '+(newLvl+1);
@@ -8379,9 +8519,10 @@ function applyNewBadges(){
     if(!match)return;
     if(localStorage.getItem('cq_played_'+match[1])){
       el.style.display='none';
-      mc.classList.add('done'); // ← plus d'effet sur les cartes jouées
+      mc.classList.add('done');
     }
   });
+  refreshModeLocks();
 }
 
 // -- AVATAR --
@@ -9543,6 +9684,7 @@ function _fmtTime(sec){if(!isFinite(sec)||sec<0)return'0:00';const m=Math.floor(
 function _isPlaying(){const a=window._jkAudio;return a&&!a.paused;}
 
 function _jkPlayKey(key,idx){
+  if(!isTrackUnlocked(key)){buildJkPlaylist();return;}
   _jkIdx=idx;
   stopMus();
   if(window._jkAudio){window._jkAudio.pause();window._jkAudio=null;}
@@ -9642,19 +9784,92 @@ function updateJukeboxDisplay(){
   updateProgressBars();
 }
 
+// ── JUKEBOX — conditions de déblocage par piste ──
+const TRACK_UNLOCK={
+  home:        {cond:()=>true},
+  quiz:        {cond:()=>true},
+  photo:       {cond:s=>(s.games||0)>=1,          hint:'1 partie jouée'},
+  year:        {cond:s=>isModeUnlocked('year')&&(s.games||0)>=3,   hint:'Débloquer Quelle Année ?'},
+  replique:    {cond:s=>isModeUnlocked('replique')&&(s.games||0)>=5, hint:'Débloquer La Réplique'},
+  acteur:      {cond:s=>isModeUnlocked('acteur')&&(s.games||0)>=8,  hint:'Débloquer Acteur Mystère'},
+  bo:          {cond:s=>isModeUnlocked('bo')&&(s.games||0)>=3,     hint:'Débloquer Indices Mystère'},
+  boxoffice:   {cond:s=>isModeUnlocked('boxoffice')&&(s.games||0)>=5, hint:'Débloquer Box-office'},
+  compositeur: {cond:s=>isModeUnlocked('compositeur')&&(s.games||0)>=10, hint:'Débloquer Compositeur'},
+  realisateur: {cond:s=>isModeUnlocked('realisateur')&&(s.games||0)>=8,  hint:'Débloquer Réalisateur'},
+  location:    {cond:s=>isModeUnlocked('location')&&(s.xp||0)>=200,  hint:'Débloquer Lieu de tournage'},
+  generique:   {cond:s=>isModeUnlocked('generique')&&(s.games||0)>=10, hint:'Débloquer Le Générique'},
+  casting:     {cond:s=>isModeUnlocked('casting')&&(s.xp||0)>=200,   hint:'Débloquer Le Casting'},
+  filmographie:{cond:s=>isModeUnlocked('filmographie')&&(s.xp||0)>=400, hint:'Débloquer Filmographie'},
+  vraifaux:    {cond:s=>isModeUnlocked('vraifaux')&&(s.xp||0)>=400,  hint:'Débloquer Vrai ou Faux'},
+  decennie:    {cond:s=>isModeUnlocked('decennie')&&(s.best||0)>=500, hint:'Débloquer Décennie'},
+  quiadit:     {cond:s=>isModeUnlocked('quiadit')&&(s.best||0)>=500,  hint:'Débloquer Qui a dit ça ?'},
+  versus:      {cond:()=>true},
+  training:    {cond:s=>isModeUnlocked('training')&&(s.games||0)>=15, hint:'Débloquer Entraînement'},
+  bonus:       {cond:s=>(s.xp||0)>=500,  hint:'500 XP requis'},
+  arcade:      {cond:()=>{try{return!!localStorage.getItem('cq_arc_hs');}catch{return false;}}, hint:'???'},
+  snake:       {cond:()=>{try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');return(hs.snake||0)>=50;}catch{return false;}}, hint:'???'},
+  bricks:      {cond:()=>{try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');return(hs.bricks||0)>=100;}catch{return false;}}, hint:'???'},
+  morpion:     {cond:()=>{try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');return(hs.morpion||0)>=1;}catch{return false;}}, hint:'???'},
+  slots:       {cond:()=>{try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');return hs.memory&&hs.memory>0;}catch{return false;}}, hint:'???'},
+  jk1:         {cond:s=>(s.games||0)>=5,  hint:'5 parties jouées'},
+  jk2:         {cond:s=>(s.games||0)>=10, hint:'10 parties jouées'},
+  jk3:         {cond:s=>(s.games||0)>=20, hint:'20 parties jouées'},
+  jk4:         {cond:s=>(s.xp||0)>=300,   hint:'300 XP requis'},
+  jk5:         {cond:s=>(s.xp||0)>=600,   hint:'600 XP requis'},
+};
+function isTrackUnlocked(k){const s=ls();const u=TRACK_UNLOCK[k];return!u||u.cond(s);}
+
+function updateJkDot(){
+  const seen=JSON.parse(localStorage.getItem('cq_jk_seen')||'[]');
+  const hasNew=JK_KEYS.some(k=>{
+    const u=TRACK_UNLOCK[k];
+    return u&&u.hint&&isTrackUnlocked(k)&&!seen.includes(k);
+  });
+  const dot=document.getElementById('jk-new-dot');
+  if(dot)dot.style.display=hasNew?'block':'none';
+}
+
+function markJkSeen(){
+  try{
+    const seen=JSON.parse(localStorage.getItem('cq_jk_seen')||'[]');
+    JK_KEYS.forEach(k=>{if(isTrackUnlocked(k)&&!seen.includes(k))seen.push(k);});
+    localStorage.setItem('cq_jk_seen',JSON.stringify(seen));
+  }catch(e){}
+  updateJkDot();
+}
+
 function buildJkPlaylist(){
   const wrap=document.getElementById('jk-playlist');if(!wrap)return;
   const a=window._jkAudio;const curKey=_jkCurrentKey();const isPlaying=a&&!a.paused;
   const ambKey=getAmbientKey();
   const svgStar=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
   const svgStarFill=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
+  const svgLock=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
   wrap.innerHTML=JK_KEYS.map((k,i)=>{
     const info=MUSIC_LABELS[k]||{icon:'🎵',label:k};
     const track=MUSIC_TRACK_NAMES[k]||MUSIC_FILES[k]||k;
     const active=k===curKey;
     const isAmb=k===ambKey;
-    const eq=active&&isPlaying?`<div class="jk-eq"><div class="jk-eq-bar"></div><div class="jk-eq-bar"></div><div class="jk-eq-bar"></div></div>`:'';
-    return`<div class="jk-row${active?' active':''}" onclick="_jkPlayKey('${k}',${i})"><div class="jk-row-icon">${info.icon}</div><div class="jk-row-info"><div class="jk-row-name">${track}</div><div class="jk-row-label">${info.label}</div></div>${eq}<button class="jk-amb-btn${isAmb?' is-amb':''}" title="Définir comme ambiance" onclick="event.stopPropagation();jkSetAmbient('${k}')">${isAmb?svgStarFill:svgStar}</button></div>`;
+    const unlocked=isTrackUnlocked(k);
+    const u=TRACK_UNLOCK[k];
+    const hint=u&&u.hint?u.hint:'';
+    const eq=active&&isPlaying&&unlocked?`<div class="jk-eq"><div class="jk-eq-bar"></div><div class="jk-eq-bar"></div><div class="jk-eq-bar"></div></div>`:'';
+    if(!unlocked){
+      return`<div class="jk-row locked">
+        <div class="jk-row-icon">${info.icon}</div>
+        <div class="jk-row-info">
+          <div class="jk-row-name">${track}</div>
+          <div class="jk-unlock-hint">🔒 ${hint}</div>
+        </div>
+        <div class="jk-row-lock">${svgLock}</div>
+      </div>`;
+    }
+    return`<div class="jk-row${active?' active':''}" onclick="_jkPlayKey('${k}',${i})">
+      <div class="jk-row-icon">${info.icon}</div>
+      <div class="jk-row-info"><div class="jk-row-name">${track}</div><div class="jk-row-label">${info.label}</div></div>
+      ${eq}
+      <button class="jk-amb-btn${isAmb?' is-amb':''}" title="Définir comme ambiance" onclick="event.stopPropagation();jkSetAmbient('${k}')">${isAmb?svgStarFill:svgStar}</button>
+    </div>`;
   }).join('');
 }
 
@@ -9669,7 +9884,7 @@ function jkSetAmbient(key){
 function openJukebox(){
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='on mode-jukebox';
   go('jukebox');
-  // Couper la musique d'ambiance avant de lancer le jukebox
+  markJkSeen();
   stopMus();
   // Sync shuffle button state
   const sb=document.getElementById('jk-shuffle-btn');
@@ -9738,6 +9953,7 @@ function _refreshArcadeScores(){
 }
 function _saveArcadeHS(game,val){
   try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');if(!hs[game]||val>hs[game]){hs[game]=val;localStorage.setItem('cq_arc_hs',JSON.stringify(hs));}}catch(e){}
+  setTimeout(updateJkDot,300);
 }
 function openArcade(){go('arcade-menu');_refreshArcadeScores();}
 
