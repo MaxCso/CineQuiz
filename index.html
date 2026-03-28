@@ -9738,7 +9738,9 @@ async function _hmEnrichFiche(film, container){
       try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch{}
     }catch{return;}
   }
-  const detailsEl=container?container.querySelector('.hm-fiche-details'):null;
+  const detailsEl=container
+    ? (container.querySelector('.hm-fiche-details') || container.querySelector('.hmv-info-details'))
+    : null;
   if(!detailsEl||!data)return;
   const fmt=function(arr){return (arr&&arr.length)?arr.join(', '):'—';};
   const fmtR=min=>min?(Math.floor(min/60)+'h'+String(min%60).padStart(2,'0')):'—';
@@ -10544,11 +10546,14 @@ function closeHMHelp(e){if(!e||e.target===document.getElementById('hm-help-modal
 function _hmCheckBonus(){
   const s=ls();
   const userLvl=glv(s.xp);
-  // Toutes les cartes accessibles (niveau débloqué)
-  const unlockedIndices=_hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl).map(({i})=>i);
-  if(!unlockedIndices.length)return;
-  const allRevealed=unlockedIndices.every(i=>_hmRevealed.has(i));
-  if(!allRevealed)return;
+  // Indices dans _hmFilms des cartes débloquées ET non encore révélées
+  const remaining=_hmFilms
+    .map((f,i)=>({f,i}))
+    .filter(({f,i})=>f.lvl<=userLvl && !_hmRevealed.has(i));
+  // Il reste des cartes à gratter → pas encore
+  if(remaining.length>0)return;
+  // Au moins une carte doit avoir été révélée
+  if(_hmRevealed.size===0)return;
   // Ne montrer qu'une seule fois
   try{if(localStorage.getItem('hm_bonus_shown')==='1')return;}catch{}
   setTimeout(()=>openHMBonus(),1200);
