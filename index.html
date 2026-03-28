@@ -4596,14 +4596,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div class="hm-subtitle" id="hm-unlocked-count">— films débloqués</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <!-- Bouton aléatoire -->
-        <button class="hm-random-btn" onclick="hmGoRandom()" title="Film aléatoire">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-            <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-          </svg>
-        </button>
         <!-- Bouton reset -->
+        <button class="hm-reset-btn" onclick="hmResetScratch()" title="Tout re-cacher">
         <button class="hm-reset-btn" onclick="hmResetScratch()" title="Tout re-cacher">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
@@ -4633,10 +4627,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         Favoris
         <span class="hm-tab-count" id="hm-wishlist-count" style="background:rgba(232,52,74,.25);color:#f87171;">0</span>
-      </button>
-      <button class="hm-tab" id="hm-tab-stats" onclick="hmSwitchTab('stats')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Stats
       </button>
     </div>
 
@@ -8952,7 +8942,10 @@ function _hmRenderCollection() {
   const grid = document.getElementById('hm-collection-grid');
   if (!grid) return;
 
-  // Films révélés, dans l'ordre de révélation
+  const s=ls();const userLvl=glv(s.xp);
+  const unlockedIndices=_hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl).map(({i})=>i);
+  const allRevealed=unlockedIndices.length>0&&unlockedIndices.every(i=>_hmRevealed.has(i));
+
   const revealedFilms = [..._hmRevealed]
     .map(idx => ({ idx, film: _hmFilms[idx] }))
     .filter(({ film }) => film);
@@ -8962,7 +8955,17 @@ function _hmRenderCollection() {
     return;
   }
 
-  grid.innerHTML = revealedFilms.map(({ idx, film }) => {
+  // Bouton aléatoire si toutes les cartes débloquées sont révélées
+  const randomBtn = allRevealed
+    ? `<div style="grid-column:1/-1;margin-bottom:4px;">
+        <button onclick="hmGoRandom()" style="width:100%;padding:13px;border-radius:14px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          FILM ALÉATOIRE
+        </button>
+      </div>`
+    : '';
+
+  grid.innerHTML = randomBtn + revealedFilms.map(({ idx, film }) => {
     const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : encodeURIComponent(film.p)) : '';
     const imgHtml = posterUrl
       ? '<img class="hm-card-img" src="' + posterUrl + '" alt="' + film.t + '" loading="lazy">'
