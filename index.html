@@ -2781,7 +2781,179 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .mbs{font-size:12px;text-align:center;margin-bottom:16px;}
 .mbcl{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:13px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx);cursor:pointer;}
 
-/* ══ HIDDEN MOVIES — AIDE POPUP ══ */
+/* ══ HM VIEWER PLEIN ÉCRAN ══ */
+#hm-viewer{
+  position:fixed;inset:0;z-index:300;
+  background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+#hm-viewer.on{opacity:1;pointer-events:all;}
+
+/* Fond flou coloré derrière l'affiche */
+.hmv-bg{
+  position:absolute;inset:-10%;
+  background-size:cover;background-position:center;
+  filter:blur(40px) brightness(.35) saturate(.8);
+  transform:scale(1.1);
+  pointer-events:none;
+}
+
+/* Container de l'affiche — prend toute la hauteur */
+.hmv-poster-wrap{
+  position:relative;
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  padding:max(env(safe-area-inset-top),44px) 32px max(env(safe-area-inset-bottom),44px);
+  transform-style:preserve-3d;
+}
+
+/* L'affiche elle-même */
+.hmv-poster{
+  position:relative;
+  height:100%;max-height:580px;
+  aspect-ratio:2/3;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08);
+  transform-style:preserve-3d;
+  transform:perspective(800px) rotateX(0deg) rotateY(0deg);
+  transition:transform .12s ease;
+  will-change:transform;
+  flex-shrink:0;
+}
+.hmv-poster img{
+  width:100%;height:100%;object-fit:cover;display:block;border-radius:20px;
+}
+.hmv-poster-placeholder{
+  width:100%;height:100%;
+  background:linear-gradient(160deg,#1a0832,#08031a);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:32px;
+  color:rgba(168,85,247,.2);letter-spacing:3px;
+}
+
+/* Halo layers sur le viewer */
+.hmv-holo{
+  position:absolute;inset:0;border-radius:20px;
+  opacity:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at var(--mx,50%) var(--my,50%),
+      rgba(255,255,255,.07) 0%,transparent 60%),
+    linear-gradient(calc(var(--holo-angle,135deg)),
+      rgba(255,0,128,.18) 0%,rgba(255,128,0,.15) 12%,
+      rgba(255,255,0,.13) 25%,rgba(0,255,128,.15) 37%,
+      rgba(0,200,255,.18) 50%,rgba(128,0,255,.15) 62%,
+      rgba(255,0,255,.13) 75%,rgba(255,0,128,.18) 87%,
+      rgba(255,128,0,.15) 100%);
+  mix-blend-mode:color-dodge;
+  transition:opacity .3s;
+}
+.hmv-shine{
+  position:absolute;inset:0;border-radius:20px;
+  pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse 60% 40% at var(--mx,50%) var(--my,50%),
+    rgba(255,255,255,.10) 0%,rgba(255,255,255,.02) 40%,transparent 70%);
+  mix-blend-mode:screen;transition:opacity .2s;
+}
+.hmv-border{
+  position:absolute;inset:0;border-radius:20px;
+  border:1px solid rgba(255,255,255,.12);
+  pointer-events:none;opacity:0;
+  background:linear-gradient(calc(var(--holo-angle,135deg)),
+    rgba(255,0,128,.2),rgba(0,200,255,.2),rgba(255,0,128,.2));
+  mix-blend-mode:screen;transition:opacity .3s;
+}
+.hmv-poster.touching .hmv-holo,
+.hmv-poster.touching .hmv-shine,
+.hmv-poster.touching .hmv-border{opacity:1;}
+
+/* Barre du haut */
+.hmv-topbar{
+  position:absolute;top:0;left:0;right:0;
+  padding:max(env(safe-area-inset-top),44px) 18px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:10;pointer-events:all;
+  background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);
+}
+.hmv-close{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .18s;color:#fff;
+}
+.hmv-close:active{transform:scale(.88);}
+.hmv-counter{
+  font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;
+}
+.hmv-title-top{
+  font-family:'Bebas Neue',sans-serif;font-size:15px;
+  letter-spacing:2px;color:rgba(255,255,255,.7);
+  max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Hint swipe bas */
+.hmv-hint{
+  position:absolute;bottom:max(env(safe-area-inset-bottom),20px);
+  left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  pointer-events:none;
+  animation:hmvHintBounce 2s ease-in-out infinite;
+}
+.hmv-hint-text{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;}
+.hmv-hint svg{color:rgba(255,255,255,.25);}
+@keyframes hmvHintBounce{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
+}
+
+/* Panneau infos (slide-up) */
+.hmv-info{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(10,6,20,.98) 60%,rgba(10,6,20,.7) 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:0 0 max(env(safe-area-inset-bottom),24px);
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.32,.72,0,1);
+  pointer-events:none;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.hmv-info.open{transform:translateY(0);pointer-events:all;}
+.hmv-info-content{padding:24px 22px 0;}
+.hmv-info-source{font-size:8px;letter-spacing:3px;color:rgba(192,132,252,.5);font-weight:700;margin-bottom:10px;}
+.hmv-info-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:10px;}
+.hmv-info-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.hmv-info-pill{font-size:10px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:3px 8px;}
+.hmv-info-pill.genre{color:rgba(192,132,252,.7);border-color:rgba(168,85,247,.2);background:rgba(168,85,247,.08);}
+.hmv-info-synopsis{font-size:13px;color:rgba(255,255,255,.62);line-height:1.65;margin-bottom:12px;}
+.hmv-info-moods{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.hmv-info-mood{font-size:10px;color:rgba(192,132,252,.55);background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.15);border-radius:20px;padding:3px 10px;}
+.hmv-info-details{display:flex;flex-direction:column;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;margin-bottom:8px;}
+.hmv-info-row{display:flex;align-items:baseline;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
+.hmv-info-row:last-child{border-bottom:none;}
+.hmv-info-label{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:80px;}
+.hmv-info-val{font-size:12px;color:rgba(255,255,255,.75);line-height:1.4;flex:1;}
+.hmv-info-swipe-hint{
+  text-align:center;font-size:10px;color:rgba(255,255,255,.2);
+  letter-spacing:1.5px;padding:14px 0 4px;
+  animation:hmvHintBounce 2.5s ease-in-out infinite;
+}
+
+/* Navigation gauche/droite en viewer */
+.hmv-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:10;
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.6);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s;backdrop-filter:blur(8px);
+}
+.hmv-nav:active{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(.9);}
+.hmv-nav-prev{left:10px;}
+.hmv-nav-next{right:10px;}
+
+/* ══ HM VIEWER PLEIN ÉCRAN ══ (fin) */
 .hm-help-over{
   position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:700;
   display:flex;align-items:flex-end;justify-content:center;
@@ -2838,9 +3010,27 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 /* ══ HIDDEN MOVIES COLLECTION ══ */
 #hm{position:absolute;inset:0;z-index:1;overflow:hidden;display:flex;flex-direction:column;background:#07060c;}
-#hm .hm-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 80% 50% at 30% 20%,rgba(120,50,200,.18) 0%,transparent 60%),
-             radial-gradient(ellipse 60% 40% at 75% 70%,rgba(80,20,150,.12) 0%,transparent 55%);}
+#hm .hm-bg{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  overflow:hidden;background:#07060c;
+}
+#hm .hm-bg::before{
+  content:'';position:absolute;inset:-30%;width:160%;height:160%;
+  background:
+    radial-gradient(ellipse 52% 42% at 35% 25%, rgba(130,40,220,.38) 0%, transparent 58%),
+    radial-gradient(ellipse 44% 36% at 72% 60%, rgba(90,20,170,.28) 0%, transparent 56%),
+    radial-gradient(ellipse 38% 32% at 22% 70%, rgba(168,85,247,.22) 0%, transparent 54%),
+    radial-gradient(ellipse 34% 28% at 68% 18%, rgba(100,30,180,.18) 0%, transparent 52%);
+  animation:projA 9s ease-in-out infinite;
+}
+#hm .hm-bg::after{
+  content:'';position:absolute;inset:-20%;width:140%;height:140%;
+  background:
+    radial-gradient(ellipse 40% 32% at 60% 38%, rgba(148,60,230,.14) 0%, transparent 52%),
+    radial-gradient(ellipse 46% 36% at 28% 52%, rgba(80,15,150,.11) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 28%, rgba(4,2,10,.88) 100%);
+  animation:projB 13s ease-in-out infinite reverse;
+}
 #hm>*:not(.hm-bg){position:relative;z-index:1;}
 .hm-header{padding:max(env(safe-area-inset-top),44px) 16px 10px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
 .hm-back{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .18s;}
@@ -4343,6 +4533,55 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   <div class="hm-film-sheet" id="hm-film-sheet">
     <div class="hm-film-sheet-handle"></div>
     <div class="hm-film-sheet-content" id="hm-film-sheet-content"></div>
+  </div>
+
+  <!-- HM VIEWER PLEIN ÉCRAN -->
+  <div id="hm-viewer">
+    <!-- Fond flou -->
+    <div class="hmv-bg" id="hmv-bg"></div>
+
+    <!-- Barre top -->
+    <div class="hmv-topbar">
+      <div class="hmv-close" onclick="closeHMViewer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="hmv-title-top" id="hmv-title-top"></div>
+      <div class="hmv-counter" id="hmv-counter"></div>
+    </div>
+
+    <!-- Affiche centrale -->
+    <div class="hmv-poster-wrap" id="hmv-poster-wrap">
+      <div class="hmv-poster" id="hmv-poster">
+        <img id="hmv-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">
+        <div class="hmv-poster-placeholder" id="hmv-placeholder" style="display:none;position:absolute;inset:0;"></div>
+        <div class="hmv-holo" id="hmv-holo"></div>
+        <div class="hmv-shine" id="hmv-shine"></div>
+        <div class="hmv-border" id="hmv-border"></div>
+      </div>
+    </div>
+
+    <!-- Hint swipe up -->
+    <div class="hmv-hint" id="hmv-hint">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      <span class="hmv-hint-text">SWIPE POUR LES INFOS</span>
+    </div>
+
+    <!-- Flèches nav -->
+    <button class="hmv-nav hmv-nav-prev" id="hmv-prev" onclick="hmvNavigate(-1)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="hmv-nav hmv-nav-next" id="hmv-next" onclick="hmvNavigate(1)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <!-- Panneau infos (slide-up) -->
+    <div class="hmv-info" id="hmv-info">
+      <div class="hmv-info-swipe-hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 4px;"><polyline points="18 9 12 15 6 9"/></svg>
+        SWIPE BAS POUR L'AFFICHE
+      </div>
+      <div class="hmv-info-content" id="hmv-info-content"></div>
+    </div>
   </div>
 
   <!-- HIDDEN MOVIES — AIDE POPUP -->
@@ -8515,11 +8754,189 @@ function _hmRenderCollection() {
   requestAnimationFrame(() => _hmInitHoloCards());
 }
 
+// ══ HM VIEWER ══
+let _hmvFilms = [];   // liste des films de la collection (ordre affiché)
+let _hmvIdx   = 0;    // index courant dans _hmvFilms
+let _hmvInfoOpen = false;
+
 function _hmOpenCardDetail(idx) {
-  const film = _hmFilms[idx];
-  if (!film) return;
-  _hmShowSheet(film, idx);
+  // Construire la liste ordonnée des films révélés (même ordre que la grille)
+  _hmvFilms = [..._hmRevealed]
+    .map(i => ({ idx: i, film: _hmFilms[i] }))
+    .filter(f => f.film);
+  // Trouver la position de la card cliquée
+  const pos = _hmvFilms.findIndex(f => f.idx === idx);
+  _hmvIdx = pos >= 0 ? pos : 0;
+  _hmvInfoOpen = false;
+  _hmvRender();
+  const viewer = document.getElementById('hm-viewer');
+  viewer.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  _hmvInitGestures();
+  _hmvInitHolo();
 }
+
+function _hmvRender() {
+  const entry = _hmvFilms[_hmvIdx];
+  if (!entry) return;
+  const { idx, film } = entry;
+  const TI = 'https://image.tmdb.org/t/p/w500';
+  const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
+
+  // Fond flou
+  const bg = document.getElementById('hmv-bg');
+  if (bg) bg.style.backgroundImage = posterUrl ? 'url(' + posterUrl + ')' : 'none';
+
+  // Affiche
+  const img = document.getElementById('hmv-img');
+  const ph  = document.getElementById('hmv-placeholder');
+  if (posterUrl) {
+    img.src = posterUrl; img.style.display = 'block';
+    if (ph) ph.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; }
+  }
+
+  // Titre barre top
+  const tt = document.getElementById('hmv-title-top');
+  if (tt) tt.textContent = film.t;
+
+  // Compteur
+  const ctr = document.getElementById('hmv-counter');
+  if (ctr) ctr.textContent = (_hmvIdx + 1) + ' / ' + _hmvFilms.length;
+
+  // Flèches
+  document.getElementById('hmv-prev').style.opacity = _hmvIdx > 0 ? '1' : '0.2';
+  document.getElementById('hmv-next').style.opacity = _hmvIdx < _hmvFilms.length - 1 ? '1' : '0.2';
+
+  // Panneau infos
+  const moodsHtml = (film.m || []).map(m => '<span class="hmv-info-mood">' + m + '</span>').join('');
+  const ic = document.getElementById('hmv-info-content');
+  if (ic) {
+    ic.innerHTML =
+      '<div class="hmv-info-source">✦ HIDDEN MOVIES</div>' +
+      '<div class="hmv-info-title">' + film.t + '</div>' +
+      '<div class="hmv-info-meta">' +
+        '<span class="hmv-info-pill">' + film.y + '</span>' +
+        '<span class="hmv-info-pill genre">' + film.g + '</span>' +
+      '</div>' +
+      (film.s ? '<div class="hmv-info-synopsis">' + film.s + '</div>' : '') +
+      (moodsHtml ? '<div class="hmv-info-moods">' + moodsHtml + '</div>' : '') +
+      '<div class="hmv-info-details" id="hmv-info-details"><div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Chargement…</div></div>';
+    // Enrichir depuis TMDB
+    _hmEnrichFiche(film, ic);
+  }
+
+  // Fermer le panneau si on change de carte
+  _hmvCloseInfo(false);
+}
+
+function _hmvOpenInfo() {
+  _hmvInfoOpen = true;
+  document.getElementById('hmv-info').classList.add('open');
+  document.getElementById('hmv-hint').style.opacity = '0';
+}
+
+function _hmvCloseInfo(animate = true) {
+  _hmvInfoOpen = false;
+  document.getElementById('hmv-info').classList.remove('open');
+  document.getElementById('hmv-hint').style.opacity = '1';
+}
+
+function hmvNavigate(dir) {
+  const next = _hmvIdx + dir;
+  if (next < 0 || next >= _hmvFilms.length) return;
+  _hmvIdx = next;
+  _hmvCloseInfo(false);
+  // Animer le changement
+  const poster = document.getElementById('hmv-poster-wrap');
+  poster.style.transition = 'opacity .18s ease';
+  poster.style.opacity = '0';
+  setTimeout(() => {
+    _hmvRender();
+    poster.style.opacity = '1';
+  }, 180);
+}
+
+function closeHMViewer() {
+  document.getElementById('hm-viewer').classList.remove('on');
+  document.body.style.overflow = '';
+  _hmvInfoOpen = false;
+  document.getElementById('hmv-info').classList.remove('open');
+}
+
+// ── Gestes swipe ──
+function _hmvInitGestures() {
+  const viewer = document.getElementById('hm-viewer');
+  // Nettoyer les anciens listeners
+  viewer.removeEventListener('touchstart', _hmvTouchStart);
+  viewer.removeEventListener('touchend',   _hmvTouchEnd);
+  viewer.addEventListener('touchstart', _hmvTouchStart, { passive: true });
+  viewer.addEventListener('touchend',   _hmvTouchEnd,   { passive: true });
+}
+
+let _hmvSX = 0, _hmvSY = 0;
+function _hmvTouchStart(e) {
+  _hmvSX = e.touches[0].clientX;
+  _hmvSY = e.touches[0].clientY;
+}
+function _hmvTouchEnd(e) {
+  const dx = e.changedTouches[0].clientX - _hmvSX;
+  const dy = e.changedTouches[0].clientY - _hmvSY;
+  const adx = Math.abs(dx), ady = Math.abs(dy);
+
+  if (adx < 10 && ady < 10) return; // tap simple → holo
+
+  if (ady > adx) {
+    // Vertical
+    if (dy < -50 && !_hmvInfoOpen) _hmvOpenInfo();       // swipe haut → infos
+    if (dy >  50 &&  _hmvInfoOpen) _hmvCloseInfo();       // swipe bas  → affiche
+  } else {
+    // Horizontal
+    if (adx > 50) hmvNavigate(dx < 0 ? 1 : -1);
+  }
+}
+
+// ── Halo effect sur le viewer ──
+function _hmvInitHolo() {
+  const poster = document.getElementById('hmv-poster');
+  if (!poster) return;
+  poster.removeEventListener('touchstart', _hmvHoloTouchStart);
+  poster.removeEventListener('touchmove',  _hmvHoloTouchMove);
+  poster.removeEventListener('touchend',   _hmvHoloTouchEnd);
+  poster.removeEventListener('mousemove',  _hmvHoloMouse);
+  poster.removeEventListener('mouseleave', _hmvHoloLeave);
+  poster.addEventListener('touchstart', _hmvHoloTouchStart, { passive: true });
+  poster.addEventListener('touchmove',  _hmvHoloTouchMove,  { passive: true });
+  poster.addEventListener('touchend',   _hmvHoloTouchEnd,   { passive: true });
+  poster.addEventListener('mousemove',  _hmvHoloMouse);
+  poster.addEventListener('mouseleave', _hmvHoloLeave);
+}
+function _hmvHoloUpdate(el, cx, cy) {
+  const r = el.getBoundingClientRect();
+  const x = cx - r.left, y = cy - r.top;
+  const mx = (x / r.width) * 100, my = (y / r.height) * 100;
+  const rotY = ((mx - 50) / 50) * 14;
+  const rotX = -((my - 50) / 50) * 11;
+  const angle = Math.atan2(y - r.height / 2, x - r.width / 2) * 180 / Math.PI + 90;
+  el.style.setProperty('--mx', mx + '%');
+  el.style.setProperty('--my', my + '%');
+  el.style.setProperty('--holo-angle', angle + 'deg');
+  el.style.transform = 'perspective(800px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.02)';
+}
+function _hmvHoloReset(el) {
+  el.classList.remove('touching');
+  el.style.removeProperty('--mx'); el.style.removeProperty('--my'); el.style.removeProperty('--holo-angle');
+  el.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
+}
+function _hmvHoloTouchStart(e) { this.classList.add('touching'); _hmvHoloUpdate(this, e.touches[0].clientX, e.touches[0].clientY); }
+function _hmvHoloTouchMove(e)  { _hmvHoloUpdate(this, e.touches[0].clientX, e.touches[0].clientY); }
+function _hmvHoloTouchEnd()    { _hmvHoloReset(this); }
+function _hmvHoloMouse(e)      { this.classList.add('touching'); _hmvHoloUpdate(this, e.clientX, e.clientY); }
+function _hmvHoloLeave()       { _hmvHoloReset(this); }
+
+
 
 // ══ HM — Effet holographique ══
 function _hmInitHoloCards() {
