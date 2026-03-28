@@ -8026,6 +8026,82 @@ function _hmSaveRevealed(){
   try{localStorage.setItem('hm_revealed',JSON.stringify([..._hmRevealed]));}catch{}
 }
 
+// ── HM Audio helpers ──
+let _hmAudio=null;
+let _hmAudioIdx=-1;
+let _hmAudioFadeTimer=null;
+let _hmAudioProgTimer=null;
+
+function _hmGetMusic(title){
+  return (typeof HM_MUSIC!=='undefined'&&HM_MUSIC[title])||null;
+}
+
+function _hmPlaySlideAudio(idx, slides){
+  const film=slides&&slides[idx];
+  if(!film){_hmStopAudio();return;}
+  const src=_hmGetMusic(film.t);
+  if(!src){_hmStopAudio();return;}
+  if(_hmAudioIdx===idx&&_hmAudio&&!_hmAudio.paused)return;
+  _hmFadeOutAudio(()=>{
+    _hmAudio=new Audio(src);
+    _hmAudio.volume=0;
+    _hmAudio.loop=true;
+    _hmAudioIdx=idx;
+    _hmAudio.play().then(()=>{
+      _hmFadeIn(_hmAudio,0.55,800);
+      _hmSetEq(idx,true);
+    }).catch(()=>{});
+  });
+}
+
+function _hmFadeIn(audio,targetVol,dur){
+  if(_hmAudioFadeTimer)clearInterval(_hmAudioFadeTimer);
+  const steps=Math.round(dur/40);
+  let i=0;
+  _hmAudioFadeTimer=setInterval(()=>{
+    i++;
+    audio.volume=Math.min(targetVol,targetVol*(i/steps));
+    if(i>=steps){clearInterval(_hmAudioFadeTimer);_hmAudioFadeTimer=null;}
+  },40);
+}
+
+function _hmFadeOutAudio(onDone){
+  if(!_hmAudio||_hmAudio.paused){
+    if(_hmAudio){_hmAudio.pause();_hmAudio=null;}
+    _hmSetEq(_hmAudioIdx,false);
+    _hmAudioIdx=-1;
+    if(onDone)onDone();
+    return;
+  }
+  const audio=_hmAudio;
+  const startVol=audio.volume;
+  const steps=12;let i=0;
+  const t=setInterval(()=>{
+    i++;audio.volume=Math.max(0,startVol*(1-i/steps));
+    if(i>=steps){
+      clearInterval(t);audio.pause();
+      _hmSetEq(_hmAudioIdx,false);_hmAudioIdx=-1;
+      if(onDone)onDone();
+    }
+  },30);
+}
+
+function _hmStopAudio(){
+  if(_hmAudio){_hmAudio.pause();_hmAudio=null;}
+  if(_hmAudioFadeTimer){clearInterval(_hmAudioFadeTimer);_hmAudioFadeTimer=null;}
+  _hmSetEq(_hmAudioIdx,false);
+  _hmAudioIdx=-1;
+}
+
+function _hmStartProgressBar(idx){}
+function _hmStopProgressBar(){}
+function _hmSetEq(idx,playing){
+  if(idx<0)return;
+  const eq=document.getElementById('hm-eq-'+idx);
+  if(eq)eq.classList.toggle('playing',playing);
+}
+
+
 function openHM(){
   document.querySelectorAll('.scr').forEach(s=>{s.classList.remove('on');s.style.opacity='0';s.style.pointerEvents='none';});
   const gbg=document.getElementById('game-bg');if(gbg)gbg.classList.remove('on');
@@ -8109,15 +8185,18 @@ function _hmRenderCard(idx){
 
   // Affiche floue en fond + en centre
   const posterUrl=film.p?(film.p.startsWith('/')?TI+film.p:film.p):'';
-  under.innerHTML=`
-    ${posterUrl?`<div class="hm-scratch-bg" style="background-image:url('${posterUrl}')"></div>`:'<div class="hm-scratch-bg" style="background:linear-gradient(160deg,#120820,#060310)"></div>'}
-    <div class="hm-scratch-poster">
-      ${posterUrl?`<img src="${posterUrl}" alt="${film.t}" id="hm-scratch-img">`:'<div style="font-family:Bebas Neue,sans-serif;font-size:60px;color:rgba(168,85,247,.15);">${film.y}</div>'}
-    </div>`;
+  // Construire le HTML sans template literals imbriqués
+  const bgHtml = posterUrl
+    ? '<div class="hm-scratch-bg" style="background-image:url('+JSON.stringify(posterUrl)+')"></div>'
+    : '<div class="hm-scratch-bg" style="background:linear-gradient(160deg,#120820,#060310)"></div>';
+  const posterHtml = posterUrl
+    ? '<img src="'+posterUrl+'" alt="" id="hm-scratch-img">'
+    : '<div style="font-family:sans-serif;font-size:60px;color:rgba(168,85,247,.15);">'+film.y+'</div>';
+  under.innerHTML = bgHtml + '<div class="hm-scratch-poster">' + posterHtml + '</div>';
 
   // Indice visible avant grattage
   const moodEmojis={mélancolique:'🌧',joyeux:'☀️',adrénaline:'⚡',réflexion:'🌀',comédie:'😄',atmosphère:'🌫'};
-  const mainMood=film.m?.[0]||'';
+  const mainMood=(film.m && film.m[0])||'';
   const moodIcon=moodEmojis[mainMood]||'🎬';
   hint.innerHTML=`
     <div class="hm-scratch-hint-icon">${moodIcon}</div>
@@ -8175,11 +8254,11 @@ function _hmInitScratch(canvas, film, idx){
 
   // Icône centrale
   ctx.save();
-  ctx.font=`${Math.round(W*.18)}px serif`;
+  ctx.font=Math.round(W*.18)+'px serif';
   ctx.textAlign='center';
   ctx.textBaseline='middle';
   ctx.globalAlpha=.15;
-  const moodEmoji2={mélancolique:'🌧',joyeux:'☀️',adrénaline:'⚡',réflexion:'🌀',comédie:'😄',atmosphère:'🌫'}[film.m?.[0]]||'🎬';
+  const moodEmoji2={mélancolique:'🌧',joyeux:'☀️',adrénaline:'⚡',réflexion:'🌀',comédie:'😄',atmosphère:'🌫'}[(film.m && film.m[0])]||'🎬';
   ctx.fillText(moodEmoji2,W/2,H/2-40);
   ctx.restore();
 
@@ -8292,16 +8371,16 @@ function _hmShowSheet(film, idx){
   if(!sheet||!content)return;
 
   const moodsHtml=(film.m||[]).map(m=>`<span class="hm-fiche-mood">${m}</span>`).join('');
-  content.innerHTML=`
-    <div class="hm-fiche-source">✦ HIDDEN MOVIES</div>
-    <div class="hm-fiche-title">${film.t}</div>
-    <div class="hm-fiche-meta">
-      <span class="hm-fiche-pill">${film.y}</span>
-      <span class="hm-fiche-pill genre">${film.g}</span>
-    </div>
-    <div class="hm-fiche-synopsis">${film.s}</div>
-    ${moodsHtml?`<div class="hm-fiche-moods">${moodsHtml}</div>`:''}
-    <div class="hm-fiche-details"><div class="hm-fiche-loading">Chargement…</div></div>`;
+  content.innerHTML =
+    '<div class="hm-fiche-source">✦ HIDDEN MOVIES</div>' +
+    '<div class="hm-fiche-title">' + film.t + '</div>' +
+    '<div class="hm-fiche-meta">' +
+      '<span class="hm-fiche-pill">' + film.y + '</span>' +
+      '<span class="hm-fiche-pill genre">' + film.g + '</span>' +
+    '</div>' +
+    '<div class="hm-fiche-synopsis">' + film.s + '</div>' +
+    (moodsHtml ? '<div class="hm-fiche-moods">' + moodsHtml + '</div>' : '') +
+    '<div class="hm-fiche-details"><div class="hm-fiche-loading">Chargement…</div></div>';
 
   sheet.classList.add('open');
 
@@ -8370,15 +8449,15 @@ async function _hmEnrichFiche(film, container){
     try{
       const res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
       const json=await res.json();
-      const match=json.results?.[0];
+      const match=(json.results && json.results[0]);
       if(!match)return;
       const res2=await fetch(`https://api.themoviedb.org/3/movie/${match.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`);
       const d=await res2.json();
       const countryMap={'United States of America':'États-Unis','United Kingdom':'Royaume-Uni','France':'France','Germany':'Allemagne','Italy':'Italie','Spain':'Espagne','Japan':'Japon','South Korea':'Corée du Sud','Canada':'Canada','Australia':'Australie','Belgium':'Belgique','Sweden':'Suède','Denmark':'Danemark','Poland':'Pologne','Ireland':'Irlande','Austria':'Autriche','Switzerland':'Suisse','Netherlands':'Pays-Bas','Norway':'Norvège','Finland':'Finlande','Portugal':'Portugal','Romania':'Roumanie','Mexico':'Mexique','Argentina':'Argentine','Brazil':'Brésil','China':'Chine','India':'Inde','Iran':'Iran','Turkey':'Turquie','Greece':'Grèce'};
       data={
-        director:(d.credits?.crew||[]).find(p=>p.job==='Director')?.name||null,
-        writers:(d.credits?.crew||[]).filter(p=>['Screenplay','Writer','Story'].includes(p.job)).slice(0,2).map(w=>w.name),
-        cast:(d.credits?.cast||[]).slice(0,4).map(a=>a.name),
+        director:((d.credits && d.credits.crew)||[]).find(p=>p.job==='Director')?.name||null,
+        writers:((d.credits && d.credits.crew)||[]).filter(p=>['Screenplay','Writer','Story'].includes(p.job)).slice(0,2).map(w=>w.name),
+        cast:((d.credits && d.credits.cast)||[]).slice(0,4).map(a=>a.name),
         runtime:d.runtime,
         release:d.release_date,
         countries:(d.production_countries||[]).map(co=>countryMap[co.name]||co.name).slice(0,2),
@@ -8388,20 +8467,30 @@ async function _hmEnrichFiche(film, container){
       try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch{}
     }catch{return;}
   }
-  const detailsEl=container?.querySelector('.hm-fiche-details');
+  const detailsEl=container?container.querySelector('.hm-fiche-details'):null;
   if(!detailsEl||!data)return;
-  const fmt=arr=>arr?.length?arr.join(', '):'—';
-  const fmtR=min=>min?`${Math.floor(min/60)}h${String(min%60).padStart(2,'0')}`:'—';
+  const fmt=function(arr){return (arr&&arr.length)?arr.join(', '):'—';};
+  const fmtR=min=>min?(Math.floor(min/60)+'h'+String(min%60).padStart(2,'0')):'—';
   const fmtD=d=>{if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});};
-  const fmtRating=(r,v)=>{if(!r)return'—';const s=Math.round(r/2);return`<span class="hm-fiche-rating"><span class="hm-fiche-stars">${'★'.repeat(s)}${'☆'.repeat(5-s)}</span><span class="hm-fiche-score">${r}</span><span class="hm-fiche-votes">/10${v?` · ${v.toLocaleString('fr-FR')} votes`:''}</span></span>`;};
-  detailsEl.innerHTML=`
-    ${data.director?`<div class="hm-fiche-row"><span class="hm-fiche-label">Réalisateur</span><span class="hm-fiche-val">${data.director}</span></div>`:''}
-    ${data.writers?.length?`<div class="hm-fiche-row"><span class="hm-fiche-label">Scénario</span><span class="hm-fiche-val">${fmt(data.writers)}</span></div>`:''}
-    ${data.cast?.length?`<div class="hm-fiche-row"><span class="hm-fiche-label">Casting</span><span class="hm-fiche-val">${fmt(data.cast)}</span></div>`:''}
-    ${data.runtime?`<div class="hm-fiche-row"><span class="hm-fiche-label">Durée</span><span class="hm-fiche-val">${fmtR(data.runtime)}</span></div>`:''}
-    ${data.release?`<div class="hm-fiche-row"><span class="hm-fiche-label">Sortie</span><span class="hm-fiche-val">${fmtD(data.release)}</span></div>`:''}
-    ${data.countries?.length?`<div class="hm-fiche-row"><span class="hm-fiche-label">Pays</span><span class="hm-fiche-val">${fmt(data.countries)}</span></div>`:''}
-    ${data.rating?`<div class="hm-fiche-row"><span class="hm-fiche-label">Note</span><span class="hm-fiche-val">${fmtRating(data.rating,data.voteCount)}</span></div>`:''}`.trim();
+  const fmtRating=(r,v)=>{
+    if(!r)return'—';
+    const s=Math.round(r/2);
+    const stars='★'.repeat(s)+'☆'.repeat(5-s);
+    const votes=v?' · '+v.toLocaleString('fr-FR')+' votes':'';
+    return '<span class="hm-fiche-rating"><span class="hm-fiche-stars">'+stars+'</span><span class="hm-fiche-score">'+r+'</span><span class="hm-fiche-votes">/10'+votes+'</span></span>';
+  };
+  const row = (label, val) => val
+    ? '<div class="hm-fiche-row"><span class="hm-fiche-label">' + label + '</span><span class="hm-fiche-val">' + val + '</span></div>'
+    : '';
+  detailsEl.innerHTML = [
+    row('Réalisateur', data.director),
+    row('Scénario', data.writers && data.writers.length ? fmt(data.writers) : null),
+    row('Casting', data.cast && data.cast.length ? fmt(data.cast) : null),
+    row('Durée', data.runtime ? fmtR(data.runtime) : null),
+    row('Sortie', data.release ? fmtD(data.release) : null),
+    row('Pays', data.countries && data.countries.length ? fmt(data.countries) : null),
+    row('Note', data.rating ? fmtRating(data.rating, data.voteCount) : null),
+  ].join('');
 }
 
 
