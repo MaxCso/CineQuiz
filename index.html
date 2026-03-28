@@ -2906,9 +2906,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hmv-bg{
   position:absolute;inset:-10%;
   background-size:cover;background-position:center;
-  filter:blur(40px) brightness(.35) saturate(.8);
-  transform:scale(1.1);
+  filter:blur(48px) brightness(.25) saturate(1.4);
+  transform:scale(1.15);
   pointer-events:none;
+  opacity:.7;
 }
 
 /* Container de l'affiche — prend toute la hauteur */
@@ -3434,6 +3435,11 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hm-lock-xp{font-size:11px;color:rgba(255,255,255,.15);letter-spacing:1px;}
 
 @keyframes hmRandomSpin{0%{transform:rotate(0deg) scale(1);}40%{transform:rotate(180deg) scale(.8);}100%{transform:rotate(360deg) scale(1);}}
+@keyframes hmParticle{
+  0%  {transform:translate(-50%,-50%) scale(1);opacity:1;}
+  60% {opacity:.8;}
+  100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0);opacity:0;}
+}
 #hm-random-flash{position:absolute;inset:0;z-index:20;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(168,85,247,.18) 0%,transparent 70%);opacity:0;transition:opacity .3s;}
 #hm-random-flash.on{opacity:1;}
 
@@ -3815,6 +3821,14 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   </div>
 
   <!-- MODE INFO MODAL -->
+  <!-- MODE STATS DETAIL MODAL -->
+  <div class="mover" id="mode-stats-modal" onclick="if(event.target===this)closeModeStatsDetail()">
+    <div class="msh" id="mode-stats-sh">
+      <div class="mode-info-hdl"></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);margin-bottom:14px;" id="mode-stats-title">PARTIES PAR MODE</div>
+      <div id="mode-stats-content" style="overflow-y:auto;max-height:65vh;"></div>
+    </div>
+  </div>
   <div class="mode-info-over" id="mode-info-modal">
     <div class="mode-info-sh" id="mode-info-sh">
       <div class="mode-info-accent" id="mode-info-accent"></div>
@@ -3981,8 +3995,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="spark-labels" id="sparkline-labels"></div>
     </div>
     <!-- Barres par mode -->
-    <div class="stats-chart-wrap" onclick="openProfileStat('games')" style="cursor:pointer;">
-      <div class="stats-chart-title">Parties par mode <span>Détail →</span></div>
+    <div class="stats-chart-wrap" style="cursor:pointer;" onclick="openModeStatsDetail('games')">
+      <div class="stats-chart-title">Parties par mode <span>Voir tout →</span></div>
       <div class="mode-bars" id="mode-heatmap"></div>
     </div>
     <div class="sgrid">
@@ -4011,7 +4025,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div class="sv" id="p-bs" style="color:#fbbf24">0</div><div class="sl">Meilleur score</div>
       </div>
     </div>
-    <div class="shd" style="margin-bottom:10px;">Meilleurs scores par mode</div>
+    <div class="shd" style="margin-bottom:10px;cursor:pointer;" onclick="openModeStatsDetail('scores')">
+      <span>Meilleurs scores par mode</span>
+      <span style="color:var(--gold);font-size:9px;">Voir tout →</span>
+    </div>
     <div id="p-best-scores" style="margin-bottom:18px;"></div>
     <div class="shd" id="themes-shd" style="margin-bottom:10px;">
       <span style="display:flex;align-items:center;gap:6px;">THÈMES<span id="themes-new-pill"></span></span>
@@ -5567,9 +5584,10 @@ function renderBestScores(s){
     location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',
     decennie:'Décennie',quiadit:'Qui a dit ça ?',versus:'Multijoueur'};
   const entries=Object.entries(bests).sort((a,b)=>b[1].score-a[1].score);
-  const maxScore=entries[0]?.[1].score||1;
+  const top3=entries.slice(0,3);
+  const maxScore=top3[0]?.[1].score||1;
   const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
-  el.innerHTML=entries.map(([mode,d],i)=>{
+  el.innerHTML=top3.map(([mode,d],i)=>{
     const pct=Math.round((d.score/maxScore)*100);
     const icon=modeIcons[mode]||'🎬';
     const label=modeLabels[mode]||mode;
@@ -5592,6 +5610,85 @@ function renderBestScores(s){
 }
 
 function renderModeStats(s){renderBestScores(s);}
+
+function openModeStatsDetail(type){
+  const s=ls();
+  const modal=document.getElementById('mode-stats-modal');
+  const title=document.getElementById('mode-stats-title');
+  const content=document.getElementById('mode-stats-content');
+  if(!modal||!content)return;
+
+  if(type==='games'){
+    title.textContent='PARTIES PAR MODE';
+    const modes=[
+      {k:'quizGames',l:'⚡',n:'Trivia Ciné'},{k:'photoGames',l:'🎬',n:'Affiche Mystère'},
+      {k:'yearGames',l:'📅',n:'Quelle Année ?'},{k:'boGames',l:'💡',n:'Indices Mystère'},
+      {k:'boxofficeGames',l:'💰',n:'Box-office'},{k:'repliqueGames',l:'💬',n:'La Réplique'},
+      {k:'acteurGames',l:'👤',n:'Acteur Mystère'},{k:'compositeurGames',l:'🎼',n:'Compositeur'},
+      {k:'filmographieGames',l:'🎭',n:'Filmographie'},{k:'realisateurGames',l:'🎥',n:'Réalisateur'},
+      {k:'castingGames',l:'🧩',n:'Le Casting'},{k:'generiqueGames',l:'📜',n:'Le Générique'},
+      {k:'locationGames',l:'🌍',n:'Lieu de tournage'},{k:'trainingGames',l:'📚',n:'Entraînement'},
+      {k:'vraifauxGames',l:'🎯',n:'Vrai ou Faux'},{k:'decennieGames',l:'📅',n:'Décennie'},
+      {k:'quiaditGames',l:'🗣️',n:'Qui a dit ça ?'},{k:'versusGames',l:'⚔️',n:'Multijoueur'},
+      {k:'pitchGames',l:'📝',n:'Le Pitch'},{k:'versusfilmsGames',l:'📊',n:'Versus Films'},
+      {k:'survieGames',l:'❤️',n:'Survie'},
+    ];
+    const played=modes.filter(m=>(s[m.k]||0)>0).sort((a,b)=>(s[b.k]||0)-(s[a.k]||0));
+    const max=played.length?Math.max(...played.map(m=>s[m.k])):1;
+    content.innerHTML=played.length
+      ? '<div class="mode-bars">'+played.map(m=>{
+          const v=s[m.k]||0,pct=Math.round((v/max)*100);
+          return`<div class="mode-bar-row">
+            <div class="mode-bar-icon">${m.l}</div>
+            <div class="mode-bar-name">${m.n}</div>
+            <div class="mode-bar-track"><div class="mode-bar-fill" style="width:${pct}%"></div></div>
+            <div class="mode-bar-count">${v}</div>
+          </div>`;
+        }).join('')+'</div>'
+      : '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Aucune partie jouée</div>';
+
+  } else {
+    title.textContent='MEILLEURS SCORES PAR MODE';
+    const hist=s.history||[];
+    const bests={};
+    hist.forEach(h=>{if(!h.mode||!h.score)return;if(!bests[h.mode]||h.score>bests[h.mode].score)bests[h.mode]={score:h.score,correct:h.correct||0,total:h.total||10,date:h.date||''};});
+    const modeIcons={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',generique:'📜',location:'🌍',training:'📚',vraifaux:'🎯',decennie:'🗓️',quiadit:'🗣️',versus:'⚔️',pitch:'📝',versusfilms:'📊',survie:'❤️'};
+    const modeLabels={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',decennie:'Décennie',quiadit:'Qui a dit ça ?',versus:'Multijoueur',pitch:'Le Pitch',versusfilms:'Versus Films',survie:'Survie'};
+    const entries=Object.entries(bests).sort((a,b)=>b[1].score-a[1].score);
+    const maxScore=entries[0]?.[1].score||1;
+    const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
+    content.innerHTML=entries.length
+      ? entries.map(([mode,d],i)=>{
+          const pct=Math.round((d.score/maxScore)*100);
+          const icon=modeIcons[mode]||'🎬';
+          const label=modeLabels[mode]||mode;
+          const rankColor=rankColors[i]||'rgba(255,255,255,.25)';
+          const isTop=i===0;
+          return`<div class="hitem${isTop?' hitem-top':''}">
+            <div class="hi" style="width:28px;height:28px;border-radius:8px;background:${isTop?'rgba(245,200,66,.12)':'rgba(255,255,255,.05)'};border:1px solid ${isTop?'rgba(245,200,66,.25)':'rgba(255,255,255,.08)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${icon}</div>
+            <div class="hinfo" style="flex:1;min-width:0;">
+              <div class="hs" style="font-size:13px;color:${isTop?'var(--gold)':'rgba(255,255,255,.7)'};">${label}</div>
+              <div style="height:3px;border-radius:2px;background:rgba(255,255,255,.06);margin-top:5px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;border-radius:2px;background:${isTop?'linear-gradient(90deg,var(--gold2),var(--gold))':'rgba(255,255,255,.18)'};transition:width .8s ease;"></div>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${rankColor};letter-spacing:.5px;">${d.score}</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.28);">${d.correct}/${d.total}</div>
+            </div>
+          </div>`;
+        }).join('')
+      : '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Aucune partie jouée</div>';
+  }
+
+  modal.classList.add('on');
+  const sh=document.getElementById('mode-stats-sh');
+  if(sh)setupSwipeDown(sh,closeModeStatsDetail);
+}
+
+function closeModeStatsDetail(){
+  document.getElementById('mode-stats-modal')?.classList.remove('on');
+}
 
 function loadTheme(){
   const s=ls();
@@ -8976,8 +9073,86 @@ function _hmRenderCollection() {
     );
   }).join('');
 
+  // Stats section en bas de la collection
+  const statsHtml = _hmBuildCollectionStats(revealedFilms.map(f=>f.film));
+  grid.innerHTML += statsHtml;
+
   // Attacher les events holo après le rendu
   requestAnimationFrame(() => _hmInitHoloCards());
+}
+
+function _hmBuildCollectionStats(films){
+  if(!films.length) return '';
+  const s=ls();const userLvl=glv(s.xp);
+  const unlocked=_hmFilms.filter(f=>f.lvl<=userLvl).length;
+  const total=films.length;
+
+  // Genres
+  const gc={};films.forEach(f=>{if(f.g)gc[f.g]=(gc[f.g]||0)+1;});
+  const topG=Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxG=topG[0]?.[1]||1;
+
+  // Humeurs
+  const mc={mélancolique:0,adrénaline:0,réflexion:0,comédie:0,atmosphère:0,joyeux:0};
+  const me={mélancolique:'🌧',adrénaline:'⚡',réflexion:'🌀',comédie:'😄',atmosphère:'🌫',joyeux:'☀️'};
+  films.forEach(f=>(f.m||[]).forEach(m=>{if(m in mc)mc[m]++;}));
+
+  // Niveaux
+  const LN=['Curieux','Cinéphile','Connaisseur','Critique','Expert','Maître','Légende','Ultime','Mythique','Légendaire'];
+  const lvls=Array.from({length:10},(_,i)=>({
+    name:LN[i]||`Niv.${i}`,
+    total:_hmFilms.filter(f=>f.lvl===i).length,
+    rev:films.filter(f=>f.lvl===i).length
+  })).filter(g=>g.total>0);
+
+  return `<div style="grid-column:1/-1;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.07);">
+
+    <div style="font-size:9px;color:rgba(192,132,252,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;">Vue d'ensemble</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c084fc;line-height:1;margin-bottom:4px;">${total}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;">Films grattés</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c084fc;line-height:1;margin-bottom:4px;">${total?Math.round(total/unlocked*100):0}%</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;">Complété</div>
+      </div>
+    </div>
+
+    <div style="font-size:9px;color:rgba(192,132,252,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;">Genres les plus grattés</div>
+    <div style="margin-bottom:20px;">
+      ${topG.map(([g,n])=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+          <div style="font-size:12px;color:rgba(255,255,255,.7);width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g}</div>
+          <div style="flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,rgba(130,60,220,.8),rgba(168,85,247,1));width:${Math.round(n/maxG*100)}%;"></div>
+          </div>
+          <div style="font-size:11px;color:rgba(192,132,252,.6);font-family:'Bebas Neue',sans-serif;width:20px;text-align:right;">${n}</div>
+        </div>`).join('')}
+    </div>
+
+    <div style="font-size:9px;color:rgba(192,132,252,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;">Humeurs de ta collection</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;">
+      ${Object.entries(mc).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1]).map(([m,n])=>`
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.18);border-radius:20px;padding:5px 12px;">
+          <span>${me[m]||'🎬'}</span>
+          <span style="font-size:11px;color:rgba(192,132,252,.8);">${m}</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:#c084fc;">${n}</span>
+        </div>`).join('')}
+    </div>
+
+    <div style="font-size:9px;color:rgba(192,132,252,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;">Progression par niveau</div>
+    <div style="margin-bottom:8px;">
+      ${lvls.map(g=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);width:90px;flex-shrink:0;">${g.name}</div>
+          <div style="flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,rgba(168,85,247,.5),rgba(168,85,247,.9));width:${g.total?Math.round(g.rev/g.total*100):0}%;"></div>
+          </div>
+          <div style="font-size:10px;color:rgba(192,132,252,.5);font-family:'Bebas Neue',sans-serif;width:32px;text-align:right;">${g.rev}/${g.total}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
 }
 
 // ══ HM VIEWER ══
@@ -9009,9 +9184,26 @@ function _hmvRender() {
   const TI = 'https://image.tmdb.org/t/p/w500';
   const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : encodeURIComponent(film.p)) : '';
 
-  // Fond flou
+  // Fond flou + couleur dominante dynamique
   const bg = document.getElementById('hmv-bg');
-  if (bg) bg.style.backgroundImage = posterUrl ? 'url(' + posterUrl + ')' : 'none';
+  const viewer = document.getElementById('hm-viewer');
+  if (bg && posterUrl) {
+    bg.style.backgroundImage = 'url(' + posterUrl + ')';
+    // Extraire la couleur dominante une fois l'image chargée
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      _hmExtractColor(probe, (r,g,b) => {
+        if(viewer) viewer.style.background = `radial-gradient(ellipse 120% 80% at 50% 30%, rgba(${r},${g},${b},.22) 0%, rgba(${r},${g},${b},.08) 35%, #000 70%)`;
+        bg.style.backgroundImage = 'url(' + posterUrl + ')';
+      });
+    };
+    probe.onerror = () => { if(viewer) viewer.style.background = '#000'; };
+    probe.src = posterUrl;
+  } else {
+    if(bg) bg.style.backgroundImage = 'none';
+    if(viewer) viewer.style.background = '#000';
+  }
 
   // Affiche
   const img = document.getElementById('hmv-img');
@@ -9660,22 +9852,72 @@ function sndHmReveal(){
   }catch(e){}
 }
 
+// ── Extraction couleur dominante depuis une image ──
+function _hmExtractColor(imgEl, callback){
+  try{
+    const cv=document.createElement('canvas');
+    cv.width=16;cv.height=24;
+    const cx=cv.getContext('2d');
+    cx.drawImage(imgEl,0,0,16,24);
+    const d=cx.getImageData(0,0,16,24).data;
+    let r=0,g=0,b=0,count=0;
+    for(let i=0;i<d.length;i+=16){
+      r+=d[i];g+=d[i+1];b+=d[i+2];count++;
+    }
+    r=Math.round(r/count);g=Math.round(g/count);b=Math.round(b/count);
+    // Booster la saturation un peu
+    const max=Math.max(r,g,b),min=Math.min(r,g,b);
+    const boost=1.4;
+    r=Math.min(255,Math.round(128+(r-128)*boost));
+    g=Math.min(255,Math.round(128+(g-128)*boost));
+    b=Math.min(255,Math.round(128+(b-128)*boost));
+    callback(r,g,b);
+  }catch(e){callback(80,60,120);}
+}
+
+// ── Particules dorées de révélation ──
+function _hmSpawnParticles(card){
+  const wrap=card||document.getElementById('hm-scratch-card');
+  if(!wrap)return;
+  const rect=wrap.getBoundingClientRect();
+  const cx=rect.left+rect.width/2;
+  const cy=rect.top+rect.height/2;
+  const N=28;
+  for(let i=0;i<N;i++){
+    const p=document.createElement('div');
+    const size=4+Math.random()*6;
+    const angle=Math.random()*Math.PI*2;
+    const dist=60+Math.random()*120;
+    const dur=0.6+Math.random()*0.5;
+    const delay=Math.random()*0.15;
+    const gold=['#f5c842','#fff3c0','#e8a800','#ffe066','#ffd700'][Math.floor(Math.random()*5)];
+    p.style.cssText=`
+      position:fixed;
+      left:${cx}px;top:${cy}px;
+      width:${size}px;height:${size}px;
+      border-radius:50%;
+      background:${gold};
+      pointer-events:none;
+      z-index:9999;
+      transform:translate(-50%,-50%);
+      box-shadow:0 0 ${size*2}px ${gold};
+      animation:hmParticle ${dur}s ease-out ${delay}s forwards;
+      --tx:${Math.cos(angle)*dist}px;
+      --ty:${Math.sin(angle)*dist}px;
+    `;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),(dur+delay)*1000+100);
+  }
+}
+
 function _hmReveal(film, idx, canvas){
   sndHmReveal();
+
+  // Particules dorées
+  const card=document.getElementById('hm-scratch-card');
+  _hmSpawnParticles(card);
+
   // Effacer le canvas progressivement
-  const ctx=canvas.getContext('2d');
-  let alpha=1;
-  const fade=setInterval(()=>{
-    alpha-=.06;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(alpha<=0){
-      clearInterval(fade);
-      canvas.style.display='none';
-    } else {
-      ctx.globalAlpha=alpha;
-      // Redessiner une version de plus en plus transparente
-    }
-  },20);
   canvas.style.transition='opacity .5s ease';
   canvas.style.opacity='0';
   setTimeout(()=>{canvas.style.display='none';},500);
@@ -9694,7 +9936,6 @@ function _hmReveal(film, idx, canvas){
 
   // Afficher le viewer plein écran après un court délai
   setTimeout(()=>{
-    // Préparer le viewer avec ce seul film (mode "depuis grattage")
     _hmvList = [{ idx, film }];
     _hmvIdx  = 0;
     _hmvInfoOpen = false;
@@ -9704,7 +9945,6 @@ function _hmReveal(film, idx, canvas){
     _hmvInitGestures();
     _hmvInitHolo();
   }, 700);
-  // Audio
   _hmPlaySlideAudio(idx, _hmFilms);
 }
 
@@ -9804,50 +10044,62 @@ function hmResetScratch(){
 }
 
 async function _hmEnrichFiche(film, container){
-  // Clé cache sûre (normaliser les accents)
   const safeTitle=film.t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
-  const cacheKey='hm_info_'+safeTitle+'_'+film.y;
+  const cacheKey='hm_info2_'+safeTitle+'_'+film.y;
   let data=null;
   try{const raw=localStorage.getItem(cacheKey);if(raw)data=JSON.parse(raw);}catch{}
   if(!data){
     try{
-      // Essai 1 : titre exact + année
       let res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
       let json=await res.json();
       let match=(json.results && json.results[0]);
-      // Essai 2 : titre sans année si pas de résultat
       if(!match){
         res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}`);
         json=await res.json();
         match=(json.results && json.results[0]);
       }
       if(!match){
-        // Afficher quand même les données de base depuis HM_DB
-        const detailsBasic=container
-          ? (container.querySelector('.hm-fiche-details') || container.querySelector('.hmv-info-details'))
-          : null;
-        if(detailsBasic) detailsBasic.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Données non disponibles</div>';
+        const el=container?(container.querySelector('.hm-fiche-details')||container.querySelector('.hmv-info-details')):null;
+        if(el)el.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Données non disponibles</div>';
         return;
       }
-      const res2=await fetch(`https://api.themoviedb.org/3/movie/${match.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`);
+      const movieId=match.id;
+      // Appel 1 : détails + crédits
+      const [res2, res3] = await Promise.all([
+        fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TK}&language=fr-FR&append_to_response=credits`),
+        fetch(`https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TK}`)
+      ]);
       const d=await res2.json();
+      const wp=await res3.json();
       const countryMap={'United States of America':'États-Unis','United Kingdom':'Royaume-Uni','France':'France','Germany':'Allemagne','Italy':'Italie','Spain':'Espagne','Japan':'Japon','South Korea':'Corée du Sud','Canada':'Canada','Australia':'Australie','Belgium':'Belgique','Sweden':'Suède','Denmark':'Danemark','Poland':'Pologne','Ireland':'Irlande','Austria':'Autriche','Switzerland':'Suisse','Netherlands':'Pays-Bas','Norway':'Norvège','Finland':'Finlande','Portugal':'Portugal','Romania':'Roumanie','Mexico':'Mexique','Argentina':'Argentine','Brazil':'Brésil','China':'Chine','India':'Inde','Iran':'Iran','Turkey':'Turquie','Greece':'Grèce'};
+
+      // Plateformes FR (flatrate = SVOD, rent = LOD, buy = VOD)
+      const frProviders=wp.results && wp.results.FR;
+      const streaming=(frProviders?.flatrate||[]).map(p=>p.provider_name).slice(0,4);
+      const rent=(frProviders?.rent||[]).map(p=>p.provider_name).slice(0,3);
+
+      // Société de production principale
+      const prodCompany=(d.production_companies||[]).slice(0,2).map(c=>c.name);
+
       data={
-        director:((d.credits && d.credits.crew)||[]).find(p=>p.job==='Director')?.name||null,
-        writers:((d.credits && d.credits.crew)||[]).filter(p=>['Screenplay','Writer','Story'].includes(p.job)).slice(0,2).map(w=>w.name),
-        cast:((d.credits && d.credits.cast)||[]).slice(0,4).map(a=>a.name),
+        director:((d.credits?.crew)||[]).find(p=>p.job==='Director')?.name||null,
+        writers:((d.credits?.crew)||[]).filter(p=>['Screenplay','Writer','Story'].includes(p.job)).slice(0,2).map(w=>w.name),
+        cast:((d.credits?.cast)||[]).slice(0,4).map(a=>a.name),
         runtime:d.runtime,
         release:d.release_date,
         countries:(d.production_countries||[]).map(co=>countryMap[co.name]||co.name).slice(0,2),
         rating:d.vote_average?Math.round(d.vote_average*10)/10:null,
         voteCount:d.vote_count,
-        // Sauver aussi le poster TMDB si film.p manquant
+        tagline:d.tagline||null,
+        production:prodCompany.length?prodCompany:null,
+        streaming:streaming.length?streaming:null,
+        rent:rent.length?rent:null,
         poster_path:(!film.p && d.poster_path)?d.poster_path:null
       };
       try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch{}
     }catch{
-      const detailsEl2=container?(container.querySelector('.hm-fiche-details')||container.querySelector('.hmv-info-details')):null;
-      if(detailsEl2)detailsEl2.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Connexion requise</div>';
+      const el2=container?(container.querySelector('.hm-fiche-details')||container.querySelector('.hmv-info-details')):null;
+      if(el2)el2.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Connexion requise</div>';
       return;
     }
   }
@@ -9855,7 +10107,7 @@ async function _hmEnrichFiche(film, container){
     ? (container.querySelector('.hm-fiche-details') || container.querySelector('.hmv-info-details'))
     : null;
   if(!detailsEl||!data)return;
-  const fmt=function(arr){return (arr&&arr.length)?arr.join(', '):'—';};
+  const fmt=arr=>(arr&&arr.length)?arr.join(', '):'—';
   const fmtR=min=>min?(Math.floor(min/60)+'h'+String(min%60).padStart(2,'0')):'—';
   const fmtD=d=>{if(!d)return'—';return new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});};
   const fmtRating=(r,v)=>{
@@ -9865,17 +10117,32 @@ async function _hmEnrichFiche(film, container){
     const votes=v?' · '+v.toLocaleString('fr-FR')+' votes':'';
     return '<span class="hm-fiche-rating"><span class="hm-fiche-stars">'+stars+'</span><span class="hm-fiche-score">'+r+'</span><span class="hm-fiche-votes">/10'+votes+'</span></span>';
   };
-  const row = (label, val) => val
-    ? '<div class="hm-fiche-row"><span class="hm-fiche-label">' + label + '</span><span class="hm-fiche-val">' + val + '</span></div>'
-    : '';
+  const row=(label,val)=>val
+    ?'<div class="hm-fiche-row"><span class="hm-fiche-label">'+label+'</span><span class="hm-fiche-val">'+val+'</span></div>'
+    :'';
+
+  // Plateformes sous forme de pills
+  const fmtPlatforms=arr=>{
+    if(!arr||!arr.length)return null;
+    const colors={'Netflix':'#e50914','Amazon Prime Video':'#00a8e1','Prime Video':'#00a8e1','Disney+':'#113ccf','Canal+':'#000','Apple TV+':'#000','OCS':'#ff6a00','Paramount+':'#0064ff','Max':'#002be7','MUBI':'#000','Crunchyroll':'#ff6b00'};
+    return '<span class="hm-platform-pills">'+arr.map(n=>{
+      const col=colors[n]||'rgba(255,255,255,.15)';
+      return `<span style="display:inline-block;background:${col};color:#fff;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;margin-right:4px;white-space:nowrap;">${n}</span>`;
+    }).join('')+'</span>';
+  };
+
   detailsEl.innerHTML = [
+    data.tagline?'<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);">« '+data.tagline+' »</div>':'',
     row('Réalisateur', data.director),
-    row('Scénario', data.writers && data.writers.length ? fmt(data.writers) : null),
-    row('Casting', data.cast && data.cast.length ? fmt(data.cast) : null),
+    row('Scénario', data.writers?.length ? fmt(data.writers) : null),
+    row('Casting', data.cast?.length ? fmt(data.cast) : null),
     row('Durée', data.runtime ? fmtR(data.runtime) : null),
     row('Sortie', data.release ? fmtD(data.release) : null),
-    row('Pays', data.countries && data.countries.length ? fmt(data.countries) : null),
+    row('Pays', data.countries?.length ? fmt(data.countries) : null),
+    row('Production', data.production?.length ? fmt(data.production) : null),
     row('Note', data.rating ? fmtRating(data.rating, data.voteCount) : null),
+    data.streaming?.length ? row('Streaming', fmtPlatforms(data.streaming)) : '',
+    data.rent?.length && !data.streaming?.length ? row('Location', fmtPlatforms(data.rent)) : '',
   ].join('');
 }
 
@@ -12662,7 +12929,9 @@ function buildModeHeatmap(s){
     wrap.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.25);font-size:12px;padding:8px 0;">Joue pour voir tes stats par mode !</div>';
     return;
   }
-  wrap.innerHTML=played.map(m=>{
+  // Afficher seulement top 3
+  const top3=played.slice(0,3);
+  wrap.innerHTML=top3.map(m=>{
     const v=s[m.k]||0;
     const pct=Math.round((v/max)*100);
     return`<div class="mode-bar-row">
@@ -12671,7 +12940,7 @@ function buildModeHeatmap(s){
       <div class="mode-bar-track"><div class="mode-bar-fill" style="width:${pct}%"></div></div>
       <div class="mode-bar-count">${v}</div>
     </div>`;
-  }).join('');
+  }).join('')+(played.length>3?`<div style="font-size:10px;color:rgba(255,255,255,.25);text-align:center;padding-top:6px;">+${played.length-3} autres modes</div>`:'');
 }
 
 // Injecte les stats globales sous le sparkline
