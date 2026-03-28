@@ -8767,17 +8767,17 @@ function _hmRenderCollection() {
 }
 
 // ══ HM VIEWER ══
-let _hmvFilms = [];   // liste des films de la collection (ordre affiché)
-let _hmvIdx   = 0;    // index courant dans _hmvFilms
+let _hmvList  = [];   // liste des films de la collection (ordre affiché)
+let _hmvIdx   = 0;    // index courant dans _hmvList
 let _hmvInfoOpen = false;
 
 function _hmOpenCardDetail(idx) {
   // Construire la liste ordonnée des films révélés (même ordre que la grille)
-  _hmvFilms = [..._hmRevealed]
+  _hmvList = [..._hmRevealed]
     .map(i => ({ idx: i, film: _hmFilms[i] }))
     .filter(f => f.film);
   // Trouver la position de la card cliquée
-  const pos = _hmvFilms.findIndex(f => f.idx === idx);
+  const pos = _hmvList.findIndex(f => f.idx === idx);
   _hmvIdx = pos >= 0 ? pos : 0;
   _hmvInfoOpen = false;
   _hmvRender();
@@ -8789,7 +8789,7 @@ function _hmOpenCardDetail(idx) {
 }
 
 function _hmvRender() {
-  const entry = _hmvFilms[_hmvIdx];
+  const entry = _hmvList[_hmvIdx];
   if (!entry) return;
   const { idx, film } = entry;
   const TI = 'https://image.tmdb.org/t/p/w500';
@@ -8816,11 +8816,11 @@ function _hmvRender() {
 
   // Compteur
   const ctr = document.getElementById('hmv-counter');
-  if (ctr) ctr.textContent = (_hmvIdx + 1) + ' / ' + _hmvFilms.length;
+  if (ctr) ctr.textContent = (_hmvIdx + 1) + ' / ' + _hmvList.length;
 
   // Flèches
   document.getElementById('hmv-prev').style.opacity = _hmvIdx > 0 ? '1' : '0.2';
-  document.getElementById('hmv-next').style.opacity = _hmvIdx < _hmvFilms.length - 1 ? '1' : '0.2';
+  document.getElementById('hmv-next').style.opacity = _hmvIdx < _hmvList.length - 1 ? '1' : '0.2';
 
   // Panneau infos
   const moodsHtml = (film.m || []).map(m => '<span class="hmv-info-mood">' + m + '</span>').join('');
@@ -8869,7 +8869,7 @@ function _hmvCloseInfo(animate = true) {
 
 function hmvNavigate(dir) {
   const next = _hmvIdx + dir;
-  if (next < 0 || next >= _hmvFilms.length) return;
+  if (next < 0 || next >= _hmvList.length) return;
   _hmvIdx = next;
   _hmvCloseInfo(false);
   // Animer le changement
