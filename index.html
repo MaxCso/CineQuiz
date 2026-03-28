@@ -8904,7 +8904,7 @@ function _hmRenderCollection() {
   }
 
   grid.innerHTML = revealedFilms.map(({ idx, film }) => {
-    const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
+    const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : encodeURIComponent(film.p)) : '';
     const imgHtml = posterUrl
       ? '<img class="hm-card-img" src="' + posterUrl + '" alt="' + film.t + '" loading="lazy">'
       : '<div class="hm-card-img-placeholder">' + film.y + '</div>';
@@ -8954,7 +8954,7 @@ function _hmvRender() {
   if (!entry) return;
   const { idx, film } = entry;
   const TI = 'https://image.tmdb.org/t/p/w500';
-  const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
+  const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : encodeURIComponent(film.p)) : '';
 
   // Fond flou
   const bg = document.getElementById('hmv-bg');
@@ -9271,7 +9271,7 @@ function _hmRenderCard(idx){
   }
 
   // Affiche floue en fond + en centre
-  const posterUrl=film.p?(film.p.startsWith('/')?TI+film.p:film.p):'';
+  const posterUrl=film.p?(film.p.startsWith('/')?TI+film.p:encodeURIComponent(film.p)):'';
   // Construire le HTML sans template literals imbriqués
   const bgHtml = posterUrl
     ? '<div class="hm-scratch-bg" style="background-image:url('+JSON.stringify(posterUrl)+')"></div>'
@@ -9698,15 +9698,31 @@ function hmResetScratch(){
 }
 
 async function _hmEnrichFiche(film, container){
-  const cacheKey='hm_info_'+film.t+'_'+film.y;
+  // Clé cache sûre (normaliser les accents)
+  const safeTitle=film.t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  const cacheKey='hm_info_'+safeTitle+'_'+film.y;
   let data=null;
   try{const raw=localStorage.getItem(cacheKey);if(raw)data=JSON.parse(raw);}catch{}
   if(!data){
     try{
-      const res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
-      const json=await res.json();
-      const match=(json.results && json.results[0]);
-      if(!match)return;
+      // Essai 1 : titre exact + année
+      let res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
+      let json=await res.json();
+      let match=(json.results && json.results[0]);
+      // Essai 2 : titre sans année si pas de résultat
+      if(!match){
+        res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}`);
+        json=await res.json();
+        match=(json.results && json.results[0]);
+      }
+      if(!match){
+        // Afficher quand même les données de base depuis HM_DB
+        const detailsBasic=container
+          ? (container.querySelector('.hm-fiche-details') || container.querySelector('.hmv-info-details'))
+          : null;
+        if(detailsBasic) detailsBasic.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Données non disponibles</div>';
+        return;
+      }
       const res2=await fetch(`https://api.themoviedb.org/3/movie/${match.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`);
       const d=await res2.json();
       const countryMap={'United States of America':'États-Unis','United Kingdom':'Royaume-Uni','France':'France','Germany':'Allemagne','Italy':'Italie','Spain':'Espagne','Japan':'Japon','South Korea':'Corée du Sud','Canada':'Canada','Australia':'Australie','Belgium':'Belgique','Sweden':'Suède','Denmark':'Danemark','Poland':'Pologne','Ireland':'Irlande','Austria':'Autriche','Switzerland':'Suisse','Netherlands':'Pays-Bas','Norway':'Norvège','Finland':'Finlande','Portugal':'Portugal','Romania':'Roumanie','Mexico':'Mexique','Argentina':'Argentine','Brazil':'Brésil','China':'Chine','India':'Inde','Iran':'Iran','Turkey':'Turquie','Greece':'Grèce'};
@@ -9718,10 +9734,16 @@ async function _hmEnrichFiche(film, container){
         release:d.release_date,
         countries:(d.production_countries||[]).map(co=>countryMap[co.name]||co.name).slice(0,2),
         rating:d.vote_average?Math.round(d.vote_average*10)/10:null,
-        voteCount:d.vote_count
+        voteCount:d.vote_count,
+        // Sauver aussi le poster TMDB si film.p manquant
+        poster_path:(!film.p && d.poster_path)?d.poster_path:null
       };
       try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch{}
-    }catch{return;}
+    }catch{
+      const detailsEl2=container?(container.querySelector('.hm-fiche-details')||container.querySelector('.hmv-info-details')):null;
+      if(detailsEl2)detailsEl2.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Connexion requise</div>';
+      return;
+    }
   }
   const detailsEl=container
     ? (container.querySelector('.hm-fiche-details') || container.querySelector('.hmv-info-details'))
