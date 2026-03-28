@@ -3235,7 +3235,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hm-level-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:rgba(192,132,252,.7);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .hm-level-title::after{content:'';flex:1;height:1px;background:rgba(168,85,247,.15);}
 .hm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 8px;}
-.hm-card{border-radius:12px;aspect-ratio:.67;position:relative;cursor:pointer;transition:transform .18s;}
+.hm-card-wrap{aspect-ratio:2/3;position:relative;cursor:pointer;perspective:1000px;}
 .hm-card:active{transform:scale(.95);}
 .hm-card.locked{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:default;}
 .hm-card.locked:active{transform:none;}
@@ -3552,35 +3552,68 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 /* ── CARTE HOLOGRAPHIQUE ── */
 .hm-card{
-  position:relative;
+  position:absolute;inset:0;
   border-radius:14px;
-  overflow:hidden;
-  cursor:pointer;
-  aspect-ratio:2/3;
   transform-style:preserve-3d;
-  transform:perspective(600px) rotateX(0deg) rotateY(0deg);
-  transition:transform .1s ease,box-shadow .2s ease;
+  transition:transform .65s cubic-bezier(.4,0,.2,1);
   will-change:transform;
   box-shadow:0 4px 20px rgba(0,0,0,.6);
 }
-.hm-card:active{transform:perspective(600px) scale(.96);}
-.hm-card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:14px;}
+.hm-card.flipped{transform:rotateY(180deg);}
+
+/* RECTO */
+.hm-card-front{
+  position:absolute;inset:0;border-radius:14px;overflow:hidden;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+.hm-card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
 .hm-card-img-placeholder{position:absolute;inset:0;background:linear-gradient(160deg,#120820,#060310);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:28px;color:rgba(168,85,247,.15);letter-spacing:3px;}
-.hm-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(4,2,12,.92) 0%,rgba(4,2,12,.3) 45%,transparent 70%);border-radius:14px;}
-.hm-card-info{position:absolute;bottom:0;left:0;right:0;padding:10px;}
-.hm-card-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:#fff;line-height:1.1;margin-bottom:3px;}
-.hm-card-meta{font-size:9px;color:rgba(255,255,255,.45);letter-spacing:.5px;}
+.hm-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(4,2,12,.92) 0%,rgba(4,2,12,.3) 45%,transparent 70%);}
+.hm-card-info{position:absolute;bottom:0;left:0;right:0;padding:8px;}
+.hm-card-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:#fff;line-height:1.1;margin-bottom:2px;}
+.hm-card-meta{font-size:8px;color:rgba(255,255,255,.4);letter-spacing:.5px;}
+.hm-flip-hint{position:absolute;top:6px;right:6px;font-size:12px;opacity:.4;pointer-events:none;line-height:1;}
+
+/* VERSO */
+.hm-card-back{
+  position:absolute;inset:0;border-radius:14px;overflow:hidden;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  transform:rotateY(180deg);
+  background:linear-gradient(160deg,#14082e,#09041a,#0d0520);
+  display:flex;flex-direction:column;padding:10px;box-sizing:border-box;
+  gap:0;
+}
+.hm-back-top{flex-shrink:0;}
+.hm-back-genre{font-size:7px;color:rgba(192,132,252,.55);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.hm-back-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:#fff;line-height:1.1;margin-bottom:6px;}
+.hm-back-synopsis{font-size:8px;color:rgba(255,255,255,.45);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;margin-bottom:auto;}
+.hm-back-divider{height:1px;background:rgba(255,255,255,.07);margin:7px 0;flex-shrink:0;}
+.hm-back-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.hm-back-lbl{font-size:6.5px;color:rgba(192,132,252,.4);letter-spacing:1.5px;text-transform:uppercase;}
+.hm-back-val{font-size:8px;color:rgba(255,255,255,.65);max-width:65%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hm-back-rating{color:#f5c842;font-family:'Bebas Neue',sans-serif;font-size:12px;}
+.hm-back-moods{display:flex;flex-wrap:wrap;gap:2px;margin-top:5px;flex-shrink:0;}
+.hm-back-mood{font-size:6.5px;color:rgba(192,132,252,.6);background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15);border-radius:8px;padding:2px 5px;}
+.hm-back-btn{
+  margin-top:7px;flex-shrink:0;
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);
+  border-radius:8px;padding:6px;
+  color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;
+  cursor:pointer;text-align:center;
+}
+
+/* HALO — sur le wrap */
 .hm-card-holo{
   position:absolute;inset:0;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .5s ease;
   background:radial-gradient(ellipse at var(--mx,50%) var(--my,50%),rgba(255,255,255,.08) 0%,transparent 60%),
     linear-gradient(calc(var(--holo-angle,105deg)),transparent 0%,rgba(255,220,180,.06) 10%,rgba(180,255,220,.08) 22%,rgba(180,220,255,.07) 34%,rgba(255,180,220,.06) 46%,rgba(255,240,160,.06) 58%,rgba(160,255,240,.08) 70%,rgba(220,180,255,.06) 82%,transparent 100%);
-  mix-blend-mode:screen;
+  mix-blend-mode:screen;z-index:2;
 }
-.hm-card-shine{position:absolute;inset:0;border-radius:14px;pointer-events:none;opacity:0;background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),rgba(255,255,255,.06) 0%,rgba(255,255,255,.01) 40%,transparent 65%);mix-blend-mode:screen;transition:opacity .2s;}
-.hm-card:hover .hm-card-holo,.hm-card.touching .hm-card-holo{opacity:1;}
-.hm-card:hover .hm-card-shine,.hm-card.touching .hm-card-shine{opacity:1;}
-.hm-card-border{position:absolute;inset:0;border-radius:14px;border:1px solid rgba(255,255,255,.10);pointer-events:none;background:linear-gradient(calc(var(--holo-angle,105deg)),rgba(255,220,180,.07),rgba(180,255,220,.06),rgba(180,220,255,.07));opacity:0;mix-blend-mode:screen;transition:opacity .3s;}
-.hm-card:hover .hm-card-border,.hm-card.touching .hm-card-border{opacity:1;}
+.hm-card-shine{position:absolute;inset:0;border-radius:14px;pointer-events:none;opacity:0;z-index:2;background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),rgba(255,255,255,.06) 0%,rgba(255,255,255,.01) 40%,transparent 65%);mix-blend-mode:screen;transition:opacity .2s;}
+.hm-card-border{position:absolute;inset:0;border-radius:14px;border:1px solid rgba(255,255,255,.10);pointer-events:none;z-index:2;background:linear-gradient(calc(var(--holo-angle,105deg)),rgba(255,220,180,.07),rgba(180,255,220,.06),rgba(180,220,255,.07));opacity:0;mix-blend-mode:screen;transition:opacity .3s;}
+.hm-card-wrap:hover .hm-card-holo,.hm-card-wrap.touching .hm-card-holo{opacity:1;}
+.hm-card-wrap:hover .hm-card-shine,.hm-card-wrap.touching .hm-card-shine{opacity:1;}
+.hm-card-wrap:hover .hm-card-border,.hm-card-wrap.touching .hm-card-border{opacity:1;}
 
 </style>
 </head>
@@ -9361,21 +9394,34 @@ function _hmRenderCollection() {
   grid.innerHTML = randomBtn + revealedFilms.map(({ idx, film }) => {
     const posterUrl = film.p ? (film.p.startsWith('http') ? film.p : film.p.startsWith('/') ? TI + film.p : film.p) : '';
     const imgHtml = posterUrl
-      ? '<img class="hm-card-img" src="' + posterUrl + '" alt="' + film.t + '" loading="lazy">'
-      : '<div class="hm-card-img-placeholder">' + film.y + '</div>';
-    return (
-      '<div class="hm-card" data-idx="' + idx + '" onclick="_hmOpenCardDetail(' + idx + ')">' +
-        imgHtml +
-        '<div class="hm-card-overlay"></div>' +
-        '<div class="hm-card-holo"></div>' +
-        '<div class="hm-card-shine"></div>' +
-        '<div class="hm-card-border"></div>' +
-        '<div class="hm-card-info">' +
-          '<div class="hm-card-title">' + film.t + '</div>' +
-          '<div class="hm-card-meta">' + film.y + ' · ' + film.g + '</div>' +
-        '</div>' +
-      '</div>'
-    );
+      ? `<img class="hm-card-img" src="${posterUrl}" alt="${film.t}" loading="lazy">`
+      : `<div class="hm-card-img-placeholder">${film.y}</div>`;
+    const moodsHtml = (film.m||[]).map(m=>`<span class="hm-back-mood">${m}</span>`).join('');
+    return `<div class="hm-card-wrap" data-idx="${idx}">
+      <div class="hm-card" onclick="hmCardTap(this,${idx})">
+        <div class="hm-card-front">
+          ${imgHtml}
+          <div class="hm-card-overlay"></div>
+          <div class="hm-card-info">
+            <div class="hm-card-title">${film.t}</div>
+            <div class="hm-card-meta">${film.y} · ${film.g}</div>
+          </div>
+          <div class="hm-flip-hint">↻</div>
+        </div>
+        <div class="hm-card-back">
+          <div class="hm-back-genre">${film.g||''}</div>
+          <div class="hm-back-title">${film.t}</div>
+          <div class="hm-back-synopsis">${film.s||''}</div>
+          <div class="hm-back-divider"></div>
+          <div id="hm-back-rows-${idx}"><div class="hm-back-row"><span class="hm-back-lbl">Année</span><span class="hm-back-val">${film.y}</span></div></div>
+          ${moodsHtml ? `<div class="hm-back-moods">${moodsHtml}</div>` : ''}
+          <div class="hm-back-btn" onclick="event.stopPropagation();_hmOpenCardDetail(${idx})">Voir le film ↗</div>
+        </div>
+        <div class="hm-card-holo"></div>
+        <div class="hm-card-shine"></div>
+        <div class="hm-card-border"></div>
+      </div>
+    </div>`;
   }).join('');
 
   // Stats section en bas de la collection
@@ -9700,37 +9746,91 @@ function _hmvHoloLeave()       { _hmvHoloReset(this); }
 
 // ══ HM — Effet holographique ══
 function _hmInitHoloCards() {
-  const cards = document.querySelectorAll('#hm-collection-grid .hm-card, #hm-wishlist-grid .hm-card');
-  cards.forEach(card => {
-    let _resetTimer = null, _rafId = null;
-    const scheduleReset = () => {
-      clearTimeout(_resetTimer);
-      _resetTimer = setTimeout(() => {
-        card.classList.remove('touching');
-        card.style.transition = 'transform .5s cubic-bezier(.25,.46,.45,.94)';
-        card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)';
-        setTimeout(() => { card.style.transition = ''; }, 520);
-      }, 280);
+  document.querySelectorAll('#hm-collection-grid .hm-card-wrap, #hm-wishlist-grid .hm-card-wrap').forEach(wrap => {
+    let timer=null, raf=null;
+    const reset=()=>{
+      timer=setTimeout(()=>{ wrap.classList.remove('touching'); },300);
     };
-    const updateHolo = (clientX, clientY) => {
-      const rect = card.getBoundingClientRect();
-      const x = clientX - rect.left, y = clientY - rect.top;
-      const mx = (x / rect.width) * 100, my = (y / rect.height) * 100;
-      const rotY = ((mx - 50) / 50) * 16, rotX = -((my - 50) / 50) * 13;
-      const angle = Math.atan2(y - rect.height/2, x - rect.width/2) * (180/Math.PI) + 90;
-      card.style.setProperty('--mx', mx + '%');
-      card.style.setProperty('--my', my + '%');
-      card.style.setProperty('--holo-angle', angle + 'deg');
-      card.style.transform = 'perspective(600px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.04)';
+    const update=(cx,cy)=>{
+      const r=wrap.getBoundingClientRect();
+      const mx=((cx-r.left)/r.width*100).toFixed(1)+'%';
+      const my=((cy-r.top)/r.height*100).toFixed(1)+'%';
+      const angle=(Math.atan2(cy-r.top-r.height/2, cx-r.left-r.width/2)*180/Math.PI+90)+'deg';
+      wrap.style.setProperty('--mx',mx);
+      wrap.style.setProperty('--my',my);
+      wrap.style.setProperty('--holo-angle',angle);
     };
-    card.addEventListener('touchstart', e => { clearTimeout(_resetTimer); card.classList.add('touching'); card.style.transition = 'none'; updateHolo(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-    card.addEventListener('touchmove', e => { clearTimeout(_resetTimer); if(_rafId) cancelAnimationFrame(_rafId); _rafId = requestAnimationFrame(() => updateHolo(e.touches[0].clientX, e.touches[0].clientY)); }, { passive: true });
-    card.addEventListener('touchend', () => scheduleReset(), { passive: true });
-    card.addEventListener('touchcancel', () => scheduleReset(), { passive: true });
-    card.addEventListener('mouseenter', () => { clearTimeout(_resetTimer); card.classList.add('touching'); card.style.transition = 'none'; });
-    card.addEventListener('mousemove', e => { clearTimeout(_resetTimer); if(_rafId) cancelAnimationFrame(_rafId); _rafId = requestAnimationFrame(() => updateHolo(e.clientX, e.clientY)); });
-    card.addEventListener('mouseleave', () => scheduleReset());
+    wrap.addEventListener('touchstart',e=>{clearTimeout(timer);wrap.classList.add('touching');update(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+    wrap.addEventListener('touchmove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.touches[0].clientX,e.touches[0].clientY));},{passive:true});
+    wrap.addEventListener('touchend',()=>reset(),{passive:true});
+    wrap.addEventListener('mouseenter',()=>{clearTimeout(timer);wrap.classList.add('touching');});
+    wrap.addEventListener('mousemove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.clientX,e.clientY));});
+    wrap.addEventListener('mouseleave',()=>reset());
   });
+}
+
+function hmCardTap(card, idx){
+  if(card.classList.contains('flipped')){
+    card.classList.remove('flipped');
+  } else {
+    card.classList.add('flipped');
+    _hmFillCardBack(idx);
+  }
+}
+
+async function _hmFillCardBack(idx){
+  const film=_hmFilms[idx];
+  if(!film)return;
+  const el=document.getElementById('hm-back-rows-'+idx);
+  if(!el||el.dataset.filled)return;
+
+  const safe=film.t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  const key='hm_info2_'+safe+'_'+film.y;
+  let d=null;
+  try{const r=localStorage.getItem(key);if(r)d=JSON.parse(r);}catch{}
+
+  const fmtMin=m=>m?(Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')):'—';
+  const fmtStar=r=>{if(!r)return'';const s=Math.round(r/2);return '★'.repeat(s)+'☆'.repeat(5-s)+' '+r;};
+
+  const buildRows=data=>[
+    data.director?`<div class="hm-back-row"><span class="hm-back-lbl">Réal.</span><span class="hm-back-val">${data.director}</span></div>`:'',
+    data.runtime?`<div class="hm-back-row"><span class="hm-back-lbl">Durée</span><span class="hm-back-val">${fmtMin(data.runtime)}</span></div>`:'',
+    data.countries?.length?`<div class="hm-back-row"><span class="hm-back-lbl">Pays</span><span class="hm-back-val">${data.countries.join(', ')}</span></div>`:'',
+    data.rating?`<div class="hm-back-row"><span class="hm-back-lbl">Note</span><span class="hm-back-val hm-back-rating">${fmtStar(data.rating)}</span></div>`:'',
+    data.streaming?.length?`<div class="hm-back-row"><span class="hm-back-lbl">Stream</span><span class="hm-back-val">${data.streaming.slice(0,2).join(' · ')}</span></div>`:'',
+  ].filter(Boolean).join('') || `<div class="hm-back-row"><span class="hm-back-lbl">Année</span><span class="hm-back-val">${film.y}</span></div>`;
+
+  if(d){el.innerHTML=buildRows(d);el.dataset.filled='1';return;}
+
+  // Chargement TMDB en arrière-plan
+  try{
+    let res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
+    let json=await res.json();
+    let match=json.results?.[0];
+    if(!match){
+      res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}`);
+      json=await res.json();match=json.results?.[0];
+    }
+    if(match){
+      const [r2,r3]=await Promise.all([
+        fetch(`https://api.themoviedb.org/3/movie/${match.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`),
+        fetch(`https://api.themoviedb.org/3/movie/${match.id}/watch/providers?api_key=${TK}`)
+      ]);
+      const mv=await r2.json();const wp=await r3.json();
+      const cmap={'United States of America':'États-Unis','United Kingdom':'Royaume-Uni','France':'France','Germany':'Allemagne','Japan':'Japon','South Korea':'Corée du Sud'};
+      d={
+        director:((mv.credits?.crew)||[]).find(p=>p.job==='Director')?.name||null,
+        runtime:mv.runtime||null,
+        countries:(mv.production_countries||[]).map(co=>cmap[co.name]||co.name).slice(0,2),
+        rating:mv.vote_average?Math.round(mv.vote_average*10)/10:null,
+        streaming:(wp.results?.FR?.flatrate||[]).map(p=>p.provider_name).slice(0,3),
+      };
+      try{localStorage.setItem(key,JSON.stringify(d));}catch{}
+      if(document.getElementById('hm-back-rows-'+idx)===el){
+        el.innerHTML=buildRows(d);el.dataset.filled='1';
+      }
+    }
+  }catch{}
 }
 
 function _hmHoloReset(card) {
