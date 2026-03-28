@@ -2950,7 +2950,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 }
 .hm-scratch-canvas{
   position:absolute;top:0;left:0;
-  z-index:4;cursor:crosshair;
+  z-index:4;
+  cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f5c842' stroke-width='2' opacity='0.8'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f5c842'/%3E%3C/svg%3E") 16 16, crosshair;
   touch-action:none;
   display:block;
 }
@@ -3074,6 +3075,163 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   transition:filter 1s ease;
 }
 .hm-scratch-poster img.revealed{filter:blur(0) brightness(1);}
+
+/* ── HM ONGLETS ── */
+.hm-tabs{
+  display:flex;gap:0;flex-shrink:0;
+  background:rgba(255,255,255,.03);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.hm-tab{
+  flex:1;padding:10px 8px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:12px;font-weight:600;letter-spacing:.5px;
+  color:rgba(255,255,255,.3);
+  background:none;border:none;cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .2s;
+}
+.hm-tab.active{
+  color:#c084fc;
+  border-bottom-color:#c084fc;
+}
+.hm-tab-count{
+  background:rgba(168,85,247,.25);
+  color:#c084fc;font-size:10px;
+  border-radius:10px;padding:1px 6px;
+  min-width:18px;text-align:center;
+}
+
+/* ── HM COLLECTION GRILLE ── */
+.hm-collection-wrap{
+  flex:1;min-height:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px;
+}
+.hm-collection-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+/* ── CARTE HOLOGRAPHIQUE ── */
+.hm-card{
+  position:relative;
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  aspect-ratio:2/3;
+  transform-style:preserve-3d;
+  transform:perspective(600px) rotateX(0deg) rotateY(0deg);
+  transition:transform .1s ease,box-shadow .2s ease;
+  will-change:transform;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+}
+.hm-card:active{transform:perspective(600px) scale(.96);}
+
+/* Image de fond */
+.hm-card-img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+  border-radius:14px;
+}
+.hm-card-img-placeholder{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg,#120820,#060310);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:28px;
+  color:rgba(168,85,247,.15);letter-spacing:3px;
+}
+
+/* Overlay dégradé bas */
+.hm-card-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(4,2,12,.92) 0%,rgba(4,2,12,.3) 45%,transparent 70%);
+  border-radius:14px;
+}
+
+/* Infos en bas */
+.hm-card-info{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 10px 10px;
+}
+.hm-card-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:15px;letter-spacing:1px;
+  color:#fff;line-height:1.1;
+  margin-bottom:3px;
+}
+.hm-card-meta{
+  font-size:9px;color:rgba(255,255,255,.45);letter-spacing:.5px;
+}
+
+/* ── HALO HOLOGRAPHIQUE ── */
+.hm-card-holo{
+  position:absolute;inset:0;
+  border-radius:14px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s;
+  /* Gradient arc-en-ciel qui se déplace */
+  background:
+    radial-gradient(ellipse at var(--mx,50%) var(--my,50%),
+      rgba(255,255,255,.15) 0%,
+      transparent 60%
+    ),
+    linear-gradient(
+      calc(var(--holo-angle,135deg)),
+      rgba(255,0,128,.4) 0%,
+      rgba(255,128,0,.35) 12%,
+      rgba(255,255,0,.3) 25%,
+      rgba(0,255,128,.35) 37%,
+      rgba(0,200,255,.4) 50%,
+      rgba(128,0,255,.35) 62%,
+      rgba(255,0,255,.3) 75%,
+      rgba(255,0,128,.4) 87%,
+      rgba(255,128,0,.35) 100%
+    );
+  mix-blend-mode:color-dodge;
+}
+.hm-card-shine{
+  position:absolute;inset:0;
+  border-radius:14px;
+  pointer-events:none;
+  opacity:0;
+  background:radial-gradient(
+    ellipse 60% 40% at var(--mx,50%) var(--my,50%),
+    rgba(255,255,255,.25) 0%,
+    rgba(255,255,255,.05) 40%,
+    transparent 70%
+  );
+  mix-blend-mode:screen;
+  transition:opacity .2s;
+}
+.hm-card:hover .hm-card-holo,
+.hm-card.touching .hm-card-holo{ opacity:1; }
+.hm-card:hover .hm-card-shine,
+.hm-card.touching .hm-card-shine{ opacity:1; }
+
+/* Bordure holographique */
+.hm-card-border{
+  position:absolute;inset:0;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  pointer-events:none;
+  background:linear-gradient(
+    calc(var(--holo-angle,135deg)),
+    rgba(255,0,128,.2),
+    rgba(0,200,255,.2),
+    rgba(255,0,128,.2)
+  );
+  opacity:0;
+  mix-blend-mode:screen;
+  transition:opacity .3s;
+}
+.hm-card:hover .hm-card-border,
+.hm-card.touching .hm-card-border{opacity:1;}
+
 </style>
 </head>
 <body>
@@ -4040,6 +4198,19 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       </div>
     </div>
 
+    <!-- Onglets -->
+    <div class="hm-tabs">
+      <button class="hm-tab active" id="hm-tab-scratch" onclick="hmSwitchTab('scratch')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Découvrir
+      </button>
+      <button class="hm-tab" id="hm-tab-collection" onclick="hmSwitchTab('collection')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Collection
+        <span class="hm-tab-count" id="hm-tab-count">0</span>
+      </button>
+    </div>
+
     <!-- Zone de la carte grattable plein écran -->
     <div class="hm-scratch-wrap" id="hm-scratch-wrap">
       <!-- Carte courante -->
@@ -4062,6 +4233,11 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="hm-scratch-counter" id="hm-scratch-counter"></div>
       <!-- Barre XP -->
       <div class="hm-prog-bar"><div class="hm-prog-fill" id="hm-prog-fill"></div></div>
+    </div>
+
+    <!-- Catalogue grille -->
+    <div class="hm-collection-wrap" id="hm-collection-wrap" style="display:none;">
+      <div class="hm-collection-grid" id="hm-collection-grid"></div>
     </div>
 
     <!-- Fiche film (slide up après grattage) -->
@@ -8102,6 +8278,121 @@ function _hmSetEq(idx,playing){
 }
 
 
+// ══ HM — Onglets ══
+let _hmCurrentTab = 'scratch';
+
+function hmSwitchTab(tab) {
+  _hmCurrentTab = tab;
+  document.querySelectorAll('.hm-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('hm-tab-' + tab)?.classList.add('active');
+
+  const scratchWrap = document.getElementById('hm-scratch-wrap');
+  const collectionWrap = document.getElementById('hm-collection-wrap');
+
+  if (tab === 'scratch') {
+    if (scratchWrap) scratchWrap.style.display = 'flex';
+    if (collectionWrap) collectionWrap.style.display = 'none';
+  } else {
+    if (scratchWrap) scratchWrap.style.display = 'none';
+    if (collectionWrap) collectionWrap.style.display = 'block';
+    _hmRenderCollection();
+  }
+}
+
+function _hmUpdateTabCount() {
+  const el = document.getElementById('hm-tab-count');
+  if (el) el.textContent = _hmRevealed.size;
+}
+
+// ══ HM — Grille catalogue ══
+function _hmRenderCollection() {
+  const grid = document.getElementById('hm-collection-grid');
+  if (!grid) return;
+
+  // Films révélés, dans l'ordre de révélation
+  const revealedFilms = [..._hmRevealed]
+    .map(idx => ({ idx, film: _hmFilms[idx] }))
+    .filter(({ film }) => film);
+
+  if (!revealedFilms.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(255,255,255,.2);font-size:13px;line-height:1.6;">Gratte des cartes pour remplir<br>ta collection ✦</div>';
+    return;
+  }
+
+  grid.innerHTML = revealedFilms.map(({ idx, film }) => {
+    const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
+    const imgHtml = posterUrl
+      ? '<img class="hm-card-img" src="' + posterUrl + '" alt="' + film.t + '" loading="lazy">'
+      : '<div class="hm-card-img-placeholder">' + film.y + '</div>';
+    return (
+      '<div class="hm-card" data-idx="' + idx + '" onclick="_hmOpenCardDetail(' + idx + ')">' +
+        imgHtml +
+        '<div class="hm-card-overlay"></div>' +
+        '<div class="hm-card-holo"></div>' +
+        '<div class="hm-card-shine"></div>' +
+        '<div class="hm-card-border"></div>' +
+        '<div class="hm-card-info">' +
+          '<div class="hm-card-title">' + film.t + '</div>' +
+          '<div class="hm-card-meta">' + film.y + ' · ' + film.g + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+
+  // Attacher les events holo après le rendu
+  requestAnimationFrame(() => _hmInitHoloCards());
+}
+
+function _hmOpenCardDetail(idx) {
+  const film = _hmFilms[idx];
+  if (!film) return;
+  _hmShowSheet(film, idx);
+}
+
+// ══ HM — Effet holographique ══
+function _hmInitHoloCards() {
+  const cards = document.querySelectorAll('#hm-collection-grid .hm-card');
+  cards.forEach(card => {
+    // Touch — utiliser des closures pour passer la carte
+    card.addEventListener('touchstart', e => { card.classList.add('touching'); _hmHoloUpdate(card, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    card.addEventListener('touchmove', e => { _hmHoloUpdate(card, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    card.addEventListener('touchend', () => { _hmHoloReset(card); }, { passive: true });
+    // Mouse
+    card.addEventListener('mousemove', e => { card.classList.add('touching'); _hmHoloUpdate(card, e.clientX, e.clientY); });
+    card.addEventListener('mouseleave', () => { _hmHoloReset(card); });
+  });
+}
+
+function _hmHoloReset(card) {
+  card.classList.remove('touching');
+  card.style.removeProperty('--mx');
+  card.style.removeProperty('--my');
+  card.style.removeProperty('--holo-angle');
+  card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg)';
+}
+
+function _hmHoloUpdate(card, clientX, clientY) {
+  const rect = card.getBoundingClientRect();
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  const mx = (x / rect.width) * 100;
+  const my = (y / rect.height) * 100;
+
+  // Rotation 3D légère
+  const rotY = ((mx - 50) / 50) * 12;  // max ±12deg
+  const rotX = -((my - 50) / 50) * 10; // max ±10deg
+
+  // Angle du gradient arc-en-ciel basé sur position
+  const angle = Math.atan2(y - rect.height / 2, x - rect.width / 2) * (180 / Math.PI) + 90;
+
+  card.style.setProperty('--mx', mx + '%');
+  card.style.setProperty('--my', my + '%');
+  card.style.setProperty('--holo-angle', angle + 'deg');
+  card.style.transform =
+    'perspective(600px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.03)';
+}
+
+
 function openHM(){
   document.querySelectorAll('.scr').forEach(s=>{s.classList.remove('on');s.style.opacity='0';s.style.pointerEvents='none';});
   const gbg=document.getElementById('game-bg');if(gbg)gbg.classList.remove('on');
@@ -8139,6 +8430,7 @@ function _hmBuildList(){
   let hash=0;for(let i=0;i<seed.length;i++){hash=((hash<<5)-hash)+seed.charCodeAt(i);hash|=0;}
   const rng=()=>{hash=Math.imul(hash^hash>>>16,0x45d9f3b);hash=Math.imul(hash^hash>>>15,0x119de1f3);hash=hash^hash>>>16;return(hash>>>0)/0xffffffff;};
   _hmFilms=[...HM_DB].sort(()=>rng()-.5);
+  _hmUpdateTabCount();
 }
 
 function _hmRenderCard(idx){
@@ -8222,83 +8514,215 @@ function _hmRenderCard(idx){
 }
 
 function _hmInitScratch(canvas, film, idx){
-  // Attendre que le DOM soit rendu pour avoir les vraies dimensions
   requestAnimationFrame(()=>{
   const rect=canvas.parentElement.getBoundingClientRect();
   const W=Math.round(rect.width)||375;
   const H=Math.round(rect.height)||600;
-  canvas.width=W;
-  canvas.height=H;
+  const DPR=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=W*DPR;
+  canvas.height=H*DPR;
   canvas.style.width=W+'px';
   canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
+  ctx.scale(DPR,DPR);
   _hmCtx=ctx;
 
-  // Fond opaque sur le canvas (cache l'affiche)
-  ctx.fillStyle='#0d0620';
-  ctx.fillRect(0,0,W,H);
+  // ── Couche off-screen pour l'effet texture (gold foil) ──
+  const offscreen=document.createElement('canvas');
+  offscreen.width=W; offscreen.height=H;
+  const octx=offscreen.getContext('2d');
 
-  // Dégradé violet
-  const grad=ctx.createLinearGradient(0,0,W,H);
-  grad.addColorStop(0,'rgba(80,20,160,.6)');
-  grad.addColorStop(.5,'rgba(40,10,100,.4)');
-  grad.addColorStop(1,'rgba(10,4,30,.6)');
-  ctx.fillStyle=grad;
-  ctx.fillRect(0,0,W,H);
+  // Fond de base sombre
+  octx.fillStyle='#08050f';
+  octx.fillRect(0,0,W,H);
 
-  // Points décoratifs
-  ctx.fillStyle='rgba(168,85,247,.07)';
-  for(let x=0;x<W;x+=20)
-    for(let y=0;y<H;y+=20)
-      ctx.fillRect(x,y,2,2);
+  // Texture "feuille d'or" : gradient multi-stop qui simule le reflet métallique
+  const gGold=octx.createLinearGradient(0,0,W,H);
+  gGold.addColorStop(0.00,'#b8860b');
+  gGold.addColorStop(0.18,'#f5c842');
+  gGold.addColorStop(0.32,'#ffe066');
+  gGold.addColorStop(0.45,'#c8950a');
+  gGold.addColorStop(0.55,'#ffd700');
+  gGold.addColorStop(0.68,'#f5c842');
+  gGold.addColorStop(0.80,'#b8860b');
+  gGold.addColorStop(0.90,'#ffe480');
+  gGold.addColorStop(1.00,'#c8950a');
+  octx.fillStyle=gGold;
+  octx.fillRect(0,0,W,H);
 
-  // Icône centrale
-  ctx.save();
-  ctx.font=Math.round(W*.18)+'px serif';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.globalAlpha=.15;
-  const moodEmoji2={mélancolique:'🌧',joyeux:'☀️',adrénaline:'⚡',réflexion:'🌀',comédie:'😄',atmosphère:'🌫'}[(film.m && film.m[0])]||'🎬';
-  ctx.fillText(moodEmoji2,W/2,H/2-40);
-  ctx.restore();
+  // Bruit de texture (micro-grains pour imiter le métal mat)
+  const imgData=octx.getImageData(0,0,W,H);
+  const d=imgData.data;
+  for(let i=0;i<d.length;i+=4){
+    const n=(Math.random()-.5)*28;
+    d[i]=Math.min(255,Math.max(0,d[i]+n));
+    d[i+1]=Math.min(255,Math.max(0,d[i+1]+n));
+    d[i+2]=Math.min(255,Math.max(0,d[i+2]+n*.3));
+  }
+  octx.putImageData(imgData,0,0);
 
-  // Texte genre
-  ctx.save();
-  ctx.globalAlpha=.25;
-  ctx.font=`600 13px -apple-system,sans-serif`;
-  ctx.fillStyle='#c084fc';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.letterSpacing='3px';
-  ctx.fillText(film.g.toUpperCase(),W/2,H/2+10);
-  ctx.restore();
+  // Reflet diagonal brillant (glint)
+  const gGlint=octx.createLinearGradient(0,H*.2,W,H*.8);
+  gGlint.addColorStop(0,'rgba(255,255,255,0)');
+  gGlint.addColorStop(0.4,'rgba(255,255,255,0)');
+  gGlint.addColorStop(0.5,'rgba(255,255,240,0.22)');
+  gGlint.addColorStop(0.6,'rgba(255,255,255,0)');
+  gGlint.addColorStop(1,'rgba(255,255,255,0)');
+  octx.fillStyle=gGlint;
+  octx.fillRect(0,0,W,H);
 
-  // Texte "GRATTE POUR RÉVÉLER"
-  ctx.save();
-  ctx.globalAlpha=.2;
-  ctx.font=`500 11px -apple-system,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.6)';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.fillText('✦  GRATTE POUR RÉVÉLER  ✦',W/2,H/2+36);
-  ctx.restore();
+  // Motif croisillons en relief
+  octx.save();
+  octx.globalAlpha=0.06;
+  octx.strokeStyle='#7a5500';
+  octx.lineWidth=0.8;
+  const step=14;
+  for(let x=-H;x<W+H;x+=step){
+    octx.beginPath();octx.moveTo(x,0);octx.lineTo(x+H,H);octx.stroke();
+    octx.beginPath();octx.moveTo(x,0);octx.lineTo(x-H,H);octx.stroke();
+  }
+  octx.restore();
 
-  // Compter les pixels grattés
-  let totalPx=canvas.width*canvas.height;
+  // Étoiles / étincelles déco
+  const sparkles=[
+    {x:W*.18,y:H*.22,r:3.5},{x:W*.82,y:H*.18,r:2.5},{x:W*.12,y:H*.72,r:2},
+    {x:W*.88,y:H*.68,r:3},{x:W*.5,y:H*.12,r:2.5},{x:W*.5,y:H*.88,r:2},
+    {x:W*.3,y:H*.5,r:1.8},{x:W*.7,y:H*.5,r:1.8}
+  ];
+  sparkles.forEach(({x,y,r})=>{
+    const sg=octx.createRadialGradient(x,y,0,x,y,r*3);
+    sg.addColorStop(0,'rgba(255,255,220,0.9)');
+    sg.addColorStop(0.3,'rgba(255,220,80,0.5)');
+    sg.addColorStop(1,'rgba(255,200,0,0)');
+    octx.fillStyle=sg;
+    octx.beginPath();octx.arc(x,y,r*3,0,Math.PI*2);octx.fill();
+    // Croix lumineuse
+    octx.save();
+    octx.globalAlpha=0.6;
+    octx.strokeStyle='rgba(255,255,200,0.8)';
+    octx.lineWidth=r*.6;
+    octx.beginPath();octx.moveTo(x-r*3,y);octx.lineTo(x+r*3,y);octx.stroke();
+    octx.beginPath();octx.moveTo(x,y-r*3);octx.lineTo(x,y+r*3);octx.stroke();
+    octx.restore();
+  });
+
+  // Logo central "🎬" discret
+  octx.save();
+  octx.globalAlpha=0.12;
+  octx.font=Math.round(W*.15)+'px serif';
+  octx.textAlign='center';octx.textBaseline='middle';
+  octx.fillStyle='#5a3800';
+  octx.fillText('🎬',W/2,H/2-30);
+  octx.restore();
+
+  // Texte central gravé
+  octx.save();
+  octx.globalAlpha=0.55;
+  octx.font=`700 12px -apple-system,sans-serif`;
+  octx.fillStyle='#7a5500';
+  octx.textAlign='center';octx.textBaseline='middle';
+  octx.fillText('✦  GRATTE POUR RÉVÉLER  ✦',W/2,H/2+20);
+  octx.restore();
+
+  // Genre discret en bas
+  octx.save();
+  octx.globalAlpha=0.4;
+  octx.font=`600 10px -apple-system,sans-serif`;
+  octx.fillStyle='#8a6200';
+  octx.textAlign='center';octx.textBaseline='middle';
+  octx.fillText(film.g.toUpperCase(),W/2,H/2+44);
+  octx.restore();
+
+  // ── Dessiner l'offscreen sur le canvas principal ──
+  ctx.drawImage(offscreen,0,0);
+
+  // ── Particules / copeaux ──
+  const particles=[];
+  const spawnParticles=(x,y)=>{
+    const count=Math.floor(Math.random()*5)+4;
+    for(let i=0;i<count;i++){
+      const angle=Math.random()*Math.PI*2;
+      const speed=Math.random()*3+1.5;
+      const size=Math.random()*5+2;
+      const colors=['#f5c842','#ffe066','#c8950a','#ffd700','#ffe480','#b8860b'];
+      particles.push({
+        x,y,
+        vx:Math.cos(angle)*speed,
+        vy:Math.sin(angle)*speed,
+        size,
+        color:colors[Math.floor(Math.random()*colors.length)],
+        alpha:1,
+        decay:Math.random()*.04+.025,
+        rot:Math.random()*Math.PI*2,
+        rotSpeed:(Math.random()-.5)*.2
+      });
+    }
+  };
+
+  // Couche de rendu particules (canvas séparé au-dessus)
+  const pCanvas=document.createElement('canvas');
+  pCanvas.style.cssText=`position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;`;
+  pCanvas.width=W*DPR; pCanvas.height=H*DPR;
+  canvas.parentElement.appendChild(pCanvas);
+  const pCtx=pCanvas.getContext('2d');
+  pCtx.scale(DPR,DPR);
+
+  let animId=null;
+  const animParticles=()=>{
+    pCtx.clearRect(0,0,W,H);
+    let alive=false;
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      p.vy+=0.12; // gravité légère
+      p.vx*=0.97;
+      p.alpha-=p.decay;
+      p.rot+=p.rotSpeed;
+      if(p.alpha>0){
+        alive=true;
+        pCtx.save();
+        pCtx.globalAlpha=p.alpha;
+        pCtx.translate(p.x,p.y);
+        pCtx.rotate(p.rot);
+        pCtx.fillStyle=p.color;
+        pCtx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+        pCtx.restore();
+      }
+    });
+    // Nettoyer les morts
+    while(particles.length>200)particles.shift();
+    if(alive)animId=requestAnimationFrame(animParticles);
+    else animId=null;
+  };
+
+  // ── Grattage ──
+  let totalPx=W*H;
   let revealed=false;
+  let checkThrottle=0;
 
-  const scratch=(x,y,size=38)=>{
+  const scratch=(x,y,size=44)=>{
     ctx.globalCompositeOperation='destination-out';
-    ctx.beginPath();
-    ctx.arc(x,y,size,0,Math.PI*2);
-    ctx.fill();
-    // Vérifier % révélé
-    if(!revealed){
+    // Pinceau doux avec radial gradient pour un bord adouci
+    const g=ctx.createRadialGradient(x,y,size*.1,x,y,size);
+    g.addColorStop(0,'rgba(0,0,0,1)');
+    g.addColorStop(0.7,'rgba(0,0,0,0.85)');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+
+    // Spawner des copeaux
+    spawnParticles(x,y);
+    if(!animId)animId=requestAnimationFrame(animParticles);
+
+    // Vérif % révélé (throttlée)
+    if(!revealed && ++checkThrottle%8===0){
       const px=ctx.getImageData(0,0,canvas.width,canvas.height).data;
       let cleared=0;
       for(let i=3;i<px.length;i+=4)if(px[i]<128)cleared++;
-      if(cleared/totalPx>.35){
+      if(cleared/(canvas.width*canvas.height)>.35){
         revealed=true;
+        pCanvas.remove();
+        if(animId){cancelAnimationFrame(animId);animId=null;}
         _hmReveal(film,idx,canvas);
       }
     }
@@ -8308,7 +8732,7 @@ function _hmInitScratch(canvas, film, idx){
   const getPos=(e)=>{
     const r=canvas.getBoundingClientRect();
     const t=e.touches?e.touches[0]:e;
-    return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};
+    return{x:(t.clientX-r.left)*(W/r.width),y:(t.clientY-r.top)*(H/r.height)};
   };
   canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);scratch(p.x,p.y);lastX=p.x;lastY=p.y;});
   canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);lastX=p.x;lastY=p.y;});
@@ -8391,6 +8815,8 @@ function _hmShowSheet(film, idx){
 
   // Enrichir TMDB
   _hmEnrichFiche(film, content);
+  // Mettre à jour le compteur
+  _hmUpdateTabCount();
   // Audio
   _hmPlaySlideAudio(idx, _hmFilms);
 }
