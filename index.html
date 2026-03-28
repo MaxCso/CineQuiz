@@ -14193,7 +14193,87 @@ function _saveArcadeHS(game,val){
   try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');if(!hs[game]||val>hs[game]){hs[game]=val;localStorage.setItem('cq_arc_hs',JSON.stringify(hs));}}catch(e){}
   setTimeout(updateJkDot,300);
 }
-function openArcade(){go('arcade-menu');_refreshArcadeScores();if(musOn)switchMusic('arcade',0.25);}
+function sndArcadeOpen(){
+  if(!sndOn)return;
+  const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    // ① Grincement métallique — porte lourde
+    const gLen=Math.ceil(ctx.sampleRate*.4);
+    const gBuf=ctx.createBuffer(1,gLen,ctx.sampleRate);
+    const gd=gBuf.getChannelData(0);
+    for(let i=0;i<gLen;i++){
+      const env=Math.pow(1-i/gLen,1.2)*(i<gLen*.1?i/(gLen*.1):1);
+      const creak=Math.sin(i*.08+Math.sin(i*.003)*8)*0.4;
+      gd[i]=(Math.random()*.3+creak*.7)*env*.5;
+    }
+    const gsrc=ctx.createBufferSource();gsrc.buffer=gBuf;
+    const gf=ctx.createBiquadFilter();gf.type='bandpass';gf.frequency.value=280;gf.Q.value=2;
+    const gg=ctx.createGain();gg.gain.setValueAtTime(.0001,t);gg.gain.linearRampToValueAtTime(.5,t+.06);gg.gain.exponentialRampToValueAtTime(.0001,t+.4);
+    gsrc.connect(gf);gf.connect(gg);gg.connect(ctx.destination);
+    gsrc.start(t);
+
+    // ② Cliquetis verrou — deux clics secs
+    [0,.18].forEach(delay=>{
+      const cLen=Math.ceil(ctx.sampleRate*.04);
+      const cBuf=ctx.createBuffer(1,cLen,ctx.sampleRate);
+      const cd=cBuf.getChannelData(0);
+      for(let i=0;i<cLen;i++){cd[i]=(Math.random()*2-1)*Math.pow(1-i/cLen,4)*.8;}
+      const csrc=ctx.createBufferSource();csrc.buffer=cBuf;
+      const cf=ctx.createBiquadFilter();cf.type='highpass';cf.frequency.value=1200;
+      const cg=ctx.createGain();cg.gain.setValueAtTime(.4,t+delay);cg.gain.exponentialRampToValueAtTime(.0001,t+delay+.04);
+      csrc.connect(cf);cf.connect(cg);cg.connect(ctx.destination);
+      csrc.start(t+delay);
+    });
+
+    // ③ Résonance grave — masse de la porte
+    const rg=ctx.createGain();rg.gain.setValueAtTime(.0001,t+.05);rg.gain.linearRampToValueAtTime(.15,t+.12);rg.gain.exponentialRampToValueAtTime(.0001,t+.9);
+    const ro=ctx.createOscillator();ro.type='sine';ro.frequency.setValueAtTime(55,t+.05);ro.frequency.exponentialRampToValueAtTime(35,t+.8);
+    ro.connect(rg);rg.connect(ctx.destination);ro.start(t+.05);ro.stop(t+.9);
+
+    // ④ Accord mystérieux après ouverture
+    [[220,.07,.45],[277,.05,.52],[330,.04,.6]].forEach(([freq,vol,delay])=>{
+      const ng=ctx.createGain();ng.gain.setValueAtTime(0,t+delay);ng.gain.linearRampToValueAtTime(vol,t+delay+.12);ng.gain.exponentialRampToValueAtTime(.0001,t+delay+1.8);
+      const no=ctx.createOscillator();no.type='triangle';no.frequency.value=freq;
+      no.connect(ng);ng.connect(ctx.destination);no.start(t+delay);no.stop(t+delay+2);
+    });
+  }catch(e){}
+}
+
+function openArcade(){
+  // Overlay noir de transition
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9998;opacity:0;pointer-events:all;transition:opacity .4s ease;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
+  const lock=document.createElement('div');
+  lock.style.cssText='font-size:40px;opacity:0;transform:scale(.6);transition:all .5s cubic-bezier(.34,1.56,.64,1) .3s;';
+  lock.textContent='🔐';
+  const label=document.createElement('div');
+  label.style.cssText='font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:4px;color:rgba(255,255,255,0);transition:color .6s ease .5s;';
+  label.textContent='ZONE SECRÈTE';
+  overlay.appendChild(lock);overlay.appendChild(label);
+  document.body.appendChild(overlay);
+
+  // Fondu au noir
+  requestAnimationFrame(()=>{
+    overlay.style.opacity='1';
+    setTimeout(()=>{
+      lock.style.opacity='1';lock.style.transform='scale(1)';
+      label.style.color='rgba(255,255,255,.5)';
+      sndArcadeOpen();
+    },350);
+    // Naviguer puis révéler
+    setTimeout(()=>{
+      go('arcade-menu');
+      _refreshArcadeScores();
+      if(musOn)switchMusic('arcade',0.25);
+    },800);
+    setTimeout(()=>{
+      overlay.style.opacity='0';
+      overlay.style.transition='opacity .6s ease';
+      setTimeout(()=>overlay.remove(),700);
+    },1100);
+  });
+}
 
 // ─── SNAKE ───
 let _snTimer=null,_snSnake,_snDir,_snNextDir,_snFood,_snScore,_snRunning;
