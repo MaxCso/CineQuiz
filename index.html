@@ -25,6 +25,7 @@
 html,body{height:100%;width:100%;}
 body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display:flex;justify-content:center;align-items:flex-start;overflow:hidden;min-height:100dvh;}
 .wrap{width:100%;max-width:500px;height:100dvh;background:var(--bg);position:relative;overflow:hidden;isolation:isolate;}
+#result.on{overflow-y:auto;-webkit-overflow-scrolling:touch;}
 @media(min-width:500px){body{background:#060609;align-items:center;}.wrap{width:390px;height:844px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.08);box-shadow:0 0 80px rgba(245,200,66,0.06),0 50px 100px rgba(0,0,0,0.8);}}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .scr.on{opacity:1;pointer-events:all;}
@@ -1688,7 +1689,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 
 /* ─── RÉSULTATS ─── */
 /* ── ÉCRAN RÉSULTAT ── */
-#result{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#result{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .r-bg{
   position:absolute;inset:0;z-index:0;pointer-events:none;
   background:radial-gradient(ellipse 80% 50% at 50% 0%,var(--r-color,rgba(245,200,66,.18)) 0%,transparent 70%);
@@ -1697,7 +1698,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .r-scroll{
   position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;
-  padding:max(52px,calc(env(safe-area-inset-top)+14px)) 18px max(32px,env(safe-area-inset-bottom));
+  padding:max(64px,calc(env(safe-area-inset-top)+28px)) 18px max(32px,env(safe-area-inset-bottom));
   min-height:100%;
 }
 .r-hero{text-align:center;margin-bottom:6px;}
@@ -2864,14 +2865,13 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 /* ── HIDDEN MOVIES HOME CARD ── */
 .hm-home-card{
   position:relative;border-radius:20px;overflow:hidden;cursor:pointer;
-  height:110px;display:flex;align-items:center;
+  height:100px;display:flex;align-items:center;gap:0;
   transition:transform .16s;margin-bottom:0;
   background:linear-gradient(135deg,#120a28 0%,#1a0d35 40%,#0d0620 100%);
   border:1px solid rgba(168,85,247,.3);
   box-shadow:0 4px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
 }
 .hm-home-card:active{transform:scale(.97);}
-/* Halos décoratifs CSS purs */
 .hm-home-card::before{
   content:'';position:absolute;inset:0;
   background:
@@ -2879,28 +2879,19 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     radial-gradient(ellipse 40% 60% at 80% 30%,rgba(99,51,180,.12) 0%,transparent 50%);
   pointer-events:none;
 }
-/* Shimmer animé */
 .hm-home-card::after{
   content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
   background:linear-gradient(90deg,transparent,rgba(168,85,247,.07),transparent);
   animation:btnglare 4s ease 1.5s infinite;pointer-events:none;
 }
-/* Motif film décoratif */
 .hm-home-film-dots{
   position:absolute;right:0;top:0;bottom:0;width:45%;
   background:
-    repeating-linear-gradient(90deg,
-      transparent 0px,transparent 28px,
-      rgba(168,85,247,.06) 28px,rgba(168,85,247,.06) 30px
-    ),
-    repeating-linear-gradient(0deg,
-      transparent 0px,transparent 18px,
-      rgba(168,85,247,.04) 18px,rgba(168,85,247,.04) 20px
-    );
+    repeating-linear-gradient(90deg,transparent 0px,transparent 28px,rgba(168,85,247,.06) 28px,rgba(168,85,247,.06) 30px),
+    repeating-linear-gradient(0deg,transparent 0px,transparent 18px,rgba(168,85,247,.04) 18px,rgba(168,85,247,.04) 20px);
   mask:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.8) 40%,rgba(0,0,0,.8) 100%);
   -webkit-mask:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.8) 40%,rgba(0,0,0,.8) 100%);
 }
-/* Pellicule décorative droite */
 .hm-home-reel{
   position:absolute;right:10px;top:50%;transform:translateY(-50%);
   display:flex;flex-direction:column;gap:8px;opacity:.18;z-index:1;
@@ -2911,25 +2902,32 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   box-shadow:0 0 6px rgba(168,85,247,.4);
 }
 .hm-home-content{
-  position:relative;z-index:2;padding:0 48px 0 16px;flex:1;
-  display:flex;flex-direction:column;gap:6px;
+  position:relative;z-index:2;padding:0 44px 0 16px;flex:1;min-width:0;
+  display:flex;flex-direction:column;justify-content:center;gap:5px;
 }
-.hm-home-logo{height:18px;width:auto;filter:brightness(1.1) drop-shadow(0 1px 6px rgba(168,85,247,.4));}
+/* Logo : visible si chargé, sinon texte fallback */
+.hm-home-logo{
+  height:22px;width:auto;max-width:180px;
+  filter:brightness(1.1) drop-shadow(0 1px 8px rgba(168,85,247,.5));
+  display:block;
+}
 .hm-home-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;
-  color:#c084fc;text-shadow:0 0 20px rgba(192,132,252,.4);
+  display:none;align-items:center;gap:5px;
+  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2.5px;
+  color:#c084fc;text-shadow:0 0 20px rgba(192,132,252,.4);line-height:1;
 }
 .hm-home-badge-dot{
-  width:6px;height:6px;border-radius:50%;
+  width:5px;height:5px;border-radius:50%;flex-shrink:0;
   background:linear-gradient(135deg,#c084fc,#7c3aed);
   box-shadow:0 0 8px rgba(192,132,252,.6);
-  flex-shrink:0;
 }
-.hm-home-desc{font-size:10px;color:rgba(192,132,252,.45);letter-spacing:.3px;line-height:1.4;}
+.hm-home-desc{
+  font-size:10px;color:rgba(192,132,252,.45);letter-spacing:.3px;line-height:1.4;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .hm-home-arrow{
   position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  z-index:2;opacity:.5;
+  z-index:2;opacity:.45;color:rgba(192,132,252,.7);
 }
 
 /* ── HIDDEN MOVIES SWIPER ── */
@@ -3177,29 +3175,25 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 
       <!-- HIDDEN MOVIES CARD -->
-      <div onclick="openHM()" class="hm-home-card" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
-        <div class="hm-home-film-dots"></div>
-        <div class="hm-home-reel">
-          <div class="hm-home-reel-hole"></div>
-          <div class="hm-home-reel-hole"></div>
-          <div class="hm-home-reel-hole"></div>
-          <div class="hm-home-reel-hole"></div>
-          <div class="hm-home-reel-hole"></div>
+      <div onclick="openHM()" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(18,6,40,.96),rgba(10,4,24,.94));border:1px solid rgba(168,85,247,.2);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
+        <!-- Fond subtil -->
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 0% 50%,rgba(168,85,247,.08) 0%,transparent 70%);pointer-events:none;"></div>
+        <!-- Shimmer -->
+        <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(168,85,247,.05),transparent);animation:btnglare 4s ease 2s infinite;pointer-events:none;"></div>
+        <!-- Icône / Logo -->
+        <div style="width:54px;height:54px;border-radius:16px;background:rgba(168,85,247,.1);border:1.5px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;z-index:1;">
+          <img src="logohiddenmovies.png" alt="HM"
+               style="width:38px;height:38px;object-fit:contain;filter:brightness(1.1);"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <span style="display:none;font-size:22px;">🎬</span>
         </div>
-        <div class="hm-home-content">
-          <img src="logohiddenmovies.png" alt="Hidden Movies" class="hm-home-logo"
-               onload="this.style.display='block';this.nextElementSibling.style.display='none'"
-               onerror="this.style.display='none'"
-               style="display:none">
-          <div class="hm-home-badge">
-            <div class="hm-home-badge-dot"></div>
-            HIDDEN MOVIES
-          </div>
-          <div class="hm-home-desc">181 films indépendants · Cinéma méconnu &amp; culte</div>
+        <!-- Texte -->
+        <div style="flex:1;min-width:0;position:relative;z-index:1;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#c084fc;line-height:1;margin-bottom:4px;">HIDDEN MOVIES</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.2px;line-height:1.4;">181 films indépendants · Cinéma méconnu &amp; culte</div>
+          <div id="hm-card-stat" style="font-size:10px;color:rgba(192,132,252,.5);margin-top:4px;letter-spacing:.3px;"></div>
         </div>
-        <div class="hm-home-arrow">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(168,85,247,.4)" stroke-width="2.2" style="flex-shrink:0;position:relative;z-index:1;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
     </div>
@@ -7674,6 +7668,9 @@ async function txQuestions(raw){
 const go=id=>{
   document.querySelectorAll('.scr').forEach(s=>{s.classList.remove('on');s.style.opacity='';s.style.pointerEvents='';s.style.display='';s.style.zIndex='';});
   document.getElementById(id).classList.add('on');
+  // Fix scroll iOS : .wrap overflow:hidden bloque le scroll de #result
+  const wrap=document.querySelector('.wrap');
+  if(wrap)wrap.style.overflow=id==='result'?'visible':'hidden';
   // Fond accueil - canvas projecteur + vignette
   const isHome=id==='home';
   const _hbg=document.getElementById('home-bg');
@@ -8813,6 +8810,13 @@ function refHome(){
   if(trainStat){
     const tg=s.trainingGames||0;
     trainStat.textContent=tg>0?`${tg} session${tg>1?'s':''} · ${s.games||0} parties au total`:'Commence ici pour apprendre sans pression !';
+  }
+  // Stat Hidden Movies
+  const hmStat=document.getElementById('hm-card-stat');
+  if(hmStat){
+    const userLvl=glv(s.xp);
+    const unlocked=HM_DB.filter(f=>f.lvl<=userLvl).length;
+    hmStat.textContent=`${unlocked} / 181 films débloqués`;
   }
 }
 
