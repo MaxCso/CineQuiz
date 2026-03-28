@@ -3000,6 +3000,33 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hm-slide-moods{
   display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;
 }
+.hm-slide-details{
+  display:flex;flex-direction:column;gap:0;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;overflow:hidden;
+}
+.hm-slide-detail-row{
+  display:flex;align-items:baseline;gap:10px;
+  padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.hm-slide-detail-row:last-child{border-bottom:none;}
+.hm-slide-detail-label{
+  font-size:9px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;
+  flex-shrink:0;width:80px;
+}
+.hm-slide-detail-val{
+  font-size:12px;color:rgba(255,255,255,.75);line-height:1.4;flex:1;
+}
+.hm-slide-rating{
+  display:inline-flex;align-items:center;gap:5px;
+}
+.hm-slide-rating-star{color:#f5c842;font-size:12px;}
+.hm-slide-rating-val{font-size:13px;font-weight:700;color:#f5c842;}
+.hm-slide-rating-max{font-size:10px;color:rgba(255,255,255,.3);}
+.hm-slide-loading{
+  font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;
+  padding:12px 14px;text-align:center;
+}
 .hm-slide-mood{
   font-size:10px;color:rgba(192,132,252,.55);
   background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.15);
@@ -8063,6 +8090,7 @@ function renderHMCollection(){
           </div>
           <div class="hm-slide-synopsis">${film.s}</div>
           ${moodsHtml?`<div class="hm-slide-moods">${moodsHtml}</div>`:''}
+          <div class="hm-slide-details"><div class="hm-slide-loading">Chargement des infos…</div></div>
           <div class="hm-eq" id="hm-eq-${idx}">
             <div class="hm-eq-bar"></div>
             <div class="hm-eq-bar"></div>
@@ -8071,6 +8099,8 @@ function renderHMCollection(){
           </div>
           <div class="hm-audio-bar"><div class="hm-audio-bar-fill" id="hm-abf-${idx}"></div></div>
         </div>`;
+      // Enrichir avec les données TMDB (async, sans bloquer le rendu)
+      _hmEnrichSlide(film, slide);
     } else {
       slide.innerHTML=`
         <div class="hm-slide-poster-wrap">
@@ -8121,6 +8151,12 @@ function _initHMSwiper(swiper,total,dotsEl,counterEl){
       dots.forEach((d,i)=>{d.className='hm-dot'+(i===dotIdx?' on':'');});
     }
     _hmPlaySlideAudio(_hmSwiperIdx, window._hmAllSlides||[]);
+    // Enrichir le slide suivant en avance
+    const nextFilm=(window._hmAllSlides||[])[_hmSwiperIdx+1];
+    const nextSlide=swiper.children[_hmSwiperIdx+1];
+    if(nextFilm&&nextSlide&&nextSlide.querySelector('.hm-slide-loading')){
+      _hmEnrichSlide(nextFilm, nextSlide);
+    }
   }
 
   wrap.ontouchstart=e=>{startX=e.touches[0].clientX;startT=Date.now();isDragging=true;swiper.style.transition='none';};
@@ -8198,6 +8234,81 @@ function hmGoRandom(){
       if(swiper)setTimeout(()=>{swiper.style.transition='transform .35s cubic-bezier(.25,.46,.45,.94)';},150);
     }
   }, steps<4?60:80);
+}
+
+
+// ══ HIDDEN MOVIES — Enrichissement TMDB ══
+const _hmCache={};
+
+async function _hmEnrichSlide(film, slideEl){
+  const cacheKey='hm_info_'+film.t+'_'+film.y;
+  // Vérifier cache localStorage
+  let data=null;
+  try{
+    const raw=localStorage.getItem(cacheKey);
+    if(raw) data=JSON.parse(raw);
+  }catch{}
+
+  if(!data){
+    try{
+      // Recherche TMDB par titre+année
+      const searchUrl=`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`;
+      const res=await fetch(searchUrl);
+      const json=await res.json();
+      const match=json.results?.[0];
+      if(!match) return;
+
+      // Détails complets avec crédits
+      const detailUrl=`https://api.themoviedb.org/3/movie/${match.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`;
+      const res2=await fetch(detailUrl);
+      const d=await res2.json();
+
+      const director=(d.credits?.crew||[]).find(p=>p.job==='Director');
+      const writers=(d.credits?.crew||[]).filter(p=>['Screenplay','Writer','Story'].includes(p.job)).slice(0,2);
+      const cast=(d.credits?.cast||[]).slice(0,4).map(a=>a.name);
+      const runtime=d.runtime;
+      const release=d.release_date;
+      const countries=(d.production_countries||[]).map(c=>c.name).slice(0,2);
+      const rating=d.vote_average;
+      const voteCount=d.vote_count;
+
+      data={
+        director:director?.name||null,
+        writers:writers.map(w=>w.name),
+        cast,
+        runtime,
+        release,
+        countries,
+        rating:rating?Math.round(rating*10)/10:null,
+        voteCount
+      };
+
+      try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch{}
+    }catch(e){return;}
+  }
+
+  // Injecter dans le slide
+  const detailsEl=slideEl.querySelector('.hm-slide-details');
+  if(!detailsEl) return;
+
+  const fmt=(arr)=>arr?.length?arr.join(', '):'—';
+  const fmtRuntime=(min)=>min?`${Math.floor(min/60)}h${String(min%60).padStart(2,'0')}`:'—';
+  const fmtDate=(d)=>{if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});};
+  const fmtRating=(r,v)=>{
+    if(!r) return'—';
+    const stars=Math.round(r/2);
+    return`<span class="hm-slide-rating"><span class="hm-slide-rating-star">${'★'.repeat(stars)}${'☆'.repeat(5-stars)}</span><span class="hm-slide-rating-val">${r}</span><span class="hm-slide-rating-max">/10</span>${v?`<span style="font-size:9px;color:rgba(255,255,255,.25);margin-left:3px;">(${v.toLocaleString('fr-FR')} votes)</span>`:''}</span>`;
+  };
+
+  detailsEl.innerHTML=`
+    ${data.director?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Réalisateur</span><span class="hm-slide-detail-val">${data.director}</span></div>`:''}
+    ${data.writers?.length?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Scénario</span><span class="hm-slide-detail-val">${fmt(data.writers)}</span></div>`:''}
+    ${data.cast?.length?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Casting</span><span class="hm-slide-detail-val">${fmt(data.cast)}</span></div>`:''}
+    ${data.runtime?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Durée</span><span class="hm-slide-detail-val">${fmtRuntime(data.runtime)}</span></div>`:''}
+    ${data.release?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Sortie</span><span class="hm-slide-detail-val">${fmtDate(data.release)}</span></div>`:''}
+    ${data.countries?.length?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Pays</span><span class="hm-slide-detail-val">${fmt(data.countries)}</span></div>`:''}
+    ${data.rating?`<div class="hm-slide-detail-row"><span class="hm-slide-detail-label">Note</span><span class="hm-slide-detail-val">${fmtRating(data.rating,data.voteCount)}</span></div>`:''}
+  `.trim();
 }
 
 
