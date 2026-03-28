@@ -24,6 +24,8 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;width:100%;}
 body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display:flex;justify-content:center;align-items:flex-start;overflow:hidden;min-height:100dvh;}
+*{scrollbar-width:none;}
+*::-webkit-scrollbar{display:none;}
 .wrap{width:100%;max-width:500px;height:100dvh;background:var(--bg);position:relative;overflow:hidden;isolation:isolate;}
 #result.on{overflow-y:auto;-webkit-overflow-scrolling:touch;}
 @media(min-width:500px){body{background:#060609;align-items:center;}.wrap{width:390px;height:844px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.08);box-shadow:0 0 80px rgba(245,200,66,0.06),0 50px 100px rgba(0,0,0,0.8);}}
@@ -2917,11 +2919,30 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 /* ══ HM BONUS VIDÉO (fin) ══ */
 #hm-viewer{
   position:fixed;inset:0;z-index:300;
-  background:#000;
+  background:#05040a;
   display:none;
   flex-direction:column;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;
   transition:opacity .3s ease;
+}
+#hm-viewer::before{
+  content:'';position:absolute;inset:-20%;width:140%;height:140%;
+  background:
+    radial-gradient(ellipse 50% 40% at 30% 25%, rgba(100,40,160,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 35% at 70% 70%, rgba(40,20,100,.14) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 30% at 60% 20%, rgba(80,20,120,.12) 0%, transparent 50%);
+  animation:hmvBgDrift 12s ease-in-out infinite;
+  pointer-events:none;z-index:0;
+}
+#hm-viewer::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, rgba(3,2,8,.7) 100%);
+  pointer-events:none;z-index:0;
+}
+@keyframes hmvBgDrift{
+  0%,100%{transform:translate(0,0) rotate(0deg);}
+  33%{transform:translate(4%,6%) rotate(4deg);}
+  66%{transform:translate(-5%,3%) rotate(-3deg);}
 }
 #hm-viewer.on{display:flex;opacity:1;pointer-events:all;}
 
@@ -2943,6 +2964,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   padding:max(env(safe-area-inset-top),44px) 16px max(env(safe-area-inset-bottom),60px);
   transform-style:preserve-3d;
   box-sizing:border-box;
+  z-index:1;
 }
 
 /* L'affiche elle-même */
@@ -3586,22 +3608,22 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   border-radius:14px;
   opacity:0;
   pointer-events:none;
-  transition:opacity .3s;
+  transition:opacity .5s ease;
   background:
     radial-gradient(ellipse at var(--mx,50%) var(--my,50%),
-      rgba(255,255,255,.06) 0%,
+      rgba(255,255,255,.08) 0%,
       transparent 60%
     ),
     linear-gradient(
       calc(var(--holo-angle,105deg)),
       transparent 0%,
-      rgba(255,220,180,.04) 10%,
-      rgba(180,255,220,.05) 22%,
-      rgba(180,220,255,.04) 34%,
-      rgba(255,180,220,.04) 46%,
-      rgba(255,240,160,.04) 58%,
-      rgba(160,255,240,.05) 70%,
-      rgba(220,180,255,.04) 82%,
+      rgba(255,220,180,.06) 10%,
+      rgba(180,255,220,.08) 22%,
+      rgba(180,220,255,.07) 34%,
+      rgba(255,180,220,.06) 46%,
+      rgba(255,240,160,.06) 58%,
+      rgba(160,255,240,.08) 70%,
+      rgba(220,180,255,.06) 82%,
       transparent 100%
     );
   mix-blend-mode:screen;
@@ -3613,12 +3635,12 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   opacity:0;
   background:radial-gradient(
     ellipse 80% 60% at var(--mx,40%) var(--my,35%),
-    rgba(255,255,255,.04) 0%,
-    rgba(255,255,255,.01) 40%,
+    rgba(255,255,255,.10) 0%,
+    rgba(255,255,255,.03) 40%,
     transparent 65%
   );
   mix-blend-mode:screen;
-  transition:opacity .2s;
+  transition:opacity .5s ease;
 }
 .hm-card:hover .hm-card-holo,
 .hm-card.touching .hm-card-holo{ opacity:1; }
@@ -4694,7 +4716,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
     <!-- Catalogue grille -->
     <div class="hm-collection-wrap" id="hm-collection-wrap" style="display:none;">
-      <div style="display:flex;gap:6px;padding:10px 12px 0;overflow-x:auto;scrollbar-width:none;">
+      <div style="display:flex;gap:6px;padding:10px 12px 14px;overflow-x:auto;scrollbar-width:none;">
         <button class="hm-sort-btn active" id="hm-sort-date" onclick="hmSetSort('date',this)">Récents</button>
         <button class="hm-sort-btn" id="hm-sort-genre" onclick="hmSetSort('genre',this)">Genre</button>
         <button class="hm-sort-btn" id="hm-sort-mood" onclick="hmSetSort('mood',this)">Humeur</button>
@@ -9765,15 +9787,53 @@ function _hmvHoloLeave()       { _hmvHoloReset(this); }
 
 // ══ HM — Effet holographique ══
 function _hmInitHoloCards() {
-  const cards = document.querySelectorAll('#hm-collection-grid .hm-card');
+  const cards = document.querySelectorAll('#hm-collection-grid .hm-card, #hm-wishlist-grid .hm-card');
   cards.forEach(card => {
-    // Touch — utiliser des closures pour passer la carte
-    card.addEventListener('touchstart', e => { card.classList.add('touching'); _hmHoloUpdate(card, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-    card.addEventListener('touchmove', e => { _hmHoloUpdate(card, e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-    card.addEventListener('touchend', () => { _hmHoloReset(card); }, { passive: true });
+    let _resetTimer = null;
+    let _lastX = 50, _lastY = 50, _rafId = null;
+
+    const scheduleReset = () => {
+      clearTimeout(_resetTimer);
+      _resetTimer = setTimeout(() => {
+        // Fade out progressif — on laisse la transition CSS faire le travail
+        card.classList.remove('touching');
+        // Retour doux à plat avec spring
+        card.style.transition = 'transform .5s cubic-bezier(.25,.46,.45,.94)';
+        card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)';
+        setTimeout(() => { card.style.transition = ''; }, 520);
+      }, 280); // reste 280ms après le dernier touch
+    };
+
+    card.addEventListener('touchstart', e => {
+      clearTimeout(_resetTimer);
+      card.classList.add('touching');
+      card.style.transition = 'none';
+      _hmHoloUpdate(card, e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    card.addEventListener('touchmove', e => {
+      clearTimeout(_resetTimer);
+      const tx = e.touches[0].clientX, ty = e.touches[0].clientY;
+      _lastX = tx; _lastY = ty;
+      if(_rafId) cancelAnimationFrame(_rafId);
+      _rafId = requestAnimationFrame(() => { _hmHoloUpdate(card, tx, ty); });
+    }, { passive: true });
+
+    card.addEventListener('touchend', () => { scheduleReset(); }, { passive: true });
+    card.addEventListener('touchcancel', () => { scheduleReset(); }, { passive: true });
+
     // Mouse
-    card.addEventListener('mousemove', e => { card.classList.add('touching'); _hmHoloUpdate(card, e.clientX, e.clientY); });
-    card.addEventListener('mouseleave', () => { _hmHoloReset(card); });
+    card.addEventListener('mouseenter', () => {
+      clearTimeout(_resetTimer);
+      card.classList.add('touching');
+      card.style.transition = 'none';
+    });
+    card.addEventListener('mousemove', e => {
+      clearTimeout(_resetTimer);
+      if(_rafId) cancelAnimationFrame(_rafId);
+      _rafId = requestAnimationFrame(() => { _hmHoloUpdate(card, e.clientX, e.clientY); });
+    });
+    card.addEventListener('mouseleave', () => { scheduleReset(); });
   });
 }
 
@@ -9792,18 +9852,18 @@ function _hmHoloUpdate(card, clientX, clientY) {
   const mx = (x / rect.width) * 100;
   const my = (y / rect.height) * 100;
 
-  // Rotation 3D légère
-  const rotY = ((mx - 50) / 50) * 12;  // max ±12deg
-  const rotX = -((my - 50) / 50) * 10; // max ±10deg
+  // Rotation 3D — plus prononcée
+  const rotY = ((mx - 50) / 50) * 16;
+  const rotX = -((my - 50) / 50) * 13;
 
-  // Angle du gradient arc-en-ciel basé sur position
+  // Angle arc-en-ciel basé sur position du doigt
   const angle = Math.atan2(y - rect.height / 2, x - rect.width / 2) * (180 / Math.PI) + 90;
 
   card.style.setProperty('--mx', mx + '%');
   card.style.setProperty('--my', my + '%');
   card.style.setProperty('--holo-angle', angle + 'deg');
   card.style.transform =
-    'perspective(600px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.03)';
+    'perspective(600px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.04)';
 }
 
 
@@ -14568,46 +14628,102 @@ function sndArcadeOpen(){
   const ctx=ac();if(!ctx)return;
   try{
     const t=ctx.currentTime;
-    // ① Grincement métallique — porte lourde
     const gLen=Math.ceil(ctx.sampleRate*.4);
     const gBuf=ctx.createBuffer(1,gLen,ctx.sampleRate);
     const gd=gBuf.getChannelData(0);
-    for(let i=0;i<gLen;i++){
-      const env=Math.pow(1-i/gLen,1.2)*(i<gLen*.1?i/(gLen*.1):1);
-      const creak=Math.sin(i*.08+Math.sin(i*.003)*8)*0.4;
-      gd[i]=(Math.random()*.3+creak*.7)*env*.5;
-    }
+    for(let i=0;i<gLen;i++){const env=Math.pow(1-i/gLen,1.2)*(i<gLen*.1?i/(gLen*.1):1);const creak=Math.sin(i*.08+Math.sin(i*.003)*8)*0.4;gd[i]=(Math.random()*.3+creak*.7)*env*.5;}
     const gsrc=ctx.createBufferSource();gsrc.buffer=gBuf;
     const gf=ctx.createBiquadFilter();gf.type='bandpass';gf.frequency.value=280;gf.Q.value=2;
     const gg=ctx.createGain();gg.gain.setValueAtTime(.0001,t);gg.gain.linearRampToValueAtTime(.5,t+.06);gg.gain.exponentialRampToValueAtTime(.0001,t+.4);
-    gsrc.connect(gf);gf.connect(gg);gg.connect(ctx.destination);
-    gsrc.start(t);
-
-    // ② Cliquetis verrou — deux clics secs
+    gsrc.connect(gf);gf.connect(gg);gg.connect(ctx.destination);gsrc.start(t);
     [0,.18].forEach(delay=>{
-      const cLen=Math.ceil(ctx.sampleRate*.04);
-      const cBuf=ctx.createBuffer(1,cLen,ctx.sampleRate);
-      const cd=cBuf.getChannelData(0);
+      const cLen=Math.ceil(ctx.sampleRate*.04);const cBuf=ctx.createBuffer(1,cLen,ctx.sampleRate);const cd=cBuf.getChannelData(0);
       for(let i=0;i<cLen;i++){cd[i]=(Math.random()*2-1)*Math.pow(1-i/cLen,4)*.8;}
-      const csrc=ctx.createBufferSource();csrc.buffer=cBuf;
-      const cf=ctx.createBiquadFilter();cf.type='highpass';cf.frequency.value=1200;
+      const csrc=ctx.createBufferSource();csrc.buffer=cBuf;const cf=ctx.createBiquadFilter();cf.type='highpass';cf.frequency.value=1200;
       const cg=ctx.createGain();cg.gain.setValueAtTime(.4,t+delay);cg.gain.exponentialRampToValueAtTime(.0001,t+delay+.04);
-      csrc.connect(cf);cf.connect(cg);cg.connect(ctx.destination);
-      csrc.start(t+delay);
+      csrc.connect(cf);cf.connect(cg);cg.connect(ctx.destination);csrc.start(t+delay);
     });
-
-    // ③ Résonance grave — masse de la porte
     const rg=ctx.createGain();rg.gain.setValueAtTime(.0001,t+.05);rg.gain.linearRampToValueAtTime(.15,t+.12);rg.gain.exponentialRampToValueAtTime(.0001,t+.9);
     const ro=ctx.createOscillator();ro.type='sine';ro.frequency.setValueAtTime(55,t+.05);ro.frequency.exponentialRampToValueAtTime(35,t+.8);
     ro.connect(rg);rg.connect(ctx.destination);ro.start(t+.05);ro.stop(t+.9);
-
-    // ④ Accord mystérieux après ouverture
     [[220,.07,.45],[277,.05,.52],[330,.04,.6]].forEach(([freq,vol,delay])=>{
       const ng=ctx.createGain();ng.gain.setValueAtTime(0,t+delay);ng.gain.linearRampToValueAtTime(vol,t+delay+.12);ng.gain.exponentialRampToValueAtTime(.0001,t+delay+1.8);
       const no=ctx.createOscillator();no.type='triangle';no.frequency.value=freq;
       no.connect(ng);ng.connect(ctx.destination);no.start(t+delay);no.stop(t+delay+2);
     });
   }catch(e){}
+}
+
+function sndPlayBtn(){
+  if(!sndOn)return;
+  const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    const cLen=Math.ceil(ctx.sampleRate*.05);
+    const cBuf=ctx.createBuffer(1,cLen,ctx.sampleRate);
+    const cd=cBuf.getChannelData(0);
+    for(let i=0;i<cLen;i++){cd[i]=(Math.random()*2-1)*Math.pow(1-i/cLen,3)*.7;}
+    const cs=ctx.createBufferSource();cs.buffer=cBuf;
+    const cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=2800;cf.Q.value=1.5;
+    const cg=ctx.createGain();cg.gain.setValueAtTime(.5,t);cg.gain.exponentialRampToValueAtTime(.0001,t+.05);
+    cs.connect(cf);cf.connect(cg);cg.connect(ctx.destination);cs.start(t);
+    [[392,.12,.04],[494,.09,.10],[588,.07,.17]].forEach(([freq,vol,delay])=>{
+      const g=ctx.createGain();g.gain.setValueAtTime(0,t+delay);
+      g.gain.linearRampToValueAtTime(vol,t+delay+.04);
+      g.gain.exponentialRampToValueAtTime(.0001,t+delay+.7);
+      const o=ctx.createOscillator();o.type='triangle';o.frequency.value=freq;
+      o.connect(g);g.connect(ctx.destination);o.start(t+delay);o.stop(t+delay+.75);
+    });
+    const wLen=Math.ceil(ctx.sampleRate*.25);
+    const wBuf=ctx.createBuffer(1,wLen,ctx.sampleRate);
+    const wd=wBuf.getChannelData(0);
+    for(let j=0;j<wLen;j++){const env=j<wLen*.3?j/(wLen*.3):Math.pow(1-(j-wLen*.3)/(wLen*.7),2);wd[j]=(Math.random()*2-1)*env*.08;}
+    const ws=ctx.createBufferSource();ws.buffer=wBuf;
+    const wf=ctx.createBiquadFilter();wf.type='highpass';wf.frequency.value=1200;
+    const wg=ctx.createGain();wg.gain.setValueAtTime(.0001,t);wg.gain.linearRampToValueAtTime(.25,t+.08);wg.gain.exponentialRampToValueAtTime(.0001,t+.25);
+    ws.connect(wf);wf.connect(wg);wg.connect(ctx.destination);ws.start(t);
+  }catch(err){}
+}
+
+function onPlayBtn(e){
+  const btn=document.getElementById('main-play-btn');
+
+  // Ripple
+  if(btn){
+    const r=btn.getBoundingClientRect();
+    const x=e.clientX-r.left, y=e.clientY-r.top;
+    const rip=document.createElement('span');
+    const size=Math.max(r.width,r.height)*1.2;
+    rip.className='pbtn-ripple';
+    rip.style.cssText=`width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px;`;
+    btn.appendChild(rip);
+    setTimeout(()=>rip.remove(),600);
+  }
+
+  // Particules dorées
+  if(btn){
+    const r=btn.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+    const N=18;
+    for(let i=0;i<N;i++){
+      const p=document.createElement('div');
+      const size=3+Math.random()*5;
+      const angle=(i/N)*Math.PI*2;
+      const dist=50+Math.random()*80;
+      const dur=0.5+Math.random()*0.35;
+      const delay=Math.random()*0.08;
+      const gold=['#f5c842','#fff3c0','#e8a800','#ffe066'][Math.floor(Math.random()*4)];
+      p.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;border-radius:50%;background:${gold};pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 ${size*2}px ${gold};animation:hmParticle ${dur}s ease-out ${delay}s forwards;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`;
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(),(dur+delay)*1000+100);
+    }
+  }
+
+  // Son
+  sndPlayBtn();
+
+  // Lancer le jeu
+  setTimeout(startGame, 120);
 }
 
 function openArcade(){
