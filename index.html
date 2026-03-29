@@ -2963,27 +2963,29 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   transition:background-image .5s ease;
   z-index:0;
 }
-/* Couche 2 : moins flou, plus colorée, légèrement décalée */
-.hmv-bg::after{
-  content:'';
-  position:absolute;inset:10% 20%;
-  background:inherit;
+/* Couche 2 : orbe pulsant coloré */
+.hmv-bg2{
+  position:absolute;
+  width:60%;height:50%;
+  top:20%;left:20%;
   background-size:cover;background-position:center;
-  filter:blur(30px) brightness(.28) saturate(3);
+  filter:blur(35px) brightness(.35) saturate(3.5);
   border-radius:50%;
-  opacity:.6;
+  opacity:.55;
+  pointer-events:none;z-index:0;
   animation:hmvBgPulse 6s ease-in-out infinite;
+  transition:background-image .5s ease;
 }
 @keyframes hmvBgPulse{
   0%,100%{transform:scale(1) translate(0,0);}
-  33%{transform:scale(1.08) translate(3%,-4%);}
-  66%{transform:scale(.95) translate(-3%,3%);}
+  33%{transform:scale(1.1) translate(4%,-5%);}
+  66%{transform:scale(.92) translate(-4%,4%);}
 }
 /* Grain de film */
 #hm-viewer .hmv-grain{
-  position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.03;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px 200px;
+  position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
   mix-blend-mode:overlay;
 }
 
@@ -3033,6 +3035,26 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   box-sizing:border-box;
   overflow-y:auto;
 }
+/* Bouton texte flip — sous l'affiche, en dehors du poster */
+.hmv-flip-text-btn{
+  position:absolute;
+  bottom:max(env(safe-area-inset-bottom),70px);
+  left:50%;transform:translateX(-50%);
+  z-index:10;
+  cursor:pointer;
+  padding:6px 16px;
+  border-radius:20px;
+  background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.2);
+  white-space:nowrap;
+}
+.hmv-flip-text-btn span{
+  font-size:10px;color:rgba(192,132,252,.6);
+  letter-spacing:2px;text-transform:uppercase;
+  pointer-events:none;
+}
+.hmv-flip-text-btn:active{background:rgba(168,85,247,.2);}
+
 /* Zone de tap flip — bas de l'affiche */
 .hmv-flip-tap-zone{
   position:absolute;bottom:0;left:0;right:0;
@@ -3069,9 +3091,9 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hmvb-year{font-size:13px;color:rgba(255,255,255,.35);margin-bottom:10px;flex-shrink:0;}
 .hmvb-synopsis{font-size:13px;color:rgba(255,255,255,.6);line-height:1.55;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;margin-bottom:8px;}
 .hmvb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0;flex-shrink:0;}
-.hmvb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
-.hmvb-lbl{font-size:9px;color:rgba(192,132,252,.45);letter-spacing:1.5px;text-transform:uppercase;}
-.hmvb-val{font-size:12px;color:rgba(255,255,255,.8);max-width:65%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hmvb-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:8px;}
+.hmvb-lbl{font-size:9px;color:rgba(192,132,252,.5);letter-spacing:1.5px;text-transform:uppercase;}
+.hmvb-val{font-size:13px;color:rgba(255,255,255,.85);max-width:68%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .hmvb-moods{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;flex-shrink:0;}
 .hmvb-mood{font-size:10px;color:rgba(192,132,252,.7);background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:3px 9px;}
 .hmvb-hint{text-align:center;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;margin-top:10px;flex-shrink:0;}
@@ -4946,6 +4968,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   <div id="hm-viewer">
     <!-- Fond flou -->
     <div class="hmv-bg" id="hmv-bg"></div>
+    <div class="hmv-bg2" id="hmv-bg2"></div>
     <div class="hmv-grain"></div>
 
     <!-- Barre top -->
@@ -4971,10 +4994,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div class="hmv-face">
             <img id="hmv-img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
             <div id="hmv-placeholder" style="display:none;position:absolute;inset:0;background:linear-gradient(160deg,#1a0832,#08031a);align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:rgba(168,85,247,.2);"></div>
-            <!-- Zone de tap flip — bas de l'affiche uniquement -->
-            <div class="hmv-flip-tap-zone" onclick="hmvFlipPoster()">
-              <span>↻ retourner</span>
-            </div>
+
           </div>
           <!-- VERSO : infos -->
           <div class="hmv-face hmv-face-back" id="hmv-face-back">
@@ -4985,16 +5005,18 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
             <div class="hmvb-divider"></div>
             <div id="hmvb-rows"></div>
             <div class="hmvb-moods" id="hmvb-moods"></div>
-            <!-- Zone de tap pour retourner depuis le verso -->
-            <div class="hmv-flip-tap-zone" onclick="hmvFlipPoster()">
-              <span>↩ l'affiche</span>
-            </div>
+
           </div>
         </div>
         <div class="hmv-holo" id="hmv-holo"></div>
         <div class="hmv-shine" id="hmv-shine"></div>
         <div class="hmv-border" id="hmv-border"></div>
       </div>
+    </div>
+
+    <!-- Bouton flip texte — sous l'affiche, zéro conflit halo -->
+    <div class="hmv-flip-text-btn" id="hmv-flip-text-btn" onclick="hmvFlipPoster()">
+      <span id="hmv-flip-text-label">↻ retourner la carte</span>
     </div>
 
     <!-- Hint swipe up -->
@@ -9893,6 +9915,8 @@ function _hmvRender() {
     poster.classList.remove('flipped');
     delete poster.dataset.backFilled;
   }
+  const flipLbl = document.getElementById('hmv-flip-text-label');
+  if(flipLbl) flipLbl.textContent = '↻ retourner la carte';
 
   // Reset infos panel
   const infoEl = document.getElementById('hmv-info');
@@ -9916,6 +9940,8 @@ function _hmvRender() {
     img.style.display = 'block';
     if (ph) ph.style.display = 'none';
     if (bg) bg.style.backgroundImage = 'url(' + posterUrl + ')';
+    const bg2=document.getElementById('hmv-bg2');
+    if(bg2) bg2.style.backgroundImage='url('+posterUrl+')';
     // Si l'image locale échoue → chercher sur TMDB
     if (!film.p.startsWith('/') && !film.p.startsWith('http')) {
       img.onerror = () => {
@@ -9926,6 +9952,7 @@ function _hmvRender() {
           const url = TI + path;
           img.src = url;
           if (bg) bg.style.backgroundImage = 'url(' + url + ')';
+          const b2=document.getElementById('hmv-bg2');if(b2)b2.style.backgroundImage='url('+url+')';
         };
         if (cached) { applyTmdb(cached); return; }
         fetch('https://api.themoviedb.org/3/search/movie?api_key=' + TK + '&language=fr-FR&query=' + encodeURIComponent(film.t) + '&year=' + film.y)
