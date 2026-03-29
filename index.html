@@ -4723,7 +4723,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         </div>
 
       </div>
-  </div>
+    </div><!-- /arc-center -->
+  </div><!-- /arcade-menu -->
 
   <!-- SPEED QUIZ -->
   <div class="scr" id="arc-speedquiz">
@@ -15512,12 +15513,14 @@ let SN_SIZE=20,SN_COLS=16,SN_ROWS=16;
 function startSnake(){
   go('arc-snake');
   document.getElementById('snake-over').style.display='none';
-  // Attendre que le DOM soit affiché avant de lire les dimensions
-  requestAnimationFrame(()=>{
+  // Double rAF pour laisser le layout se calculer après go()
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   const wrap=document.querySelector('.sn-canvas-wrap');
   const cv=document.getElementById('snake-canvas');
-  const maxW=Math.min((wrap.clientWidth||320)-8,(wrap.clientHeight||320)-8,340);
-  SN_SIZE=Math.max(14,Math.floor(maxW/SN_COLS));
+  const availW=wrap.clientWidth||320;
+  const availH=wrap.clientHeight||320;
+  const maxSize=Math.min(availW-8,availH-8,360);
+  SN_SIZE=Math.max(14,Math.floor(maxSize/SN_COLS));
   cv.width=SN_COLS*SN_SIZE;cv.height=SN_ROWS*SN_SIZE;
   _snSnake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];
   _snDir={x:1,y:0};_snNextDir={x:1,y:0};
@@ -15527,7 +15530,7 @@ function startSnake(){
   clearInterval(_snTimer);
   _snTimer=setInterval(_snTick,140);
   _snDraw();
-  }); // end rAF
+  })); // end double rAF
 }
 function stopSnake(){clearInterval(_snTimer);_snRunning=false;}
 function snDir(dx,dy){
@@ -15643,6 +15646,8 @@ const BR_COLORS={
 function startBricks(){
   go('arc-bricks');
   document.getElementById('bricks-over').style.display='none';
+  // Double rAF pour que le layout soit calculé après go()
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   const c=document.getElementById('bricks-canvas');
   const wrap=c.parentElement;
   const availW=Math.min(wrap.clientWidth||320,360);
@@ -15696,6 +15701,7 @@ function startBricks(){
   sl.addEventListener('mousedown',_brOnStart);
   window.addEventListener('mousemove',_brOnMove);
   window.addEventListener('mouseup',_brOnEnd);
+  })); // end double rAF
 }
 
 function _brSetSliderPct(pct){
