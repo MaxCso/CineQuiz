@@ -110,7 +110,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .arc-dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:4px;justify-content:center;flex-shrink:0;}
 .arc-btn{background:var(--sf2);border:1px solid rgba(255,255,255,.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;user-select:none;transition:background .1s;}
 .arc-btn:active{background:rgba(245,200,66,.15);}
-.arc-gameover{position:absolute;inset:0;background:rgba(6,6,9,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:10;border-radius:inherit;}
+.arc-gameover{position:absolute;inset:0;background:rgba(6,6,9,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:10;border-radius:inherit;padding:14px 18px max(env(safe-area-inset-bottom),14px);}
 .arc-go-title{font-family:'Bebas Neue',sans-serif;font-size:40px;color:var(--red);letter-spacing:3px;}
 .arc-go-score{font-size:16px;color:rgba(255,255,255,.7);}
 .arc-btn-lg{background:linear-gradient(135deg,rgba(245,200,66,.15),rgba(245,200,66,.08));border:1px solid rgba(245,200,66,.3);border-radius:14px;padding:14px 24px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--gold);text-align:center;cursor:pointer;margin-top:4px;transition:transform .15s;}
@@ -4706,11 +4706,55 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div class="arc-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
 
+        <!-- SPEED QUIZ -->
+        <div class="arc-card" style="--arc-color:rgba(251,146,60,.85);--arc-bg:rgba(251,146,60,.1);" onclick="startSpeedQuiz()">
+          <div class="arc-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="arc-card-body">
+            <div class="arc-card-name">SPEED QUIZ</div>
+            <div class="arc-card-sub">5 questions, 8 sec max</div>
+            <div class="arc-card-hs" id="arc-hs-speedquiz">🏆 Record : —</div>
+          </div>
+          <div class="arc-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+
+      </div>
+  </div>
+
+  <!-- SPEED QUIZ -->
+  <div class="scr" id="arc-speedquiz">
+    <div class="arc-bg" style="--arc-color:rgba(251,146,60,.85);"></div>
+    <div class="arc-head">
+      <div class="ibtn" onclick="go('arcade-menu');stopSpeedQuiz()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="arc-title">⚡ SPEED QUIZ</div>
+      <div class="arc-score-badge">Score : <span id="sq-score-badge">0</span></div>
+    </div>
+    <div class="arc-center" style="gap:0;padding:10px 20px max(16px,env(safe-area-inset-bottom));justify-content:center;">
+      <!-- Timer bar -->
+      <div style="width:100%;height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-bottom:18px;overflow:hidden;">
+        <div id="sq-timer-bar" style="height:100%;width:100%;background:linear-gradient(90deg,#fb923c,#f59e0b);border-radius:3px;transition:width .1s linear;"></div>
+      </div>
+      <!-- Question -->
+      <div id="sq-question-num" style="font-size:10px;color:rgba(251,146,60,.6);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;text-align:center;"></div>
+      <div id="sq-question" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.5px;color:#fff;text-align:center;line-height:1.2;margin-bottom:24px;min-height:60px;"></div>
+      <!-- Réponses -->
+      <div id="sq-answers" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;"></div>
+      <!-- Score actuel -->
+      <div id="sq-feedback" style="margin-top:18px;font-size:14px;text-align:center;min-height:24px;"></div>
+    </div>
+    <!-- Game Over -->
+    <div id="sq-over" class="arc-gameover" style="display:none;">
+      <div class="arc-go-title" style="color:#fb923c;">⚡ TERMINÉ !</div>
+      <div class="arc-go-score">Score : <span id="sq-final"></span> / 500</div>
+      <div id="sq-summary" style="font-size:12px;color:rgba(255,255,255,.4);margin-top:-4px;"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:4px;">
+        <div class="arc-btn-lg" style="flex:1.4;" onclick="startSpeedQuiz()">↺ Rejouer</div>
+        <div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu');stopSpeedQuiz()">← Arcade</div>
       </div>
     </div>
   </div>
 
-  <!-- SNAKE -->
   <div class="scr" id="arc-snake">
     <div class="arc-bg"></div>
     <div class="arc-head">
@@ -4747,8 +4791,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div id="snake-over" class="arc-gameover" style="display:none">
       <div class="arc-go-title">GAME OVER</div>
       <div class="arc-go-score">Score : <span id="snake-final"></span></div>
-      <div class="arc-btn-lg" onclick="startSnake()">↺ Rejouer</div>
-      <div class="arc-btn-lg" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.6);margin-top:2px;" onclick="go('arcade-menu');stopSnake()">← Arcade</div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:4px;"><div class="arc-btn-lg" style="flex:1.4;" onclick="startSnake()">↺ Rejouer</div><div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu');stopSnake()">← Arcade</div></div>
     </div>
   </div>
 
@@ -4775,8 +4818,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div id="bricks-over" class="arc-gameover" style="display:none">
       <div class="arc-go-title" id="bricks-result">GAME OVER</div>
       <div class="arc-go-score">Score : <span id="bricks-final"></span></div>
-      <div class="arc-btn-lg" onclick="startBricks()">↺ Rejouer</div>
-      <div class="arc-btn-lg" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.6);margin-top:2px;" onclick="go('arcade-menu');stopBricks()">← Arcade</div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:4px;"><div class="arc-btn-lg" style="flex:1.4;" onclick="startBricks()">↺ Rejouer</div><div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu');stopBricks()">← Arcade</div></div>
     </div>
   </div>
 
@@ -4813,9 +4855,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       </div>
     </div>
     <div id="morp-over" class="arc-gameover" style="display:none;">
-      <div class="arc-go-title" id="morp-over-title" style="font-size:30px;"></div>
-      <div class="arc-btn-lg" onclick="resetMorpion()">↺ Rejouer</div>
-      <div class="arc-btn-lg" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.6);margin-top:2px;" onclick="go('arcade-menu')">← Arcade</div>
+      <div class="arc-go-title" id="morp-over-title" style="font-size:24px;margin-bottom:8px;"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:4px;"><div class="arc-btn-lg" style="flex:1.4;" onclick="resetMorpion()">↺ Rejouer</div><div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu')">← Arcade</div></div>
     </div>
   </div>
 
@@ -4838,8 +4879,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div id="mem-over" class="arc-gameover" style="display:none;">
       <div class="arc-go-title" style="color:var(--gold);font-size:28px;">🎬 BRAVO !</div>
       <div class="arc-go-score">Terminé en <span id="mem-final-moves"></span> essais · <span id="mem-final-time"></span></div>
-      <div class="arc-btn-lg" onclick="startMemory()">↺ Rejouer</div>
-      <div class="arc-btn-lg" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.6);margin-top:2px;" onclick="go('arcade-menu');stopMemory()">← Arcade</div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:4px;"><div class="arc-btn-lg" style="flex:1.4;" onclick="startMemory()">↺ Rejouer</div><div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu');stopMemory()">← Arcade</div></div>
     </div>
   </div>
 
@@ -15195,7 +15235,11 @@ function _refreshArcadeScores(){
     if(el('arc-hs-bricks'))el('arc-hs-bricks').textContent='🏆 Record : '+(hs.bricks||0);
     if(el('arc-hs-morpion'))el('arc-hs-morpion').textContent='Victoires : '+(hs.morpion||0);
     if(el('arc-hs-memory'))el('arc-hs-memory').textContent=hs.memory?'🏆 Meilleur score':'À battre !';
+    if(el('arc-hs-speedquiz'))el('arc-hs-speedquiz').textContent='🏆 Record : '+(hs.speedquiz||0)+' pts';
   }catch(e){}
+}
+function _getArcadeHS(game){
+  try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');return hs[game]||0;}catch(e){return 0;}
 }
 function _saveArcadeHS(game,val){
   try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');if(!hs[game]||val>hs[game]){hs[game]=val;localStorage.setItem('cq_arc_hs',JSON.stringify(hs));}}catch(e){}
@@ -15330,13 +15374,132 @@ function openArcade(){
       go('arcade-menu');
       _refreshArcadeScores();
       if(musOn)switchMusic('arcade',0.25);
-    },800);
+    },2400);
     setTimeout(()=>{
       overlay.style.opacity='0';
-      overlay.style.transition='opacity .6s ease';
-      setTimeout(()=>overlay.remove(),700);
-    },1100);
+      overlay.style.transition='opacity .8s ease';
+      setTimeout(()=>overlay.remove(),900);
+    },2800);
   });
+}
+
+// ─── SPEED QUIZ ───
+let _sqTimer=null,_sqQ=0,_sqScore=0,_sqTimeLeft=0,_sqAnswered=false,_sqQuestions=[];
+const SQ_TIME=8000,SQ_COUNT=5;
+
+const SQ_BANK=[
+  {q:"Qui réalise 'Parasite' (2019) ?",a:"Bong Joon-ho",w:["Park Chan-wook","Kim Jee-woon","Lee Chang-dong"]},
+  {q:"Dans quel film Hannibal Lecter apparaît-il pour la première fois ?",a:"Le Silence des agneaux",w:["Hannibal","Dragon Rouge","Manhunter"]},
+  {q:"Qui joue le Joker dans 'The Dark Knight' ?",a:"Heath Ledger",w:["Joaquin Phoenix","Jack Nicholson","Jared Leto"]},
+  {q:"Quel film remporte l'Oscar du meilleur film en 2020 ?",a:"Parasite",w:["1917","Once Upon a Time in Hollywood","Joker"]},
+  {q:"Dans 'Inception', combien y a-t-il de niveaux de rêve ?",a:"4",w:["3","5","2"]},
+  {q:"Qui compose la bande-originale de 'Dune' (2021) ?",a:"Hans Zimmer",w:["John Williams","Ennio Morricone","Jonny Greenwood"]},
+  {q:"Quel acteur joue Tony Stark dans le MCU ?",a:"Robert Downey Jr.",w:["Chris Evans","Mark Ruffalo","Jeremy Renner"]},
+  {q:"'La La Land' se déroule dans quelle ville ?",a:"Los Angeles",w:["New York","Chicago","San Francisco"]},
+  {q:"Qui réalise la trilogie 'Le Seigneur des Anneaux' ?",a:"Peter Jackson",w:["James Cameron","Ridley Scott","Steven Spielberg"]},
+  {q:"Dans quel film Meryl Streep joue Miranda Priestly ?",a:"Le Diable s'habille en Prada",w:["Kramer contre Kramer","Sophie's Choice","The Hours"]},
+  {q:"Quel film de Tarantino se passe pendant la WW2 ?",a:"Inglourious Basterds",w:["Django Unchained","The Hateful Eight","Kill Bill"]},
+  {q:"Qui joue Forrest Gump ?",a:"Tom Hanks",w:["Tom Cruise","Robin Williams","Kevin Costner"]},
+  {q:"'Drive' (2011) est réalisé par ?",a:"Nicolas Winding Refn",w:["David Fincher","Christopher Nolan","Denis Villeneuve"]},
+  {q:"Quel acteur joue James Bond dans 'Casino Royale' (2006) ?",a:"Daniel Craig",w:["Pierce Brosnan","Roger Moore","Timothy Dalton"]},
+  {q:"'Amélie Poulain' est réalisé par ?",a:"Jean-Pierre Jeunet",w:["Luc Besson","François Ozon","Gaspar Noé"]},
+  {q:"Qui joue le rôle principal dans 'Her' (2013) ?",a:"Joaquin Phoenix",w:["Ryan Gosling","Jake Gyllenhaal","Adam Driver"]},
+  {q:"Dans 'Titanic', qui compose la musique ?",a:"James Horner",w:["Hans Zimmer","John Williams","Danny Elfman"]},
+  {q:"'Moonlight' remporte l'Oscar du meilleur film quelle année ?",a:"2017",w:["2016","2018","2019"]},
+  {q:"Quel film de Denis Villeneuve est sorti en 2016 ?",a:"Arrival",w:["Sicario","Blade Runner 2049","Enemy"]},
+  {q:"Qui joue Amy Dunne dans 'Gone Girl' ?",a:"Rosamund Pike",w:["Carey Mulligan","Emily Blunt","Keira Knightley"]},
+  {q:"'Midsommar' est réalisé par ?",a:"Ari Aster",w:["Jordan Peele","Mike Flanagan","James Wan"]},
+  {q:"Quel est le premier film de la saga 'John Wick' ?",a:"2014",w:["2012","2016","2015"]},
+  {q:"Qui joue la sorcière dans 'The Witch' (2015) ?",a:"Anya Taylor-Joy",w:["Florence Pugh","Thomasin McKenzie","Mia Wasikowska"]},
+  {q:"'Oldboy' est un film de quelle nationalité ?",a:"Coréenne",w:["Japonaise","Française","Chinoise"]},
+  {q:"Qui réalise 'Black Swan' ?",a:"Darren Aronofsky",w:["David Lynch","Lars von Trier","Gaspar Noé"]},
+  {q:"Dans quel film Brad Pitt joue Tyler Durden ?",a:"Fight Club",w:["Seven","Snatch","12 Monkeys"]},
+  {q:"'Caché' est réalisé par ?",a:"Michael Haneke",w:["Jean-Luc Godard","François Truffaut","Agnes Varda"]},
+  {q:"Qui joue dans 'Marriage Story' de Noah Baumbach ?",a:"Adam Driver",w:["Jake Gyllenhaal","Oscar Isaac","Timothée Chalamet"]},
+  {q:"'Everything Everywhere All at Once' gagne combien d'Oscars ?",a:"7",w:["4","5","6"]},
+  {q:"Qui réalise 'Portrait de la Jeune Fille en Feu' ?",a:"Céline Sciamma",w:["Mia Hansen-Løve","Rebecca Zlotowski","Katell Quillévéré"]},
+];
+
+function startSpeedQuiz(){
+  go('arc-speedquiz');
+  document.getElementById('sq-over').style.display='none';
+  _sqScore=0;_sqQ=0;_sqAnswered=false;
+  // Mélanger et prendre SQ_COUNT questions
+  _sqQuestions=[...SQ_BANK].sort(()=>Math.random()-.5).slice(0,SQ_COUNT);
+  document.getElementById('sq-score-badge').textContent='0';
+  document.getElementById('sq-feedback').textContent='';
+  _sqNextQuestion();
+}
+function stopSpeedQuiz(){clearInterval(_sqTimer);}
+function _sqNextQuestion(){
+  clearInterval(_sqTimer);
+  if(_sqQ>=SQ_COUNT){_sqEnd();return;}
+  _sqAnswered=false;
+  const item=_sqQuestions[_sqQ];
+  document.getElementById('sq-question-num').textContent=`Question ${_sqQ+1} / ${SQ_COUNT}`;
+  document.getElementById('sq-question').textContent=item.q;
+  document.getElementById('sq-feedback').textContent='';
+  // Mélanger les réponses
+  const answers=[item.a,...item.w].sort(()=>Math.random()-.5);
+  const grid=document.getElementById('sq-answers');
+  grid.innerHTML=answers.map(a=>`
+    <div class="arc-btn-lg" style="padding:14px 10px;font-size:14px;text-align:center;cursor:pointer;" onclick="sqAnswer('${a.replace(/'/g,"\\'")}')">
+      ${a}
+    </div>`).join('');
+  // Timer
+  _sqTimeLeft=SQ_TIME;
+  const bar=document.getElementById('sq-timer-bar');
+  bar.style.transition='none';bar.style.width='100%';
+  bar.style.background='linear-gradient(90deg,#fb923c,#f59e0b)';
+  requestAnimationFrame(()=>{
+    bar.style.transition=`width ${SQ_TIME}ms linear`;
+    bar.style.width='0%';
+  });
+  const start=Date.now();
+  _sqTimer=setInterval(()=>{
+    _sqTimeLeft=SQ_TIME-(Date.now()-start);
+    if(_sqTimeLeft<=0){clearInterval(_sqTimer);if(!_sqAnswered)sqAnswer(null);}
+  },100);
+}
+function sqAnswer(chosen){
+  if(_sqAnswered)return;
+  _sqAnswered=true;
+  clearInterval(_sqTimer);
+  document.getElementById('sq-timer-bar').style.transition='none';
+  const item=_sqQuestions[_sqQ];
+  const correct=chosen===item.a;
+  // Highlight buttons
+  document.querySelectorAll('#sq-answers .arc-btn-lg').forEach(btn=>{
+    if(btn.textContent.trim()===item.a){btn.style.background='rgba(46,204,113,.25)';btn.style.borderColor='rgba(46,204,113,.6)';}
+    else if(btn.textContent.trim()===chosen&&!correct){btn.style.background='rgba(231,76,60,.2)';btn.style.borderColor='rgba(231,76,60,.5)';}
+    btn.onclick=null;
+  });
+  const pts=correct?Math.round((_sqTimeLeft/SQ_TIME)*100):0;
+  _sqScore+=pts;
+  document.getElementById('sq-score-badge').textContent=_sqScore;
+  const fb=document.getElementById('sq-feedback');
+  if(correct){
+    fb.style.color='#2ecc71';
+    fb.textContent=pts>=80?`⚡ +${pts} pts — Ultra rapide !`:pts>=50?`✓ +${pts} pts — Bien joué !`:`✓ +${pts} pts`;
+  } else if(chosen===null){
+    fb.style.color='rgba(255,255,255,.4)';
+    fb.textContent=`⏱ Temps écoulé ! C'était : ${item.a}`;
+  } else {
+    fb.style.color='#e74c3c';
+    fb.textContent=`✗ C'était : ${item.a}`;
+  }
+  _sqQ++;
+  setTimeout(_sqNextQuestion,1600);
+}
+function _sqEnd(){
+  document.getElementById('sq-final').textContent=_sqScore;
+  const pct=Math.round((_sqScore/500)*100);
+  document.getElementById('sq-summary').textContent=
+    pct>=80?'🏆 Cinéphile élite !':pct>=50?'🎬 Bon cinéphile !':'📽 Continue à regarder des films !';
+  document.getElementById('sq-over').style.display='flex';
+  _saveArcadeHS('speedquiz',_sqScore);
+  const prev=_getArcadeHS('speedquiz');
+  if(_sqScore>=(prev||0)){document.getElementById('arc-hs-speedquiz').textContent=`🏆 Record : ${_sqScore}`;}
 }
 
 // ─── SNAKE ───
@@ -15346,12 +15509,13 @@ let SN_SIZE=20,SN_COLS=16,SN_ROWS=16;
 function startSnake(){
   go('arc-snake');
   document.getElementById('snake-over').style.display='none';
+  // Attendre que le DOM soit affiché avant de lire les dimensions
+  requestAnimationFrame(()=>{
   const wrap=document.querySelector('.sn-canvas-wrap');
-  const c=document.getElementById('snake-canvas');
-  // Taille adaptative
-  const maxW=Math.min(wrap.clientWidth-8,wrap.clientHeight-8,340);
-  SN_SIZE=Math.floor(maxW/SN_COLS);
-  c.width=SN_COLS*SN_SIZE;c.height=SN_ROWS*SN_SIZE;
+  const cv=document.getElementById('snake-canvas');
+  const maxW=Math.min((wrap.clientWidth||320)-8,(wrap.clientHeight||320)-8,340);
+  SN_SIZE=Math.max(14,Math.floor(maxW/SN_COLS));
+  cv.width=SN_COLS*SN_SIZE;cv.height=SN_ROWS*SN_SIZE;
   _snSnake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];
   _snDir={x:1,y:0};_snNextDir={x:1,y:0};
   _snScore=0;_snRunning=true;
@@ -15359,6 +15523,8 @@ function startSnake(){
   _snPlaceFood();
   clearInterval(_snTimer);
   _snTimer=setInterval(_snTick,140);
+  _snDraw();
+  }); // end rAF
 }
 function stopSnake(){clearInterval(_snTimer);_snRunning=false;}
 function snDir(dx,dy){
