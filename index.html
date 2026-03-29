@@ -9580,34 +9580,19 @@ function _hmRenderCollection() {
     : '';
 
   grid.innerHTML = randomBtn + revealedFilms.map(({ idx, film }) => {
-    const posterUrl = film.p && film.p.startsWith('/') ? TI + film.p : '';
+    const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
     const imgHtml = posterUrl
       ? `<img class="hm-card-img" src="${posterUrl}" alt="${film.t}" loading="lazy">`
       : `<div class="hm-card-img-placeholder">${film.y}</div>`;
-    const moodsHtml = (film.m||[]).map(m=>`<span class="hm-back-mood">${m}</span>`).join('');
-    return `<div class="hm-card-wrap" data-idx="${idx}">
-      <div class="hm-card" onclick="hmCardTap(this,${idx})">
-        <div class="hm-card-front">
-          ${imgHtml}
-          <div class="hm-card-overlay"></div>
-          <div class="hm-card-info">
-            <div class="hm-card-title">${film.t}</div>
-            <div class="hm-card-meta">${film.y} · ${film.g}</div>
-          </div>
-          <div class="hm-flip-hint">↻</div>
-        </div>
-        <div class="hm-card-back">
-          <div class="hm-back-genre">${film.g||''}</div>
-          <div class="hm-back-title">${film.t}</div>
-          <div class="hm-back-synopsis">${film.s||''}</div>
-          <div class="hm-back-divider"></div>
-          <div id="hm-back-rows-${idx}"><div class="hm-back-row"><span class="hm-back-lbl">Année</span><span class="hm-back-val">${film.y}</span></div></div>
-          ${moodsHtml ? `<div class="hm-back-moods">${moodsHtml}</div>` : ''}
-          <div class="hm-back-btn" onclick="event.stopPropagation();_hmOpenCardDetail(${idx})">Voir le film ↗</div>
-        </div>
-        <div class="hm-card-holo"></div>
-        <div class="hm-card-shine"></div>
-        <div class="hm-card-border"></div>
+    return `<div class="hm-card" data-idx="${idx}" onclick="_hmOpenCardDetail(${idx})">
+      ${imgHtml}
+      <div class="hm-card-overlay"></div>
+      <div class="hm-card-holo"></div>
+      <div class="hm-card-shine"></div>
+      <div class="hm-card-border"></div>
+      <div class="hm-card-info">
+        <div class="hm-card-title">${film.t}</div>
+        <div class="hm-card-meta">${film.y} · ${film.g}</div>
       </div>
     </div>`;
   }).join('');
@@ -9789,8 +9774,8 @@ function _hmvRender() {
   const img = document.getElementById('hmv-img');
   const ph  = document.getElementById('hmv-placeholder');
 
-  const posterUrl = film.p && film.p.startsWith('/')
-    ? TI + film.p
+  const posterUrl = film.p
+    ? (film.p.startsWith('/') ? TI + film.p : film.p.startsWith('http') ? film.p : film.p)
     : '';
 
   if (posterUrl) {
@@ -9799,35 +9784,9 @@ function _hmvRender() {
     if (ph) ph.style.display = 'none';
     if (bg) bg.style.backgroundImage = 'url(' + posterUrl + ')';
   } else {
-    // Affiche locale ou absente → chercher sur TMDB (avec cache)
     img.src = ''; img.style.display = 'none';
-    if (ph) { ph.style.display = 'flex'; ph.textContent = '…'; }
-    const cacheKey = 'hm_poster_' + (film.t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase() + '_' + film.y;
-    let cached = null;
-    try { cached = localStorage.getItem(cacheKey); } catch {}
-    const applyUrl = url => {
-      if (document.getElementById('hmv-img') !== img) return;
-      img.src = url; img.style.display = 'block';
-      if (ph) ph.style.display = 'none';
-      if (bg) bg.style.backgroundImage = 'url(' + url + ')';
-    };
-    if (cached) {
-      applyUrl(TI + cached);
-    } else {
-      const query = encodeURIComponent(film.t);
-      fetch('https://api.themoviedb.org/3/search/movie?api_key=' + TK + '&language=fr-FR&query=' + query + '&year=' + film.y)
-        .then(r => r.json())
-        .then(j => j.results?.[0] || fetch('https://api.themoviedb.org/3/search/movie?api_key=' + TK + '&language=fr-FR&query=' + query).then(r=>r.json()).then(j2=>j2.results?.[0]))
-        .then(match => {
-          if (match?.poster_path) {
-            try { localStorage.setItem(cacheKey, match.poster_path); } catch {}
-            applyUrl(TI + match.poster_path);
-          } else {
-            if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; }
-          }
-        })
-        .catch(() => { if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; } });
-    }
+    if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; }
+    if (bg) bg.style.backgroundImage = 'none';
   }
 
   // Titre barre top
