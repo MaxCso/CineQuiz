@@ -3766,9 +3766,9 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 }
 .hm-card-shine{position:absolute;inset:0;border-radius:14px;pointer-events:none;opacity:0;z-index:2;background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),rgba(255,255,255,.06) 0%,rgba(255,255,255,.01) 40%,transparent 65%);mix-blend-mode:screen;transition:opacity .2s;}
 .hm-card-border{position:absolute;inset:0;border-radius:14px;border:1px solid rgba(255,255,255,.10);pointer-events:none;z-index:2;background:linear-gradient(calc(var(--holo-angle,105deg)),rgba(255,220,180,.07),rgba(180,255,220,.06),rgba(180,220,255,.07));opacity:0;mix-blend-mode:screen;transition:opacity .3s;}
-.hm-card-wrap:hover .hm-card-holo,.hm-card-wrap.touching .hm-card-holo{opacity:1;}
-.hm-card-wrap:hover .hm-card-shine,.hm-card-wrap.touching .hm-card-shine{opacity:1;}
-.hm-card-wrap:hover .hm-card-border,.hm-card-wrap.touching .hm-card-border{opacity:1;}
+.hm-card:hover .hm-card-holo,.hm-card.touching .hm-card-holo{opacity:1;}
+.hm-card:hover .hm-card-shine,.hm-card.touching .hm-card-shine{opacity:1;}
+.hm-card:hover .hm-card-border,.hm-card.touching .hm-card-border{opacity:1;}
 
 </style>
 </head>
@@ -9971,26 +9971,34 @@ function _hmvHoloLeave()       { _hmvHoloReset(this); }
 
 // ══ HM — Effet holographique ══
 function _hmInitHoloCards() {
-  document.querySelectorAll('#hm-collection-grid .hm-card-wrap, #hm-wishlist-grid .hm-card-wrap').forEach(wrap => {
+  document.querySelectorAll('#hm-collection-grid .hm-card, #hm-wishlist-grid .hm-card').forEach(card => {
     let timer=null, raf=null;
     const reset=()=>{
-      timer=setTimeout(()=>{ wrap.classList.remove('touching'); },300);
+      timer=setTimeout(()=>{
+        card.classList.remove('touching');
+        card.style.transition='transform .4s ease';
+        card.style.transform='perspective(600px) rotateX(0) rotateY(0) scale(1)';
+        setTimeout(()=>card.style.transition='',420);
+      },300);
     };
     const update=(cx,cy)=>{
-      const r=wrap.getBoundingClientRect();
+      const r=card.getBoundingClientRect();
       const mx=((cx-r.left)/r.width*100).toFixed(1)+'%';
       const my=((cy-r.top)/r.height*100).toFixed(1)+'%';
       const angle=(Math.atan2(cy-r.top-r.height/2, cx-r.left-r.width/2)*180/Math.PI+90)+'deg';
-      wrap.style.setProperty('--mx',mx);
-      wrap.style.setProperty('--my',my);
-      wrap.style.setProperty('--holo-angle',angle);
+      const rotY=((cx-r.left)/r.width-0.5)*16;
+      const rotX=-((cy-r.top)/r.height-0.5)*12;
+      card.style.setProperty('--mx',mx);
+      card.style.setProperty('--my',my);
+      card.style.setProperty('--holo-angle',angle);
+      card.style.transform=`perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
     };
-    wrap.addEventListener('touchstart',e=>{clearTimeout(timer);wrap.classList.add('touching');update(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
-    wrap.addEventListener('touchmove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.touches[0].clientX,e.touches[0].clientY));},{passive:true});
-    wrap.addEventListener('touchend',()=>reset(),{passive:true});
-    wrap.addEventListener('mouseenter',()=>{clearTimeout(timer);wrap.classList.add('touching');});
-    wrap.addEventListener('mousemove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.clientX,e.clientY));});
-    wrap.addEventListener('mouseleave',()=>reset());
+    card.addEventListener('touchstart',e=>{clearTimeout(timer);card.classList.add('touching');card.style.transition='none';update(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+    card.addEventListener('touchmove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.touches[0].clientX,e.touches[0].clientY));},{passive:true});
+    card.addEventListener('touchend',()=>reset(),{passive:true});
+    card.addEventListener('mouseenter',()=>{clearTimeout(timer);card.classList.add('touching');card.style.transition='none';});
+    card.addEventListener('mousemove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.clientX,e.clientY));});
+    card.addEventListener('mouseleave',()=>reset());
   });
 }
 
