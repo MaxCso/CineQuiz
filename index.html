@@ -2987,6 +2987,21 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   will-change:transform;
   flex-shrink:0;
 }
+/* Zone de tap flip — bas de l'affiche */
+.hmv-flip-tap-zone{
+  position:absolute;bottom:0;left:0;right:0;
+  height:22%;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:12px;
+  cursor:pointer;
+  background:linear-gradient(to top, rgba(0,0,0,.45) 0%, transparent 100%);
+  z-index:4;
+}
+.hmv-flip-tap-zone span{
+  font-size:9px;color:rgba(255,255,255,.35);
+  letter-spacing:2px;text-transform:uppercase;
+  pointer-events:none;
+}
 /* Bouton retourner sous l'affiche */
 .hmv-flip-btn{
   display:flex;align-items:center;gap:7px;
@@ -3078,13 +3093,13 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   opacity:0;pointer-events:none;z-index:3;
   background:
     radial-gradient(ellipse at var(--mx,50%) var(--my,50%),
-      rgba(255,255,255,.06) 0%,transparent 60%),
+      rgba(255,255,255,.12) 0%,transparent 60%),
     linear-gradient(calc(var(--holo-angle,105deg)),
       transparent 0%,
-      rgba(255,220,180,.04) 10%,rgba(180,255,220,.05) 22%,
-      rgba(180,220,255,.04) 34%,rgba(255,180,220,.04) 46%,
-      rgba(255,240,160,.04) 58%,rgba(160,255,240,.05) 70%,
-      rgba(220,180,255,.04) 82%,transparent 100%);
+      rgba(255,220,180,.10) 10%,rgba(180,255,220,.12) 22%,
+      rgba(180,220,255,.10) 34%,rgba(255,180,220,.10) 46%,
+      rgba(255,240,160,.10) 58%,rgba(160,255,240,.12) 70%,
+      rgba(220,180,255,.10) 82%,transparent 100%);
   mix-blend-mode:screen;
   transition:opacity .3s;
 }
@@ -3092,7 +3107,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   position:absolute;inset:0;border-radius:20px;
   pointer-events:none;opacity:0;z-index:3;
   background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),
-    rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 40%,transparent 65%);
+    rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 40%,transparent 65%);
   mix-blend-mode:screen;transition:opacity .2s;
 }
 .hmv-border{
@@ -3111,7 +3126,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hmv-topbar{
   position:absolute;top:0;left:0;right:0;
   padding:max(env(safe-area-inset-top),44px) 18px 12px;
-  display:grid;grid-template-columns:44px 1fr 44px;align-items:center;
+  display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;
   z-index:10;pointer-events:all;
   background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);
 }
@@ -3124,7 +3139,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hmv-close:active{transform:scale(.88);}
 .hmv-counter{
   font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;
-  text-align:right;
+  white-space:nowrap;
 }
 .hmv-title-top{
   font-family:'Bebas Neue',sans-serif;font-size:16px;
@@ -4903,8 +4918,32 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <!-- Affiche centrale -->
     <div class="hmv-poster-wrap" id="hmv-poster-wrap">
       <div class="hmv-poster" id="hmv-poster">
-        <img id="hmv-img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
-        <div id="hmv-placeholder" style="display:none;position:absolute;inset:0;background:linear-gradient(160deg,#1a0832,#08031a);align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:rgba(168,85,247,.2);"></div>
+        <!-- Container 3D -->
+        <div class="hmv-poster-inner" id="hmv-poster-inner">
+          <!-- RECTO : affiche -->
+          <div class="hmv-face">
+            <img id="hmv-img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
+            <div id="hmv-placeholder" style="display:none;position:absolute;inset:0;background:linear-gradient(160deg,#1a0832,#08031a);align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:rgba(168,85,247,.2);"></div>
+            <!-- Zone de tap flip — bas de l'affiche uniquement -->
+            <div class="hmv-flip-tap-zone" onclick="hmvFlipPoster()">
+              <span>↻ retourner</span>
+            </div>
+          </div>
+          <!-- VERSO : infos -->
+          <div class="hmv-face hmv-face-back" id="hmv-face-back">
+            <div class="hmvb-genre" id="hmvb-genre"></div>
+            <div class="hmvb-title" id="hmvb-title"></div>
+            <div class="hmvb-year" id="hmvb-year"></div>
+            <div class="hmvb-synopsis" id="hmvb-synopsis"></div>
+            <div class="hmvb-divider"></div>
+            <div id="hmvb-rows"></div>
+            <div class="hmvb-moods" id="hmvb-moods"></div>
+            <!-- Zone de tap pour retourner depuis le verso -->
+            <div class="hmv-flip-tap-zone" onclick="hmvFlipPoster()">
+              <span>↩ l'affiche</span>
+            </div>
+          </div>
+        </div>
         <div class="hmv-holo" id="hmv-holo"></div>
         <div class="hmv-shine" id="hmv-shine"></div>
         <div class="hmv-border" id="hmv-border"></div>
@@ -9807,12 +9846,6 @@ function _hmvRender() {
     poster.classList.remove('flipped');
     delete poster.dataset.backFilled;
   }
-  // Tap sur l'inner (pas le poster qui porte le halo) → flip
-  const inner = document.getElementById('hmv-poster-inner');
-  if(inner && !inner.dataset.tapReady){
-    inner.addEventListener('click', hmvFlipPoster);
-    inner.dataset.tapReady = '1';
-  }
 
   // Reset infos panel
   const infoEl = document.getElementById('hmv-info');
@@ -10022,24 +10055,27 @@ function _hmvHoloUpdate(el, cx, cy) {
   const r = el.getBoundingClientRect();
   const x = cx - r.left, y = cy - r.top;
   const mx = (x / r.width) * 100, my = (y / r.height) * 100;
-  const rotY = ((mx - 50) / 50) * 10;
-  const rotX = -((my - 50) / 50) * 8;
+  const rotY = ((mx - 50) / 50) * 22;
+  const rotX = -((my - 50) / 50) * 18;
   const angle = Math.atan2(y - r.height / 2, x - r.width / 2) * 180 / Math.PI + 90;
   el.style.setProperty('--mx', mx + '%');
   el.style.setProperty('--my', my + '%');
   el.style.setProperty('--holo-angle', angle + 'deg');
-  // Tilt sur l'inner (pas sur le poster qui contient la perspective)
   const inner = document.getElementById('hmv-poster-inner');
   const poster = document.getElementById('hmv-poster');
   if(inner && !poster?.classList.contains('flipped')){
-    inner.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+    inner.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
   }
 }
 function _hmvHoloReset(el) {
   el.classList.remove('touching');
   el.style.removeProperty('--mx'); el.style.removeProperty('--my'); el.style.removeProperty('--holo-angle');
   const inner = document.getElementById('hmv-poster-inner');
-  if(inner) inner.style.transform = '';
+  if(inner){
+    inner.style.transition = 'transform .4s cubic-bezier(.25,.46,.45,.94)';
+    inner.style.transform = '';
+    setTimeout(()=>{ inner.style.transition=''; }, 420);
+  }
 }
 function _hmvHoloTouchStart(e) { this.classList.add('touching'); _hmvHoloUpdate(this, e.touches[0].clientX, e.touches[0].clientY); }
 function _hmvHoloTouchMove(e)  { _hmvHoloUpdate(this, e.touches[0].clientX, e.touches[0].clientY); }
