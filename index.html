@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -639,14 +638,6 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .vf-card.vf-no .vf-reveal{opacity:1;color:var(--red);}
 
 .mc[data-mode="training"]      {--mc-color:#94a3b8;--mc-bg:rgba(148,163,184,.1);}
-
-/* Bouton jouer : pulse subtil quand rien n'est en cours */
-@keyframes playPulse{
-  0%,100%{box-shadow:0 6px 32px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
-  50%{box-shadow:0 8px 42px rgba(245,200,66,.72),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
-}
-.pbtn{will-change:box-shadow;animation:playPulse 3s ease-in-out 2s infinite;}
-.pbtn:active{animation:none;transform:scale(.97);}
 
 /* XP bar : glow animé */
 .xpbf{box-shadow:0 0 8px rgba(245,200,66,.35);}
@@ -1383,26 +1374,81 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .anecdote-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .25s;}
 .anecdote-dot.active{width:16px;border-radius:3px;background:var(--gold);}
 
-/* -- BOUTON JOUER redesign -- */
+/* -- BOUTON JOUER : shimmer holographique (inspired by simeydotme) -- */
+@property --pbtn-shimmer{syntax:'<angle>';inherits:false;initial-value:33deg;}
+@keyframes pbtn-shimmer-spin{
+  0%   {--pbtn-shimmer:0deg;}
+  100% {--pbtn-shimmer:360deg;}
+}
+@keyframes pbtn-shimmer-slide{
+  to{background-position:calc(100% + 4rem) 0;}
+}
+@keyframes pbtn-glow-pulse{
+  0%,100%{box-shadow:0 6px 28px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
+  50%    {box-shadow:0 8px 44px rgba(245,200,66,.75),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
+}
+
 .pbtn{
   width:100%;border:none;border-radius:20px;height:64px;
-  background:linear-gradient(100deg,#f5c842 0%,#ffe566 45%,#e8a800 100%);
   color:#000;cursor:pointer;
   font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:5px;
   display:flex;align-items:center;justify-content:center;gap:12px;
   position:relative;overflow:hidden;
-  box-shadow:0 6px 32px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;
-  transition:transform .15s,box-shadow .15s;
+  transition:transform .15s,box-shadow .15s,scale .2s;
   margin-top:4px;
+  /* Fond doré de base */
+  background:linear-gradient(100deg,#f5c842 0%,#ffe566 45%,#e8a800 100%);
+  box-shadow:0 6px 32px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;
+  /* Bordure lumineuse animée */
+  outline:2px solid transparent;
+  outline-offset:2px;
+  animation:pbtn-glow-pulse 3s ease-in-out 1s infinite;
 }
+
+/* Layer shimmer via ::before (arc-en-ciel) */
+.pbtn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    conic-gradient(from var(--pbtn-shimmer, 33deg) at 50% 50%,
+      transparent   0deg,
+      rgba(255,255,255,.55) 90deg,
+      rgba(245,200,66,.6)   180deg,
+      rgba(255,150,50,.4)   270deg,
+      transparent   360deg
+    );
+  border-radius:inherit;
+  mix-blend-mode:screen;
+  animation:pbtn-shimmer-spin 3.5s linear infinite;
+  opacity:.7;
+  pointer-events:none;
+}
+
+/* Layer glare via ::after (balayage diagonal) */
 .pbtn::after{
-  content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
-  animation:btnglare 3s ease 1.5s infinite;
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255,255,255,.45) 45%,
+    rgba(255,240,180,.6)  50%,
+    rgba(255,255,255,.45) 55%,
+    transparent 70%
+  );
+  background-size:250% 100%;
+  animation:pbtn-shimmer-slide 2.4s ease-in-out 0.8s infinite;
+  pointer-events:none;
 }
-@keyframes btnglare{0%{left:-80%;}100%{left:160%;}}
-.pbtn:active{transform:scale(.97);box-shadow:0 2px 14px rgba(245,200,66,.3);}
-.pbtn-icon{font-size:22px;}
+
+.pbtn:active{
+  transform:scale(.97);
+  box-shadow:0 2px 14px rgba(245,200,66,.3);
+  animation:none;
+}
+.pbtn:active::before{opacity:.4;}
+.pbtn-icon{font-size:22px;position:relative;z-index:1;}
+.pbtn-text{position:relative;z-index:1;}
 
 /* -- FOND DE JEU par mode -- */
 #game-bg{
@@ -1564,6 +1610,35 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   radial-gradient(ellipse 44% 38% at 68% 68%,rgba(70,40,150,.28) 0%,transparent 56%);}
 #game-bg.mode-training::after{background:
   radial-gradient(ellipse 80% 70% at 50% 50%,transparent 28%,rgba(0,0,0,.88) 100%);}
+
+/* Survie — rouge sang, animation heartbeat */
+#game-bg.mode-survie{background:radial-gradient(ellipse 70% 60% at 50% 45%,rgba(120,0,20,.85) 0%,#070008 65%);}
+#game-bg.mode-survie::before{
+  background:
+    radial-gradient(ellipse 55% 48% at 50% 42%,rgba(220,30,50,.60) 0%,transparent 58%),
+    radial-gradient(ellipse 40% 35% at 20% 70%,rgba(160,10,30,.32) 0%,transparent 56%),
+    radial-gradient(ellipse 38% 32% at 80% 25%,rgba(180,20,40,.28) 0%,transparent 54%);
+  animation:survieHeartA 4s ease-in-out infinite;}
+#game-bg.mode-survie::after{background:
+  radial-gradient(ellipse 45% 38% at 65% 55%,rgba(200,10,35,.18) 0%,transparent 52%),
+  radial-gradient(ellipse 80% 70% at 50% 50%,transparent 24%,rgba(0,0,0,.92) 100%);
+  animation:survieHeartB 4s ease-in-out infinite;}
+@keyframes survieHeartA{
+  0%,100%{transform:translate(0%,0%) scale(1);opacity:.9;}
+  10%    {transform:translate(0%,0%) scale(1.06);opacity:1;}
+  20%    {transform:translate(0%,0%) scale(.97);opacity:.85;}
+  30%    {transform:translate(0%,0%) scale(1.04);opacity:.95;}
+  50%    {transform:translate(4%,6%) rotate(3deg) scale(.96);opacity:.75;}
+  75%    {transform:translate(-5%,-4%) rotate(-2deg) scale(1.02);opacity:.85;}
+}
+@keyframes survieHeartB{
+  0%,100%{transform:translate(0%,0%) scale(1);}
+  10%    {transform:translate(0%,0%) scale(1.05);}
+  20%    {transform:translate(0%,0%) scale(.98);}
+  30%    {transform:translate(0%,0%) scale(1.03);}
+  50%    {transform:translate(-4%,5%) rotate(-3deg) scale(.97);}
+  75%    {transform:translate(5%,-3%) rotate(2deg) scale(1.01);}
+}
 
 #game,#lvlup,#result{position:absolute;inset:0;z-index:1;}
 
@@ -4006,7 +4081,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="mc" data-mode="survie" onclick="openModeInfo('survie',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span class="mc-label">Survie</span><span class="mnew">NEW</span></div>
     </div>
 
-    <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span> JOUER</button>
+    <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span><span class="pbtn-text">JOUER</span></button>
 
 
     <!-- Cards Entraînement + Recommandation -->
@@ -11361,7 +11436,7 @@ const HM_DB=[
   {lvl:1,p:'Boogie Nights.jpg',t:'Boogie Nights',g:'Drame',y:1997,m:['atmosphère','adrénaline','réflexion'],s:'L\'ascension et la chute d\'une star du porno dans la Californie des années 70. Paul Thomas Anderson.'},
   {lvl:1,p:'Breakfast Club.jpg',t:'Breakfast Club',g:'Comédie dramatique',y:1985,m:['comédie','réflexion','mélancolique'],s:'Cinq lycéens que tout oppose passent un samedi en retenue. Le film de génération par excellence.'},
   {lvl:1,p:'Burning.jpg',t:'Burning',g:'Thriller',y:2018,m:['atmosphère','réflexion','mélancolique'],s:'Un jeune homme obsédé par une mystérieuse disparition. Lee Chang-dong hypnotique.'},
-  {lvl:1,p:'/Capharnaum.jpg',t:'Capharnaüm',g:'Drame',y:2018,m:['mélancolique','réflexion'],s:'Un enfant de 12 ans attaque ses parents en justice pour l\'avoir mis au monde. Nadine Labaki, Liban.'},
+  {lvl:1,p:'/p4bMCy2sGNdY2UmUCgZE9B5i7iU.jpg',t:'Capharnaüm',g:'Drame',y:2018,m:['mélancolique','réflexion'],s:'Un enfant de 12 ans attaque ses parents en justice pour l\'avoir mis au monde. Nadine Labaki, Liban.'},
   {lvl:1,p:'Captain Fantastic.jpg',t:'Captain Fantastic',g:'Comédie dramatique',y:2016,m:['réflexion','comédie','adrénaline'],s:'Un père élève ses enfants loin de la civilisation dans la forêt. Viggo Mortensen magistral.'},
   {lvl:1,p:'Causeway.jpg',t:'Causeway',g:'Drame',y:2022,m:['mélancolique','réflexion'],s:'Une vétérane traumatisée rentre à la maison et tente de se reconstruire. Jennifer Lawrence sobre.'},
   {lvl:2,p:'Charlie Countryman.jpg',t:'Charlie Countryman',g:'Comédie romantique',y:2013,m:['adrénaline','atmosphère'],s:'Un jeune Américain tombe amoureux d\'une femme dangereuse à Bucarest. Romantique et chaotique.'},
@@ -11394,7 +11469,7 @@ const HM_DB=[
   {lvl:3,p:'Good Time.jpg',t:'Good Time',g:'Thriller',y:2017,m:['adrénaline','atmosphère'],s:'Un petit criminel passe une nuit folle à travers New York pour sortir son frère de prison. Safdie Brothers.'},
   {lvl:3,p:'Grave.jpg',t:'Grave',g:'Horreur',y:2016,m:['adrénaline','atmosphère','réflexion'],s:'Une végétarienne goûte à la viande pour la première fois et développe des pulsions cannibales. Julia Ducournau.'},
   {lvl:3,p:'Her.jpg',t:'Her',g:'Science-fiction',y:2013,m:['mélancolique','atmosphère','réflexion'],s:'Un homme s\'éprend de son système d\'exploitation vocal. Spike Jonze, Joaquin Phoenix bouleversant.'},
-  {lvl:3,p:'Heredite.jpg',t:'Hérédité',g:'Horreur',y:2018,m:['atmosphère','adrénaline'],s:'Une famille est hantée par des secrets obscurs après le décès de la grand-mère. Ari Aster terrifiant.'},
+  {lvl:3,p:'/4O69QpOFvEoCUfiy6B1kgFkuBap.jpg',t:'Hérédité',g:'Horreur',y:2018,m:['atmosphère','adrénaline'],s:'Une famille est hantée par des secrets obscurs après le décès de la grand-mère. Ari Aster terrifiant.'},
   {lvl:3,p:'Heretic.jpg',t:'Heretic',g:'Thriller',y:2024,m:['réflexion','atmosphère','adrénaline'],s:'Deux missionnaires mormonnes piégées chez un homme qui remet leur foi en question.'},
   {lvl:3,p:'High Life.jpg',t:'High Life',g:'Science-fiction',y:2018,m:['atmosphère','réflexion','mélancolique'],s:'Des condamnés à mort en mission spatiale luttent pour leur humanité. Claire Denis, Pattinson.'},
   {lvl:3,p:'Highest 2 Lowest.jpg',t:'Highest 2 Lowest',g:'Policier',y:2025,m:['adrénaline','réflexion','atmosphère'],s:'Un producteur de musique doit payer une rançon pour son fils kidnappé. Remake de Kurosawa par A24.'},
@@ -11437,10 +11512,10 @@ const HM_DB=[
   {lvl:5,p:'Mid90s.jpg',t:'Mid90s',g:'Drame',y:2018,m:['atmosphère','mélancolique','adrénaline'],s:'Un gamin de 13 ans s\'intègre dans un groupe de skateurs de Los Angeles. Jonah Hill.'},
   {lvl:5,p:'Midsommar.jpg',t:'Midsommar',g:'Horreur',y:2019,m:['atmosphère','adrénaline'],s:'Des étudiants assistent à un festival folklorique suédois qui tourne au rituel meurtrier. Ari Aster.'},
   {lvl:6,p:'Minari.png',t:'Minari',g:'Drame',y:2020,m:['mélancolique','réflexion','atmosphère'],s:'Une famille coréenne tente sa chance dans une ferme de l\'Arkansas. Lee Isaac Chung.'},
-  {lvl:6,p:'Mise à mort du cerf sacre.jpg',t:'Mise à mort du cerf sacré',g:'Thriller',y:2017,m:['atmosphère','adrénaline','réflexion'],s:'Un chirurgien cardiaque est pris au piège par un adolescent vengeur. Yorgos Lanthimos.'},
+  {lvl:6,p:'/xJWKgCIlyQYIp95p3WFgkGYoBD1.jpg',t:'Mise à mort du cerf sacré',g:'Thriller',y:2017,m:['atmosphère','adrénaline','réflexion'],s:'Un chirurgien cardiaque est pris au piège par un adolescent vengeur. Yorgos Lanthimos.'},
   {lvl:6,p:'Mommy.jpg',t:'Mommy',g:'Drame',y:2014,m:['mélancolique','adrénaline','atmosphère'],s:'Une mère veuve tente de gérer son fils violent et attachant. Xavier Dolan.'},
   {lvl:6,p:'Moon.jpg',t:'Moon',g:'Science-fiction',y:2009,m:['atmosphère','réflexion','mélancolique'],s:'Un homme seul sur la Lune fait une découverte troublante. Sam Rockwell magistral.'},
-  {lvl:6,p:'Moonlight.jpg',t:'Moonlight',g:'Drame',y:2016,m:['mélancolique','réflexion','atmosphère'],s:'Un homme noir et gay à Miami à travers trois étapes de sa vie. Barry Jenkins, Oscar.'},
+  {lvl:6,p:'/4911T5FbJ9eAlnGCKGVEOp5xNkT.jpg',t:'Moonlight',g:'Drame',y:2016,m:['mélancolique','réflexion','atmosphère'],s:'Un homme noir et gay à Miami à travers trois étapes de sa vie. Barry Jenkins, Oscar.'},
   {lvl:6,p:'Mud.jpg',t:'Mud',g:'Drame',y:2012,m:['atmosphère','mélancolique','adrénaline'],s:'Deux garçons de l\'Arkansas recueillent un fugitif mystérieux. Jeff Nichols, McConaughey.'},
   {lvl:6,p:'Night Call.jpg',t:'Night Call',g:'Thriller',y:2014,m:['adrénaline','atmosphère','réflexion'],s:'Un chômeur sans scrupules devient caméraman de faits divers la nuit à LA. Jake Gyllenhaal.'},
   {lvl:6,p:'Nocturnal Animals.jpg',t:'Nocturnal Animals',g:'Thriller',y:2016,m:['atmosphère','adrénaline','réflexion','mélancolique'],s:'Une galeriste lit le roman de son ex-mari et y voit un message sombre. Tom Ford.'},
@@ -11448,21 +11523,21 @@ const HM_DB=[
   {lvl:6,p:'Obvious Child.jpg',t:'Obvious Child',g:'Comédie romantique',y:2014,m:['comédie','réflexion','mélancolique'],s:'Une stand-uppercomico se retrouve enceinte après un one-night stand. Jenny Slate, sincère.'},
   {lvl:6,p:'Occupied City.jpg',t:'Occupied City',g:'Documentaire',y:2023,m:['réflexion','atmosphère','mélancolique'],s:'Amsterdam aujourd\'hui superposée aux récits de l\'occupation nazie. Steve McQueen, 4h, hypnotique.'},
   {lvl:6,p:'On the Rocks.jpg',t:'On the Rocks',g:'Comédie',y:2020,m:['comédie','réflexion','atmosphère'],s:'Une femme soupçonne son mari d\'infidélité et enquête avec son père. Sofia Coppola, Bill Murray.'},
-  {lvl:6,p:'Palm Springs.jpg',t:'Palm Springs',g:'Comédie romantique',y:2020,m:['comédie','adrénaline'],s:'Deux invités d\'un mariage coincés dans une boucle temporelle. Andy Samberg, pétillant.'},
+  {lvl:6,p:'/kP7t5o8L2iT776oBkLX2Nb5bQoP.jpg',t:'Palm Springs',g:'Comédie romantique',y:2020,m:['comédie','adrénaline'],s:'Deux invités d\'un mariage coincés dans une boucle temporelle. Andy Samberg, pétillant.'},
   {lvl:6,p:'Parthenope.png',t:'Parthenope',g:'Drame',y:2024,m:['atmosphère','mélancolique','réflexion'],s:'La vie d\'une femme extraordinaire de Naples sur plusieurs décennies. Paolo Sorrentino.'},
-  {lvl:6,p:'Past Lives.jpg',t:'Past Lives',g:'Romance',y:2023,m:['mélancolique','réflexion'],s:'Deux anciens amis d\'enfance se retrouvent 20 ans plus tard à New York. Celine Song.'},
+  {lvl:6,p:'/k3waqVXaOFIqHXtDMZWRnunyLGK.jpg',t:'Past Lives',g:'Romance',y:2023,m:['mélancolique','réflexion'],s:'Deux anciens amis d\'enfance se retrouvent 20 ans plus tard à New York. Celine Song.'},
   {lvl:6,p:'Pearl.png',t:'Pearl',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Origin story: une fermière psychopathe en 1918 rêve de devenir star. Mia Goth.'},
   {lvl:6,p:'Perfect Days.jpg',t:'Perfect Days',g:'Drame',y:2023,m:['atmosphère','mélancolique','réflexion'],s:'Un nettoyeur de toilettes à Tokyo vit une routine minimaliste poignante. Wenders.'},
-  {lvl:6,p:'Pig.jpg',t:'Pig',g:'Drame',y:2021,m:['mélancolique','atmosphère','réflexion'],s:'Un ermite trufficulteur part retrouver son cochon kidnappé. Nicolas Cage en mode lowkey.'},
+  {lvl:6,p:'/3MzFYjYGxc4hCXU4e4vQvhBrHkX.jpg',t:'Pig',g:'Drame',y:2021,m:['mélancolique','atmosphère','réflexion'],s:'Un ermite trufficulteur part retrouver son cochon kidnappé. Nicolas Cage en mode lowkey.'},
   {lvl:7,p:'Pleasure.png',t:'Pleasure',g:'Drame',y:2021,m:['réflexion','adrénaline','atmosphère'],s:'Une suédoise débarque à LA pour devenir star du porno. Lucide et courageux.'},
   {lvl:7,p:'Priscilla.jpg',t:'Priscilla',g:'Drame',y:2023,m:['mélancolique','atmosphère','réflexion'],s:'La relation entre Priscilla et Elvis vu du point de vue de la jeune femme. Sofia Coppola.'},
   {lvl:7,p:'Reality.png',t:'Reality',g:'Thriller',y:2023,m:['adrénaline','réflexion','atmosphère'],s:'La transcription mot pour mot de l\'interrogatoire de Reality Winner par le FBI. Sydney Sweeney.'},
-  {lvl:7,p:'Red Rocket.jpg',t:'Red Rocket',g:'Comédie',y:2021,m:['comédie','adrénaline','atmosphère'],s:'Un ancien acteur porno revient dans sa ville texane et remonte une combine. Sean Baker.'},
+  {lvl:7,p:'/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg',t:'Red Rocket',g:'Comédie',y:2021,m:['comédie','adrénaline','atmosphère'],s:'Un ancien acteur porno revient dans sa ville texane et remonte une combine. Sean Baker.'},
   {lvl:7,p:'Risky Business.jpg',t:'Risky Business',g:'Comédie',y:1983,m:['comédie','adrénaline','atmosphère'],s:'Un lycéen transforme la maison familiale en bordel pendant l\'absence de ses parents. Tom Cruise.'},
   {lvl:7,p:'Roofman.jpg',t:'Roofman',g:'Drame',y:2025,m:['réflexion','adrénaline','mélancolique'],s:'Un cambrioleur mythique cache sa double vie entre les toits et une existence tranquille.'},
   {lvl:7,p:'Room.jpg',t:'Room',g:'Drame',y:2015,m:['mélancolique','adrénaline','réflexion'],s:'Une jeune femme séquestrée s\'échappe avec son fils né en captivité. Brie Larson.'},
-  {lvl:7,p:'Saint Maud.jpg',t:'Saint Maud',g:'Horreur',y:2019,m:['atmosphère','réflexion'],s:'Une infirmière fondamentaliste est convaincue d\'avoir une mission divine. Rose Glass.'},
-  {lvl:7,p:'Sans jamais nous connaitre.png',t:'Sans jamais nous connaître',g:'Drame',y:2023,m:['mélancolique','atmosphère'],s:'Un homme découvre en vidéos les amours passées de sa partenaire décédée.'},
+  {lvl:7,p:'/6bBm7RkIsV8rFKQ5hkHZXH4bmS0.jpg',t:'Saint Maud',g:'Horreur',y:2019,m:['atmosphère','réflexion'],s:'Une infirmière fondamentaliste est convaincue d\'avoir une mission divine. Rose Glass.'},
+  {lvl:7,p:'/f1AQhx6ZtnP255by5L9Zon1aP02.jpg',t:'Sans jamais nous connaître',g:'Drame',y:2023,m:['mélancolique','atmosphère'],s:'Un homme découvre en vidéos les amours passées de sa partenaire décédée.'},
   {lvl:7,p:'Shame.jpg',t:'Shame',g:'Drame',y:2011,m:['mélancolique','réflexion','atmosphère'],s:'Un New-Yorkais accro au sexe voit sa sœur arriver et déstabiliser son équilibre. Steve McQueen.'},
   {lvl:7,p:'Showing Up.jpg',t:'Showing Up',g:'Comédie',y:2022,m:['comédie','atmosphère','réflexion'],s:'Une sculptrice peine à se concentrer sur son expo. Kelly Reichardt.'},
   {lvl:7,p:'Si Beale Street pouvait parler.jpg',t:'Si Beale Street pouvait parler',g:'Drame',y:2018,m:['mélancolique','réflexion','atmosphère'],s:'Une femme enceinte tente de libérer son fiancé emprisonné à tort à Harlem. Barry Jenkins.'},
@@ -11478,7 +11553,7 @@ const HM_DB=[
   {lvl:8,p:'Sound of Metal.jpg',t:'Sound of Metal',g:'Drame',y:2019,m:['mélancolique','réflexion'],s:'Un batteur de métal perd subitement l\'ouïe et doit reconstruire sa vie. Riz Ahmed.'},
   {lvl:8,p:'Spring Breakers.jpg',t:'Spring Breakers',g:'Action',y:2012,m:['adrénaline','atmosphère'],s:'Quatre étudiantes braquent un restaurant pour financer leurs vacances. Korine, Franco.'},
   {lvl:8,p:'Stand by Me.jpg',t:'Stand by Me',g:'Drame',y:1986,m:['mélancolique','atmosphère','réflexion'],s:'Quatre garçons partent découvrir le cadavre d\'un jeune disparu. Rob Reiner, enfance éternelle.'},
-  {lvl:8,p:'Swiss Army Man.jpg',t:'Swiss Army Man',g:'Comédie',y:2016,m:['comédie','atmosphère','réflexion'],s:'Naufragé sur une île, un homme utilise un cadavre parlant pour survivre. Absurde touchant.'},
+  {lvl:8,p:'/ytuFdVeJEBaVEBLaVoTBDFsEGHf.jpg',t:'Swiss Army Man',g:'Comédie',y:2016,m:['comédie','atmosphère','réflexion'],s:'Naufragé sur une île, un homme utilise un cadavre parlant pour survivre. Absurde touchant.'},
   {lvl:8,p:'Take Shelter.jpg',t:'Take Shelter',g:'Thriller',y:2011,m:['atmosphère','réflexion','mélancolique','adrénaline'],s:'Un homme hanté par des visions d\'une catastrophe imminente. Michael Shannon.'},
   {lvl:8,p:'Talk to Me.jpg',t:'Talk to Me',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Des adolescents se font posséder en saisissant une main embaumée. Frères Philippou.'},
   {lvl:8,p:'The Bling Ring.jpg',t:'The Bling Ring',g:'Drame',y:2013,m:['atmosphère','adrénaline','comédie'],s:'Des ados obsédés par les célébrités cambriolent leurs villas hollywoodiennes. Sofia Coppola.'},
@@ -11486,23 +11561,23 @@ const HM_DB=[
   {lvl:8,p:'The Disaster Artist.jpg',t:'The Disaster Artist',g:'Comédie',y:2017,m:['comédie','réflexion','atmosphère'],s:'L\'histoire vraie et absurde du tournage de The Room, le pire film de l\'histoire. James Franco.'},
   {lvl:8,p:'The Elephant Mother.jpg',t:'The Elephant Mother',g:'Drame',y:2025,m:['mélancolique','réflexion','adrénaline'],s:'Une mère ukrainienne fuit la guerre avec ses enfants à travers l\'Europe.'},
   {lvl:8,p:'The Farewell.jpg',t:'The Farewell',g:'Comédie dramatique',y:2019,m:['mélancolique','comédie','réflexion'],s:'Une famille sino-américaine cache à sa grand-mère qu\'elle est mourante. Lulu Wang.'},
-  {lvl:8,p:'The Florida Project.jpg',t:'The Florida Project',g:'Drame',y:2017,m:['atmosphère','mélancolique','réflexion'],s:'Des enfants vivent dans un motel miteux en Floride. Sean Baker, regard poétique.'},
+  {lvl:8,p:'/fFxkAqvFBUYGvMJEaODKD9pLpre.jpg',t:'The Florida Project',g:'Drame',y:2017,m:['atmosphère','mélancolique','réflexion'],s:'Des enfants vivent dans un motel miteux en Floride. Sean Baker, regard poétique.'},
   {lvl:8,p:'The Green Knight.png',t:'The Green Knight',g:'Fantastique',y:2021,m:['atmosphère','réflexion','mélancolique'],s:'Gauvain part à la quête du Chevalier Vert. David Lowery, visuellement magnifique.'},
   {lvl:8,p:'The Kings of Summers.jpg',t:'The Kings of Summer',g:'Comédie',y:2013,m:['comédie','atmosphère','adrénaline'],s:'Trois amis construisent une maison dans les bois pour fuir leurs parents. Indie feel-good.'},
   {lvl:8,p:'The Last Black Man in San Francisco.jpg',t:'The Last Black Man in San Francisco',g:'Drame',y:2019,m:['mélancolique','atmosphère','réflexion'],s:'Un homme tente de récupérer la maison victorienne où il a grandi dans une SF gentrifiée.'},
-  {lvl:9,p:'The Lighthouse.jpg',t:'The Lighthouse',g:'Horreur',y:2019,m:['atmosphère','adrénaline','réflexion'],s:'Deux gardiens de phare sombrent dans la folie. Robert Eggers, Pattinson et Dafoe.'},
+  {lvl:9,p:'/3lNL0UK5OEmMxmpAJMFjXdI4GZo.jpg',t:'The Lighthouse',g:'Horreur',y:2019,m:['atmosphère','adrénaline','réflexion'],s:'Deux gardiens de phare sombrent dans la folie. Robert Eggers, Pattinson et Dafoe.'},
   {lvl:9,p:'The Lobster.png',t:'The Lobster',g:'Science-fiction',y:2015,m:['comédie','réflexion','atmosphère'],s:'Dans un futur proche, les célibataires ont 45 jours pour trouver un partenaire. Lanthimos.'},
   {lvl:9,p:'The Peanut Butter Falcon.jpg',t:'The Peanut Butter Falcon',g:'Aventure',y:2019,m:['comédie','mélancolique','atmosphère'],s:'Un jeune homme trisomique s\'échappe pour devenir catcheur. Touchant et drôle.'},
   {lvl:9,p:'The Place Beyond the Pines.jpg',t:'The Place Beyond the Pines',g:'Drame',y:2012,m:['mélancolique','adrénaline','réflexion'],s:'Un cascadeur braqueur et un flic honnête lient leur destin sur une génération. Ryan Gosling.'},
   {lvl:9,p:'The Rider.jpg',t:'The Rider',g:'Drame',y:2017,m:['mélancolique','réflexion','atmosphère'],s:'Un cowboy blessé au rodéo doit accepter la fin de sa carrière. Chloé Zhao.'},
   {lvl:9,p:'The Rover.jpg',t:'The Rover',g:'Action',y:2014,m:['adrénaline','atmosphère','mélancolique'],s:'Dans une Australie post-effondrement, un homme traque ceux qui ont volé sa voiture.'},
   {lvl:9,p:'The Spectacular Now.jpg',t:'The Spectacular Now',g:'Comédie romantique',y:2013,m:['comédie','mélancolique'],s:'Un lycéen fêtard tombe amoureux d\'une fille douce. Miles Teller, Shailene Woodley.'},
-  {lvl:9,p:'The Whale.jpg',t:'The Whale',g:'Drame',y:2022,m:['mélancolique','réflexion'],s:'Un homme obèse et reclus tente de renouer avec sa fille. Aronofsky, Brendan Fraser.'},
+  {lvl:9,p:'/jQ0gylJMxWSL490sy0RrPj1Lj7e.jpg',t:'The Whale',g:'Drame',y:2022,m:['mélancolique','réflexion'],s:'Un homme obèse et reclus tente de renouer avec sa fille. Aronofsky, Brendan Fraser.'},
   {lvl:9,p:'The Wrestler.jpg',t:'The Wrestler',g:'Drame',y:2008,m:['mélancolique','réflexion','adrénaline'],s:'Un catcheur fané tente un come-back malgré son corps épuisé. Mickey Rourke resurgi.'},
   {lvl:9,p:'There Will be Blood.jpg',t:'There Will Be Blood',g:'Drame',y:2007,m:['réflexion','atmosphère','adrénaline'],s:'L\'obsession d\'un prospecteur pétrolier. Paul Thomas Anderson, Daniel Day-Lewis titan.'},
   {lvl:9,p:'Thunder Road.jpg',t:'Thunder Road',g:'Comédie dramatique',y:2018,m:['comédie','mélancolique','réflexion'],s:'Un policier en crise fait son deuil maladroitement. Jim Cummings, poignant et drôle.'},
-  {lvl:9,p:'Titane.png',t:'Titane',g:'Horreur',y:2021,m:['adrénaline','atmosphère'],s:'Une femme fuit la police en se faisant passer pour un garçon disparu. Palme d\'Or, Julia Ducournau.'},
-  {lvl:9,p:'Uncut Gems.jpg',t:'Uncut Gems',g:'Thriller',y:2019,m:['adrénaline','atmosphère'],s:'Un bijoutier new-yorkais compulsif mise tout sur un pari fou. Safdie Brothers, Adam Sandler.'},
+  {lvl:9,p:'/g1CsPpBeyiuF4D8XzVFvGTsRFkj.jpg',t:'Titane',g:'Horreur',y:2021,m:['adrénaline','atmosphère'],s:'Une femme fuit la police en se faisant passer pour un garçon disparu. Palme d\'Or, Julia Ducournau.'},
+  {lvl:9,p:'/wfGfxtBkhBzQfOZwTh8L7j3ik8m.jpg',t:'Uncut Gems',g:'Thriller',y:2019,m:['adrénaline','atmosphère'],s:'Un bijoutier new-yorkais compulsif mise tout sur un pari fou. Safdie Brothers, Adam Sandler.'},
   {lvl:9,p:'Under the Sliver Lake.jpg',t:'Under the Silver Lake',g:'Thriller',y:2018,m:['atmosphère','réflexion','adrénaline','comédie'],s:'Un homme paumé à LA traque une voisine dans une spirale de complots absurdes.'},
   {lvl:9,p:'Under the Skin.jpg',t:'Under the Skin',g:'Science-fiction',y:2013,m:['atmosphère','réflexion','mélancolique'],s:'Une extraterrestre sous apparence de Scarlett Johansson chasse des hommes en Écosse.'},
   {lvl:9,p:'Une priere avant l\'aube.jpg',t:'Une prière avant l\'aube',g:'Action',y:2017,m:['adrénaline','atmosphère','réflexion'],s:'Un boxeur anglais emprisonné en Thaïlande survit par le muay-thaï. Filmé comme un doc.'},
@@ -11515,11 +11590,11 @@ const HM_DB=[
   {lvl:9,p:'Warfare.png',t:'Warfare',g:'Action',y:2025,m:['adrénaline','réflexion'],s:'Une unité de SEALs vit une mission en Irak en temps réel. Alex Garland, immersif.'},
   {lvl:9,p:'Waves.jpg',t:'Waves',g:'Drame',y:2019,m:['mélancolique','adrénaline','atmosphère','réflexion'],s:'Une famille afro-américaine traverse une tragédie et cherche la lumière. Trey Edward Shults.'},
   {lvl:9,p:'We Live in Time.jpg',t:'We Live in Time',g:'Romance',y:2024,m:['mélancolique','comédie'],s:'Une relation amoureuse entre bonheur et maladie. Florence Pugh, Andrew Garfield.'},
-  {lvl:9,p:'We Need to Talk About Kevin.jpg',t:'We Need to Talk About Kevin',g:'Thriller',y:2011,m:['mélancolique','atmosphère','réflexion','adrénaline'],s:'Une mère revit sa vie avec son fils avant qu\'il commette l\'irréparable. Tilda Swinton.'},
+  {lvl:9,p:'/8V0JakLaWJv5YuZE3DPSLJLFb8L.jpg',t:'We Need to Talk About Kevin',g:'Thriller',y:2011,m:['mélancolique','atmosphère','réflexion','adrénaline'],s:'Une mère revit sa vie avec son fils avant qu\'il commette l\'irréparable. Tilda Swinton.'},
   {lvl:9,p:'While We\'re Young.jpg',t:'While We\'re Young',g:'Comédie',y:2014,m:['comédie','réflexion','mélancolique'],s:'Un couple d\'intellectuels se lie d\'amitié avec une jeune génération. Noah Baumbach.'},
   {lvl:9,p:'Whiplash.jpg',t:'Whiplash',g:'Drame',y:2014,m:['adrénaline','réflexion','atmosphère'],s:'Un jeune batteur et son professeur tyrannique se poussent aux limites. Chazelle, Simmons.'},
   {lvl:9,p:'Winter Break.png',t:'Winter Break',g:'Drame',y:2025,m:['mélancolique','atmosphère','réflexion'],s:'Des étudiants coincés sur le campus pendant les vacances forment des liens inattendus.'},
-  {lvl:9,p:'X.jpg',t:'X',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Une équipe de tournage de film porno dans une ferme texane en 1979 se fait massacrer. Ti West.'},
+  {lvl:9,p:'/dPmovn8jVPEfYg8lnWaClFCBe6b.jpg',t:'X',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Une équipe de tournage de film porno dans une ferme texane en 1979 se fait massacrer. Ti West.'},
 ];
 
 // ==============================
@@ -12369,6 +12444,7 @@ let revInt=null,revStage=0,lvlFn=null;
 let nextQTimer=null;
 let TOTAL=10;
 let _survieLives=3; // Mode survie : vies restantes
+let _survieGameOver=false; // Verrou : empêche tout avancement après fin de partie
 const MAXT=20;
 
 // Box-office drag state
@@ -12378,6 +12454,7 @@ async function startGame(){
   resume();
   score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];dotRes=[];missedArr=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
   _survieLives=3;
+  _survieGameOver=false;
   // Bypass loading pour le multijoueur
   if(selMode==='versus'){startVersus();return;}
   go('loading');
@@ -12623,6 +12700,8 @@ function buildDots(){
 }
 
 function loadQ(){
+  // Verrou : ne pas charger de question si la partie survie est terminée
+  if(selMode==='survie'&&_survieGameOver)return;
   ansed=false;lastTick=-1;
   if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
   cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
@@ -13469,7 +13548,7 @@ function handleAnswer(idx){
           ws.classList.remove('on');if(scrim)scrim.classList.remove('on');
         }
         showToast(false,0,m,wrongAns);
-        setTimeout(()=>{hideToast();endGame();},2200);
+        setTimeout(()=>{if(!_survieGameOver){hideToast();endGame();}},2200);
         return;
       }
       // Il reste des vies : montrer briefly et passer à la suite
@@ -13557,6 +13636,8 @@ function _updateSurvieHearts(lives){
   }).join('');
 }
 function advanceQ(){
+  // Verrou : bloquer tout avancement si la partie survie est terminée
+  if(selMode==='survie'&&_survieGameOver)return;
   curQ++;
   // Mode survie : pas de limite de questions
   if(selMode==='survie'){
@@ -13566,9 +13647,11 @@ function advanceQ(){
       const qNumEl=document.getElementById('qnum');
       if(qNumEl)qNumEl.textContent='⏳ Chargement…';
       fetchTrivia().then(raw=>txQuestions(raw)).then(more=>{
+        if(selMode==='survie'&&_survieGameOver)return; // partie terminée pendant le fetch
         qs=[...qs,...more];
         buildDots();loadQ();
       }).catch(()=>{
+        if(selMode==='survie'&&_survieGameOver)return;
         // En cas d'erreur réseau, utiliser les questions disponibles ou terminer
         if(curQ<qs.length){buildDots();loadQ();}else{endGame();}
       });
@@ -13628,6 +13711,9 @@ function updateTimerUI(){
 // END GAME
 // ==============================
 function endGame(){
+  // Verrou anti-double-appel (critique en mode survie avec async)
+  if(selMode==='survie'&&_survieGameOver)return;
+  _survieGameOver=true;
   // Nettoyer l'état du jeu avant d'afficher le résultat
   cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
