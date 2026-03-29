@@ -9725,6 +9725,25 @@ function _hmvRender() {
     img.style.display = 'block';
     if (ph) ph.style.display = 'none';
     if (bg) bg.style.backgroundImage = 'url(' + posterUrl + ')';
+    // Si l'image locale échoue → chercher sur TMDB
+    if (!film.p.startsWith('/') && !film.p.startsWith('http')) {
+      img.onerror = () => {
+        img.onerror = null;
+        const cacheKey = 'hm_poster_' + (film.t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase() + '_' + film.y;
+        let cached = null; try { cached = localStorage.getItem(cacheKey); } catch {}
+        const applyTmdb = path => {
+          const url = TI + path;
+          img.src = url;
+          if (bg) bg.style.backgroundImage = 'url(' + url + ')';
+        };
+        if (cached) { applyTmdb(cached); return; }
+        fetch('https://api.themoviedb.org/3/search/movie?api_key=' + TK + '&language=fr-FR&query=' + encodeURIComponent(film.t) + '&year=' + film.y)
+          .then(r=>r.json()).then(j=>{
+            const p=j.results?.[0]?.poster_path;
+            if(p){try{localStorage.setItem(cacheKey,p);}catch{}applyTmdb(p);}
+          }).catch(()=>{});
+      };
+    }
   } else {
     img.src = ''; img.style.display = 'none';
     if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; }
