@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3661,9 +3662,15 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   color:rgba(255,255,255,.06);
 }
 .hm-scratch-hint-icon{
-  font-size:38px;
-  filter:drop-shadow(0 0 20px rgba(168,85,247,.3));
+  width:56px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.25);
+  border-radius:18px;
+  color:rgba(192,132,252,.9);
+  filter:drop-shadow(0 0 18px rgba(168,85,247,.35));
 }
+.hm-scratch-hint-icon svg{width:28px;height:28px;}
 .hm-scratch-hint-label{
   font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1px;
   text-align:center;line-height:1.5;
@@ -7467,17 +7474,23 @@ function getDecennie(year){
 }
 
 async function fetchDecennieQuestions(count){
-  const pool=shuffle([...DECENNIE_FILMS]).slice(0,count+6);
+  const pool=shuffle([...DECENNIE_FILMS]).slice(0,count+10);
   const result=[];
   for(const film of pool){
     if(result.length>=count)break;
     try{
-      const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
-      const d=await r.json();
-      if(!d.poster_path)continue;
-      const poster=TI+d.poster_path;
+      let poster=null;
+      // Film HM : poster local direct
+      if(film._hmPoster){
+        poster=_hmPosterUrl({p:film._hmPoster});
+      } else {
+        const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
+        const d=await r.json();
+        if(!d.poster_path)continue;
+        poster=TI+d.poster_path;
+      }
+      if(!poster)continue;
       const correct=getDecennie(film.year);
-      // Choisir 3 autres décennies distinctes
       const others=shuffle(DECENNIES.filter(d=>d!==correct)).slice(0,3);
       const answers=shuffle([correct,...others]);
       result.push({type:'decennie',title:film.title,year:film.year,poster,
@@ -8409,16 +8422,23 @@ const ALL_COMPOSITEURS=[
 ];
 
 async function fetchCompositeurQuestions(count){
-  const pool=shuffle([...COMPOSITEUR_FILMS]).slice(0,count+5);
+  const pool=shuffle([...COMPOSITEUR_FILMS]).slice(0,count+8);
   const result=[];
   for(const film of pool){
     if(result.length>=count)break;
     let poster=film.poster;
-    try{
-      const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
-      const d=await r.json();
-      if(d.poster_path)poster=TI+d.poster_path;
-    }catch(e){}
+    // Film HM sans ID TMDB : chercher le poster local via le titre
+    if(!poster&&(!film.id||film.id===0)){
+      const hmMatch=HM_DB.find(f=>f.t===film.title&&f.y===film.year);
+      if(hmMatch)poster=_hmPosterUrl(hmMatch);
+    }
+    if(!poster){
+      try{
+        const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
+        const d=await r.json();
+        if(d.poster_path)poster=TI+d.poster_path;
+      }catch(e){}
+    }
     if(!poster)continue;
     const wrongs=shuffle(ALL_COMPOSITEURS.filter(c=>c!==film.compositeur)).slice(0,3);
     const answers=shuffle([film.compositeur,...wrongs]);
@@ -8627,16 +8647,21 @@ const REALISATEUR_FILMS=[
 ];
 
 async function fetchRealisateurQuestions(count){
-  const pool=shuffle([...REALISATEUR_FILMS]).slice(0,count+4);
+  const pool=shuffle([...REALISATEUR_FILMS]).slice(0,count+8);
   const result=[];
   for(const film of pool){
     if(result.length>=count)break;
     let poster=null;
-    try{
-      const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
-      const d=await r.json();
-      if(d.poster_path)poster=TI+d.poster_path;
-    }catch(e){}
+    // Film HM_DB : utiliser le poster local directement
+    if(film._hmPoster){
+      poster=film._hmPoster;
+    } else {
+      try{
+        const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
+        const d=await r.json();
+        if(d.poster_path)poster=TI+d.poster_path;
+      }catch(e){}
+    }
     if(!poster)continue;
     const answers=shuffle([film.real,...film.faux]);
     result.push({
@@ -8650,8 +8675,6 @@ async function fetchRealisateurQuestions(count){
   return result;
 }
 
-// ==============================
-// TRIVIA
 // ==============================
 // ==============================
 // BASE TRIVIA FRANÇAISE CURATÉE
@@ -10514,9 +10537,17 @@ function _hmRenderCard(idx){
   under.innerHTML = bgHtml + '<div class="hm-scratch-poster">' + posterHtml + '</div>';
 
   // Indice visible avant grattage
-  const moodEmojis={mélancolique:'🌧',joyeux:'☀️',adrénaline:'⚡',réflexion:'🌀',comédie:'😄',atmosphère:'🌫'};
+  const moodSVGs={
+    mélancolique:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="8" y1="23" x2="8" y2="23"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="16" y1="19" x2="16" y2="21"/></svg>`,
+    joyeux:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+    adrénaline:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    réflexion:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>`,
+    comédie:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 3 4 3 4-3 4-3"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`,
+    atmosphère:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>`,
+  };
+  const moodDefault=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
   const mainMood=(film.m && film.m[0])||'';
-  const moodIcon=moodEmojis[mainMood]||'🎬';
+  const moodIcon=moodSVGs[mainMood]||moodDefault;
   hint.innerHTML=`
     <div class="hm-scratch-hint-icon">${moodIcon}</div>
     <div class="hm-scratch-hint-genre">${film.g}</div>
@@ -11330,7 +11361,7 @@ const HM_DB=[
   {lvl:1,p:'Boogie Nights.jpg',t:'Boogie Nights',g:'Drame',y:1997,m:['atmosphère','adrénaline','réflexion'],s:'L\'ascension et la chute d\'une star du porno dans la Californie des années 70. Paul Thomas Anderson.'},
   {lvl:1,p:'Breakfast Club.jpg',t:'Breakfast Club',g:'Comédie dramatique',y:1985,m:['comédie','réflexion','mélancolique'],s:'Cinq lycéens que tout oppose passent un samedi en retenue. Le film de génération par excellence.'},
   {lvl:1,p:'Burning.jpg',t:'Burning',g:'Thriller',y:2018,m:['atmosphère','réflexion','mélancolique'],s:'Un jeune homme obsédé par une mystérieuse disparition. Lee Chang-dong hypnotique.'},
-  {lvl:1,p:'/p4bMCy2sGNdY2UmUCgZE9B5i7iU.jpg',t:'Capharnaüm',g:'Drame',y:2018,m:['mélancolique','réflexion'],s:'Un enfant de 12 ans attaque ses parents en justice pour l\'avoir mis au monde. Nadine Labaki, Liban.'},
+  {lvl:1,p:'/Capharnaum.jpg',t:'Capharnaüm',g:'Drame',y:2018,m:['mélancolique','réflexion'],s:'Un enfant de 12 ans attaque ses parents en justice pour l\'avoir mis au monde. Nadine Labaki, Liban.'},
   {lvl:1,p:'Captain Fantastic.jpg',t:'Captain Fantastic',g:'Comédie dramatique',y:2016,m:['réflexion','comédie','adrénaline'],s:'Un père élève ses enfants loin de la civilisation dans la forêt. Viggo Mortensen magistral.'},
   {lvl:1,p:'Causeway.jpg',t:'Causeway',g:'Drame',y:2022,m:['mélancolique','réflexion'],s:'Une vétérane traumatisée rentre à la maison et tente de se reconstruire. Jennifer Lawrence sobre.'},
   {lvl:2,p:'Charlie Countryman.jpg',t:'Charlie Countryman',g:'Comédie romantique',y:2013,m:['adrénaline','atmosphère'],s:'Un jeune Américain tombe amoureux d\'une femme dangereuse à Bucarest. Romantique et chaotique.'},
@@ -11363,7 +11394,7 @@ const HM_DB=[
   {lvl:3,p:'Good Time.jpg',t:'Good Time',g:'Thriller',y:2017,m:['adrénaline','atmosphère'],s:'Un petit criminel passe une nuit folle à travers New York pour sortir son frère de prison. Safdie Brothers.'},
   {lvl:3,p:'Grave.jpg',t:'Grave',g:'Horreur',y:2016,m:['adrénaline','atmosphère','réflexion'],s:'Une végétarienne goûte à la viande pour la première fois et développe des pulsions cannibales. Julia Ducournau.'},
   {lvl:3,p:'Her.jpg',t:'Her',g:'Science-fiction',y:2013,m:['mélancolique','atmosphère','réflexion'],s:'Un homme s\'éprend de son système d\'exploitation vocal. Spike Jonze, Joaquin Phoenix bouleversant.'},
-  {lvl:3,p:'/4O69QpOFvEoCUfiy6B1kgFkuBap.jpg',t:'Hérédité',g:'Horreur',y:2018,m:['atmosphère','adrénaline'],s:'Une famille est hantée par des secrets obscurs après le décès de la grand-mère. Ari Aster terrifiant.'},
+  {lvl:3,p:'Heredite.jpg',t:'Hérédité',g:'Horreur',y:2018,m:['atmosphère','adrénaline'],s:'Une famille est hantée par des secrets obscurs après le décès de la grand-mère. Ari Aster terrifiant.'},
   {lvl:3,p:'Heretic.jpg',t:'Heretic',g:'Thriller',y:2024,m:['réflexion','atmosphère','adrénaline'],s:'Deux missionnaires mormonnes piégées chez un homme qui remet leur foi en question.'},
   {lvl:3,p:'High Life.jpg',t:'High Life',g:'Science-fiction',y:2018,m:['atmosphère','réflexion','mélancolique'],s:'Des condamnés à mort en mission spatiale luttent pour leur humanité. Claire Denis, Pattinson.'},
   {lvl:3,p:'Highest 2 Lowest.jpg',t:'Highest 2 Lowest',g:'Policier',y:2025,m:['adrénaline','réflexion','atmosphère'],s:'Un producteur de musique doit payer une rançon pour son fils kidnappé. Remake de Kurosawa par A24.'},
@@ -11406,10 +11437,10 @@ const HM_DB=[
   {lvl:5,p:'Mid90s.jpg',t:'Mid90s',g:'Drame',y:2018,m:['atmosphère','mélancolique','adrénaline'],s:'Un gamin de 13 ans s\'intègre dans un groupe de skateurs de Los Angeles. Jonah Hill.'},
   {lvl:5,p:'Midsommar.jpg',t:'Midsommar',g:'Horreur',y:2019,m:['atmosphère','adrénaline'],s:'Des étudiants assistent à un festival folklorique suédois qui tourne au rituel meurtrier. Ari Aster.'},
   {lvl:6,p:'Minari.png',t:'Minari',g:'Drame',y:2020,m:['mélancolique','réflexion','atmosphère'],s:'Une famille coréenne tente sa chance dans une ferme de l\'Arkansas. Lee Isaac Chung.'},
-  {lvl:6,p:'/xJWKgCIlyQYIp95p3WFgkGYoBD1.jpg',t:'Mise à mort du cerf sacré',g:'Thriller',y:2017,m:['atmosphère','adrénaline','réflexion'],s:'Un chirurgien cardiaque est pris au piège par un adolescent vengeur. Yorgos Lanthimos.'},
+  {lvl:6,p:'Mise à mort du cerf sacre.jpg',t:'Mise à mort du cerf sacré',g:'Thriller',y:2017,m:['atmosphère','adrénaline','réflexion'],s:'Un chirurgien cardiaque est pris au piège par un adolescent vengeur. Yorgos Lanthimos.'},
   {lvl:6,p:'Mommy.jpg',t:'Mommy',g:'Drame',y:2014,m:['mélancolique','adrénaline','atmosphère'],s:'Une mère veuve tente de gérer son fils violent et attachant. Xavier Dolan.'},
   {lvl:6,p:'Moon.jpg',t:'Moon',g:'Science-fiction',y:2009,m:['atmosphère','réflexion','mélancolique'],s:'Un homme seul sur la Lune fait une découverte troublante. Sam Rockwell magistral.'},
-  {lvl:6,p:'/4911T5FbJ9eAlnGCKGVEOp5xNkT.jpg',t:'Moonlight',g:'Drame',y:2016,m:['mélancolique','réflexion','atmosphère'],s:'Un homme noir et gay à Miami à travers trois étapes de sa vie. Barry Jenkins, Oscar.'},
+  {lvl:6,p:'Moonlight.jpg',t:'Moonlight',g:'Drame',y:2016,m:['mélancolique','réflexion','atmosphère'],s:'Un homme noir et gay à Miami à travers trois étapes de sa vie. Barry Jenkins, Oscar.'},
   {lvl:6,p:'Mud.jpg',t:'Mud',g:'Drame',y:2012,m:['atmosphère','mélancolique','adrénaline'],s:'Deux garçons de l\'Arkansas recueillent un fugitif mystérieux. Jeff Nichols, McConaughey.'},
   {lvl:6,p:'Night Call.jpg',t:'Night Call',g:'Thriller',y:2014,m:['adrénaline','atmosphère','réflexion'],s:'Un chômeur sans scrupules devient caméraman de faits divers la nuit à LA. Jake Gyllenhaal.'},
   {lvl:6,p:'Nocturnal Animals.jpg',t:'Nocturnal Animals',g:'Thriller',y:2016,m:['atmosphère','adrénaline','réflexion','mélancolique'],s:'Une galeriste lit le roman de son ex-mari et y voit un message sombre. Tom Ford.'},
@@ -11417,21 +11448,21 @@ const HM_DB=[
   {lvl:6,p:'Obvious Child.jpg',t:'Obvious Child',g:'Comédie romantique',y:2014,m:['comédie','réflexion','mélancolique'],s:'Une stand-uppercomico se retrouve enceinte après un one-night stand. Jenny Slate, sincère.'},
   {lvl:6,p:'Occupied City.jpg',t:'Occupied City',g:'Documentaire',y:2023,m:['réflexion','atmosphère','mélancolique'],s:'Amsterdam aujourd\'hui superposée aux récits de l\'occupation nazie. Steve McQueen, 4h, hypnotique.'},
   {lvl:6,p:'On the Rocks.jpg',t:'On the Rocks',g:'Comédie',y:2020,m:['comédie','réflexion','atmosphère'],s:'Une femme soupçonne son mari d\'infidélité et enquête avec son père. Sofia Coppola, Bill Murray.'},
-  {lvl:6,p:'/kP7t5o8L2iT776oBkLX2Nb5bQoP.jpg',t:'Palm Springs',g:'Comédie romantique',y:2020,m:['comédie','adrénaline'],s:'Deux invités d\'un mariage coincés dans une boucle temporelle. Andy Samberg, pétillant.'},
+  {lvl:6,p:'Palm Springs.jpg',t:'Palm Springs',g:'Comédie romantique',y:2020,m:['comédie','adrénaline'],s:'Deux invités d\'un mariage coincés dans une boucle temporelle. Andy Samberg, pétillant.'},
   {lvl:6,p:'Parthenope.png',t:'Parthenope',g:'Drame',y:2024,m:['atmosphère','mélancolique','réflexion'],s:'La vie d\'une femme extraordinaire de Naples sur plusieurs décennies. Paolo Sorrentino.'},
-  {lvl:6,p:'/k3waqVXaOFIqHXtDMZWRnunyLGK.jpg',t:'Past Lives',g:'Romance',y:2023,m:['mélancolique','réflexion'],s:'Deux anciens amis d\'enfance se retrouvent 20 ans plus tard à New York. Celine Song.'},
+  {lvl:6,p:'Past Lives.jpg',t:'Past Lives',g:'Romance',y:2023,m:['mélancolique','réflexion'],s:'Deux anciens amis d\'enfance se retrouvent 20 ans plus tard à New York. Celine Song.'},
   {lvl:6,p:'Pearl.png',t:'Pearl',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Origin story: une fermière psychopathe en 1918 rêve de devenir star. Mia Goth.'},
   {lvl:6,p:'Perfect Days.jpg',t:'Perfect Days',g:'Drame',y:2023,m:['atmosphère','mélancolique','réflexion'],s:'Un nettoyeur de toilettes à Tokyo vit une routine minimaliste poignante. Wenders.'},
-  {lvl:6,p:'/3MzFYjYGxc4hCXU4e4vQvhBrHkX.jpg',t:'Pig',g:'Drame',y:2021,m:['mélancolique','atmosphère','réflexion'],s:'Un ermite trufficulteur part retrouver son cochon kidnappé. Nicolas Cage en mode lowkey.'},
+  {lvl:6,p:'Pig.jpg',t:'Pig',g:'Drame',y:2021,m:['mélancolique','atmosphère','réflexion'],s:'Un ermite trufficulteur part retrouver son cochon kidnappé. Nicolas Cage en mode lowkey.'},
   {lvl:7,p:'Pleasure.png',t:'Pleasure',g:'Drame',y:2021,m:['réflexion','adrénaline','atmosphère'],s:'Une suédoise débarque à LA pour devenir star du porno. Lucide et courageux.'},
   {lvl:7,p:'Priscilla.jpg',t:'Priscilla',g:'Drame',y:2023,m:['mélancolique','atmosphère','réflexion'],s:'La relation entre Priscilla et Elvis vu du point de vue de la jeune femme. Sofia Coppola.'},
   {lvl:7,p:'Reality.png',t:'Reality',g:'Thriller',y:2023,m:['adrénaline','réflexion','atmosphère'],s:'La transcription mot pour mot de l\'interrogatoire de Reality Winner par le FBI. Sydney Sweeney.'},
-  {lvl:7,p:'/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg',t:'Red Rocket',g:'Comédie',y:2021,m:['comédie','adrénaline','atmosphère'],s:'Un ancien acteur porno revient dans sa ville texane et remonte une combine. Sean Baker.'},
+  {lvl:7,p:'Red Rocket.jpg',t:'Red Rocket',g:'Comédie',y:2021,m:['comédie','adrénaline','atmosphère'],s:'Un ancien acteur porno revient dans sa ville texane et remonte une combine. Sean Baker.'},
   {lvl:7,p:'Risky Business.jpg',t:'Risky Business',g:'Comédie',y:1983,m:['comédie','adrénaline','atmosphère'],s:'Un lycéen transforme la maison familiale en bordel pendant l\'absence de ses parents. Tom Cruise.'},
   {lvl:7,p:'Roofman.jpg',t:'Roofman',g:'Drame',y:2025,m:['réflexion','adrénaline','mélancolique'],s:'Un cambrioleur mythique cache sa double vie entre les toits et une existence tranquille.'},
   {lvl:7,p:'Room.jpg',t:'Room',g:'Drame',y:2015,m:['mélancolique','adrénaline','réflexion'],s:'Une jeune femme séquestrée s\'échappe avec son fils né en captivité. Brie Larson.'},
-  {lvl:7,p:'/6bBm7RkIsV8rFKQ5hkHZXH4bmS0.jpg',t:'Saint Maud',g:'Horreur',y:2019,m:['atmosphère','réflexion'],s:'Une infirmière fondamentaliste est convaincue d\'avoir une mission divine. Rose Glass.'},
-  {lvl:7,p:'/f1AQhx6ZtnP255by5L9Zon1aP02.jpg',t:'Sans jamais nous connaître',g:'Drame',y:2023,m:['mélancolique','atmosphère'],s:'Un homme découvre en vidéos les amours passées de sa partenaire décédée.'},
+  {lvl:7,p:'Saint Maud.jpg',t:'Saint Maud',g:'Horreur',y:2019,m:['atmosphère','réflexion'],s:'Une infirmière fondamentaliste est convaincue d\'avoir une mission divine. Rose Glass.'},
+  {lvl:7,p:'Sans jamais nous connaitre.png',t:'Sans jamais nous connaître',g:'Drame',y:2023,m:['mélancolique','atmosphère'],s:'Un homme découvre en vidéos les amours passées de sa partenaire décédée.'},
   {lvl:7,p:'Shame.jpg',t:'Shame',g:'Drame',y:2011,m:['mélancolique','réflexion','atmosphère'],s:'Un New-Yorkais accro au sexe voit sa sœur arriver et déstabiliser son équilibre. Steve McQueen.'},
   {lvl:7,p:'Showing Up.jpg',t:'Showing Up',g:'Comédie',y:2022,m:['comédie','atmosphère','réflexion'],s:'Une sculptrice peine à se concentrer sur son expo. Kelly Reichardt.'},
   {lvl:7,p:'Si Beale Street pouvait parler.jpg',t:'Si Beale Street pouvait parler',g:'Drame',y:2018,m:['mélancolique','réflexion','atmosphère'],s:'Une femme enceinte tente de libérer son fiancé emprisonné à tort à Harlem. Barry Jenkins.'},
@@ -11447,7 +11478,7 @@ const HM_DB=[
   {lvl:8,p:'Sound of Metal.jpg',t:'Sound of Metal',g:'Drame',y:2019,m:['mélancolique','réflexion'],s:'Un batteur de métal perd subitement l\'ouïe et doit reconstruire sa vie. Riz Ahmed.'},
   {lvl:8,p:'Spring Breakers.jpg',t:'Spring Breakers',g:'Action',y:2012,m:['adrénaline','atmosphère'],s:'Quatre étudiantes braquent un restaurant pour financer leurs vacances. Korine, Franco.'},
   {lvl:8,p:'Stand by Me.jpg',t:'Stand by Me',g:'Drame',y:1986,m:['mélancolique','atmosphère','réflexion'],s:'Quatre garçons partent découvrir le cadavre d\'un jeune disparu. Rob Reiner, enfance éternelle.'},
-  {lvl:8,p:'/ytuFdVeJEBaVEBLaVoTBDFsEGHf.jpg',t:'Swiss Army Man',g:'Comédie',y:2016,m:['comédie','atmosphère','réflexion'],s:'Naufragé sur une île, un homme utilise un cadavre parlant pour survivre. Absurde touchant.'},
+  {lvl:8,p:'Swiss Army Man.jpg',t:'Swiss Army Man',g:'Comédie',y:2016,m:['comédie','atmosphère','réflexion'],s:'Naufragé sur une île, un homme utilise un cadavre parlant pour survivre. Absurde touchant.'},
   {lvl:8,p:'Take Shelter.jpg',t:'Take Shelter',g:'Thriller',y:2011,m:['atmosphère','réflexion','mélancolique','adrénaline'],s:'Un homme hanté par des visions d\'une catastrophe imminente. Michael Shannon.'},
   {lvl:8,p:'Talk to Me.jpg',t:'Talk to Me',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Des adolescents se font posséder en saisissant une main embaumée. Frères Philippou.'},
   {lvl:8,p:'The Bling Ring.jpg',t:'The Bling Ring',g:'Drame',y:2013,m:['atmosphère','adrénaline','comédie'],s:'Des ados obsédés par les célébrités cambriolent leurs villas hollywoodiennes. Sofia Coppola.'},
@@ -11455,23 +11486,23 @@ const HM_DB=[
   {lvl:8,p:'The Disaster Artist.jpg',t:'The Disaster Artist',g:'Comédie',y:2017,m:['comédie','réflexion','atmosphère'],s:'L\'histoire vraie et absurde du tournage de The Room, le pire film de l\'histoire. James Franco.'},
   {lvl:8,p:'The Elephant Mother.jpg',t:'The Elephant Mother',g:'Drame',y:2025,m:['mélancolique','réflexion','adrénaline'],s:'Une mère ukrainienne fuit la guerre avec ses enfants à travers l\'Europe.'},
   {lvl:8,p:'The Farewell.jpg',t:'The Farewell',g:'Comédie dramatique',y:2019,m:['mélancolique','comédie','réflexion'],s:'Une famille sino-américaine cache à sa grand-mère qu\'elle est mourante. Lulu Wang.'},
-  {lvl:8,p:'/fFxkAqvFBUYGvMJEaODKD9pLpre.jpg',t:'The Florida Project',g:'Drame',y:2017,m:['atmosphère','mélancolique','réflexion'],s:'Des enfants vivent dans un motel miteux en Floride. Sean Baker, regard poétique.'},
+  {lvl:8,p:'The Florida Project.jpg',t:'The Florida Project',g:'Drame',y:2017,m:['atmosphère','mélancolique','réflexion'],s:'Des enfants vivent dans un motel miteux en Floride. Sean Baker, regard poétique.'},
   {lvl:8,p:'The Green Knight.png',t:'The Green Knight',g:'Fantastique',y:2021,m:['atmosphère','réflexion','mélancolique'],s:'Gauvain part à la quête du Chevalier Vert. David Lowery, visuellement magnifique.'},
   {lvl:8,p:'The Kings of Summers.jpg',t:'The Kings of Summer',g:'Comédie',y:2013,m:['comédie','atmosphère','adrénaline'],s:'Trois amis construisent une maison dans les bois pour fuir leurs parents. Indie feel-good.'},
   {lvl:8,p:'The Last Black Man in San Francisco.jpg',t:'The Last Black Man in San Francisco',g:'Drame',y:2019,m:['mélancolique','atmosphère','réflexion'],s:'Un homme tente de récupérer la maison victorienne où il a grandi dans une SF gentrifiée.'},
-  {lvl:9,p:'/3lNL0UK5OEmMxmpAJMFjXdI4GZo.jpg',t:'The Lighthouse',g:'Horreur',y:2019,m:['atmosphère','adrénaline','réflexion'],s:'Deux gardiens de phare sombrent dans la folie. Robert Eggers, Pattinson et Dafoe.'},
+  {lvl:9,p:'The Lighthouse.jpg',t:'The Lighthouse',g:'Horreur',y:2019,m:['atmosphère','adrénaline','réflexion'],s:'Deux gardiens de phare sombrent dans la folie. Robert Eggers, Pattinson et Dafoe.'},
   {lvl:9,p:'The Lobster.png',t:'The Lobster',g:'Science-fiction',y:2015,m:['comédie','réflexion','atmosphère'],s:'Dans un futur proche, les célibataires ont 45 jours pour trouver un partenaire. Lanthimos.'},
   {lvl:9,p:'The Peanut Butter Falcon.jpg',t:'The Peanut Butter Falcon',g:'Aventure',y:2019,m:['comédie','mélancolique','atmosphère'],s:'Un jeune homme trisomique s\'échappe pour devenir catcheur. Touchant et drôle.'},
   {lvl:9,p:'The Place Beyond the Pines.jpg',t:'The Place Beyond the Pines',g:'Drame',y:2012,m:['mélancolique','adrénaline','réflexion'],s:'Un cascadeur braqueur et un flic honnête lient leur destin sur une génération. Ryan Gosling.'},
   {lvl:9,p:'The Rider.jpg',t:'The Rider',g:'Drame',y:2017,m:['mélancolique','réflexion','atmosphère'],s:'Un cowboy blessé au rodéo doit accepter la fin de sa carrière. Chloé Zhao.'},
   {lvl:9,p:'The Rover.jpg',t:'The Rover',g:'Action',y:2014,m:['adrénaline','atmosphère','mélancolique'],s:'Dans une Australie post-effondrement, un homme traque ceux qui ont volé sa voiture.'},
   {lvl:9,p:'The Spectacular Now.jpg',t:'The Spectacular Now',g:'Comédie romantique',y:2013,m:['comédie','mélancolique'],s:'Un lycéen fêtard tombe amoureux d\'une fille douce. Miles Teller, Shailene Woodley.'},
-  {lvl:9,p:'/jQ0gylJMxWSL490sy0RrPj1Lj7e.jpg',t:'The Whale',g:'Drame',y:2022,m:['mélancolique','réflexion'],s:'Un homme obèse et reclus tente de renouer avec sa fille. Aronofsky, Brendan Fraser.'},
+  {lvl:9,p:'The Whale.jpg',t:'The Whale',g:'Drame',y:2022,m:['mélancolique','réflexion'],s:'Un homme obèse et reclus tente de renouer avec sa fille. Aronofsky, Brendan Fraser.'},
   {lvl:9,p:'The Wrestler.jpg',t:'The Wrestler',g:'Drame',y:2008,m:['mélancolique','réflexion','adrénaline'],s:'Un catcheur fané tente un come-back malgré son corps épuisé. Mickey Rourke resurgi.'},
   {lvl:9,p:'There Will be Blood.jpg',t:'There Will Be Blood',g:'Drame',y:2007,m:['réflexion','atmosphère','adrénaline'],s:'L\'obsession d\'un prospecteur pétrolier. Paul Thomas Anderson, Daniel Day-Lewis titan.'},
   {lvl:9,p:'Thunder Road.jpg',t:'Thunder Road',g:'Comédie dramatique',y:2018,m:['comédie','mélancolique','réflexion'],s:'Un policier en crise fait son deuil maladroitement. Jim Cummings, poignant et drôle.'},
-  {lvl:9,p:'/g1CsPpBeyiuF4D8XzVFvGTsRFkj.jpg',t:'Titane',g:'Horreur',y:2021,m:['adrénaline','atmosphère'],s:'Une femme fuit la police en se faisant passer pour un garçon disparu. Palme d\'Or, Julia Ducournau.'},
-  {lvl:9,p:'/wfGfxtBkhBzQfOZwTh8L7j3ik8m.jpg',t:'Uncut Gems',g:'Thriller',y:2019,m:['adrénaline','atmosphère'],s:'Un bijoutier new-yorkais compulsif mise tout sur un pari fou. Safdie Brothers, Adam Sandler.'},
+  {lvl:9,p:'Titane.png',t:'Titane',g:'Horreur',y:2021,m:['adrénaline','atmosphère'],s:'Une femme fuit la police en se faisant passer pour un garçon disparu. Palme d\'Or, Julia Ducournau.'},
+  {lvl:9,p:'Uncut Gems.jpg',t:'Uncut Gems',g:'Thriller',y:2019,m:['adrénaline','atmosphère'],s:'Un bijoutier new-yorkais compulsif mise tout sur un pari fou. Safdie Brothers, Adam Sandler.'},
   {lvl:9,p:'Under the Sliver Lake.jpg',t:'Under the Silver Lake',g:'Thriller',y:2018,m:['atmosphère','réflexion','adrénaline','comédie'],s:'Un homme paumé à LA traque une voisine dans une spirale de complots absurdes.'},
   {lvl:9,p:'Under the Skin.jpg',t:'Under the Skin',g:'Science-fiction',y:2013,m:['atmosphère','réflexion','mélancolique'],s:'Une extraterrestre sous apparence de Scarlett Johansson chasse des hommes en Écosse.'},
   {lvl:9,p:'Une priere avant l\'aube.jpg',t:'Une prière avant l\'aube',g:'Action',y:2017,m:['adrénaline','atmosphère','réflexion'],s:'Un boxeur anglais emprisonné en Thaïlande survit par le muay-thaï. Filmé comme un doc.'},
@@ -11484,12 +11515,156 @@ const HM_DB=[
   {lvl:9,p:'Warfare.png',t:'Warfare',g:'Action',y:2025,m:['adrénaline','réflexion'],s:'Une unité de SEALs vit une mission en Irak en temps réel. Alex Garland, immersif.'},
   {lvl:9,p:'Waves.jpg',t:'Waves',g:'Drame',y:2019,m:['mélancolique','adrénaline','atmosphère','réflexion'],s:'Une famille afro-américaine traverse une tragédie et cherche la lumière. Trey Edward Shults.'},
   {lvl:9,p:'We Live in Time.jpg',t:'We Live in Time',g:'Romance',y:2024,m:['mélancolique','comédie'],s:'Une relation amoureuse entre bonheur et maladie. Florence Pugh, Andrew Garfield.'},
-  {lvl:9,p:'/8V0JakLaWJv5YuZE3DPSLJLFb8L.jpg',t:'We Need to Talk About Kevin',g:'Thriller',y:2011,m:['mélancolique','atmosphère','réflexion','adrénaline'],s:'Une mère revit sa vie avec son fils avant qu\'il commette l\'irréparable. Tilda Swinton.'},
+  {lvl:9,p:'We Need to Talk About Kevin.jpg',t:'We Need to Talk About Kevin',g:'Thriller',y:2011,m:['mélancolique','atmosphère','réflexion','adrénaline'],s:'Une mère revit sa vie avec son fils avant qu\'il commette l\'irréparable. Tilda Swinton.'},
   {lvl:9,p:'While We\'re Young.jpg',t:'While We\'re Young',g:'Comédie',y:2014,m:['comédie','réflexion','mélancolique'],s:'Un couple d\'intellectuels se lie d\'amitié avec une jeune génération. Noah Baumbach.'},
   {lvl:9,p:'Whiplash.jpg',t:'Whiplash',g:'Drame',y:2014,m:['adrénaline','réflexion','atmosphère'],s:'Un jeune batteur et son professeur tyrannique se poussent aux limites. Chazelle, Simmons.'},
   {lvl:9,p:'Winter Break.png',t:'Winter Break',g:'Drame',y:2025,m:['mélancolique','atmosphère','réflexion'],s:'Des étudiants coincés sur le campus pendant les vacances forment des liens inattendus.'},
-  {lvl:9,p:'/dPmovn8jVPEfYg8lnWaClFCBe6b.jpg',t:'X',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Une équipe de tournage de film porno dans une ferme texane en 1979 se fait massacrer. Ti West.'},
+  {lvl:9,p:'X.jpg',t:'X',g:'Horreur',y:2022,m:['adrénaline','atmosphère'],s:'Une équipe de tournage de film porno dans une ferme texane en 1979 se fait massacrer. Ti West.'},
 ];
+
+// ==============================
+// HM_DB → POOL : intégration dans les modes de jeu
+// ==============================
+
+// Convertit un film HM_DB en format compatible fetchMovies()
+function _hmPosterUrl(film){
+  if(!film.p)return null;
+  if(film.p.startsWith('http'))return film.p;
+  if(film.p.startsWith('/'))return TI+film.p;
+  // Fichier local — on encode les caractères spéciaux
+  return encodeURIComponent(film.p).replace(/%20/g,' ');
+}
+
+// Retourne un sous-ensemble aléatoire de HM_DB en format {title,year,genre,poster,synopsis}
+function hmFilmsToPool(count, minLvl=0, maxLvl=9){
+  const eligible=HM_DB.filter(f=>f.lvl>=minLvl&&f.lvl<=maxLvl&&f.p&&f.t&&f.y);
+  const pool=shuffle([...eligible]).slice(0,count);
+  return pool.map(f=>({
+    id:null,
+    title:f.t,
+    year:f.y,
+    genre:f.g||'Film',
+    poster:_hmPosterUrl(f),
+    synopsis:f.s||'',
+    fromHM:true
+  })).filter(f=>f.poster);
+}
+
+// ── Enrichissement REALISATEUR_FILMS avec des films HM_DB ──
+const HM_REALISATEUR_EXTRA=[
+  {id:null,title:'Parasite',year:2019,real:'Bong Joon-ho',hint:'Deux familles coréennes aux destins entremêlés',faux:['Park Chan-wook','Lee Chang-dong','Kim Jee-woon'],poster:'Parasite.jpg'},
+  {id:null,title:'Whiplash',year:2014,real:'Damien Chazelle',hint:'Un batteur de jazz poussé à ses limites',faux:['Tom McCarthy','Bennett Miller','Josh Boone'],poster:'Whiplash.jpg'},
+  {id:null,title:'Aftersun',year:2022,real:'Charlotte Wells',hint:'Vacances filmées retrouvées des années plus tard',faux:['Celine Sciamma','Kelly Reichardt','Andrea Arnold'],poster:'Aftersun.png'},
+  {id:null,title:'Hereditary',year:2018,real:'Ari Aster',hint:'Un deuil réveille de sombres secrets familiaux',faux:['Mike Flanagan','James Wan','Robert Eggers'],poster:'Hereditary.jpg'},
+  {id:null,title:'Midsommar',year:2019,real:'Ari Aster',hint:'Un groupe assiste à un festival suédois perturbant',faux:['Robert Eggers','Yorgos Lanthimos','Alex Garland'],poster:'Midsommar.jpg'},
+  {id:null,title:'Lady Bird',year:2017,real:'Greta Gerwig',hint:'Une lycéenne ambitieuse rêve de quitter Sacramento',faux:['Sofia Coppola','Marielle Heller','Olivia Wilde'],poster:'Lady Bird.jpg'},
+  {id:null,title:'Portrait de la Jeune Fille en Feu',year:2019,real:'Céline Sciamma',hint:'Une peintre tombe amoureuse de son modèle au XVIIIe',faux:['Rebecca Zlotowski','Mia Hansen-Løve','Valeria Bruni Tedeschi'],poster:'Portrait de la jeune fille en feu.jpg'},
+  {id:null,title:'Burning',year:2018,real:'Lee Chang-dong',hint:'Un jeune homme obsédé par une disparition mystérieuse',faux:['Park Chan-wook','Bong Joon-ho','Hong Sang-soo'],poster:'Burning.jpg'},
+  {id:null,title:'Donnie Darko',year:2001,real:'Richard Kelly',hint:'Un ado reçoit la visite d\'un lapin géant',faux:['Darren Aronofsky','Michel Gondry','Spike Jonze'],poster:'Donnie Darko.jpg'},
+  {id:null,title:'The Lighthouse',year:2019,real:'Robert Eggers',hint:'Deux gardiens de phare sombrent dans la folie',faux:['Ari Aster','Alex Garland','Yorgos Lanthimos'],poster:'The Lighthouse.jpg'},
+  {id:null,title:'Manchester by the Sea',year:2016,real:'Kenneth Lonergan',hint:'Un homme doit s\'occuper de son neveu, paralysé par son passé',faux:['Joe Swanberg','Andrew Haigh','Derek Cianfrance'],poster:'Manchester by the Sea.jpg'},
+  {id:null,title:'Lost in Translation',year:2003,real:'Sofia Coppola',hint:'Deux Américains perdus dans le Tokyo nocturne',faux:['Gus Van Sant','Michel Gondry','Wes Anderson'],poster:'Lost in Translation.jpg'},
+  {id:null,title:'Moonlight',year:2016,real:'Barry Jenkins',hint:'L\'enfance, l\'adolescence et l\'âge adulte d\'un garçon à Miami',faux:['Ryan Coogler','Ava DuVernay','Jordan Peele'],poster:'Moonlight.jpg'},
+  {id:null,title:'Anora',year:2024,real:'Sean Baker',hint:'Une escort new-yorkaise épouse le fils d\'un oligarque russe',faux:['Brady Corbet','Chloe Zhao','Alex Ross Perry'],poster:'Anora.png'},
+  {id:null,title:'La Zone d\'intérêt',year:2023,real:'Jonathan Glazer',hint:'La vie banale de la famille du commandant d\'Auschwitz',faux:['Todd Field','Ruben Ostlund','Lukasz Dhont'],poster:'La Zone d\'intérêt.jpg'},
+  {id:null,title:'Incendies',year:2010,real:'Denis Villeneuve',hint:'Des jumeaux découvrent les secrets dévastateurs de leur mère',faux:['Xavier Dolan','Philippe Falardeau','Jean-Marc Vallée'],poster:'Incendies.jpg'},
+  {id:null,title:'Blue Valentine',year:2010,real:'Derek Cianfrance',hint:'Une histoire d\'amour racontée à son début et à sa fin',faux:['Andrew Haigh','Joe Swanberg','Drake Doremus'],poster:'Blue Valentine.jpg'},
+  {id:null,title:'Inside Llewyn Davis',year:2013,real:'Joel et Ethan Coen',hint:'Un folk-singer raté erre dans le New York des années 60',faux:['Wes Anderson','Alexander Payne','Jim Jarmusch'],poster:'Inside Llewyn Davis.jpg'},
+  {id:null,title:'The Florida Project',year:2017,real:'Sean Baker',hint:'Une gamine vit en marge de Disney World en Floride',faux:['Benh Zeitlin','Jeff Nichols','Andrea Arnold'],poster:'The Florida Project.jpg'},
+  {id:null,title:'Do the Right Thing',year:1989,real:'Spike Lee',hint:'Une journée caniculaire à Brooklyn tourne à l\'émeute',faux:['John Singleton','Lee Daniels','Antoine Fuqua'],poster:'Do the Right Thing.jpg'},
+];
+
+// ── Enrichissement FILMOGRAPHIE_DATA avec acteurs présents dans HM_DB ──
+const HM_FILMOGRAPHIE_EXTRA=[
+  {acteur:'Paul Mescal',films:['Aftersun','All of Us Strangers','Normal People','Carmen','Gladiator 2'],leurres:['Barry Keoghan','Josh O\'Connor','Daryl McCormack']},
+  {acteur:'Mads Mikkelsen',films:['La Chasse','Hannibal','Another Round','Casino Royale','Men and Chicken'],leurres:['Nikolaj Coster-Waldau','Joel Kinnaman','Lars Mikkelsen']},
+  {acteur:'Toni Collette',films:['Hereditary','Little Miss Sunshine','The Sixth Sense','Knives Out','I\'m Thinking of Ending Things'],leurres:['Patricia Arquette','Catherine Keener','Essie Davis']},
+  {acteur:'Oscar Isaac',films:['Inside Llewyn Davis','A Most Violent Year','Ex Machina','Annihilation','The Card Counter'],leurres:['Adam Driver','Pedro Pascal','Diego Luna']},
+  {acteur:'Joaquin Phoenix',films:['Her','Joker','The Master','You Were Never Really Here','Walk the Line'],leurres:['Casey Affleck','Jared Leto','Ezra Miller']},
+  {acteur:'Tilda Swinton',films:['We Need to Talk About Kevin','Memoria','Snowpiercer','The French Dispatch','Okja'],leurres:['Cate Blanchett','Charlotte Rampling','Juliette Binoche']},
+  {acteur:'Josh O\'Connor',films:['God\'s Own Country','The Crown','Challengers','La Chimera','The End'],leurres:['Paul Mescal','Barry Keoghan','Alec Secareanu']},
+  {acteur:'Robert Pattinson',films:['The Lighthouse','Good Time','The Rover','Cosmopolis','High Life'],leurres:['Timothee Chalamet','Tom Holland','Asa Butterfield']},
+  {acteur:'Léa Seydoux',films:['La Vie d\'Adèle','Portrait de la Jeune Fille en Feu','No Time to Die','Crimes of the Future','Dune 2'],leurres:['Adèle Exarchopoulos','Marion Cotillard','Virginie Efira']},
+  {acteur:'Viggo Mortensen',films:['Le Seigneur des Anneaux','Captain Fantastic','Eastern Promises','A History of Violence','The Road'],leurres:['Liam Neeson','Russell Crowe','Guy Pearce']},
+  {acteur:'Cate Blanchett',films:['Blue Jasmine','Carol','Tár','Notes on a Scandal','The Aviator'],leurres:['Nicole Kidman','Julianne Moore','Tilda Swinton']},
+  {acteur:'Jesse Plemons',films:['The Power of the Dog','Killers of the Flower Moon','I\'m Thinking of Ending Things','El Camino','Judas and the Black Messiah'],leurres:['Aaron Paul','Scoot McNairy','Boyd Holbrook']},
+];
+
+// ── Enrichissement COMPOSITEUR_FILMS avec films HM_DB ──
+const HM_COMPOSITEUR_EXTRA=[
+  {id:null,title:'Her',year:2013,poster:null,compositeur:'Arcade Fire & William Butler',hint:'Pop électronique futuriste et mélancolique'},
+  {id:null,title:'Midsommar',year:2019,poster:null,compositeur:'Bobby Krlic',hint:'Drones cordes hypnotiques sous un soleil de minuit'},
+  {id:null,title:'Hereditary',year:2018,poster:null,compositeur:'Colin Stetson',hint:'Cuivres expérimentaux terrifiants et distordus'},
+  {id:null,title:'Annihilation',year:2018,poster:null,compositeur:'Ben Salisbury & Geoff Barrow',hint:'Ambiances SF étranges inspirées de Daft Punk'},
+  {id:null,title:'Aftersun',year:2022,poster:null,compositeur:'Oliver Coates',hint:'Cordes minimalistes pour une nostalgie dévastante'},
+  {id:null,title:'Locke',year:2013,poster:null,compositeur:'Dickon Hinchliffe',hint:'Piano tendu pour un seul acteur en voiture la nuit'},
+  {id:null,title:'Inside Llewyn Davis',year:2013,poster:null,compositeur:'Marcus Mumford',hint:'Folk acoustique authentique dans le New York des 60s'},
+  {id:null,title:'Moonlight',year:2016,poster:null,compositeur:'Nicholas Britell',hint:'Cordes classiques avec hip-hop pour Miami en 3 actes'},
+  {id:null,title:'Manchester by the Sea',year:2016,poster:null,compositeur:'Lesley Barber',hint:'Handel et compositions sobres pour une douleur indicible'},
+  {id:null,title:'La Zone d\'intérêt',year:2023,poster:null,compositeur:'Mica Levi',hint:'Sons expérimentaux glaçants contrastant avec le quotidien'},
+];
+
+// Injection dans les pools existants au démarrage
+(function _injectHMIntoStaticPools(){
+  // Réalisateur
+  for(const e of HM_REALISATEUR_EXTRA){
+    if(!REALISATEUR_FILMS.some(f=>f.title===e.title&&f.year===e.year)){
+      REALISATEUR_FILMS.push({
+        id:e.id||0,
+        title:e.title,year:e.year,
+        real:e.real,hint:e.hint,faux:e.faux,
+        _hmPoster:e.poster // poster local HM, résolu dans fetchRealisateurQuestions
+      });
+    }
+  }
+  // Filmographie
+  for(const e of HM_FILMOGRAPHIE_EXTRA){
+    if(!FILMOGRAPHIE_DATA.some(f=>f.acteur===e.acteur)){
+      FILMOGRAPHIE_DATA.push(e);
+    }
+  }
+  // Compositeur
+  for(const e of HM_COMPOSITEUR_EXTRA){
+    if(!COMPOSITEUR_FILMS.some(f=>f.title===e.title)){
+      COMPOSITEUR_FILMS.push({...e,id:e.id||0,poster:null});
+    }
+  }
+  // Casting
+  const HM_CASTING_EXTRA=[
+    {title:'Midsommar',id:null,actors:['Florence Pugh','Jack Reynor','William Jackson Harper','Vilhelm Blomgren'],clue:'Horreur de folk suédois d\'Ari Aster (2019)'},
+    {title:'Hereditary',id:null,actors:['Toni Collette','Alex Wolff','Gabriel Byrne','Milly Shapiro'],clue:'Film d\'horreur familial d\'Ari Aster (2018)'},
+    {title:'Moonlight',id:null,actors:['Mahershala Ali','Naomie Harris','Trevante Rhodes'],clue:'Drame en 3 actes de Barry Jenkins (2016)'},
+    {title:'Lady Bird',id:null,actors:['Saoirse Ronan','Laurie Metcalf','Tracy Letts','Timothée Chalamet'],clue:'Comédie dramatique de Greta Gerwig (2017)'},
+    {title:'Manchester by the Sea',id:null,actors:['Casey Affleck','Michelle Williams','Kyle Chandler','Lucas Hedges'],clue:'Drame de Kenneth Lonergan (2016)'},
+    {title:'Whiplash',id:null,actors:['Miles Teller','J.K. Simmons','Paul Reiser'],clue:'Drame musical de Damien Chazelle (2014)'},
+    {title:'La Chasse',id:null,actors:['Mads Mikkelsen','Thomas Bo Larsen','Alexandra Rapaport'],clue:'Drame danois de Thomas Vinterberg (2012)'},
+    {title:'Donnie Darko',id:null,actors:['Jake Gyllenhaal','Jena Malone','Drew Barrymore','Patrick Swayze'],clue:'Film de science-fiction de Richard Kelly (2001)'},
+    {title:'Burning',id:null,actors:['Yoo Ah-in','Steven Yeun','Jeon Jong-seo'],clue:'Thriller coréen de Lee Chang-dong (2018)'},
+    {title:'Anora',id:null,actors:['Mikey Madison','Yura Borisov','Karren Karagulian','Vache Tovmasyan'],clue:'Palme d\'Or 2024 de Sean Baker'},
+    {title:'Incendies',id:null,actors:['Lubna Azabal','Mélissa Désormeaux-Poulin','Maxim Gaudette'],clue:'Drame de Denis Villeneuve (2010)'},
+    {title:'Blue Valentine',id:null,actors:['Ryan Gosling','Michelle Williams'],clue:'Drame romantique de Derek Cianfrance (2010)'},
+    {title:'Portrait de la Jeune Fille en Feu',id:null,actors:['Noémie Merlant','Adèle Haenel','Luàna Bajrami'],clue:'Drame historique de Céline Sciamma (2019)'},
+    {title:'La Zone d\'intérêt',id:null,actors:['Christian Friedel','Sandra Hüller'],clue:'Drame de Jonathan Glazer (2023)'},
+    {title:'Inside Llewyn Davis',id:null,actors:['Oscar Isaac','Carey Mulligan','John Goodman'],clue:'Film des frères Coen (2013)'},
+    {title:'Little Miss Sunshine',id:null,actors:['Abigail Breslin','Greg Kinnear','Paul Dano','Steve Carell','Toni Collette'],clue:'Road movie familial de Dayton et Faris (2006)'},
+    {title:'Aftersun',id:null,actors:['Paul Mescal','Frankie Corio'],clue:'Premier film de Charlotte Wells (2022)'},
+    {title:'Lost in Translation',id:null,actors:['Bill Murray','Scarlett Johansson'],clue:'Drame romantique de Sofia Coppola (2003)'},
+  ];
+  for(const e of HM_CASTING_EXTRA){
+    if(!CASTING_FILMS.some(f=>f.title===e.title)){
+      CASTING_FILMS.push(e);
+    }
+  }
+  // Décennie : ajouter tous les films HM_DB
+  const HM_DECENNIE_EXTRA=HM_DB.filter(f=>f.y>=1970&&f.y<=2025&&f.p).map(f=>({
+    title:f.t, year:f.y, id:null, _hmPoster:f.p
+  }));
+  for(const e of HM_DECENNIE_EXTRA){
+    if(!DECENNIE_FILMS.some(f=>f.title===e.title)){
+      DECENNIE_FILMS.push(e);
+    }
+  }
+})();
 
 async function _recoFetch(){
   document.getElementById('reco-qwrap').style.display='none';
@@ -12211,7 +12386,12 @@ async function startGame(){
       sltxt('Chargement des affiches…');
       initSteps([{icon:'🖼️',label:'Récupération des affiches'},{icon:'🎬',label:'Préparation du quiz'}]);
       setStep(0,'act');
-      const pool=selTheme&&GENRE_IDS[selTheme]?await fetchGenreMovies(selTheme,TOTAL):await fetchMovies(POOL,TOTAL);
+      // Moitié depuis TMDB, moitié depuis HM_DB
+      const tmdbCount=Math.ceil(TOTAL*0.6);
+      const hmCount=TOTAL-tmdbCount;
+      const tmdbPool=selTheme&&GENRE_IDS[selTheme]?await fetchGenreMovies(selTheme,tmdbCount):await fetchMovies(POOL,tmdbCount);
+      const hmPool=hmFilmsToPool(hmCount+5).slice(0,hmCount);
+      const pool=shuffle([...tmdbPool,...hmPool]);
       if(pool.length<4)throw new Error('Not enough');
       setStep(0,'don');setStep(1,'act');
       qs=pool.map((m,i)=>{const others=pool.filter((_,j)=>j!==i);const w=shuffle(others).slice(0,3).map(o=>o.title);const a=shuffle([m.title,...w]);return{type:'photo',title:m.title,poster:m.poster,year:m.year,genre:m.genre,answers:a,correct:a.indexOf(m.title),difficulty:'medium',category:'Affiche Mystère'};});
@@ -12220,8 +12400,10 @@ async function startGame(){
       sltxt('Chargement des films…');
       initSteps([{icon:'📅',label:'Récupération des films'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');
-      const movies=await fetchMovies(POOL,TOTAL+8);
-      const ok=movies.filter(m=>m.year>=1960&&m.year<=2024);
+      const tmdbMovies=await fetchMovies(POOL,TOTAL+5);
+      const hmMovies=hmFilmsToPool(TOTAL).map(f=>({...f,id:null}));
+      const allMovies=shuffle([...tmdbMovies,...hmMovies]);
+      const ok=allMovies.filter(m=>m.year>=1960&&m.year<=2025);
       if(ok.length<TOTAL)throw new Error('Not enough');
       qs=ok.slice(0,TOTAL).map(m=>({type:'year',title:m.title,poster:m.poster,year:m.year,genre:m.genre,difficulty:'medium',category:'Quelle Année ?'}));
       setStep(0,'don');setStep(1,'act');setStep(1,'don');
@@ -12229,12 +12411,15 @@ async function startGame(){
       sltxt('Chargement des indices…');
       initSteps([{icon:'🎵',label:'Récupération des films'},{icon:'🔍',label:'Collecte des indices'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');
-      const boPool=await fetchMovies(POOL,TOTAL+15);
+      const boPool=await fetchMovies(POOL,TOTAL+10);
+      // Films HM avec synopsis intégré — construire les clues directement
+      const hmBoPool=hmFilmsToPool(Math.ceil(TOTAL*0.4)+5);
       if(boPool.length<4)throw new Error('Not enough');
       setStep(0,'don');setStep(1,'act');
       const boAll=[];
+      // Films TMDB
       for(const m of boPool){
-        if(boAll.length>=TOTAL)break;
+        if(boAll.length>=Math.ceil(TOTAL*0.6))break;
         try{
           const r=await fetch(`https://api.themoviedb.org/3/movie/${m.id}?api_key=${TK}&language=fr-FR&append_to_response=credits`);
           const d=await r.json();
@@ -12249,13 +12434,28 @@ async function startGame(){
             director?`Réalisé par ${director.name}`:'Réalisateur acclamé',
             tagline?`"${tagline.slice(0,60)}"`:`Sorti en ${m.year}`,
           ];
-          const others=shuffle(boPool.filter(x=>x.id!==m.id)).slice(0,3).map(x=>x.title);
+          const others=shuffle([...boPool,...hmBoPool].filter(x=>x.title!==m.title)).slice(0,3).map(x=>x.title);
           const answers=shuffle([m.title,...others]);
           boAll.push({type:'bo',title:m.title,year:m.year,genre:m.genre,clues,answers,correct:answers.indexOf(m.title),difficulty:'medium',category:'Indices Mystère'});
         }catch(e){}
       }
+      // Films HM : utiliser le synopsis comme dernier indice
+      for(const m of hmBoPool){
+        if(boAll.length>=TOTAL)break;
+        const decade=Math.floor(m.year/10)*10+'s';
+        const clues=[
+          `Genre : ${m.genre}`,
+          `Époque : années ${decade}`,
+          `Film indépendant / Art et Essai`,
+          `Sorti en ${m.year}`,
+          m.synopsis?`"${m.synopsis.slice(0,70)}"`:m.genre,
+        ];
+        const others=shuffle([...boPool,...hmBoPool].filter(x=>x.title!==m.title)).slice(0,3).map(x=>x.title);
+        const answers=shuffle([m.title,...others]);
+        boAll.push({type:'bo',title:m.title,year:m.year,genre:m.genre,clues,answers,correct:answers.indexOf(m.title),difficulty:'medium',category:'Indices Mystère'});
+      }
       if(boAll.length<4)throw new Error('Not enough BO');
-      qs=boAll.slice(0,TOTAL);
+      qs=shuffle(boAll).slice(0,TOTAL);
       setStep(1,'don');setStep(2,'act');await new Promise(r=>setTimeout(r,200));setStep(2,'don');
     } else if(selMode==='boxoffice'){
       sltxt('Chargement du box-office…');
@@ -12432,6 +12632,8 @@ function loadQ(){
   // Reset vraifaux layout
   if(selMode!=='vraifaux')document.getElementById('game')?.classList.remove('game-vraifaux');
   const q=qs[curQ];
+  // Guard : question manquante (rechargement async en cours)
+  if(!q){if(selMode==='survie')return;else{endGame();return;}}
   document.getElementById('qnum').textContent=selMode==='survie'?`Q ${curQ+1} / ∞`:`Q ${curQ+1}/${TOTAL}`;
   document.getElementById('qcat').textContent=q.category;
   if(selMode!=='training')document.getElementById('scorehd').textContent=score+' pts';
@@ -13260,9 +13462,14 @@ function handleAnswer(idx){
       _survieLives=Math.max(0,_survieLives-1);
       _updateSurvieHearts(_survieLives);
       if(_survieLives<=0){
-        // Dernier cœur : montrer wrong-sheet puis endGame
+        // Dernier cœur : fermer le wrong-sheet si ouvert, puis endGame
+        const ws=document.getElementById('wrong-sheet');
+        const scrim=document.getElementById('ws-scrim');
+        if(ws&&ws.classList.contains('on')){
+          ws.classList.remove('on');if(scrim)scrim.classList.remove('on');
+        }
         showToast(false,0,m,wrongAns);
-        setTimeout(()=>{hideToast();closeWrongSheet();endGame();},2200);
+        setTimeout(()=>{hideToast();endGame();},2200);
         return;
       }
       // Il reste des vies : montrer briefly et passer à la suite
@@ -13273,6 +13480,7 @@ function handleAnswer(idx){
         const correctAns=wrongAns||(qs[curQ]?.answers?.[qs[curQ]?.correct])||'—';
         document.getElementById('ws-ans').textContent=correctAns;
         ws.classList.add('on');if(scrim)scrim.classList.add('on');
+        // Fermer automatiquement sans appeler advanceQ (survie gère sa propre progression)
         setTimeout(()=>{ws.classList.remove('on');if(scrim)scrim.classList.remove('on');advanceQ();},1800);
       } else {
         setTimeout(advanceQ,1600);
@@ -13336,6 +13544,8 @@ function closeWrongSheet(){
   // Remove injected BO list
   const boInner=document.getElementById('ws-bo-list-inner');
   if(boInner)boInner.remove();
+  // En mode survie, advanceQ est déjà géré par setTimeout dans handleAnswer
+  if(selMode==='survie')return;
   advanceQ();
 }
 function _updateSurvieHearts(lives){
@@ -13350,10 +13560,19 @@ function advanceQ(){
   curQ++;
   // Mode survie : pas de limite de questions
   if(selMode==='survie'){
-    // Si on atteint la fin du pool, recharger
+    // Si on atteint la fin du pool, recharger de façon synchrone avant de continuer
     if(curQ>=qs.length){
-      // Extend pool silently
-      fetchTrivia().then(raw=>txQuestions(raw)).then(more=>{qs=[...qs,...more];});
+      // Attendre que le fetch soit terminé avant de charger la question
+      const qNumEl=document.getElementById('qnum');
+      if(qNumEl)qNumEl.textContent='⏳ Chargement…';
+      fetchTrivia().then(raw=>txQuestions(raw)).then(more=>{
+        qs=[...qs,...more];
+        buildDots();loadQ();
+      }).catch(()=>{
+        // En cas d'erreur réseau, utiliser les questions disponibles ou terminer
+        if(curQ<qs.length){buildDots();loadQ();}else{endGame();}
+      });
+      return;
     }
     buildDots();loadQ();
     return;
@@ -13409,6 +13628,15 @@ function updateTimerUI(){
 // END GAME
 // ==============================
 function endGame(){
+  // Nettoyer l'état du jeu avant d'afficher le résultat
+  cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
+  if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+  hideToast();
+  // Masquer le wrong-sheet et le scrim (surtout en mode survie)
+  const _ws=document.getElementById('wrong-sheet');
+  const _wss=document.getElementById('ws-scrim');
+  if(_ws)_ws.classList.remove('on');
+  if(_wss)_wss.classList.remove('on');
   const playSec=tStart>0?Math.min(Math.round((Date.now()-tStart)/1000),3600):0;
   let s=ls();const oldLvl=glv(s.xp);
   s=chkStreak(s);
