@@ -3488,10 +3488,12 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .hm-level-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:rgba(192,132,252,.7);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .hm-level-title::after{content:'';flex:1;height:1px;background:rgba(168,85,247,.15);}
 .hm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 8px;}
-.hm-card-wrap{aspect-ratio:2/3;position:relative;cursor:pointer;perspective:1000px;}
-.hm-card:active{transform:scale(.95);}
+.hm-card-wrap{
+  aspect-ratio:2/3;position:relative;cursor:pointer;
+  perspective:800px;
+  transform-style:preserve-3d;
+}
 .hm-card.locked{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:default;}
-.hm-card.locked:active{transform:none;}
 .hm-lock-icon{width:28px;height:28px;opacity:.25;}
 .hm-lock-lvl{font-size:9px;color:rgba(255,255,255,.2);letter-spacing:1px;text-align:center;}
 .hm-card.unlocked{border:1px solid rgba(168,85,247,.2);}
@@ -3940,18 +3942,118 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   cursor:pointer;text-align:center;
 }
 
-/* HALO — sur le wrap */
-.hm-card-holo{
-  position:absolute;inset:0;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .5s ease;
-  background:radial-gradient(ellipse at var(--mx,50%) var(--my,50%),rgba(255,255,255,.08) 0%,transparent 60%),
-    linear-gradient(calc(var(--holo-angle,105deg)),transparent 0%,rgba(255,220,180,.06) 10%,rgba(180,255,220,.08) 22%,rgba(180,220,255,.07) 34%,rgba(255,180,220,.06) 46%,rgba(255,240,160,.06) 58%,rgba(160,255,240,.08) 70%,rgba(220,180,255,.06) 82%,transparent 100%);
-  mix-blend-mode:screen;z-index:2;
+/* ══ HM CARD — effet holographique carte physique ══ */
+
+/* Wrap avec perspective haute pour tilt crédible */
+.hm-card-wrap{
+  aspect-ratio:2/3;position:relative;cursor:pointer;
+  perspective:800px;
+  transform-style:preserve-3d;
 }
-.hm-card-shine{position:absolute;inset:0;border-radius:14px;pointer-events:none;opacity:0;z-index:2;background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),rgba(255,255,255,.06) 0%,rgba(255,255,255,.01) 40%,transparent 65%);mix-blend-mode:screen;transition:opacity .2s;}
-.hm-card-border{position:absolute;inset:0;border-radius:14px;border:1px solid rgba(255,255,255,.10);pointer-events:none;z-index:2;background:linear-gradient(calc(var(--holo-angle,105deg)),rgba(255,220,180,.07),rgba(180,255,220,.06),rgba(180,220,255,.07));opacity:0;mix-blend-mode:screen;transition:opacity .3s;}
-.hm-card:hover .hm-card-holo,.hm-card.touching .hm-card-holo{opacity:1;}
-.hm-card:hover .hm-card-shine,.hm-card.touching .hm-card-shine{opacity:1;}
-.hm-card:hover .hm-card-border,.hm-card.touching .hm-card-border{opacity:1;}
+
+/* La carte elle-même devient le pivot 3D */
+.hm-card{
+  transform-origin:center center;
+  transform-style:preserve-3d;
+  will-change:transform;
+  transition:box-shadow .15s ease;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border:1px solid rgba(168,85,247,.25);
+}
+
+/* Ombre portée dynamique */
+.hm-card.touching{
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.6),
+    0 8px 20px rgba(0,0,0,.4),
+    0 0 0 1px rgba(168,85,247,.4);
+}
+
+/* ── Couche 1 : foil arc-en-ciel irisé ── */
+.hm-card-holo{
+  position:absolute;inset:0;border-radius:14px;
+  pointer-events:none;z-index:3;
+  opacity:0;
+  transition:opacity .3s ease;
+  background:
+    linear-gradient(
+      calc(var(--holo-angle, 120deg)),
+      transparent 0%,
+      rgba(255,100,100,.20) 8%,
+      rgba(255,200,80,.22) 18%,
+      rgba(80,255,140,.20) 28%,
+      rgba(80,200,255,.22) 38%,
+      rgba(140,80,255,.20) 48%,
+      rgba(255,80,200,.22) 58%,
+      rgba(255,200,80,.20) 68%,
+      rgba(80,255,200,.22) 78%,
+      transparent 100%
+    );
+  mix-blend-mode:color-dodge;
+  filter:blur(0px);
+  background-size:200% 200%;
+}
+
+/* ── Couche 2 : spotlight qui suit le doigt ── */
+.hm-card-shine{
+  position:absolute;inset:0;border-radius:14px;
+  pointer-events:none;z-index:4;opacity:0;
+  transition:opacity .15s ease;
+  background:
+    radial-gradient(
+      ellipse 55% 45% at var(--mx, 50%) var(--my, 50%),
+      rgba(255,255,255,.28) 0%,
+      rgba(255,255,255,.08) 30%,
+      transparent 70%
+    );
+  mix-blend-mode:overlay;
+}
+
+/* ── Couche 3 : glare directionnel ── */
+.hm-card-glare{
+  position:absolute;inset:0;border-radius:14px;
+  pointer-events:none;z-index:5;opacity:0;
+  transition:opacity .15s ease;
+  background:linear-gradient(
+    calc(var(--glare-angle, 135deg)),
+    rgba(255,255,255,.18) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255,255,255,.06) 100%
+  );
+  mix-blend-mode:soft-light;
+}
+
+/* ── Couche 4 : bordure irisée ── */
+.hm-card-border{
+  position:absolute;inset:0;border-radius:14px;
+  pointer-events:none;z-index:6;opacity:0;
+  transition:opacity .3s ease;
+  border:1px solid transparent;
+  background:
+    linear-gradient(#0d0a20,#0d0a20) padding-box,
+    linear-gradient(
+      calc(var(--holo-angle, 120deg)),
+      rgba(255,100,100,.6),
+      rgba(255,200,80,.7),
+      rgba(80,255,140,.6),
+      rgba(80,200,255,.7),
+      rgba(140,80,255,.6),
+      rgba(255,80,200,.7)
+    ) border-box;
+  mix-blend-mode:screen;
+}
+
+/* Activation au hover / touch */
+.hm-card:hover .hm-card-holo,
+.hm-card.touching .hm-card-holo{opacity:.75;}
+.hm-card:hover .hm-card-shine,
+.hm-card.touching .hm-card-shine{opacity:1;}
+.hm-card:hover .hm-card-glare,
+.hm-card.touching .hm-card-glare{opacity:1;}
+.hm-card:hover .hm-card-border,
+.hm-card.touching .hm-card-border{opacity:.6;}
 
 </style>
 </head>
@@ -9923,6 +10025,7 @@ function _hmRenderCollection() {
       <div class="hm-card-overlay"></div>
       <div class="hm-card-holo"></div>
       <div class="hm-card-shine"></div>
+      <div class="hm-card-glare"></div>
       <div class="hm-card-border"></div>
       <div class="hm-card-info">
         <div class="hm-card-title">${film.t}</div>
@@ -10373,36 +10476,136 @@ function _hmvHoloLeave()       { _hmvHoloReset(this); }
 
 
 
-// ══ HM — Effet holographique ══
+// ══ HM — Effet holographique carte physique (style trading card) ══
 function _hmInitHoloCards() {
   document.querySelectorAll('#hm-collection-grid .hm-card, #hm-wishlist-grid .hm-card').forEach(card => {
-    let timer=null, raf=null;
-    const reset=()=>{
-      timer=setTimeout(()=>{
-        card.classList.remove('touching');
-        card.style.transition='transform .4s ease';
-        card.style.transform='perspective(600px) rotateX(0) rotateY(0) scale(1)';
-        setTimeout(()=>card.style.transition='',420);
-      },300);
-    };
-    const update=(cx,cy)=>{
-      const r=card.getBoundingClientRect();
-      const mx=((cx-r.left)/r.width*100).toFixed(1)+'%';
-      const my=((cy-r.top)/r.height*100).toFixed(1)+'%';
-      const angle=(Math.atan2(cy-r.top-r.height/2, cx-r.left-r.width/2)*180/Math.PI+90)+'deg';
-      const rotY=((cx-r.left)/r.width-0.5)*16;
-      const rotX=-((cy-r.top)/r.height-0.5)*12;
-      card.style.setProperty('--mx',mx);
-      card.style.setProperty('--my',my);
-      card.style.setProperty('--holo-angle',angle);
-      card.style.transform=`perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
-    };
-    card.addEventListener('touchstart',e=>{clearTimeout(timer);card.classList.add('touching');card.style.transition='none';update(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
-    card.addEventListener('touchmove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.touches[0].clientX,e.touches[0].clientY));},{passive:true});
-    card.addEventListener('touchend',()=>reset(),{passive:true});
-    card.addEventListener('mouseenter',()=>{clearTimeout(timer);card.classList.add('touching');card.style.transition='none';});
-    card.addEventListener('mousemove',e=>{clearTimeout(timer);if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>update(e.clientX,e.clientY));});
-    card.addEventListener('mouseleave',()=>reset());
+    let raf = null, resetTimer = null;
+    let currentRotX = 0, currentRotY = 0;
+    let targetRotX = 0, targetRotY = 0;
+    let springActive = false;
+
+    // Spring physics pour un retour smooth
+    function springStep() {
+      const ease = 0.12;
+      currentRotX += (targetRotX - currentRotX) * ease;
+      currentRotY += (targetRotY - currentRotY) * ease;
+      const dx = Math.abs(targetRotX - currentRotX);
+      const dy = Math.abs(targetRotY - currentRotY);
+      applyTransform(currentRotX, currentRotY, targetRotX === 0 && targetRotY === 0 ? false : true);
+      if (dx > 0.02 || dy > 0.02) {
+        raf = requestAnimationFrame(springStep);
+      } else {
+        currentRotX = targetRotX;
+        currentRotY = targetRotY;
+        if (targetRotX === 0 && targetRotY === 0) {
+          applyTransform(0, 0, false);
+          card.classList.remove('touching');
+          clearLayers();
+        }
+        springActive = false;
+      }
+    }
+
+    function applyTransform(rotX, rotY, active) {
+      const scale = active ? 1.06 : 1;
+      const tz = active ? 30 : 0;
+      card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale}) translateZ(${tz}px)`;
+    }
+
+    function clearLayers() {
+      card.style.removeProperty('--mx');
+      card.style.removeProperty('--my');
+      card.style.removeProperty('--holo-angle');
+      card.style.removeProperty('--glare-angle');
+    }
+
+    function update(clientX, clientY) {
+      const r = card.getBoundingClientRect();
+      const x = clientX - r.left;
+      const y = clientY - r.top;
+      // Normalised -1 → +1
+      const nx = (x / r.width) * 2 - 1;
+      const ny = (y / r.height) * 2 - 1;
+
+      // Tilt — plus prononcé pour sentir la carte
+      targetRotY = nx * 20;
+      targetRotX = -ny * 16;
+
+      // Position pour les effets (0-100%)
+      const mx = (x / r.width) * 100;
+      const my = (y / r.height) * 100;
+
+      // Angle arc-en-ciel
+      const angle = Math.atan2(y - r.height / 2, x - r.width / 2) * 180 / Math.PI + 90;
+      // Angle glare = perpendiculaire
+      const glareAngle = angle - 45;
+
+      card.style.setProperty('--mx', mx.toFixed(1) + '%');
+      card.style.setProperty('--my', my.toFixed(1) + '%');
+      card.style.setProperty('--holo-angle', angle.toFixed(1) + 'deg');
+      card.style.setProperty('--glare-angle', glareAngle.toFixed(1) + 'deg');
+    }
+
+    function startSpring() {
+      if (springActive) return;
+      springActive = true;
+      raf = requestAnimationFrame(springStep);
+    }
+
+    function onStart(clientX, clientY) {
+      clearTimeout(resetTimer);
+      if (raf) cancelAnimationFrame(raf);
+      springActive = false;
+      card.classList.add('touching');
+      card.style.transition = 'none';
+      update(clientX, clientY);
+      // Appliquer direct sans spring pour le start
+      applyTransform(targetRotX, targetRotY, true);
+      currentRotX = targetRotX;
+      currentRotY = targetRotY;
+    }
+
+    function onMove(clientX, clientY) {
+      clearTimeout(resetTimer);
+      update(clientX, clientY);
+      if (!springActive) {
+        // Interpolation directe en mouvement pour réactivité maximale
+        const ease = 0.25;
+        currentRotX += (targetRotX - currentRotX) * ease;
+        currentRotY += (targetRotY - currentRotY) * ease;
+        applyTransform(currentRotX, currentRotY, true);
+      }
+    }
+
+    function onEnd() {
+      resetTimer = setTimeout(() => {
+        targetRotX = 0;
+        targetRotY = 0;
+        card.style.transition = '';
+        startSpring();
+      }, 80);
+    }
+
+    // Touch events
+    card.addEventListener('touchstart', e => {
+      onStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    card.addEventListener('touchmove', e => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => onMove(e.touches[0].clientX, e.touches[0].clientY));
+    }, { passive: true });
+
+    card.addEventListener('touchend', () => onEnd(), { passive: true });
+    card.addEventListener('touchcancel', () => onEnd(), { passive: true });
+
+    // Mouse events
+    card.addEventListener('mouseenter', e => onStart(e.clientX, e.clientY));
+    card.addEventListener('mousemove', e => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => onMove(e.clientX, e.clientY));
+    });
+    card.addEventListener('mouseleave', () => onEnd());
   });
 }
 
@@ -10469,36 +10672,6 @@ async function _hmFillCardBack(idx){
     }
   }catch{}
 }
-
-function _hmHoloReset(card) {
-  card.classList.remove('touching');
-  card.style.removeProperty('--mx');
-  card.style.removeProperty('--my');
-  card.style.removeProperty('--holo-angle');
-  card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg)';
-}
-
-function _hmHoloUpdate(card, clientX, clientY) {
-  const rect = card.getBoundingClientRect();
-  const x = clientX - rect.left;
-  const y = clientY - rect.top;
-  const mx = (x / rect.width) * 100;
-  const my = (y / rect.height) * 100;
-
-  // Rotation 3D — plus prononcée
-  const rotY = ((mx - 50) / 50) * 16;
-  const rotX = -((my - 50) / 50) * 13;
-
-  // Angle arc-en-ciel basé sur position du doigt
-  const angle = Math.atan2(y - rect.height / 2, x - rect.width / 2) * (180 / Math.PI) + 90;
-
-  card.style.setProperty('--mx', mx + '%');
-  card.style.setProperty('--my', my + '%');
-  card.style.setProperty('--holo-angle', angle + 'deg');
-  card.style.transform =
-    'perspective(600px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.04)';
-}
-
 
 function openHM(){
   document.querySelectorAll('.scr').forEach(s=>{s.classList.remove('on');s.style.opacity='0';s.style.pointerEvents='none';});
