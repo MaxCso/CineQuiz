@@ -10421,141 +10421,153 @@ function _hmInitScratch(canvas, film, idx){
   ctx.scale(DPR,DPR);
   _hmCtx=ctx;
 
-  // ── Couche off-screen pour l'effet texture (gold foil) ──
+  // ── Texture holographique animée ──
   const offscreen=document.createElement('canvas');
   offscreen.width=W; offscreen.height=H;
   const octx=offscreen.getContext('2d');
 
-  // Fond de base sombre
+  // Fond de base
   octx.fillStyle='#08050f';
   octx.fillRect(0,0,W,H);
 
-  // Texture "feuille d'or" : gradient multi-stop qui simule le reflet métallique
-  const gGold=octx.createLinearGradient(0,0,W,H);
-  gGold.addColorStop(0.00,'#b8860b');
-  gGold.addColorStop(0.18,'#f5c842');
-  gGold.addColorStop(0.32,'#ffe066');
-  gGold.addColorStop(0.45,'#c8950a');
-  gGold.addColorStop(0.55,'#ffd700');
-  gGold.addColorStop(0.68,'#f5c842');
-  gGold.addColorStop(0.80,'#b8860b');
-  gGold.addColorStop(0.90,'#ffe480');
-  gGold.addColorStop(1.00,'#c8950a');
-  octx.fillStyle=gGold;
+  // Base argentée
+  const gSilver=octx.createLinearGradient(0,0,W,H);
+  gSilver.addColorStop(0.00,'#c0c0c0');
+  gSilver.addColorStop(0.20,'#e8e8e8');
+  gSilver.addColorStop(0.40,'#a8a8b8');
+  gSilver.addColorStop(0.55,'#d4d4d4');
+  gSilver.addColorStop(0.70,'#b0b0c8');
+  gSilver.addColorStop(0.85,'#e0e0e0');
+  gSilver.addColorStop(1.00,'#b8b8b8');
+  octx.fillStyle=gSilver;
   octx.fillRect(0,0,W,H);
 
-  // Bruit de texture (micro-grains pour imiter le métal mat)
+  // Bruit de texture
   const imgData=octx.getImageData(0,0,W,H);
   const d=imgData.data;
   for(let i=0;i<d.length;i+=4){
-    const n=(Math.random()-.5)*28;
+    const n=(Math.random()-.5)*22;
     d[i]=Math.min(255,Math.max(0,d[i]+n));
     d[i+1]=Math.min(255,Math.max(0,d[i+1]+n));
-    d[i+2]=Math.min(255,Math.max(0,d[i+2]+n*.3));
+    d[i+2]=Math.min(255,Math.max(0,d[i+2]+n*.5));
   }
   octx.putImageData(imgData,0,0);
 
-  // Reflet diagonal brillant (glint)
-  const gGlint=octx.createLinearGradient(0,H*.2,W,H*.8);
-  gGlint.addColorStop(0,'rgba(255,255,255,0)');
-  gGlint.addColorStop(0.4,'rgba(255,255,255,0)');
-  gGlint.addColorStop(0.5,'rgba(255,255,240,0.22)');
-  gGlint.addColorStop(0.6,'rgba(255,255,255,0)');
-  gGlint.addColorStop(1,'rgba(255,255,255,0)');
-  octx.fillStyle=gGlint;
-  octx.fillRect(0,0,W,H);
-
-  // Motif croisillons en relief
+  // Motif croisillons
   octx.save();
-  octx.globalAlpha=0.06;
-  octx.strokeStyle='#7a5500';
-  octx.lineWidth=0.8;
-  const step=14;
+  octx.globalAlpha=0.07;
+  octx.strokeStyle='#606080';
+  octx.lineWidth=0.7;
+  const step=12;
   for(let x=-H;x<W+H;x+=step){
     octx.beginPath();octx.moveTo(x,0);octx.lineTo(x+H,H);octx.stroke();
     octx.beginPath();octx.moveTo(x,0);octx.lineTo(x-H,H);octx.stroke();
   }
   octx.restore();
 
-  // Étoiles / étincelles déco
+  // Texte central
+  octx.save();
+  octx.globalAlpha=0.07;
+  octx.font=Math.round(W*.13)+'px serif';
+  octx.textAlign='center';octx.textBaseline='middle';
+  octx.fillStyle='#404060';
+  octx.fillText('🎬',W/2,H/2-28);
+  octx.restore();
+  octx.save();
+  octx.globalAlpha=0.45;
+  octx.font=`700 11px -apple-system,sans-serif`;
+  octx.fillStyle='#505070';
+  octx.textAlign='center';octx.textBaseline='middle';
+  octx.fillText('✦  GRATTE POUR RÉVÉLER  ✦',W/2,H/2+16);
+  octx.restore();
+  octx.save();
+  octx.globalAlpha=0.35;
+  octx.font=`600 9px -apple-system,sans-serif`;
+  octx.fillStyle='#606080';
+  octx.textAlign='center';octx.textBaseline='middle';
+  octx.fillText(film.g.toUpperCase(),W/2,H/2+38);
+  octx.restore();
+
+  // Étoiles
   const sparkles=[
-    {x:W*.18,y:H*.22,r:3.5},{x:W*.82,y:H*.18,r:2.5},{x:W*.12,y:H*.72,r:2},
-    {x:W*.88,y:H*.68,r:3},{x:W*.5,y:H*.12,r:2.5},{x:W*.5,y:H*.88,r:2},
-    {x:W*.3,y:H*.5,r:1.8},{x:W*.7,y:H*.5,r:1.8}
+    {x:W*.15,y:H*.2,r:3},{x:W*.85,y:H*.15,r:2.5},{x:W*.1,y:H*.75,r:2},
+    {x:W*.9,y:H*.7,r:3},{x:W*.5,y:H*.1,r:2.5},{x:W*.5,y:H*.9,r:2},
   ];
   sparkles.forEach(({x,y,r})=>{
     const sg=octx.createRadialGradient(x,y,0,x,y,r*3);
-    sg.addColorStop(0,'rgba(255,255,220,0.9)');
-    sg.addColorStop(0.3,'rgba(255,220,80,0.5)');
-    sg.addColorStop(1,'rgba(255,200,0,0)');
+    sg.addColorStop(0,'rgba(200,200,255,0.9)');
+    sg.addColorStop(0.3,'rgba(150,150,220,0.4)');
+    sg.addColorStop(1,'rgba(100,100,180,0)');
     octx.fillStyle=sg;
     octx.beginPath();octx.arc(x,y,r*3,0,Math.PI*2);octx.fill();
-    // Croix lumineuse
-    octx.save();
-    octx.globalAlpha=0.6;
-    octx.strokeStyle='rgba(255,255,200,0.8)';
-    octx.lineWidth=r*.6;
+    octx.save();octx.globalAlpha=0.5;
+    octx.strokeStyle='rgba(200,200,255,0.7)';octx.lineWidth=r*.5;
     octx.beginPath();octx.moveTo(x-r*3,y);octx.lineTo(x+r*3,y);octx.stroke();
     octx.beginPath();octx.moveTo(x,y-r*3);octx.lineTo(x,y+r*3);octx.stroke();
     octx.restore();
   });
 
-  // Logo central "🎬" discret
-  octx.save();
-  octx.globalAlpha=0.12;
-  octx.font=Math.round(W*.15)+'px serif';
-  octx.textAlign='center';octx.textBaseline='middle';
-  octx.fillStyle='#5a3800';
-  octx.fillText('🎬',W/2,H/2-30);
-  octx.restore();
-
-  // Texte central gravé
-  octx.save();
-  octx.globalAlpha=0.55;
-  octx.font=`700 12px -apple-system,sans-serif`;
-  octx.fillStyle='#7a5500';
-  octx.textAlign='center';octx.textBaseline='middle';
-  octx.fillText('✦  GRATTE POUR RÉVÉLER  ✦',W/2,H/2+20);
-  octx.restore();
-
-  // Genre discret en bas
-  octx.save();
-  octx.globalAlpha=0.4;
-  octx.font=`600 10px -apple-system,sans-serif`;
-  octx.fillStyle='#8a6200';
-  octx.textAlign='center';octx.textBaseline='middle';
-  octx.fillText(film.g.toUpperCase(),W/2,H/2+44);
-  octx.restore();
+  // ── Canvas holographique animé (layer arc-en-ciel) ──
+  const holoCanvas=document.createElement('canvas');
+  holoCanvas.width=W; holoCanvas.height=H;
+  const hCtx=holoCanvas.getContext('2d');
+  let holoAngle=0;
+  const drawHolo=()=>{
+    hCtx.clearRect(0,0,W,H);
+    holoAngle+=0.8;
+    const a=holoAngle*Math.PI/180;
+    const cx=W/2+Math.cos(a)*W*.4;
+    const cy=H/2+Math.sin(a*.7)*H*.35;
+    const g=hCtx.createRadialGradient(cx,cy,0,W/2,H/2,W*.9);
+    g.addColorStop(0.00,`hsla(${holoAngle      },100%,65%,.18)`);
+    g.addColorStop(0.15,`hsla(${holoAngle+40   },100%,60%,.15)`);
+    g.addColorStop(0.30,`hsla(${holoAngle+80   },100%,65%,.18)`);
+    g.addColorStop(0.45,`hsla(${holoAngle+130  },100%,60%,.15)`);
+    g.addColorStop(0.60,`hsla(${holoAngle+180  },100%,65%,.18)`);
+    g.addColorStop(0.75,`hsla(${holoAngle+220  },100%,60%,.15)`);
+    g.addColorStop(1.00,`hsla(${holoAngle+270  },100%,65%,.10)`);
+    hCtx.fillStyle=g;
+    hCtx.fillRect(0,0,W,H);
+    // Bande diagonale brillante
+    const b=hCtx.createLinearGradient(0,0,W,H);
+    const p=(holoAngle%180)/180;
+    b.addColorStop(Math.max(0,p-.1),'rgba(255,255,255,0)');
+    b.addColorStop(p,'rgba(255,255,255,.12)');
+    b.addColorStop(Math.min(1,p+.1),'rgba(255,255,255,0)');
+    hCtx.fillStyle=b;
+    hCtx.fillRect(0,0,W,H);
+  };
 
   // ── Dessiner l'offscreen sur le canvas principal ──
   ctx.drawImage(offscreen,0,0);
 
   // ── Particules / copeaux ──
   const particles=[];
-  const spawnParticles=(x,y)=>{
-    const count=Math.floor(Math.random()*5)+4;
+  const HOLO_COLORS=['#ff6eb4','#ffd700','#00eeff','#ff4444','#aaff00','#cc88ff','#ffaa00','#00ffcc'];
+  const spawnParticles=(x,y,speed=1)=>{
+    const count=Math.floor(Math.random()*6)+5;
     for(let i=0;i<count;i++){
       const angle=Math.random()*Math.PI*2;
-      const speed=Math.random()*3+1.5;
-      const size=Math.random()*5+2;
-      const colors=['#f5c842','#ffe066','#c8950a','#ffd700','#ffe480','#b8860b'];
+      const spd=(Math.random()*3+1.5)*speed;
+      const size=Math.random()*4+1.5;
       particles.push({
         x,y,
-        vx:Math.cos(angle)*speed,
-        vy:Math.sin(angle)*speed,
+        vx:Math.cos(angle)*spd,
+        vy:Math.sin(angle)*spd-1,
         size,
-        color:colors[Math.floor(Math.random()*colors.length)],
+        color:HOLO_COLORS[Math.floor(Math.random()*HOLO_COLORS.length)],
         alpha:1,
-        decay:Math.random()*.04+.025,
+        decay:Math.random()*.05+.025,
         rot:Math.random()*Math.PI*2,
-        rotSpeed:(Math.random()-.5)*.2
+        rotSpeed:(Math.random()-.5)*.3,
+        type:Math.random()>.5?'rect':'circle'
       });
     }
   };
 
-  // Couche de rendu particules (canvas séparé au-dessus)
+  // Canvas particules + holo overlay
   const pCanvas=document.createElement('canvas');
-  pCanvas.style.cssText=`position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;`;
+  pCanvas.style.cssText=`position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
   pCanvas.width=W*DPR; pCanvas.height=H*DPR;
   canvas.parentElement.appendChild(pCanvas);
   const pCtx=pCanvas.getContext('2d');
@@ -10564,56 +10576,82 @@ function _hmInitScratch(canvas, film, idx){
   let animId=null;
   const animParticles=()=>{
     pCtx.clearRect(0,0,W,H);
-    let alive=false;
+    // Dessiner le holo animé
+    drawHolo();
+    // Composer holo sur canvas principal (léger, via pCanvas)
+    pCtx.save();
+    pCtx.globalAlpha=1;
+    pCtx.globalCompositeOperation='source-over';
+    // On redessine le holo sur pCanvas (qui est en mix-blend-mode:screen)
+    pCtx.drawImage(holoCanvas,0,0);
+    pCtx.restore();
+    // Particules
+    let alive=particles.length>0;
     particles.forEach(p=>{
       p.x+=p.vx; p.y+=p.vy;
-      p.vy+=0.12; // gravité légère
+      p.vy+=0.1;
       p.vx*=0.97;
       p.alpha-=p.decay;
       p.rot+=p.rotSpeed;
       if(p.alpha>0){
-        alive=true;
         pCtx.save();
         pCtx.globalAlpha=p.alpha;
         pCtx.translate(p.x,p.y);
         pCtx.rotate(p.rot);
         pCtx.fillStyle=p.color;
-        pCtx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+        if(p.type==='circle'){
+          pCtx.beginPath();pCtx.arc(0,0,p.size/2,0,Math.PI*2);pCtx.fill();
+        } else {
+          pCtx.fillRect(-p.size/2,-p.size/3,p.size,p.size/1.5);
+        }
+        // Halo lumineux autour de la particule
+        const pg=pCtx.createRadialGradient(0,0,0,0,0,p.size*2);
+        pg.addColorStop(0,p.color.replace(')',',0.3)').replace('rgb','rgba'));
+        pg.addColorStop(1,'rgba(0,0,0,0)');
+        pCtx.globalAlpha=p.alpha*.4;
+        pCtx.fillStyle=pg;
+        pCtx.beginPath();pCtx.arc(0,0,p.size*2,0,Math.PI*2);pCtx.fill();
         pCtx.restore();
       }
     });
-    // Nettoyer les morts
-    while(particles.length>200)particles.shift();
-    if(alive)animId=requestAnimationFrame(animParticles);
-    else animId=null;
+    while(particles.length>300)particles.shift();
+    if(alive||true)animId=requestAnimationFrame(animParticles); // toujours actif pour holo
   };
+  animId=requestAnimationFrame(animParticles);
 
   // ── Grattage ──
-  let totalPx=W*H;
   let revealed=false;
   let checkThrottle=0;
+  let lastScratchX=0,lastScratchY=0;
+  let scratchSpeed=1;
 
-  const scratch=(x,y,size=44)=>{
+  const scratch=(x,y)=>{
+    // Taille du pinceau varie avec la vitesse du doigt
+    const dx=x-lastScratchX, dy=y-lastScratchY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    scratchSpeed=Math.min(3, Math.max(0.6, dist/12));
+    const size=28+scratchSpeed*14; // 28-70px selon vitesse
+    lastScratchX=x; lastScratchY=y;
+
     ctx.globalCompositeOperation='destination-out';
-    // Pinceau doux avec radial gradient pour un bord adouci
-    const g=ctx.createRadialGradient(x,y,size*.1,x,y,size);
+    const g=ctx.createRadialGradient(x,y,size*.05,x,y,size);
     g.addColorStop(0,'rgba(0,0,0,1)');
-    g.addColorStop(0.7,'rgba(0,0,0,0.85)');
+    g.addColorStop(0.65,'rgba(0,0,0,0.9)');
+    g.addColorStop(0.85,'rgba(0,0,0,0.4)');
     g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g;
     ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();
     ctx.globalCompositeOperation='source-over';
 
-    // Spawner des copeaux
-    spawnParticles(x,y);
-    if(!animId)animId=requestAnimationFrame(animParticles);
+    spawnParticles(x,y,scratchSpeed);
 
-    // Vérif % révélé (throttlée)
-    if(!revealed && ++checkThrottle%8===0){
+    // Vérif % révélé (seuil 65%)
+    if(!revealed && ++checkThrottle%10===0){
       const px=ctx.getImageData(0,0,canvas.width,canvas.height).data;
       let cleared=0;
       for(let i=3;i<px.length;i+=4)if(px[i]<128)cleared++;
-      if(cleared/(canvas.width*canvas.height)>.35){
+      const pct=cleared/(canvas.width*canvas.height);
+      if(pct>.65){
         revealed=true;
         pCanvas.remove();
         if(animId){cancelAnimationFrame(animId);animId=null;}
@@ -10622,20 +10660,20 @@ function _hmInitScratch(canvas, film, idx){
     }
   };
 
-  let drawing=false,lastX=0,lastY=0;
+  let drawing=false;
   const getPos=(e)=>{
     const r=canvas.getBoundingClientRect();
     const t=e.touches?e.touches[0]:e;
     return{x:(t.clientX-r.left)*(W/r.width),y:(t.clientY-r.top)*(H/r.height)};
   };
-  canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);scratch(p.x,p.y);lastX=p.x;lastY=p.y;});
-  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);lastX=p.x;lastY=p.y;});
+  canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);lastScratchX=p.x;lastScratchY=p.y;scratch(p.x,p.y);});
+  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);});
   canvas.addEventListener('mouseup',()=>drawing=false);
-  canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);scratch(p.x,p.y);lastX=p.x;lastY=p.y;},{passive:false});
-  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);lastX=p.x;lastY=p.y;},{passive:false});
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);lastScratchX=p.x;lastScratchY=p.y;scratch(p.x,p.y);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);},{passive:false});
   canvas.addEventListener('touchend',()=>drawing=false);
 
-  // Swipe gauche/droite pour naviguer (quand pas en train de gratter)
+  // Swipe navigation
   let swipeStartX=0,swipeStartY=0;
   canvas.addEventListener('touchstart',e=>{swipeStartX=e.touches[0].clientX;swipeStartY=e.touches[0].clientY;},{passive:true});
   canvas.addEventListener('touchend',e=>{
@@ -10740,14 +10778,56 @@ function _hmSpawnParticles(card){
 function _hmReveal(film, idx, canvas){
   sndHmReveal();
 
-  // Particules dorées
   const card=document.getElementById('hm-scratch-card');
-  _hmSpawnParticles(card);
+  const scratchFront=document.getElementById('hm-scratch-front');
 
-  // Effacer le canvas
-  canvas.style.transition='opacity .4s ease';
+  // 1. Flash blanc sur toute la carte
+  const flash=document.createElement('div');
+  flash.style.cssText='position:absolute;inset:0;background:#fff;pointer-events:none;z-index:20;border-radius:inherit;opacity:0;transition:opacity .08s ease-in;';
+  card.appendChild(flash);
+  requestAnimationFrame(()=>{
+    flash.style.opacity='.7';
+    setTimeout(()=>{
+      flash.style.transition='opacity .35s ease-out';
+      flash.style.opacity='0';
+      setTimeout(()=>flash.remove(),400);
+    },80);
+  });
+
+  // 2. Vibration mobile
+  if(navigator.vibrate) navigator.vibrate([30,15,60]);
+
+  // 3. Particules multicolores (plus nombreuses)
+  const rect=card.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  const holoColors=['#ff6eb4','#ffd700','#00eeff','#ff4444','#aaff00','#cc88ff','#ffaa00','#ffffff'];
+  for(let i=0;i<52;i++){
+    const p=document.createElement('div');
+    const size=3+Math.random()*8;
+    const angle=Math.random()*Math.PI*2;
+    const dist=80+Math.random()*160;
+    const dur=0.7+Math.random()*0.6;
+    const delay=Math.random()*0.2;
+    const col=holoColors[Math.floor(Math.random()*holoColors.length)];
+    p.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;border-radius:${Math.random()>.5?'50%':'3px'};background:${col};pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 ${size*2.5}px ${col};animation:hmParticle ${dur}s ease-out ${delay}s forwards;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),(dur+delay)*1000+100);
+  }
+
+  // 4. Effacer le canvas avec fondu
+  canvas.style.transition='opacity .35s ease';
   canvas.style.opacity='0';
-  setTimeout(()=>{canvas.style.display='none';},400);
+  setTimeout(()=>{canvas.style.display='none';},350);
+
+  // 5. Zoom élastique sur l'affiche révélée
+  if(scratchFront){
+    scratchFront.style.transition='none';
+    scratchFront.style.transform='scale(0.92)';
+    setTimeout(()=>{
+      scratchFront.style.transition='transform .55s cubic-bezier(.34,1.56,.64,1)';
+      scratchFront.style.transform='scale(1)';
+    },60);
+  }
 
   // Cacher l'indice
   const hint=document.getElementById('hm-scratch-hint');
@@ -10758,7 +10838,7 @@ function _hmReveal(film, idx, canvas){
   _hmSaveRevealed();
   _hmPlaySlideAudio(idx, _hmFilms);
 
-  // Ouvrir le viewer plein écran après un court délai
+  // Ouvrir le viewer
   setTimeout(()=>{
     _hmvList=[{idx,film}];
     _hmvIdx=0;_hmvInfoOpen=false;
@@ -10769,7 +10849,7 @@ function _hmReveal(film, idx, canvas){
     if(hmEl)hmEl.style.overflow='hidden';
     _hmvInitGestures();
     _hmvInitHolo();
-  }, 600);
+  }, 650);
 }
 
 function _hmShowSheet(film, idx){
