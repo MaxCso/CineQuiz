@@ -2974,23 +2974,23 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   max-width:calc(100% - 32px);
   aspect-ratio:2/3;
   border-radius:20px;
-  /* PAS de overflow:hidden ici — incompatible avec preserve-3d sur Safari */
+  overflow:hidden;
   box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08);
-  transform-style:preserve-3d;
-  transition:transform .65s cubic-bezier(.4,0,.2,1);
-  will-change:transform;
   flex-shrink:0;
   cursor:pointer;
 }
-.hmv-poster.flipped{transform:rotateY(180deg);}
 
-/* Recto — overflow:hidden sur le wrapper enfant, pas sur le parent transform */
+/* Recto */
 .hmv-poster-front{
   position:absolute;inset:0;
   border-radius:20px;
   overflow:hidden;
-  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  opacity:1;
+  transition:opacity .35s ease;
+  z-index:1;
 }
+.hmv-poster.flipped .hmv-poster-front{opacity:0;pointer-events:none;}
+.hmv-poster.flipped .hmv-poster-back{opacity:1;pointer-events:all;z-index:2;}
 .hmv-poster-front img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
 .hmv-poster-flip-hint{
   position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
@@ -3002,8 +3002,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   position:absolute;inset:0;
   border-radius:20px;
   overflow:hidden;
-  backface-visibility:hidden;-webkit-backface-visibility:hidden;
-  transform:rotateY(180deg);
+  opacity:0;
+  transition:opacity .35s ease;
+  pointer-events:none;
+  z-index:0;
   background:linear-gradient(160deg,#16093a,#0a041c,#0d0620);
   display:flex;flex-direction:column;
   padding:18px 16px 14px;box-sizing:border-box;
@@ -9719,10 +9721,18 @@ function _hmOpenCardDetail(idx) {
 function hmvFlipPoster(){
   const poster=document.getElementById('hmv-poster');
   if(!poster||_hmvInfoOpen)return;
-  poster.classList.toggle('flipped');
-  if(poster.classList.contains('flipped')&&!poster.dataset.backFilled){
-    _hmvFillBack();poster.dataset.backFilled='1';
-  }
+  // Micro-animation de scale pour simuler le flip
+  poster.style.transition='transform .18s ease-in';
+  poster.style.transform='scaleX(0)';
+  setTimeout(()=>{
+    poster.classList.toggle('flipped');
+    if(poster.classList.contains('flipped')&&!poster.dataset.backFilled){
+      _hmvFillBack();poster.dataset.backFilled='1';
+    }
+    poster.style.transition='transform .18s ease-out';
+    poster.style.transform='scaleX(1)';
+    setTimeout(()=>{poster.style.transition='';poster.style.transform='';},200);
+  },180);
 }
 
 function _hmvFillBack(){
