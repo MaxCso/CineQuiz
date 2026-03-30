@@ -16987,39 +16987,63 @@ const HM_SECRET_FILMS = [
 ];
 
 (function initHMSecretTrigger(){
-  let _tapCount=0,_tapTimer=null;
-  function attachTap(){
-    const counter=document.getElementById('hm-scratch-counter');
-    if(!counter){setTimeout(attachTap,600);return;}
-    counter.style.cursor='pointer';
-    counter.style.userSelect='none';
-    // Subtle hint : légère lueur dorée après 2 taps
-    counter.addEventListener('click',function(){
-      _tapCount++;
-      // Feedback anneau doré
-      const ring=document.createElement('span');
-      ring.style.cssText='position:absolute;inset:-8px;border-radius:50%;border:1.5px solid rgba(255,200,80,'+Math.min(_tapCount/3,.9)+');pointer-events:none;animation:tapRing .45s ease-out both;z-index:99;';
-      counter.style.position='relative';
-      counter.appendChild(ring);
-      setTimeout(()=>ring.remove(),500);
-      // Légère coloration du texte au 2ème tap
-      if(_tapCount===2){
-        counter.style.color='rgba(255,200,80,.6)';
-        counter.style.transition='color .2s';
-      } else if(_tapCount===1){
-        counter.style.color='';
+  let _tapCount=0, _tapTimer=null;
+
+  function onTap(e){
+    // Éviter le double-déclenchement touch + click
+    if(e.type==='click' && e.sourceCapabilities?.firesTouchEvents) return;
+
+    _tapCount++;
+
+    // Feedback visuel sur le titre
+    const title=document.querySelector('#hm .hm-title-wrap');
+    if(title){
+      // Pulse de couleur
+      const intensity=_tapCount/3;
+      title.style.transition='filter .15s';
+      title.style.filter=`drop-shadow(0 0 ${8*intensity}px rgba(255,200,80,${0.4+intensity*0.4}))`;
+      setTimeout(()=>{ title.style.filter=''; title.style.transition=''; }, 350);
+    }
+
+    if(_tapTimer) clearTimeout(_tapTimer);
+
+    if(_tapCount>=3){
+      _tapCount=0;
+      // Flash d'or sur le titre avant ouverture
+      if(title){
+        title.style.transition='filter .1s';
+        title.style.filter='drop-shadow(0 0 20px rgba(255,200,80,1)) brightness(1.5)';
+        setTimeout(()=>{ title.style.filter=''; title.style.transition=''; }, 300);
       }
-      if(_tapTimer)clearTimeout(_tapTimer);
-      if(_tapCount>=3){
-        _tapCount=0;
-        counter.style.color='';
-        setTimeout(openHMSecret,150);
-      } else {
-        _tapTimer=setTimeout(()=>{_tapCount=0;counter.style.color='';},700);
-      }
-    });
+      setTimeout(openHMSecret, 200);
+    } else {
+      _tapTimer=setTimeout(()=>{ _tapCount=0; }, 700);
+    }
   }
-  setTimeout(attachTap,1200);
+
+  function attachTrigger(){
+    // Cible principale : le titre HIDDEN MOVIES dans le header
+    const titleWrap=document.querySelector('#hm .hm-title-wrap');
+    if(!titleWrap){ setTimeout(attachTrigger, 400); return; }
+
+    titleWrap.style.cursor='pointer';
+    titleWrap.style.userSelect='none';
+    titleWrap.style.webkitUserSelect='none';
+
+    // On écoute touchend (pas touché par touch-action) ET click pour desktop
+    titleWrap.addEventListener('touchend', function(e){
+      e.preventDefault(); // évite le click synthétique
+      onTap(e);
+    }, {passive:false});
+    titleWrap.addEventListener('click', onTap);
+  }
+
+  // Attacher dès que possible
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', attachTrigger);
+  } else {
+    setTimeout(attachTrigger, 300);
+  }
 })();
 
 let _hmSecretFilmIdx=Math.floor(Math.random()*HM_SECRET_FILMS.length);
