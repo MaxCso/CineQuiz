@@ -1049,20 +1049,6 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 /* Boutons */
 .mode-info-btns{display:flex;gap:10px;width:100%;}
-.mode-info-play{
-  flex:2;background:var(--mi-color,var(--gold));color:#000;
-  border:none;border-radius:16px;padding:17px;
-  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;
-  cursor:pointer;transition:transform .15s,box-shadow .15s;
-  box-shadow:0 6px 24px rgba(0,0,0,.35);
-  position:relative;overflow:hidden;
-}
-.mode-info-play::after{
-  content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
-  animation:btnglare 2.8s ease 1s infinite;pointer-events:none;
-}
-.mode-info-play:active{transform:scale(.97);}
 .mode-info-close{
   flex:1;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);
   border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:17px;
@@ -1402,81 +1388,116 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .anecdote-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .25s;}
 .anecdote-dot.active{width:16px;border-radius:3px;background:var(--gold);}
 
-/* -- BOUTON JOUER : shimmer holographique (inspired by simeydotme) -- */
+/* -- BOUTON JOUER : premium refonte -- */
 @property --pbtn-shimmer{syntax:'<angle>';inherits:false;initial-value:33deg;}
 @keyframes pbtn-shimmer-spin{
   0%   {--pbtn-shimmer:0deg;}
   100% {--pbtn-shimmer:360deg;}
 }
-@keyframes pbtn-shimmer-slide{
-  to{background-position:calc(100% + 4rem) 0;}
+@keyframes pbtn-glare{
+  0%  {left:-90%;}
+  55%,100%{left:130%;}
 }
 @keyframes pbtn-glow-pulse{
-  0%,100%{box-shadow:0 6px 28px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
-  50%    {box-shadow:0 8px 44px rgba(245,200,66,.75),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
+  0%,100%{box-shadow:0 6px 32px rgba(245,200,66,.55),0 2px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(0,0,0,.2) inset;}
+  50%    {box-shadow:0 10px 48px rgba(245,200,66,.85),0 2px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(0,0,0,.2) inset;}
+}
+@keyframes pbtn-enter{
+  0%  {opacity:0;transform:translateY(10px) scale(.95);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
 }
 
 .pbtn{
-  width:100%;border:none;border-radius:20px;height:64px;
+  width:100%;border:none;border-radius:22px;height:68px;
   color:#000;cursor:pointer;
-  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:5px;
-  display:flex;align-items:center;justify-content:center;gap:12px;
+  font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:6px;
+  display:flex;align-items:center;justify-content:center;gap:14px;
   position:relative;overflow:hidden;
-  transition:transform .15s,box-shadow .15s,scale .2s;
-  margin-top:4px;
-  /* Fond doré de base */
-  background:linear-gradient(100deg,#f5c842 0%,#ffe566 45%,#e8a800 100%);
-  box-shadow:0 6px 32px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;
-  /* Bordure lumineuse animée */
-  outline:2px solid transparent;
-  outline-offset:2px;
-  animation:pbtn-glow-pulse 3s ease-in-out 1s infinite;
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;
+  margin-top:6px;
+  background:linear-gradient(105deg,#ffe566 0%,#f5c842 35%,#ffcc00 65%,#e8a800 100%);
+  box-shadow:0 6px 32px rgba(245,200,66,.55),0 2px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(0,0,0,.2) inset;
+  animation:pbtn-enter .5s cubic-bezier(.34,1.56,.64,1) both, pbtn-glow-pulse 3s ease-in-out 1.2s infinite;
 }
 
-/* Layer shimmer via ::before (arc-en-ciel) */
+/* Conic shimmer */
 .pbtn::before{
-  content:'';
-  position:absolute;inset:0;
-  background:
-    conic-gradient(from var(--pbtn-shimmer, 33deg) at 50% 50%,
-      transparent   0deg,
-      rgba(255,255,255,.55) 90deg,
-      rgba(245,200,66,.6)   180deg,
-      rgba(255,150,50,.4)   270deg,
-      transparent   360deg
-    );
-  border-radius:inherit;
-  mix-blend-mode:screen;
-  animation:pbtn-shimmer-spin 3.5s linear infinite;
-  opacity:.7;
-  pointer-events:none;
-}
-
-/* Layer glare via ::after (balayage diagonal) */
-.pbtn::after{
-  content:'';
-  position:absolute;inset:0;
-  background:linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(255,255,255,.45) 45%,
-    rgba(255,240,180,.6)  50%,
-    rgba(255,255,255,.45) 55%,
-    transparent 70%
+  content:'';position:absolute;inset:-1px;
+  background:conic-gradient(
+    from var(--pbtn-shimmer,33deg) at 50% 50%,
+    transparent 0deg,
+    rgba(255,255,255,.6) 80deg,
+    rgba(255,220,80,.5)  160deg,
+    rgba(255,160,40,.35) 240deg,
+    transparent 360deg
   );
-  background-size:250% 100%;
-  animation:pbtn-shimmer-slide 2.4s ease-in-out 0.8s infinite;
+  border-radius:inherit;mix-blend-mode:screen;
+  animation:pbtn-shimmer-spin 4s linear infinite;
+  opacity:.65;pointer-events:none;
+}
+
+/* Glare diagonal rapide */
+.pbtn::after{
+  content:'';position:absolute;top:0;left:-90%;
+  width:50%;height:100%;
+  background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.55) 48%,rgba(255,245,200,.7) 52%,transparent 80%);
+  animation:pbtn-glare 2.6s ease-in-out 0.6s infinite;
   pointer-events:none;
 }
 
+.pbtn:hover{transform:translateY(-2px) scale(1.01);}
 .pbtn:active{
-  transform:scale(.97);
-  box-shadow:0 2px 14px rgba(245,200,66,.3);
+  transform:scale(.95);
+  box-shadow:0 2px 12px rgba(245,200,66,.25);
   animation:none;
 }
-.pbtn:active::before{opacity:.4;}
-.pbtn-icon{font-size:22px;position:relative;z-index:1;}
-.pbtn-text{position:relative;z-index:1;}
+.pbtn:active::before{opacity:.3;}
+.pbtn-icon{
+  font-size:24px;position:relative;z-index:1;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.25));
+  animation:pbtn-icon-bounce 2.6s ease-in-out 0.6s infinite;
+}
+@keyframes pbtn-icon-bounce{
+  0%,40%,100%{transform:translateX(0);}
+  55%{transform:translateX(4px);}
+  70%{transform:translateX(-2px);}
+  85%{transform:translateX(3px);}
+}
+.pbtn-text{position:relative;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.12);}
+.pbtn-sub{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:rgba(0,0,0,.4);white-space:nowrap;pointer-events:none;z-index:1;
+  opacity:0;transition:opacity .3s;
+}
+.pbtn:has(.pbtn-sub:not(:empty)) .pbtn-sub{opacity:1;}
+.pbtn:has(.pbtn-sub:not(:empty)){padding-bottom:8px;}
+
+/* ── MODE-INFO-PLAY : bouton JOUER dans les popups ── */
+.mode-info-play{
+  flex:2;
+  background:var(--mi-color,var(--gold));color:#000;
+  border:none;border-radius:18px;padding:18px;
+  font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:3px;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s,filter .15s;
+  box-shadow:0 6px 24px rgba(0,0,0,.3),0 1px 0 rgba(255,255,255,.3) inset;
+}
+.mode-info-play::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(255,255,255,.18) 0%,transparent 60%);
+  pointer-events:none;border-radius:inherit;
+}
+.mode-info-play::after{
+  content:'';position:absolute;top:0;left:-90%;
+  width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);
+  animation:btnglare 2.6s ease 0.8s infinite;pointer-events:none;
+}
+.mode-info-play:hover{filter:brightness(1.08);}
+.mode-info-play:active{transform:scale(.96);box-shadow:0 2px 8px rgba(0,0,0,.2);}
 
 /* -- FOND DE JEU par mode -- */
 #game-bg{
@@ -4778,7 +4799,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="mc" data-mode="survie" onclick="openModeInfo('survie',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span class="mc-label">Survie</span><span class="mnew">NEW</span></div>
     </div>
 
-    <button class="pbtn" onclick="startGame()"><span class="pbtn-icon">🎬</span><span class="pbtn-text">JOUER</span></button>
+    <button class="pbtn" onclick="startGame()" id="main-play-btn">
+      <span class="pbtn-icon">▶</span>
+      <span class="pbtn-text">JOUER</span>
+    </button>
 
 
     <!-- Cards Entraînement + Recommandation -->
@@ -4940,7 +4964,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div class="mode-info-tip" id="daily-modal-score-tip" style="display:none;"><span class="mode-info-tip-icon">⭐</span><span id="daily-modal-score-txt"></span></div>
       </div>
       <div class="mode-info-btns" style="gap:10px;">
-        <button class="mode-info-play" id="daily-modal-play" onclick="launchDailyFromModal()" style="flex:2;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;">🎬 JOUER</button>
+        <button class="mode-info-play" id="daily-modal-play" onclick="launchDailyFromModal()" style="flex:2;background:linear-gradient(105deg,#ffe566,#f5c842,#e8a800);color:#000;">🎬 JOUER</button>
         <button class="mode-info-close" onclick="closeDailyModal()" style="flex:1;">✕ Fermer</button>
       </div>
     </div>
@@ -10596,13 +10620,34 @@ function openModeInfo(m,el){
   sh.style.setProperty('--mi-bg',info.bg);
   const tipsEl=document.getElementById('mode-info-tips');
   tipsEl.innerHTML=info.tips.map(t=>`<div class="mode-info-tip"><span class="mode-info-tip-icon">${t.i}</span><span>${t.t}</span></div>`).join('');
-  document.getElementById('mode-info-play').style.background=info.color;
-  document.getElementById('mode-info-play').style.color=(['#f5c842','#34d399','#fbbf24','#a8d8f0'].includes(info.color)?'#000':'#fff');
+  const playBtn=document.getElementById('mode-info-play');
+  const lightColors=['#f5c842','#34d399','#fbbf24','#a8d8f0','#86efac','#fde68a'];
+  const isDark=!lightColors.includes(info.color);
+  playBtn.style.background=info.color;
+  playBtn.style.color=isDark?'#fff':'#000';
+  // Glow de couleur dynamique
+  const rgb=info.color.replace('#','');
+  const r=parseInt(rgb.slice(0,2),16),g=parseInt(rgb.slice(2,4),16),b=parseInt(rgb.slice(4,6),16);
+  playBtn.style.boxShadow=`0 6px 24px rgba(${r},${g},${b},.45), 0 1px 0 rgba(255,255,255,.25) inset`;
   const qcWrap=document.getElementById('qcount-wrapper');
   if(qcWrap)qcWrap.style.display=(m==='versus'||m==='survie'?'none':'block');
   over.classList.add('on');
   // Swipe vers le bas pour fermer
   setupSwipeDown(sh,closeModeInfo);
+  // Mettre à jour le bouton principal sur l'accueil
+  _updateMainPlayBtn(info.label,info.icon);
+}
+function _updateMainPlayBtn(label,icon){
+  const btn=document.getElementById('main-play-btn');
+  if(!btn)return;
+  const iconEl=btn.querySelector('.pbtn-icon');
+  const txtEl=btn.querySelector('.pbtn-text');
+  if(iconEl)iconEl.textContent=icon||'▶';
+  if(txtEl)txtEl.textContent='JOUER';
+  // Mini-label sous le texte
+  let sub=btn.querySelector('.pbtn-sub');
+  if(!sub){sub=document.createElement('span');sub.className='pbtn-sub';btn.appendChild(sub);}
+  sub.textContent=label;
 }
 function setQCount(n,el){
   TOTAL=n;
