@@ -3198,7 +3198,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   width:58px;height:58px;border-radius:50%;
   background:rgba(255,200,80,.12);border:2px solid rgba(255,200,80,.35);
   display:flex;align-items:center;justify-content:center;
-  animation:secretPlayPulse 2.5s ease-in-out infinite;
 }
 @keyframes secretPlayPulse{
   0%,100%{box-shadow:0 0 0 0 rgba(255,200,80,.3);}
@@ -3217,7 +3216,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 /* ─── PANEL 2 : COULISSES ─── */
 .hm-secret-coulisses{padding:0 20px;}
 .hm-secret-manifesto{
-  font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;
+  font-size:15px;color:rgba(255,255,255,.62);line-height:1.85;
   border-left:2px solid rgba(255,200,80,.2);padding-left:14px;
   margin-bottom:20px;font-style:italic;
 }
@@ -3226,21 +3225,21 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   background:rgba(255,255,255,.03);border:1px solid rgba(255,200,80,.07);
   border-radius:14px;padding:14px;text-align:center;
 }
-.hm-secret-stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:rgba(255,200,80,.8);letter-spacing:1px;line-height:1;margin-bottom:3px;}
-.hm-secret-stat-lbl{font-size:8px;color:rgba(255,255,255,.2);letter-spacing:2px;text-transform:uppercase;}
+.hm-secret-stat-val{font-family:'Bebas Neue',sans-serif;font-size:30px;color:rgba(255,200,80,.8);letter-spacing:1px;line-height:1;margin-bottom:3px;}
+.hm-secret-stat-lbl{font-size:10px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;}
 .hm-secret-timeline{display:flex;flex-direction:column;gap:0;}
 .hm-secret-tl-item{
   display:flex;gap:12px;align-items:flex-start;
-  padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);
+  padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);
 }
 .hm-secret-tl-item:last-child{border-bottom:none;}
 .hm-secret-tl-dot{
-  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
   background:rgba(255,200,80,.07);border:1px solid rgba(255,200,80,.18);
-  display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:2px;
 }
-.hm-secret-tl-year{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,200,80,.45);margin-bottom:2px;}
-.hm-secret-tl-text{font-size:11px;color:rgba(255,255,255,.4);line-height:1.55;}
+.hm-secret-tl-year{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:rgba(255,200,80,.55);margin-bottom:3px;}
+.hm-secret-tl-text{font-size:13.5px;color:rgba(255,255,255,.55);line-height:1.65;}
 
 /* ─── PANEL 3 : FILM SECRET ─── */
 .hm-secret-film-wrap{padding:0 20px;}
@@ -3415,18 +3414,28 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   border-radius:20px;
   /* PAS d'overflow:hidden — tuerait le flip 3D */
   box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08);
-  perspective:1000px;
+  perspective:900px;
   flex-shrink:0;
+  will-change:transform;
+  transform-style:preserve-3d;
 }
-/* Container 3D — c'est lui qui flippe */
+/* Container 3D — c'est lui qui flippe et qui tilte */
 .hmv-poster-inner{
   position:absolute;inset:0;
   transform-style:preserve-3d;
   transition:transform .65s cubic-bezier(.4,0,.2,1);
   border-radius:20px;
+  will-change:transform;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 .hmv-poster.flipped .hmv-poster-inner{
   transform:rotateY(180deg);
+  transition:transform .65s cubic-bezier(.4,0,.2,1);
+}
+/* Pendant le tilt interactif, on désactive la transition CSS (spring JS prend le relais) */
+.hmv-poster.touching .hmv-poster-inner{
+  transition:none !important;
 }
 /* Faces recto et verso */
 .hmv-face{
@@ -3577,14 +3586,16 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       rgba(255,240,160,.10) 58%,rgba(160,255,240,.12) 70%,
       rgba(220,180,255,.10) 82%,transparent 100%);
   mix-blend-mode:screen;
-  transition:opacity .3s;
+  transition:opacity .18s ease;
+  will-change:opacity;
 }
 .hmv-shine{
   position:absolute;inset:0;border-radius:20px;
   pointer-events:none;opacity:0;z-index:3;
   background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),
     rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 40%,transparent 65%);
-  mix-blend-mode:screen;transition:opacity .2s;
+  mix-blend-mode:screen;transition:opacity .14s ease;
+  will-change:opacity;
 }
 .hmv-border{
   position:absolute;inset:0;border-radius:20px;
@@ -3592,7 +3603,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   pointer-events:none;opacity:0;z-index:3;
   background:linear-gradient(calc(var(--holo-angle,105deg)),
     rgba(255,220,180,.07),rgba(180,255,220,.06),rgba(180,220,255,.07));
-  mix-blend-mode:screen;transition:opacity .3s;
+  mix-blend-mode:screen;transition:opacity .18s ease;
+  will-change:opacity;
 }
 .hmv-poster.touching .hmv-holo,
 .hmv-poster.touching .hmv-shine,
@@ -5789,6 +5801,36 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.6;text-align:center;letter-spacing:.3px;">
             Contenu exclusif Hidden Movies —<br>réservé aux découvreurs de la salle secrète.
           </div>
+        </div>
+
+        <!-- ── SECTION BANDES-ANNONCES PERSONNALISÉES ── -->
+        <div style="padding:20px 20px 0;">
+          <div class="hm-secret-stitle" style="margin-bottom:10px;">BANDES-ANNONCES</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.5;margin-bottom:12px;text-align:center;">
+            Ajoute tes propres bandes-annonces Hidden Movies.<br>Colle un lien YouTube ou MP4.
+          </div>
+
+          <!-- Liste des bandes-annonces -->
+          <div id="hm-trailers-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+
+          <!-- Formulaire d'ajout -->
+          <div id="hm-trailer-form" style="background:rgba(255,200,80,.05);border:1px solid rgba(255,200,80,.12);border-radius:14px;padding:14px;display:none;flex-direction:column;gap:10px;">
+            <div style="font-size:11px;color:rgba(255,200,80,.5);letter-spacing:2px;text-transform:uppercase;font-family:'Bebas Neue',sans-serif;margin-bottom:2px;">Nouvelle bande-annonce</div>
+            <input id="hm-trailer-title" type="text" maxlength="60" placeholder="Titre du film…"
+              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;">
+            <input id="hm-trailer-url" type="url" placeholder="URL YouTube ou lien .mp4…"
+              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;">
+            <div style="display:flex;gap:8px;">
+              <button onclick="hmTrailerSave()" style="flex:2;padding:11px;background:linear-gradient(100deg,rgba(255,200,80,.25),rgba(255,200,80,.12));border:1px solid rgba(255,200,80,.35);border-radius:10px;color:rgba(255,200,80,.9);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;cursor:pointer;">AJOUTER</button>
+              <button onclick="hmTrailerCancelForm()" style="flex:1;padding:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.4);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Annuler</button>
+            </div>
+          </div>
+
+          <!-- Bouton ajouter -->
+          <button id="hm-trailer-add-btn" onclick="hmTrailerShowForm()" style="width:100%;padding:12px;background:rgba(255,200,80,.07);border:1px solid rgba(255,200,80,.18);border-radius:12px;color:rgba(255,200,80,.6);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            AJOUTER UNE BANDE-ANNONCE
+          </button>
         </div>
       </div>
 
@@ -10940,70 +10982,151 @@ function _hmvTouchEnd(e) {
   }
 }
 
-// ── Halo effect sur le viewer ──
+// ── Halo + tilt effect sur le viewer — spring physics 60fps ──
+let _hmvHoloRaf = null;
+// Valeurs interpolées courantes
+let _hmvCurRotX = 0, _hmvCurRotY = 0, _hmvCurMx = 50, _hmvCurMy = 50, _hmvCurAngle = 105;
+// Valeurs cibles
+let _hmvTgtRotX = 0, _hmvTgtRotY = 0, _hmvTgtMx = 50, _hmvTgtMy = 50, _hmvTgtAngle = 105;
+let _hmvHoloActive = false;   // doigt/souris sur la carte
+let _hmvSpringRunning = false;
+
+// Constantes spring — stiffness / damping séparés pour tilt et holo
+const HMV_STIFF   = 0.10;  // réponse au doigt (0.08 = très doux, 0.18 = réactif)
+const HMV_DAMP    = 0.72;  // amorti (0.65 = rebond léger, 0.80 = surfondu)
+const HMV_HOLO_K  = 0.14;  // holo suit légèrement plus vite que le tilt
+
+// Vitesses actuelles pour le vrai ressort
+let _hmvVRotX = 0, _hmvVRotY = 0;
+
+function _hmvSpringTick() {
+  const poster = document.getElementById('hmv-poster');
+  const inner  = document.getElementById('hmv-poster-inner');
+  if (!poster || !inner) { _hmvSpringRunning = false; return; }
+
+  const isFlipped = poster.classList.contains('flipped');
+
+  // Calcul spring (Hooke) pour le tilt
+  const ax = (_hmvTgtRotX - _hmvCurRotX) * HMV_STIFF;
+  const ay = (_hmvTgtRotY - _hmvCurRotY) * HMV_STIFF;
+  _hmvVRotX = (_hmvVRotX + ax) * HMV_DAMP;
+  _hmvVRotY = (_hmvVRotY + ay) * HMV_DAMP;
+  _hmvCurRotX += _hmvVRotX;
+  _hmvCurRotY += _hmvVRotY;
+
+  // Interpolation douce pour les CSS vars holo (lerp simple)
+  _hmvCurMx    += (_hmvTgtMx    - _hmvCurMx)    * HMV_HOLO_K;
+  _hmvCurMy    += (_hmvTgtMy    - _hmvCurMy)    * HMV_HOLO_K;
+  _hmvCurAngle += (_hmvTgtAngle - _hmvCurAngle) * HMV_HOLO_K;
+
+  // Appliquer le tilt sur l'inner (seulement si pas flippé)
+  if (!isFlipped) {
+    const scl = _hmvHoloActive ? 1.045 : 1;
+    inner.style.transform = `rotateX(${_hmvCurRotX.toFixed(3)}deg) rotateY(${_hmvCurRotY.toFixed(3)}deg) scale(${scl})`;
+  }
+
+  // Appliquer les vars holo
+  poster.style.setProperty('--mx',          _hmvCurMx.toFixed(2) + '%');
+  poster.style.setProperty('--my',          _hmvCurMy.toFixed(2) + '%');
+  poster.style.setProperty('--holo-angle',  _hmvCurAngle.toFixed(2) + 'deg');
+
+  // Gérer l'état touching pour l'opacité holo
+  if (_hmvHoloActive) {
+    poster.classList.add('touching');
+  } else {
+    const settled =
+      Math.abs(_hmvVRotX) < 0.004 && Math.abs(_hmvVRotY) < 0.004 &&
+      Math.abs(_hmvCurRotX) < 0.02 && Math.abs(_hmvCurRotY) < 0.02;
+    if (settled) {
+      poster.classList.remove('touching');
+      _hmvCurRotX = 0; _hmvCurRotY = 0;
+      _hmvVRotX = 0;   _hmvVRotY = 0;
+      if (!isFlipped) inner.style.transform = '';
+      _hmvSpringRunning = false;
+      return; // stopper le rAF
+    }
+  }
+
+  _hmvHoloRaf = requestAnimationFrame(_hmvSpringTick);
+}
+
+function _hmvSpringStart() {
+  if (_hmvSpringRunning) return;
+  _hmvSpringRunning = true;
+  _hmvHoloRaf = requestAnimationFrame(_hmvSpringTick);
+}
+
+function _hmvHoloUpdate(clientX, clientY) {
+  const poster = document.getElementById('hmv-poster');
+  if (!poster) return;
+  const r = poster.getBoundingClientRect();
+  const x = clientX - r.left, y = clientY - r.top;
+  const mx = Math.max(0, Math.min(100, (x / r.width)  * 100));
+  const my = Math.max(0, Math.min(100, (y / r.height) * 100));
+  _hmvTgtRotY   = ((mx - 50) / 50) * 20;
+  _hmvTgtRotX   = -((my - 50) / 50) * 16;
+  _hmvTgtMx     = mx;
+  _hmvTgtMy     = my;
+  _hmvTgtAngle  = Math.atan2(y - r.height / 2, x - r.width / 2) * 180 / Math.PI + 90;
+  _hmvSpringStart();
+}
+
+function _hmvHoloDeactivate() {
+  _hmvHoloActive = false;
+  _hmvTgtRotX = 0; _hmvTgtRotY = 0;
+  _hmvTgtMx = 50;  _hmvTgtMy = 50; _hmvTgtAngle = 105;
+  _hmvSpringStart(); // laisser le ressort retourner à zéro
+}
+
 function _hmvInitHolo() {
   const poster = document.getElementById('hmv-poster');
   if (!poster) return;
+
+  // Reset état spring
+  _hmvCurRotX = 0; _hmvCurRotY = 0;
+  _hmvVRotX = 0;   _hmvVRotY = 0;
+  _hmvTgtRotX = 0; _hmvTgtRotY = 0;
+  _hmvCurMx = 50;  _hmvCurMy = 50;  _hmvCurAngle = 105;
+  _hmvTgtMx = 50;  _hmvTgtMy = 50;  _hmvTgtAngle = 105;
+  _hmvHoloActive = false;
+  if (_hmvHoloRaf) { cancelAnimationFrame(_hmvHoloRaf); _hmvHoloRaf = null; }
+  _hmvSpringRunning = false;
+
+  // Nettoyer anciens listeners
   poster.removeEventListener('touchstart', _hmvHoloTouchStart);
   poster.removeEventListener('touchmove',  _hmvHoloTouchMove);
   poster.removeEventListener('touchend',   _hmvHoloTouchEnd);
+  poster.removeEventListener('touchcancel',_hmvHoloTouchEnd);
   poster.removeEventListener('mousemove',  _hmvHoloMouse);
   poster.removeEventListener('mouseleave', _hmvHoloLeave);
   poster.addEventListener('touchstart', _hmvHoloTouchStart, { passive: true });
-  poster.addEventListener('touchmove',  _hmvHoloTouchMove,  { passive: true });
+  poster.addEventListener('touchmove',  _hmvHoloTouchMove,  { passive: false });
   poster.addEventListener('touchend',   _hmvHoloTouchEnd,   { passive: true });
+  poster.addEventListener('touchcancel',_hmvHoloTouchEnd,   { passive: true });
   poster.addEventListener('mousemove',  _hmvHoloMouse);
   poster.addEventListener('mouseleave', _hmvHoloLeave);
 }
-function _hmvHoloUpdate(el, cx, cy) {
-  const r = el.getBoundingClientRect();
-  const x = cx - r.left, y = cy - r.top;
-  const mx = (x / r.width) * 100, my = (y / r.height) * 100;
-  const rotY = ((mx - 50) / 50) * 22;
-  const rotX = -((my - 50) / 50) * 18;
-  const angle = Math.atan2(y - r.height / 2, x - r.width / 2) * 180 / Math.PI + 90;
-  el.style.setProperty('--mx', mx + '%');
-  el.style.setProperty('--my', my + '%');
-  el.style.setProperty('--holo-angle', angle + 'deg');
-  const inner = document.getElementById('hmv-poster-inner');
-  const poster = document.getElementById('hmv-poster');
-  if(inner && !poster?.classList.contains('flipped')){
-    inner.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.04)`;
-  }
-}
-function _hmvHoloReset(el) {
-  el.classList.remove('touching');
-  el.style.removeProperty('--mx'); el.style.removeProperty('--my'); el.style.removeProperty('--holo-angle');
-  const inner = document.getElementById('hmv-poster-inner');
-  if(inner){
-    inner.style.transition = 'transform .4s cubic-bezier(.25,.46,.45,.94)';
-    inner.style.transform = '';
-    setTimeout(()=>{ inner.style.transition=''; }, 420);
-  }
-}
-// Touch : n'activer qu'au MOUVEMENT (pas au simple tap)
+
 function _hmvHoloTouchStart(e) {
-  // Mémoriser position initiale — ne pas encore activer
   this._hmvTouchStartX = e.touches[0].clientX;
   this._hmvTouchStartY = e.touches[0].clientY;
   this._hmvTouchMoved  = false;
 }
-function _hmvHoloTouchMove(e)  {
-  // Activer l'effet seulement quand le doigt bouge
+function _hmvHoloTouchMove(e) {
   if (!this._hmvTouchMoved) {
-    const dx = Math.abs(e.touches[0].clientX - (this._hmvTouchStartX||0));
-    const dy = Math.abs(e.touches[0].clientY - (this._hmvTouchStartY||0));
-    if (dx > 4 || dy > 4) {
-      this.classList.add('touching');
-      this._hmvTouchMoved = true;
-    }
+    const dx = Math.abs(e.touches[0].clientX - (this._hmvTouchStartX || 0));
+    const dy = Math.abs(e.touches[0].clientY - (this._hmvTouchStartY || 0));
+    if (dx > 3 || dy > 3) this._hmvTouchMoved = true;
   }
-  if (this._hmvTouchMoved) _hmvHoloUpdate(this, e.touches[0].clientX, e.touches[0].clientY);
+  if (this._hmvTouchMoved) {
+    e.preventDefault(); // bloquer le scroll pendant le tilt
+    _hmvHoloActive = true;
+    _hmvHoloUpdate(e.touches[0].clientX, e.touches[0].clientY);
+  }
 }
-function _hmvHoloTouchEnd()    { _hmvHoloReset(this); this._hmvTouchMoved = false; }
-// Mouse : activer dès que la souris entre et bouge
-function _hmvHoloMouse(e)      { this.classList.add('touching'); _hmvHoloUpdate(this, e.clientX, e.clientY); }
-function _hmvHoloLeave()       { _hmvHoloReset(this); }
+function _hmvHoloTouchEnd()  { _hmvHoloDeactivate(); this._hmvTouchMoved = false; }
+function _hmvHoloMouse(e)    { _hmvHoloActive = true; _hmvHoloUpdate(e.clientX, e.clientY); }
+function _hmvHoloLeave()     { _hmvHoloDeactivate(); }
 
 
 
@@ -11630,6 +11753,13 @@ function _hmInitScratch(canvas, film, idx){
 
     spawnParticles(x,y,scratchSpeed);
 
+    // Son de grattage (throttlé pour ne pas saturer)
+    if(!_scratchSoundTimer){
+      _initAC();resume();
+      sndScratch();
+      _scratchSoundTimer=setTimeout(()=>{_scratchSoundTimer=null;},38);
+    }
+
     // Vérif % révélé (seuil 65%)
     if(!revealed && ++checkThrottle%10===0){
       const px=ctx.getImageData(0,0,canvas.width,canvas.height).data;
@@ -11667,6 +11797,39 @@ function _hmInitScratch(canvas, film, idx){
     if(Math.abs(dx)>60&&dy<40){hmNavigate(dx<0?1:-1);}
   },{passive:true});
   }); // end requestAnimationFrame
+}
+
+// ── Son de grattage continu ──
+let _scratchSoundTimer=null, _scratchSoundActive=false;
+function sndScratch(){
+  if(!sndOn)return;
+  const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    // Bruit de vinyl/grattage : bruit blanc filtré très court
+    const bufLen=Math.ceil(ctx.sampleRate*0.04);
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const bd=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++){
+      const env=Math.sin(Math.PI*i/bufLen);
+      bd[i]=(Math.random()*2-1)*env;
+    }
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const f=ctx.createBiquadFilter();
+    f.type='bandpass';f.frequency.value=3000+Math.random()*2000;f.Q.value=1.2;
+    const g=ctx.createGain();g.gain.setValueAtTime(0.055,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.04);
+    src.connect(f);f.connect(g);g.connect(ctx.destination);
+    src.start(t);src.stop(t+0.045);
+    // Petit craquement grave aléatoire
+    if(Math.random()<0.35){
+      const g2=ctx.createGain();g2.gain.setValueAtTime(0.035,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.025);
+      const f2=ctx.createBiquadFilter();f2.type='lowpass';f2.frequency.value=200+Math.random()*150;
+      const src2=ctx.createBufferSource();
+      const buf2=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*0.025),ctx.sampleRate);
+      const bd2=buf2.getChannelData(0);for(let i=0;i<bd2.length;i++)bd2[i]=Math.random()*2-1;
+      src2.buffer=buf2;src2.connect(f2);f2.connect(g2);g2.connect(ctx.destination);src2.start(t);src2.stop(t+0.03);
+    }
+  }catch(e_){}
 }
 
 function sndHmReveal(){
@@ -17160,6 +17323,7 @@ function openHMSecret(){
   hmSecretTab(0,document.querySelectorAll('.hm-secret-tab')[0]);
   _hmRenderSecretFilm();
   hmOracleReset();
+  hmTrailerRender();
   const vid=document.getElementById('hm-secret-video');
   if(vid){vid.currentTime=0;vid.pause();}
   const overlay=document.getElementById('hm-secret-play-overlay');
@@ -17193,13 +17357,31 @@ function openHMSecret(){
     },350);
   }));
 
-  // ── Swipe vers le bas pour fermer ──
-  let _syStart=0;
+  // ── Swipe gauche/droite pour changer d'onglet (swipe bas DÉSACTIVÉ) ──
+  const HM_SECRET_TABS_COUNT = 4;
+  let _sxStart=0, _syStart=0;
   room._swipeHandler=function(e){
-    if(e.type==='touchstart'){_syStart=e.touches[0].clientY;return;}
+    if(e.type==='touchstart'){
+      _sxStart=e.touches[0].clientX;
+      _syStart=e.touches[0].clientY;
+      return;
+    }
     if(e.type==='touchend'){
+      const dx=e.changedTouches[0].clientX-_sxStart;
       const dy=e.changedTouches[0].clientY-_syStart;
-      if(dy>80) closeHMSecret();
+      // Swipe horizontal uniquement (priorité sur vertical)
+      if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50){
+        // Trouver l'onglet actif
+        const tabs=document.querySelectorAll('.hm-secret-tab');
+        let currentIdx=0;
+        tabs.forEach((t,i)=>{if(t.classList.contains('active'))currentIdx=i;});
+        let nextIdx=currentIdx+(dx<0?1:-1);
+        nextIdx=Math.max(0,Math.min(HM_SECRET_TABS_COUNT-1,nextIdx));
+        if(nextIdx!==currentIdx){
+          hmSecretTab(nextIdx, tabs[nextIdx]);
+        }
+      }
+      // Swipe bas pour fermer DÉSACTIVÉ intentionnellement
     }
   };
   room.addEventListener('touchstart',room._swipeHandler,{passive:true});
@@ -17238,6 +17420,102 @@ function closeHMSecret(){
     room.style.opacity='0';room.style.pointerEvents='none';
     setTimeout(()=>{room.style.display='none';},650);
   },350);
+}
+
+// ══════════════════════════════════════════
+//  BANDES-ANNONCES PERSONNALISÉES — Hidden Movies
+// ══════════════════════════════════════════
+
+function _hmTrailerLoad(){
+  try{const r=localStorage.getItem('hm_trailers');return r?JSON.parse(r):[];}catch{return [];}
+}
+function _hmTrailerSave(arr){
+  try{localStorage.setItem('hm_trailers',JSON.stringify(arr));}catch{}
+}
+
+function _hmYtEmbed(url){
+  // Convertit une URL YouTube en URL embed
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m?'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&rel=0':null;
+}
+
+function hmTrailerShowForm(){
+  document.getElementById('hm-trailer-form').style.display='flex';
+  document.getElementById('hm-trailer-add-btn').style.display='none';
+  setTimeout(()=>document.getElementById('hm-trailer-title')?.focus(),80);
+}
+
+function hmTrailerCancelForm(){
+  document.getElementById('hm-trailer-form').style.display='none';
+  document.getElementById('hm-trailer-add-btn').style.display='flex';
+  const ti=document.getElementById('hm-trailer-title');
+  const ui=document.getElementById('hm-trailer-url');
+  if(ti)ti.value='';if(ui)ui.value='';
+}
+
+function hmTrailerSave(){
+  const title=(document.getElementById('hm-trailer-title')?.value||'').trim();
+  const url=(document.getElementById('hm-trailer-url')?.value||'').trim();
+  if(!title||!url)return;
+  const arr=_hmTrailerLoad();
+  arr.push({id:Date.now(),title,url});
+  _hmTrailerSave(arr);
+  hmTrailerCancelForm();
+  hmTrailerRender();
+}
+
+function hmTrailerDelete(id){
+  const arr=_hmTrailerLoad().filter(t=>t.id!==id);
+  _hmTrailerSave(arr);
+  hmTrailerRender();
+}
+
+function hmTrailerPlay(id){
+  const arr=_hmTrailerLoad();
+  const trailer=arr.find(t=>t.id===id);
+  if(!trailer)return;
+  // Pauser la vidéo principale
+  const mainVid=document.getElementById('hm-secret-video');
+  if(mainVid)mainVid.pause();
+  // Déterminer le type
+  const embedUrl=_hmYtEmbed(trailer.url);
+  const isMp4=!embedUrl&&(trailer.url.match(/\.mp4/i)||trailer.url.startsWith('blob:'));
+  // Créer overlay de lecture
+  const overlay=document.createElement('div');
+  overlay.id='hm-trailer-player-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  const closeBtn='<button onclick="document.getElementById(\'hm-trailer-player-overlay\').remove()" style="position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:18px;z-index:2;">✕</button>';
+  const title='<div style="position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;right:60px;font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:1.5px;color:rgba(255,200,80,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;">'+trailer.title+'</div>';
+  let mediaHtml='';
+  if(embedUrl){
+    mediaHtml='<iframe src="'+embedUrl+'" style="width:min(90vw,440px);aspect-ratio:16/9;border:none;border-radius:12px;" allowfullscreen allow="autoplay"></iframe>';
+  } else {
+    mediaHtml='<video src="'+trailer.url+'" controls autoplay playsinline style="width:min(90vw,440px);aspect-ratio:16/9;border-radius:12px;background:#000;max-height:60vh;"></video>';
+  }
+  overlay.innerHTML=closeBtn+title+'<div style="width:100%;display:flex;justify-content:center;padding:0 16px;">'+mediaHtml+'</div>';
+  document.body.appendChild(overlay);
+}
+
+function hmTrailerRender(){
+  const list=document.getElementById('hm-trailers-list');
+  if(!list)return;
+  const arr=_hmTrailerLoad();
+  if(!arr.length){
+    list.innerHTML='<div style="text-align:center;padding:10px 0 4px;font-size:11px;color:rgba(255,255,255,.18);letter-spacing:.5px;">Aucune bande-annonce ajoutée</div>';
+    return;
+  }
+  list.innerHTML=arr.map(t=>{
+    const isYt=!!_hmYtEmbed(t.url);
+    const icon=isYt
+      ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,80,80,.8)"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75,15.02 15.5,12 9.75,8.98 9.75,15.02" fill="#fff"/></svg>'
+      :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,80,.7)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>';
+    return `<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,200,80,.1);border-radius:12px;padding:11px 12px;">
+      <div style="flex-shrink:0;">${icon}</div>
+      <div style="flex:1;min-width:0;font-size:13px;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
+      <button onclick="hmTrailerPlay(${t.id})" style="flex-shrink:0;background:rgba(255,200,80,.14);border:1px solid rgba(255,200,80,.3);border-radius:8px;padding:6px 12px;color:rgba(255,200,80,.85);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;">▶</button>
+      <button onclick="hmTrailerDelete(${t.id})" style="flex-shrink:0;background:rgba(232,52,74,.1);border:1px solid rgba(232,52,74,.2);border-radius:8px;padding:6px 8px;color:rgba(232,52,74,.7);font-size:13px;cursor:pointer;">✕</button>
+    </div>`;
+  }).join('');
 }
 
 function hmSecretTab(idx,btn){
