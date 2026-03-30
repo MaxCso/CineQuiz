@@ -3187,24 +3187,19 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 60%,rgba(0,0,0,.35) 100%);
 }
 .hm-secret-video{width:100%;display:block;aspect-ratio:16/9;object-fit:cover;background:#000;}
-.hm-secret-play-overlay{
-  position:absolute;inset:0;z-index:3;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  background:rgba(0,0,0,.5);cursor:pointer;transition:background .2s;
+/* play overlay supprimé */
+.hm-secret-video-label{display:none;}
+
+/* ── Lignes bandes-annonces ── */
+.hm-trailer-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,200,80,.1);
+  border-radius:12px;padding:12px 14px;cursor:pointer;
+  transition:background .15s,border-color .2s;
 }
-.hm-secret-play-overlay:active{background:rgba(0,0,0,.3);}
-.hm-secret-play-overlay.hidden{display:none;}
-.hm-secret-play-btn{
-  width:58px;height:58px;border-radius:50%;
-  background:rgba(255,200,80,.12);border:2px solid rgba(255,200,80,.35);
-  display:flex;align-items:center;justify-content:center;
-}
-@keyframes secretPlayPulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(255,200,80,.3);}
-  50%{box-shadow:0 0 0 14px rgba(255,200,80,0);}
-}
-.hm-secret-play-btn svg{color:rgba(255,200,80,.9);margin-left:4px;}
-.hm-secret-video-label{font-size:10px;letter-spacing:2.5px;color:rgba(255,255,255,.3);font-family:'Bebas Neue',sans-serif;}
+.hm-trailer-row:active{background:rgba(255,200,80,.08);border-color:rgba(255,200,80,.3);}
+.hm-trailer-title{font-size:13px;color:rgba(255,255,255,.75);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hm-trailer-play{flex-shrink:0;font-size:11px;color:rgba(255,200,80,.7);margin-left:12px;letter-spacing:1px;}
 .hm-secret-filmstrip{
   height:16px;margin:0 20px;
   background:repeating-linear-gradient(90deg,rgba(255,200,80,.07) 0px,rgba(255,200,80,.07) 3px,transparent 3px,transparent 16px),
@@ -3573,41 +3568,49 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 }
 
 /* Halo layers sur le viewer */
+/* Wrapper clippant — corrige l'artefact triangulaire */
+.hmv-holo-clip{
+  position:absolute;inset:0;
+  border-radius:20px;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:3;
+}
 .hmv-holo{
-  position:absolute;inset:0;border-radius:20px;
-  opacity:0;pointer-events:none;z-index:3;
+  position:absolute;inset:0;
+  opacity:0;
   background:
     radial-gradient(ellipse at var(--mx,50%) var(--my,50%),
-      rgba(255,255,255,.12) 0%,transparent 60%),
+      rgba(255,255,255,.13) 0%,transparent 60%),
     linear-gradient(calc(var(--holo-angle,105deg)),
       transparent 0%,
-      rgba(255,220,180,.10) 10%,rgba(180,255,220,.12) 22%,
-      rgba(180,220,255,.10) 34%,rgba(255,180,220,.10) 46%,
-      rgba(255,240,160,.10) 58%,rgba(160,255,240,.12) 70%,
-      rgba(220,180,255,.10) 82%,transparent 100%);
+      rgba(255,220,180,.11) 10%,rgba(180,255,220,.13) 22%,
+      rgba(180,220,255,.11) 34%,rgba(255,180,220,.11) 46%,
+      rgba(255,240,160,.11) 58%,rgba(160,255,240,.13) 70%,
+      rgba(220,180,255,.11) 82%,transparent 100%);
   mix-blend-mode:screen;
   transition:opacity .18s ease;
   will-change:opacity;
 }
 .hmv-shine{
-  position:absolute;inset:0;border-radius:20px;
-  pointer-events:none;opacity:0;z-index:3;
+  position:absolute;inset:0;
+  opacity:0;
   background:radial-gradient(ellipse 80% 60% at var(--mx,40%) var(--my,35%),
-    rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 40%,transparent 65%);
+    rgba(255,255,255,.11) 0%,rgba(255,255,255,.04) 40%,transparent 65%);
   mix-blend-mode:screen;transition:opacity .14s ease;
   will-change:opacity;
 }
 .hmv-border{
   position:absolute;inset:0;border-radius:20px;
-  border:1px solid rgba(255,255,255,.10);
-  pointer-events:none;opacity:0;z-index:3;
+  border:1px solid rgba(255,255,255,.12);
+  pointer-events:none;opacity:0;z-index:4;
   background:linear-gradient(calc(var(--holo-angle,105deg)),
-    rgba(255,220,180,.07),rgba(180,255,220,.06),rgba(180,220,255,.07));
+    rgba(255,220,180,.08),rgba(180,255,220,.07),rgba(180,220,255,.08));
   mix-blend-mode:screen;transition:opacity .18s ease;
   will-change:opacity;
 }
-.hmv-poster.touching .hmv-holo,
-.hmv-poster.touching .hmv-shine,
+.hmv-poster.touching .hmv-holo-clip .hmv-holo,
+.hmv-poster.touching .hmv-holo-clip .hmv-shine,
 .hmv-poster.touching .hmv-border{opacity:1;}
 
 /* Barre du haut */
@@ -5581,8 +5584,11 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
           </div>
         </div>
-        <div class="hmv-holo" id="hmv-holo"></div>
-        <div class="hmv-shine" id="hmv-shine"></div>
+        <!-- Wrapper holo clippant (overflow:hidden) — évite l'artefact triangulaire -->
+        <div class="hmv-holo-clip">
+          <div class="hmv-holo" id="hmv-holo"></div>
+          <div class="hmv-shine" id="hmv-shine"></div>
+        </div>
         <div class="hmv-border" id="hmv-border"></div>
       </div>
     <!-- Bouton flip — dans le flux, juste sous la card -->
@@ -5789,12 +5795,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <video id="hm-secret-video" class="hm-secret-video" controls playsinline preload="metadata">
             <source src="hiddenmovies.mp4" type="video/mp4">
           </video>
-          <div class="hm-secret-play-overlay" id="hm-secret-play-overlay" onclick="hmSecretPlayVideo()">
-            <div class="hm-secret-play-btn">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </div>
-            <div class="hm-secret-video-label">LANCER LA PROJECTION</div>
-          </div>
         </div>
         <div class="hm-secret-filmstrip"></div>
         <div style="padding:16px 20px 0;">
@@ -5803,34 +5803,41 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           </div>
         </div>
 
-        <!-- ── SECTION BANDES-ANNONCES PERSONNALISÉES ── -->
-        <div style="padding:20px 20px 0;">
-          <div class="hm-secret-stitle" style="margin-bottom:10px;">BANDES-ANNONCES</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.5;margin-bottom:12px;text-align:center;">
-            Ajoute tes propres bandes-annonces Hidden Movies.<br>Colle un lien YouTube ou MP4.
+        <!-- ── BANDES-ANNONCES ── -->
+        <div style="padding:20px 20px 16px;">
+          <div class="hm-secret-stitle" style="margin-bottom:14px;">BANDES-ANNONCES</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('A Beautiful Day.mp4','A Beautiful Day')"><span class="hm-trailer-title">A Beautiful Day</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('A tombeau ouvert.mp4','À tombeau ouvert')"><span class="hm-trailer-title">À tombeau ouvert</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('After Hours.mp4','After Hours')"><span class="hm-trailer-title">After Hours</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Aftersun.mp4','Aftersun')"><span class="hm-trailer-title">Aftersun</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('American Beauty.mp4','American Beauty')"><span class="hm-trailer-title">American Beauty</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('American Honey.mp4','American Honey')"><span class="hm-trailer-title">American Honey</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Boogie Nights.mp4','Boogie Nights')"><span class="hm-trailer-title">Boogie Nights</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Breakfast Club.mp4','Breakfast Club')"><span class="hm-trailer-title">Breakfast Club</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Captain Fantastic.mp4','Captain Fantastic')"><span class="hm-trailer-title">Captain Fantastic</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Charlie Countryman.mp4','Charlie Countryman')"><span class="hm-trailer-title">Charlie Countryman</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Dans la peau de John Malkovich.mp4','Dans la peau de John Malkovich')"><span class="hm-trailer-title">Dans la peau de John Malkovich</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Demolition.mp4','Demolition')"><span class="hm-trailer-title">Demolition</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Dream Scenario.mp4','Dream Scenario')"><span class="hm-trailer-title">Dream Scenario</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Ex Machina.mp4','Ex Machina')"><span class="hm-trailer-title">Ex Machina</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Garden State.mp4','Garden State')"><span class="hm-trailer-title">Garden State</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Good Time.mp4','Good Time')"><span class="hm-trailer-title">Good Time</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Her.mp4','Her')"><span class="hm-trailer-title">Her</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Human Traffic.mp4','Human Traffic')"><span class="hm-trailer-title">Human Traffic</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Into the Wild.mp4','Into the Wild')"><span class="hm-trailer-title">Into the Wild</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Lost River.mp4','Lost River')"><span class="hm-trailer-title">Lost River</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Love Lies Bleeding.mp4','Love Lies Bleeding')"><span class="hm-trailer-title">Love Lies Bleeding</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Mid90s.mp4','Mid90s')"><span class="hm-trailer-title">Mid90s</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Mud.mp4','Mud')"><span class="hm-trailer-title">Mud</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Risky Business.mp4','Risky Business')"><span class="hm-trailer-title">Risky Business</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Sound of Metal.mp4','Sound of Metal')"><span class="hm-trailer-title">Sound of Metal</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Stand by Me.mp4','Stand by Me')"><span class="hm-trailer-title">Stand by Me</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('The Place Beyond the Pines.mp4','The Place Beyond the Pines')"><span class="hm-trailer-title">The Place Beyond the Pines</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Uncut Gems.mp4','Uncut Gems')"><span class="hm-trailer-title">Uncut Gems</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Vanilla Sky.mp4','Vanilla Sky')"><span class="hm-trailer-title">Vanilla Sky</span><span class="hm-trailer-play">▶</span></div>
+            <div class="hm-trailer-row" onclick="hmTrailerPlay('Victoria.mp4','Victoria')"><span class="hm-trailer-title">Victoria</span><span class="hm-trailer-play">▶</span></div>
           </div>
-
-          <!-- Liste des bandes-annonces -->
-          <div id="hm-trailers-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
-
-          <!-- Formulaire d'ajout -->
-          <div id="hm-trailer-form" style="background:rgba(255,200,80,.05);border:1px solid rgba(255,200,80,.12);border-radius:14px;padding:14px;display:none;flex-direction:column;gap:10px;">
-            <div style="font-size:11px;color:rgba(255,200,80,.5);letter-spacing:2px;text-transform:uppercase;font-family:'Bebas Neue',sans-serif;margin-bottom:2px;">Nouvelle bande-annonce</div>
-            <input id="hm-trailer-title" type="text" maxlength="60" placeholder="Titre du film…"
-              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;">
-            <input id="hm-trailer-url" type="url" placeholder="URL YouTube ou lien .mp4…"
-              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;">
-            <div style="display:flex;gap:8px;">
-              <button onclick="hmTrailerSave()" style="flex:2;padding:11px;background:linear-gradient(100deg,rgba(255,200,80,.25),rgba(255,200,80,.12));border:1px solid rgba(255,200,80,.35);border-radius:10px;color:rgba(255,200,80,.9);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;cursor:pointer;">AJOUTER</button>
-              <button onclick="hmTrailerCancelForm()" style="flex:1;padding:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.4);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Annuler</button>
-            </div>
-          </div>
-
-          <!-- Bouton ajouter -->
-          <button id="hm-trailer-add-btn" onclick="hmTrailerShowForm()" style="width:100%;padding:12px;background:rgba(255,200,80,.07);border:1px solid rgba(255,200,80,.18);border-radius:12px;color:rgba(255,200,80,.6);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            AJOUTER UNE BANDE-ANNONCE
-          </button>
         </div>
       </div>
 
@@ -11041,6 +11048,20 @@ function _hmvSpringTick() {
   poster.style.setProperty('--my',          _hmvCurMy.toFixed(2) + '%');
   poster.style.setProperty('--holo-angle',  _hmvCurAngle.toFixed(2) + 'deg');
 
+  // ── Halo ambiant derrière la carte (box-shadow coloré selon position) ──
+  if (_hmvHoloActive) {
+    // Mapper mx/my (0-100) vers des teintes arc-en-ciel
+    const hue = ((_hmvCurMx / 100) * 280 + (_hmvCurMy / 100) * 80) % 360;
+    const tiltStrength = Math.sqrt(_hmvCurRotX ** 2 + _hmvCurRotY ** 2) / 25; // 0–1
+    const alpha = 0.28 + tiltStrength * 0.22;
+    const spread = Math.round(24 + tiltStrength * 20);
+    const offsetX = (_hmvCurRotY / 20) * 14;  // tilt gauche/droite → décale le glow
+    const offsetY = (-_hmvCurRotX / 16) * 10;
+    poster.style.boxShadow = `${offsetX.toFixed(1)}px ${offsetY.toFixed(1)}px ${spread}px 4px hsla(${hue.toFixed(0)},90%,65%,${alpha.toFixed(3)}), 0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08)`;
+  } else {
+    // Retour progressif au shadow par défaut géré dans le settled check
+  }
+
   // Gérer l'état touching pour l'opacité holo
   if (_hmvHoloActive) {
     poster.classList.add('touching');
@@ -11053,6 +11074,8 @@ function _hmvSpringTick() {
       _hmvCurRotX = 0; _hmvCurRotY = 0;
       _hmvVRotX = 0;   _hmvVRotY = 0;
       if (!isFlipped) inner.style.transform = '';
+      // Reset box-shadow vers défaut
+      poster.style.boxShadow = '0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.08)';
       _hmvSpringRunning = false;
       return; // stopper le rAF
     }
@@ -17387,8 +17410,6 @@ function openHMSecret(){
   hmTrailerRender();
   const vid=document.getElementById('hm-secret-video');
   if(vid){vid.currentTime=0;vid.pause();}
-  const overlay=document.getElementById('hm-secret-play-overlay');
-  if(overlay)overlay.classList.remove('hidden');
 
   // ── Fade out musique en cours puis lancer ambiance salle secrète ──
   if(typeof fadeTrack==='function' && typeof window._musicCache!=='undefined'){
@@ -17487,96 +17508,25 @@ function closeHMSecret(){
 //  BANDES-ANNONCES PERSONNALISÉES — Hidden Movies
 // ══════════════════════════════════════════
 
-function _hmTrailerLoad(){
-  try{const r=localStorage.getItem('hm_trailers');return r?JSON.parse(r):[];}catch{return [];}
-}
-function _hmTrailerSave(arr){
-  try{localStorage.setItem('hm_trailers',JSON.stringify(arr));}catch{}
-}
-
-function _hmYtEmbed(url){
-  // Convertit une URL YouTube en URL embed
-  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/))([\w-]{11})/);
-  return m?'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&rel=0':null;
-}
-
-function hmTrailerShowForm(){
-  document.getElementById('hm-trailer-form').style.display='flex';
-  document.getElementById('hm-trailer-add-btn').style.display='none';
-  setTimeout(()=>document.getElementById('hm-trailer-title')?.focus(),80);
-}
-
-function hmTrailerCancelForm(){
-  document.getElementById('hm-trailer-form').style.display='none';
-  document.getElementById('hm-trailer-add-btn').style.display='flex';
-  const ti=document.getElementById('hm-trailer-title');
-  const ui=document.getElementById('hm-trailer-url');
-  if(ti)ti.value='';if(ui)ui.value='';
-}
-
-function hmTrailerSave(){
-  const title=(document.getElementById('hm-trailer-title')?.value||'').trim();
-  const url=(document.getElementById('hm-trailer-url')?.value||'').trim();
-  if(!title||!url)return;
-  const arr=_hmTrailerLoad();
-  arr.push({id:Date.now(),title,url});
-  _hmTrailerSave(arr);
-  hmTrailerCancelForm();
-  hmTrailerRender();
-}
-
-function hmTrailerDelete(id){
-  const arr=_hmTrailerLoad().filter(t=>t.id!==id);
-  _hmTrailerSave(arr);
-  hmTrailerRender();
-}
-
-function hmTrailerPlay(id){
-  const arr=_hmTrailerLoad();
-  const trailer=arr.find(t=>t.id===id);
-  if(!trailer)return;
+function hmTrailerPlay(filename, title){
   // Pauser la vidéo principale
   const mainVid=document.getElementById('hm-secret-video');
-  if(mainVid)mainVid.pause();
-  // Déterminer le type
-  const embedUrl=_hmYtEmbed(trailer.url);
-  const isMp4=!embedUrl&&(trailer.url.match(/\.mp4/i)||trailer.url.startsWith('blob:'));
-  // Créer overlay de lecture
+  if(mainVid) mainVid.pause();
+  // Créer overlay plein écran
   const overlay=document.createElement('div');
   overlay.id='hm-trailer-player-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
-  const closeBtn='<button onclick="document.getElementById(\'hm-trailer-player-overlay\').remove()" style="position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:18px;z-index:2;">✕</button>';
-  const title='<div style="position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;right:60px;font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:1.5px;color:rgba(255,200,80,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;">'+trailer.title+'</div>';
-  let mediaHtml='';
-  if(embedUrl){
-    mediaHtml='<iframe src="'+embedUrl+'" style="width:min(90vw,440px);aspect-ratio:16/9;border:none;border-radius:12px;" allowfullscreen allow="autoplay"></iframe>';
-  } else {
-    mediaHtml='<video src="'+trailer.url+'" controls autoplay playsinline style="width:min(90vw,440px);aspect-ratio:16/9;border-radius:12px;background:#000;max-height:60vh;"></video>';
-  }
-  overlay.innerHTML=closeBtn+title+'<div style="width:100%;display:flex;justify-content:center;padding:0 16px;">'+mediaHtml+'</div>';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  overlay.innerHTML=
+    '<button onclick="var o=document.getElementById('hm-trailer-player-overlay');var v=o.querySelector('video');if(v){v.pause();v.src='';}o.remove();" style="position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:18px;z-index:2;">✕</button>'
+    +'<div style="position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;right:60px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;color:rgba(255,200,80,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;">'+title+'</div>'
+    +'<div style="width:100%;display:flex;justify-content:center;padding:0 16px;">'
+    +'<video src="'+filename+'" controls autoplay playsinline style="width:min(90vw,440px);aspect-ratio:16/9;border-radius:12px;background:#000;max-height:60vh;"></video>'
+    +'</div>';
   document.body.appendChild(overlay);
 }
 
 function hmTrailerRender(){
-  const list=document.getElementById('hm-trailers-list');
-  if(!list)return;
-  const arr=_hmTrailerLoad();
-  if(!arr.length){
-    list.innerHTML='<div style="text-align:center;padding:10px 0 4px;font-size:11px;color:rgba(255,255,255,.18);letter-spacing:.5px;">Aucune bande-annonce ajoutée</div>';
-    return;
-  }
-  list.innerHTML=arr.map(t=>{
-    const isYt=!!_hmYtEmbed(t.url);
-    const icon=isYt
-      ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,80,80,.8)"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75,15.02 15.5,12 9.75,8.98 9.75,15.02" fill="#fff"/></svg>'
-      :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,200,80,.7)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>';
-    return `<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,200,80,.1);border-radius:12px;padding:11px 12px;">
-      <div style="flex-shrink:0;">${icon}</div>
-      <div style="flex:1;min-width:0;font-size:13px;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
-      <button onclick="hmTrailerPlay(${t.id})" style="flex-shrink:0;background:rgba(255,200,80,.14);border:1px solid rgba(255,200,80,.3);border-radius:8px;padding:6px 12px;color:rgba(255,200,80,.85);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;">▶</button>
-      <button onclick="hmTrailerDelete(${t.id})" style="flex-shrink:0;background:rgba(232,52,74,.1);border:1px solid rgba(232,52,74,.2);border-radius:8px;padding:6px 8px;color:rgba(232,52,74,.7);font-size:13px;cursor:pointer;">✕</button>
-    </div>`;
-  }).join('');
+  // Statique — rien à rendre dynamiquement
 }
 
 function hmSecretTab(idx,btn){
@@ -17588,15 +17538,7 @@ function hmSecretTab(idx,btn){
   if(idx!==0){const vid=document.getElementById('hm-secret-video');if(vid)vid.pause();}
 }
 
-function hmSecretPlayVideo(){
-  const vid=document.getElementById('hm-secret-video');
-  const overlay=document.getElementById('hm-secret-play-overlay');
-  if(!vid)return;
-  overlay.classList.add('hidden');
-  vid.play().catch(()=>{overlay.classList.remove('hidden');});
-  vid.addEventListener('pause',()=>overlay.classList.remove('hidden'));
-  vid.addEventListener('ended',()=>{overlay.classList.remove('hidden');vid.currentTime=0;});
-}
+// hmSecretPlayVideo supprimé — lecteur natif utilisé directement
 
 function _hmRenderSecretFilm(){
   const film=HM_SECRET_FILMS[_hmSecretFilmIdx];
