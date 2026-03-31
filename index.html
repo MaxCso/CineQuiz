@@ -29,7 +29,8 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .wrap{width:100%;max-width:500px;height:100dvh;background:var(--bg);position:relative;overflow:hidden;isolation:isolate;}
 #result.on{overflow-y:auto;-webkit-overflow-scrolling:touch;}
 @media(min-width:500px){body{background:#060609;align-items:center;}.wrap{width:390px;height:844px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.08);box-shadow:0 0 80px rgba(245,200,66,0.06),0 50px 100px rgba(0,0,0,0.8);}}
-.scr{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;-webkit-overflow-scrolling:touch;visibility:hidden;}
+.scr.on{visibility:visible;}
 .scr.on{opacity:1;pointer-events:all;}
 
 /* ══ ARCADE SECRÈTE ══ */
@@ -54,7 +55,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   position:relative;top:auto;left:auto;right:auto;
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 18px 12px;
-  flex-shrink:0;z-index:2;
+  flex-shrink:0;
 }
 .arc-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);}
 .arc-score-badge{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px;}
@@ -1388,22 +1389,13 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .anecdote-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .25s;}
 .anecdote-dot.active{width:16px;border-radius:3px;background:var(--gold);}
 
-/* -- BOUTON JOUER : premium refonte -- */
-@property --pbtn-shimmer{syntax:'<angle>';inherits:false;initial-value:33deg;}
-@keyframes pbtn-shimmer-spin{
-  0%   {--pbtn-shimmer:0deg;}
-  100% {--pbtn-shimmer:360deg;}
-}
+/* -- BOUTON JOUER -- */
 @keyframes pbtn-glare{
   0%  {left:-90%;}
   55%,100%{left:130%;}
 }
-@keyframes pbtn-glow-pulse{
-  0%,100%{box-shadow:0 6px 32px rgba(245,200,66,.55),0 2px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(0,0,0,.2) inset;}
-  50%    {box-shadow:0 10px 48px rgba(245,200,66,.85),0 2px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(0,0,0,.2) inset;}
-}
 @keyframes pbtn-enter{
-  0%  {opacity:0;transform:translateY(10px) scale(.95);}
+  0%  {opacity:0;transform:translateY(8px) scale(.97);}
   100%{opacity:1;transform:translateY(0) scale(1);}
 }
 
@@ -1411,68 +1403,38 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   width:100%;border:none;border-radius:22px;height:68px;
   color:#000;cursor:pointer;
   font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:6px;
-  display:flex;align-items:center;justify-content:center;gap:14px;
+  display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;
   transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;
   margin-top:6px;
   background:linear-gradient(105deg,#ffe566 0%,#f5c842 35%,#ffcc00 65%,#e8a800 100%);
-  box-shadow:0 6px 32px rgba(245,200,66,.55),0 2px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(0,0,0,.2) inset;
-  animation:pbtn-enter .5s cubic-bezier(.34,1.56,.64,1) both, pbtn-glow-pulse 3s ease-in-out 1.2s infinite;
+  box-shadow:0 6px 28px rgba(245,200,66,.5),0 2px 0 rgba(255,255,255,.35) inset;
+  animation:pbtn-enter .4s cubic-bezier(.34,1.56,.64,1) both;
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
 }
-
-/* Conic shimmer */
-.pbtn::before{
-  content:'';position:absolute;inset:-1px;
-  background:conic-gradient(
-    from var(--pbtn-shimmer,33deg) at 50% 50%,
-    transparent 0deg,
-    rgba(255,255,255,.6) 80deg,
-    rgba(255,220,80,.5)  160deg,
-    rgba(255,160,40,.35) 240deg,
-    transparent 360deg
-  );
-  border-radius:inherit;mix-blend-mode:screen;
-  animation:pbtn-shimmer-spin 4s linear infinite;
-  opacity:.65;pointer-events:none;
-}
-
-/* Glare diagonal rapide */
 .pbtn::after{
   content:'';position:absolute;top:0;left:-90%;
   width:50%;height:100%;
-  background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.55) 48%,rgba(255,245,200,.7) 52%,transparent 80%);
-  animation:pbtn-glare 2.6s ease-in-out 0.6s infinite;
+  background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.5) 48%,rgba(255,245,200,.65) 52%,transparent 80%);
+  animation:pbtn-glare 2.8s ease-in-out 0.8s infinite;
   pointer-events:none;
 }
-
-.pbtn:hover{transform:translateY(-2px) scale(1.01);}
 .pbtn:active{
-  transform:scale(.95);
+  transform:scale(.95) translateZ(0);
   box-shadow:0 2px 12px rgba(245,200,66,.25);
-  animation:none;
-}
-.pbtn:active::before{opacity:.3;}
-.pbtn-icon{
-  font-size:24px;position:relative;z-index:1;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,.25));
-  animation:pbtn-icon-bounce 2.6s ease-in-out 0.6s infinite;
-}
-@keyframes pbtn-icon-bounce{
-  0%,40%,100%{transform:translateX(0);}
-  55%{transform:translateX(4px);}
-  70%{transform:translateX(-2px);}
-  85%{transform:translateX(3px);}
 }
 .pbtn-text{position:relative;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.12);}
 .pbtn-sub{
-  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
   font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;
   letter-spacing:2px;text-transform:uppercase;
   color:rgba(0,0,0,.4);white-space:nowrap;pointer-events:none;z-index:1;
-  opacity:0;transition:opacity .3s;
+  transition:opacity .3s;
 }
-.pbtn:has(.pbtn-sub:not(:empty)) .pbtn-sub{opacity:1;}
-.pbtn:has(.pbtn-sub:not(:empty)){padding-bottom:8px;}
+.pbtn.has-sub{padding-bottom:10px;}
+.pbtn.has-sub .pbtn-sub{opacity:1;}
+.pbtn:not(.has-sub) .pbtn-sub{opacity:0;}
 
 /* ── MODE-INFO-PLAY : bouton JOUER dans les popups ── */
 .mode-info-play{
@@ -4800,7 +4762,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     </div>
 
     <button class="pbtn" onclick="startGame()" id="main-play-btn">
-      <span class="pbtn-icon">▶</span>
       <span class="pbtn-text">JOUER</span>
     </button>
 
@@ -5628,7 +5589,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div class="br-slider-hint">← GLISSE POUR DÉPLACER →</div>
         <div class="br-slider-track" id="br-slider">
           <div class="br-slider-fill" id="br-slider-fill"></div>
-          <div class="br-slider-thumb" id="br-slider-thumb">🎬</div>
+          <div class="br-slider-thumb" id="br-slider-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.7)" stroke-width="2.5" stroke-linecap="round" width="18" height="18"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
         </div>
       </div>
     </div>
@@ -5707,7 +5668,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div class="arc-bg"></div>
     <div class="arc-head">
       <div class="ibtn" onclick="go('arcade-menu');stopFlappy()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></div>
-      <div class="arc-title">🎬 FLAPPY CINÉ</div>
+      <div class="arc-title">FLAPPY CINÉ</div>
       <div class="arc-score-badge">Score : <span id="flappy-score">0</span></div>
     </div>
     <div class="arc-center">
@@ -10406,6 +10367,13 @@ const go=id=>{
   const useFade=current && current.id!==id && !skipFade.includes(id) && !skipFade.includes(current?.id);
 
   const doSwitch=()=>{
+    // Stopper les jeux arcade si on les quitte (libère les textures GPU canvas)
+    if(current){
+      if(current.id==='arc-flappy'&&id!=='arc-flappy')stopFlappy();
+      if(current.id==='arc-pong'&&id!=='arc-pong')stopPong();
+      if(current.id==='arc-snake'&&id!=='arc-snake')stopSnake();
+      if(current.id==='arc-bricks'&&id!=='arc-bricks')stopBricks();
+    }
     document.querySelectorAll('.scr').forEach(s=>{
       s.classList.remove('on');
       s.style.opacity='';
@@ -10644,10 +10612,10 @@ function _updateMainPlayBtn(label,icon){
   const txtEl=btn.querySelector('.pbtn-text');
   if(iconEl)iconEl.textContent=icon||'▶';
   if(txtEl)txtEl.textContent='JOUER';
-  // Mini-label sous le texte
   let sub=btn.querySelector('.pbtn-sub');
   if(!sub){sub=document.createElement('span');sub.className='pbtn-sub';btn.appendChild(sub);}
-  sub.textContent=label;
+  sub.textContent=label||'';
+  btn.classList.toggle('has-sub',!!(label&&label.length>0));
 }
 function setQCount(n,el){
   TOTAL=n;
@@ -16135,12 +16103,18 @@ function runSplash(){
 
 // ── SWIPE GESTURES ──
 function setupSwipeDown(el,onClose){
+  // Éviter l'accumulation de listeners sur le même élément
+  if(el._swipeDownBound){
+    el._swipeDownCb=onClose;
+    return;
+  }
+  el._swipeDownBound=true;
+  el._swipeDownCb=onClose;
   let startY=0,startX=0,dragging=false,canSwipe=false;
   const onStart=e=>{
     const t=e.touches?e.touches[0]:e;
     startY=t.clientY;startX=t.clientX;
     dragging=true;
-    // Autoriser le swipe seulement si le contenu est en haut
     canSwipe=(el.scrollTop||0)<=2;
   };
   const onMove=e=>{
@@ -16148,13 +16122,11 @@ function setupSwipeDown(el,onClose){
     const t=e.touches?e.touches[0]:e;
     const dy=t.clientY-startY;
     const dx=Math.abs(t.clientX-startX);
-    // Si l'utilisateur scroll vers le haut (dy>0) et c'est plus vertical qu'horizontal
     if(dy>5&&dy>dx*1.2){
       e.preventDefault();
       el.style.transform=`translateY(${Math.min(dy*.5,100)}px)`;
       el.style.transition='none';
     } else if(dy<-5){
-      // Scroll vers le bas = abandon du swipe
       canSwipe=false;
       el.style.transform='';el.style.transition='';
     }
@@ -16164,7 +16136,7 @@ function setupSwipeDown(el,onClose){
     const t=e.changedTouches?e.changedTouches[0]:e;
     const dy=t.clientY-startY;
     el.style.transform='';el.style.transition='';
-    if(canSwipe&&dy>90)onClose();
+    if(canSwipe&&dy>90)el._swipeDownCb&&el._swipeDownCb();
   };
   el.addEventListener('touchstart',onStart,{passive:true});
   el.addEventListener('touchmove',onMove,{passive:false});
@@ -17263,7 +17235,7 @@ function startSnake(){
   _snDraw();
   })); // end double rAF
 }
-function stopSnake(){clearInterval(_snTimer);_snRunning=false;}
+function stopSnake(){clearInterval(_snTimer);_snRunning=false;const cv=document.getElementById('snake-canvas');if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);cv.width=1;cv.height=1;}}
 function snDir(dx,dy){
   if(_snDir.x===-dx&&_snDir.y===-dy)return;
   _snNextDir={x:dx,y:dy};
@@ -17403,6 +17375,9 @@ function stopFlappy(){
   cancelAnimationFrame(_flAnim);_flAnim=null;
   if(_flState)_flState.running=false;
   _flState=null;
+  // Vider le canvas pour libérer la texture GPU (iOS Safari)
+  const cv=document.getElementById('flappy-canvas');
+  if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);cv.width=1;cv.height=1;}
 }
 
 function _flFlap(){
@@ -17628,6 +17603,9 @@ function stopPong(){
   cancelAnimationFrame(_pgAnim);_pgAnim=null;
   if(_pgState)_pgState.running=false;
   _pgState=null;
+  // Vider le canvas pour libérer la texture GPU (iOS Safari)
+  const cv=document.getElementById('pong-canvas');
+  if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);cv.width=1;cv.height=1;}
 }
 
 function _pgLoop(){
@@ -17852,7 +17830,7 @@ function _brSetSliderPct(pct){
   if(fill)fill.style.width=(pct*100)+'%';
 }
 
-function stopBricks(){cancelAnimationFrame(_brAnim);if(_brState)_brState.running=false;}
+function stopBricks(){cancelAnimationFrame(_brAnim);if(_brState)_brState.running=false;const cv=document.getElementById('bricks-canvas');if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);cv.width=1;cv.height=1;}}
 function brPaddleDir(d){if(_brState)_brState.paddleDir=(d||0)*7;}
 function brPaddleStop(){if(_brState)_brState.paddleDir=0;}
 function _brLoop(){
