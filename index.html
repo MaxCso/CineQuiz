@@ -3769,8 +3769,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 /* 1. GLARE — reflet blanc radial qui suit le doigt */
 .hmv-glare{
-  position:absolute;inset:-20%;
-  width:140%;height:140%;
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border-radius:20px;
+  overflow:hidden;
   background:
     radial-gradient(
       farthest-corner ellipse at var(--mx,50%) var(--my,50%),
@@ -3786,34 +3788,27 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 /* 2. RAINBOW FOIL — arc-en-ciel en color-dodge, déplacement lié à la position */
 .hmv-rainbow{
-  position:absolute;inset:-5%;
-  width:110%;height:110%;
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border-radius:20px;
+  overflow:hidden;
   background-image:
     repeating-linear-gradient(
       0deg,
-      hsla(  0,100%,55%,.14) 0px,
-      hsla( 30,100%,55%,.14) 4px,
-      hsla( 60,100%,55%,.14) 8px,
-      hsla(120,100%,55%,.14) 12px,
-      hsla(180,100%,55%,.14) 16px,
-      hsla(240,100%,55%,.14) 20px,
-      hsla(300,100%,55%,.14) 24px,
-      hsla(360,100%,55%,.14) 28px
-    ),
-    repeating-linear-gradient(
-      133deg,
-      #0e448a 0px,  #0e448a 2px,
-      #1b5fa5 2px,  #1b5fa5 4px,
-      #4c9dcc 4px,  #4c9dcc 6px,
-      #8ecbe0 6px,  #8ecbe0 8px,
-      #c9e8f0 8px,  #c9e8f0 10px,
-      #8ecbe0 10px, #8ecbe0 12px
+      hsla(  0,100%,55%,.13) 0px,
+      hsla( 30,100%,55%,.13) 4px,
+      hsla( 60,100%,55%,.13) 8px,
+      hsla(120,100%,55%,.13) 12px,
+      hsla(180,100%,55%,.13) 16px,
+      hsla(240,100%,55%,.13) 20px,
+      hsla(300,100%,55%,.13) 24px,
+      hsla(360,100%,55%,.13) 28px
     );
-  background-size: 600% 600%, 200% 200%;
+  background-size: 600% 600%;
   background-position: var(--posx,50%) var(--posy,50%);
   mix-blend-mode: color-dodge;
-  opacity: calc(var(--o, 0) * 0.16);
-  filter: brightness(calc(.5 + var(--hyp,0) * .2)) contrast(1.2) saturate(0.8);
+  opacity: calc(var(--o, 0) * 0.18);
+  filter: brightness(calc(.5 + var(--hyp,0) * .25)) contrast(1.2) saturate(0.9);
   transition: opacity .3s, filter .3s;
   will-change: opacity, background-position, filter;
 }
@@ -11955,285 +11950,340 @@ function _hmRenderCard(idx){
 
 function _hmInitScratch(canvas, film, idx){
   requestAnimationFrame(()=>{
-  const rect=canvas.parentElement.getBoundingClientRect();
-  const W=Math.round(rect.width)||375;
-  const H=Math.round(rect.height)||600;
-  const DPR=Math.min(window.devicePixelRatio||1,2);
-  canvas.width=W*DPR;
-  canvas.height=H*DPR;
-  canvas.style.width=W+'px';
-  canvas.style.height=H+'px';
-  const ctx=canvas.getContext('2d');
-  ctx.scale(DPR,DPR);
-  _hmCtx=ctx;
+  const wrap = canvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const W = Math.round(rect.width)  || 375;
+  const H = Math.round(rect.height) || 600;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  // ── Texture holographique animée ──
-  const offscreen=document.createElement('canvas');
-  offscreen.width=W; offscreen.height=H;
-  const octx=offscreen.getContext('2d');
-
-  // Fond de base
-  octx.fillStyle='#08050f';
-  octx.fillRect(0,0,W,H);
-
-  // Base argentée
-  const gSilver=octx.createLinearGradient(0,0,W,H);
-  gSilver.addColorStop(0.00,'#c0c0c0');
-  gSilver.addColorStop(0.20,'#e8e8e8');
-  gSilver.addColorStop(0.40,'#a8a8b8');
-  gSilver.addColorStop(0.55,'#d4d4d4');
-  gSilver.addColorStop(0.70,'#b0b0c8');
-  gSilver.addColorStop(0.85,'#e0e0e0');
-  gSilver.addColorStop(1.00,'#b8b8b8');
-  octx.fillStyle=gSilver;
-  octx.fillRect(0,0,W,H);
-
-  // Bruit de texture
-  const imgData=octx.getImageData(0,0,W,H);
-  const d=imgData.data;
-  for(let i=0;i<d.length;i+=4){
-    const n=(Math.random()-.5)*22;
-    d[i]=Math.min(255,Math.max(0,d[i]+n));
-    d[i+1]=Math.min(255,Math.max(0,d[i+1]+n));
-    d[i+2]=Math.min(255,Math.max(0,d[i+2]+n*.5));
+  // ── SVG filter (technique CodePen) : rend le noir transparent ──
+  // Permet des bords de grattage ultra-nets sans halos
+  if (!document.getElementById('hm-scratch-filter')) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.id = 'hm-scratch-filter';
+    svg.setAttribute('style','position:absolute;width:0;height:0;pointer-events:none;');
+    svg.innerHTML = `<defs><filter id="scratch-remove-black" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -1 -1 -1 0 1.2" result="black-out"/>
+      <feComposite in="SourceGraphic" in2="black-out" operator="in"/>
+    </filter></defs>`;
+    document.body.appendChild(svg);
   }
-  octx.putImageData(imgData,0,0);
 
-  // Motif croisillons
-  octx.save();
-  octx.globalAlpha=0.07;
-  octx.strokeStyle='#606080';
-  octx.lineWidth=0.7;
-  const step=12;
-  for(let x=-H;x<W+H;x+=step){
-    octx.beginPath();octx.moveTo(x,0);octx.lineTo(x+H,H);octx.stroke();
-    octx.beginPath();octx.moveTo(x,0);octx.lineTo(x-H,H);octx.stroke();
+  // Setup canvas principal (scratch mask — fond métallique)
+  canvas.width  = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  // Appliquer le filtre SVG pour bords nets
+  canvas.style.filter = 'url(#scratch-remove-black)';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+  _hmCtx = ctx;
+
+  // ── TEXTURE PREMIUM : fond holographique métallique ──
+  // 1. Gradient de base argenté multi-stops
+  const gBase = ctx.createLinearGradient(0, 0, W * 0.6, H);
+  gBase.addColorStop(0.00, '#d8d8e0');
+  gBase.addColorStop(0.12, '#f0f0f5');
+  gBase.addColorStop(0.28, '#b8b8c8');
+  gBase.addColorStop(0.45, '#e8e8f0');
+  gBase.addColorStop(0.60, '#c8c8d8');
+  gBase.addColorStop(0.78, '#ebebf2');
+  gBase.addColorStop(1.00, '#c0c0ce');
+  ctx.fillStyle = gBase;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Grain de surface (bruit argenté fin)
+  const imgData = ctx.getImageData(0, 0, W * DPR, H * DPR);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 28;
+    d[i]   = Math.min(255, Math.max(0, d[i]   + n));
+    d[i+1] = Math.min(255, Math.max(0, d[i+1] + n));
+    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n * 0.6));
   }
-  octx.restore();
+  ctx.putImageData(imgData, 0, 0);
 
-  // Texte central
-  octx.save();
-  octx.globalAlpha=0.07;
-  octx.font=Math.round(W*.13)+'px serif';
-  octx.textAlign='center';octx.textBaseline='middle';
-  octx.fillStyle='#404060';
-  octx.fillText('🎬',W/2,H/2-28);
-  octx.restore();
-  octx.save();
-  octx.globalAlpha=0.45;
-  octx.font=`700 11px -apple-system,sans-serif`;
-  octx.fillStyle='#505070';
-  octx.textAlign='center';octx.textBaseline='middle';
-  octx.fillText('✦  GRATTE POUR RÉVÉLER  ✦',W/2,H/2+16);
-  octx.restore();
-  octx.save();
-  octx.globalAlpha=0.35;
-  octx.font=`600 9px -apple-system,sans-serif`;
-  octx.fillStyle='#606080';
-  octx.textAlign='center';octx.textBaseline='middle';
-  octx.fillText(film.g.toUpperCase(),W/2,H/2+38);
-  octx.restore();
+  // 3. Motif guilloché (losanges fins — effet billet de banque/luxe)
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#4040606';
+  ctx.lineWidth = 0.6;
+  const step = 14;
+  for (let x = -H; x < W + H; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x - H, H); ctx.stroke();
+  }
+  // Lignes horizontales légères
+  ctx.globalAlpha = 0.035;
+  for (let y = 0; y < H; y += 8) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.restore();
 
-  // Étoiles
-  const sparkles=[
-    {x:W*.15,y:H*.2,r:3},{x:W*.85,y:H*.15,r:2.5},{x:W*.1,y:H*.75,r:2},
-    {x:W*.9,y:H*.7,r:3},{x:W*.5,y:H*.1,r:2.5},{x:W*.5,y:H*.9,r:2},
-  ];
-  sparkles.forEach(({x,y,r})=>{
-    const sg=octx.createRadialGradient(x,y,0,x,y,r*3);
-    sg.addColorStop(0,'rgba(200,200,255,0.9)');
-    sg.addColorStop(0.3,'rgba(150,150,220,0.4)');
-    sg.addColorStop(1,'rgba(100,100,180,0)');
-    octx.fillStyle=sg;
-    octx.beginPath();octx.arc(x,y,r*3,0,Math.PI*2);octx.fill();
-    octx.save();octx.globalAlpha=0.5;
-    octx.strokeStyle='rgba(200,200,255,0.7)';octx.lineWidth=r*.5;
-    octx.beginPath();octx.moveTo(x-r*3,y);octx.lineTo(x+r*3,y);octx.stroke();
-    octx.beginPath();octx.moveTo(x,y-r*3);octx.lineTo(x,y+r*3);octx.stroke();
-    octx.restore();
+  // 4. Orbe central (brillance froide)
+  const gCenter = ctx.createRadialGradient(W * 0.5, H * 0.38, 0, W * 0.5, H * 0.38, W * 0.65);
+  gCenter.addColorStop(0,   'rgba(255,255,255,0.22)');
+  gCenter.addColorStop(0.4, 'rgba(220,220,240,0.08)');
+  gCenter.addColorStop(1,   'rgba(180,180,200,0.00)');
+  ctx.fillStyle = gCenter;
+  ctx.fillRect(0, 0, W, H);
+
+  // 5. Shimmer diagonal animé (bande lumineuse qui glisse)
+  let shimmerPos = -0.2;
+  let shimmerRaf = null;
+  const drawShimmer = () => {
+    // Effacer l'ancienne bande : on la redessine par-dessus, pas besoin d'effacer (accumulation OK)
+    shimmerPos += 0.004;
+    if (shimmerPos > 1.3) shimmerPos = -0.2;
+    const sx0 = W * (shimmerPos - 0.15);
+    const sx1 = W * (shimmerPos + 0.15);
+    const sh = ctx.createLinearGradient(sx0, 0, sx1, H * 0.5);
+    sh.addColorStop(0,   'rgba(255,255,255,0)');
+    sh.addColorStop(0.4, 'rgba(255,255,255,0.09)');
+    sh.addColorStop(0.5, 'rgba(255,255,255,0.17)');
+    sh.addColorStop(0.6, 'rgba(255,255,255,0.09)');
+    sh.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = sh;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    shimmerRaf = requestAnimationFrame(drawShimmer);
+  };
+  shimmerRaf = requestAnimationFrame(drawShimmer);
+
+  // 6. Texte et indices gravés dans la texture
+  ctx.save();
+  ctx.globalAlpha = 0.28;
+  ctx.font = `700 10px -apple-system, sans-serif`;
+  ctx.fillStyle = '#606080';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('✦  GRATTE POUR RÉVÉLER  ✦', W / 2, H / 2 + 14);
+  ctx.restore();
+  ctx.save();
+  ctx.globalAlpha = 0.14;
+  ctx.font = `600 9px -apple-system, sans-serif`;
+  ctx.fillStyle = '#707090';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(film.g.toUpperCase(), W / 2, H / 2 + 32);
+  ctx.restore();
+
+  // 7. Reflets dorés aux coins (luxe)
+  [[0,0],[W,0],[0,H],[W,H]].forEach(([cx,cy])=>{
+    const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.35);
+    gr.addColorStop(0,   'rgba(245,200,80,0.10)');
+    gr.addColorStop(0.5, 'rgba(200,160,40,0.04)');
+    gr.addColorStop(1,   'rgba(180,140,20,0.00)');
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
   });
 
-  // ── Canvas holographique animé (layer arc-en-ciel) ──
-  const holoCanvas=document.createElement('canvas');
-  holoCanvas.width=W; holoCanvas.height=H;
-  const hCtx=holoCanvas.getContext('2d');
-  let holoAngle=0;
-  const drawHolo=()=>{
-    hCtx.clearRect(0,0,W,H);
-    holoAngle+=0.8;
-    const a=holoAngle*Math.PI/180;
-    const cx=W/2+Math.cos(a)*W*.4;
-    const cy=H/2+Math.sin(a*.7)*H*.35;
-    const g=hCtx.createRadialGradient(cx,cy,0,W/2,H/2,W*.9);
-    g.addColorStop(0.00,`hsla(${holoAngle      },100%,65%,.18)`);
-    g.addColorStop(0.15,`hsla(${holoAngle+40   },100%,60%,.15)`);
-    g.addColorStop(0.30,`hsla(${holoAngle+80   },100%,65%,.18)`);
-    g.addColorStop(0.45,`hsla(${holoAngle+130  },100%,60%,.15)`);
-    g.addColorStop(0.60,`hsla(${holoAngle+180  },100%,65%,.18)`);
-    g.addColorStop(0.75,`hsla(${holoAngle+220  },100%,60%,.15)`);
-    g.addColorStop(1.00,`hsla(${holoAngle+270  },100%,65%,.10)`);
-    hCtx.fillStyle=g;
-    hCtx.fillRect(0,0,W,H);
-    // Bande diagonale brillante
-    const b=hCtx.createLinearGradient(0,0,W,H);
-    const p=(holoAngle%180)/180;
-    b.addColorStop(Math.max(0,p-.1),'rgba(255,255,255,0)');
-    b.addColorStop(p,'rgba(255,255,255,.12)');
-    b.addColorStop(Math.min(1,p+.1),'rgba(255,255,255,0)');
-    hCtx.fillStyle=b;
-    hCtx.fillRect(0,0,W,H);
-  };
+  // ── CANVAS PARTICULES (copeaux de grattage) ──
+  const pCanvas = document.createElement('canvas');
+  pCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;`;
+  pCanvas.width  = W * DPR;
+  pCanvas.height = H * DPR;
+  wrap.appendChild(pCanvas);
+  const pCtx = pCanvas.getContext('2d');
+  pCtx.scale(DPR, DPR);
 
-  // ── Dessiner l'offscreen sur le canvas principal ──
-  ctx.drawImage(offscreen,0,0);
+  // Pool de particules (copeaux argentés + éclats holographiques)
+  const particles = [];
+  const CHIP_COLORS = [
+    '#d4d4d8','#e8e8ee','#c0c0cc','#f0f0f5',  // argentés
+    'rgba(245,200,80,0.9)',                     // doré
+    'rgba(180,220,255,0.8)',                    // reflet bleu
+    'rgba(220,180,255,0.7)',                    // reflet violet
+  ];
 
-  // ── Particules / copeaux ──
-  const particles=[];
-  const HOLO_COLORS=['#ff6eb4','#ffd700','#00eeff','#ff4444','#aaff00','#cc88ff','#ffaa00','#00ffcc'];
-  const spawnParticles=(x,y,speed=1)=>{
-    const count=Math.floor(Math.random()*6)+5;
-    for(let i=0;i<count;i++){
-      const angle=Math.random()*Math.PI*2;
-      const spd=(Math.random()*3+1.5)*speed;
-      const size=Math.random()*4+1.5;
+  const spawnChips = (x, y, speed = 1) => {
+    const count = Math.floor(Math.random() * 5) + 4;
+    for (let i = 0; i < count; i++) {
+      const angle  = Math.random() * Math.PI * 2;
+      const spd    = (Math.random() * 2.5 + 1) * speed;
+      const size   = Math.random() * 5 + 1.5;
+      const isHolo = Math.random() < 0.25;
       particles.push({
-        x,y,
-        vx:Math.cos(angle)*spd,
-        vy:Math.sin(angle)*spd-1,
+        x, y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - 1.2,
         size,
-        color:HOLO_COLORS[Math.floor(Math.random()*HOLO_COLORS.length)],
-        alpha:1,
-        decay:Math.random()*.05+.025,
-        rot:Math.random()*Math.PI*2,
-        rotSpeed:(Math.random()-.5)*.3,
-        type:Math.random()>.5?'rect':'circle'
+        color: CHIP_COLORS[Math.floor(Math.random() * (isHolo ? CHIP_COLORS.length : 4))],
+        alpha: 0.85 + Math.random() * 0.15,
+        decay: Math.random() * 0.04 + 0.025,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.4,
+        // Forme variée : fine lamelle, petit carré ou ovale
+        type: ['chip','flake','dot'][Math.floor(Math.random()*3)],
+        scaleY: 0.3 + Math.random() * 0.5,
       });
     }
   };
 
-  // Canvas particules + holo overlay
-  const pCanvas=document.createElement('canvas');
-  pCanvas.style.cssText=`position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
-  pCanvas.width=W*DPR; pCanvas.height=H*DPR;
-  canvas.parentElement.appendChild(pCanvas);
-  const pCtx=pCanvas.getContext('2d');
-  pCtx.scale(DPR,DPR);
-
-  let animId=null;
-  const animParticles=()=>{
-    pCtx.clearRect(0,0,W,H);
-    // Dessiner le holo animé
-    drawHolo();
-    // Composer holo sur canvas principal (léger, via pCanvas)
-    pCtx.save();
-    pCtx.globalAlpha=1;
-    pCtx.globalCompositeOperation='source-over';
-    // On redessine le holo sur pCanvas (qui est en mix-blend-mode:screen)
-    pCtx.drawImage(holoCanvas,0,0);
-    pCtx.restore();
-    // Particules
-    let alive=particles.length>0;
-    particles.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy;
-      p.vy+=0.1;
-      p.vx*=0.97;
-      p.alpha-=p.decay;
-      p.rot+=p.rotSpeed;
-      if(p.alpha>0){
-        pCtx.save();
-        pCtx.globalAlpha=p.alpha;
-        pCtx.translate(p.x,p.y);
-        pCtx.rotate(p.rot);
-        pCtx.fillStyle=p.color;
-        if(p.type==='circle'){
-          pCtx.beginPath();pCtx.arc(0,0,p.size/2,0,Math.PI*2);pCtx.fill();
-        } else {
-          pCtx.fillRect(-p.size/2,-p.size/3,p.size,p.size/1.5);
-        }
-        // Halo lumineux autour de la particule
-        const pg=pCtx.createRadialGradient(0,0,0,0,0,p.size*2);
-        pg.addColorStop(0,p.color.replace(')',',0.3)').replace('rgb','rgba'));
-        pg.addColorStop(1,'rgba(0,0,0,0)');
-        pCtx.globalAlpha=p.alpha*.4;
-        pCtx.fillStyle=pg;
-        pCtx.beginPath();pCtx.arc(0,0,p.size*2,0,Math.PI*2);pCtx.fill();
-        pCtx.restore();
+  let animId = null;
+  const animParticles = () => {
+    pCtx.clearRect(0, 0, W, H);
+    let alive = false;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.12;   // gravité
+      p.vx *= 0.96;   // friction air
+      p.alpha -= p.decay;
+      p.rot   += p.rotSpeed;
+      if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+      alive = true;
+      pCtx.save();
+      pCtx.globalAlpha = p.alpha;
+      pCtx.translate(p.x, p.y);
+      pCtx.rotate(p.rot);
+      pCtx.fillStyle = p.color;
+      if (p.type === 'chip') {
+        // Lamelle fine (forme d'un copeau de grattage)
+        pCtx.scale(1, p.scaleY);
+        pCtx.beginPath();
+        pCtx.ellipse(0, 0, p.size, p.size * 0.4, 0, 0, Math.PI * 2);
+        pCtx.fill();
+      } else if (p.type === 'flake') {
+        pCtx.fillRect(-p.size * 0.5, -p.size * 0.2, p.size, p.size * 0.4);
+      } else {
+        pCtx.beginPath();
+        pCtx.arc(0, 0, p.size * 0.4, 0, Math.PI * 2);
+        pCtx.fill();
       }
-    });
-    while(particles.length>300)particles.shift();
-    if(alive||true)animId=requestAnimationFrame(animParticles); // toujours actif pour holo
+      // Mini-reflet sur le copeau
+      pCtx.globalAlpha = p.alpha * 0.5;
+      pCtx.fillStyle = 'rgba(255,255,255,0.8)';
+      pCtx.beginPath();
+      pCtx.arc(-p.size * 0.15, -p.size * 0.15, p.size * 0.2, 0, Math.PI * 2);
+      pCtx.fill();
+      pCtx.restore();
+    }
+    if (alive) animId = requestAnimationFrame(animParticles);
+    else animId = null;
   };
-  animId=requestAnimationFrame(animParticles);
 
-  // ── Grattage ──
-  let revealed=false;
-  let checkThrottle=0;
-  let lastScratchX=0,lastScratchY=0;
-  let scratchSpeed=1;
+  // ── GRATTAGE PREMIUM ──
+  let scratchRevealed = false;
+  let checkThrottle   = 0;
+  let lastX = 0, lastY = 0;
+  let scratchSpeed = 1;
+  let isFirstTouch = true;
 
-  const scratch=(x,y)=>{
-    // Taille du pinceau varie avec la vitesse du doigt
-    const dx=x-lastScratchX, dy=y-lastScratchY;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    scratchSpeed=Math.min(3, Math.max(0.6, dist/12));
-    const size=28+scratchSpeed*14; // 28-70px selon vitesse
-    lastScratchX=x; lastScratchY=y;
+  const scratch = (x, y) => {
+    const dx = x - lastX, dy = y - lastY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    scratchSpeed = Math.min(3, Math.max(0.5, dist / 10));
 
-    ctx.globalCompositeOperation='destination-out';
-    const g=ctx.createRadialGradient(x,y,size*.05,x,y,size);
-    g.addColorStop(0,'rgba(0,0,0,1)');
-    g.addColorStop(0.65,'rgba(0,0,0,0.9)');
-    g.addColorStop(0.85,'rgba(0,0,0,0.4)');
-    g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g;
-    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();
-    ctx.globalCompositeOperation='source-over';
+    // Taille du pinceau : varie avec la vitesse (pièce qui gratte fort = plus large)
+    const radius = 26 + scratchSpeed * 12;
 
-    spawnParticles(x,y,scratchSpeed);
+    ctx.globalCompositeOperation = 'destination-out';
 
-    // Son de grattage (throttlé pour ne pas saturer)
-    if(!_scratchSoundTimer){
-      _initAC();resume();
+    // Pinceau principal : gradient radial net au centre, fondu doux sur les bords
+    // (Le SVG filter supprime ensuite le "gris" restant → bords ultra-nets)
+    const g = ctx.createRadialGradient(x, y, radius * 0.02, x, y, radius);
+    g.addColorStop(0,    'rgba(0,0,0,1)');
+    g.addColorStop(0.55, 'rgba(0,0,0,1)');
+    g.addColorStop(0.80, 'rgba(0,0,0,0.85)');
+    g.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Si on se déplace : trait de connexion entre deux points (évite les pointillés)
+    if (dist > 2) {
+      const steps = Math.ceil(dist / (radius * 0.7));
+      for (let i = 1; i < steps; i++) {
+        const t  = i / steps;
+        const ix = lastX + dx * t;
+        const iy = lastY + dy * t;
+        const gi = ctx.createRadialGradient(ix, iy, radius * 0.02, ix, iy, radius);
+        gi.addColorStop(0,    'rgba(0,0,0,1)');
+        gi.addColorStop(0.55, 'rgba(0,0,0,1)');
+        gi.addColorStop(0.80, 'rgba(0,0,0,0.80)');
+        gi.addColorStop(1,    'rgba(0,0,0,0)');
+        ctx.fillStyle = gi;
+        ctx.beginPath();
+        ctx.arc(ix, iy, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+    lastX = x; lastY = y;
+
+    // Copeaux
+    spawnChips(x, y, scratchSpeed);
+    if (!animId) animId = requestAnimationFrame(animParticles);
+
+    // Son
+    if (!_scratchSoundTimer) {
+      _initAC(); resume();
       sndScratch();
-      _scratchSoundTimer=setTimeout(()=>{_scratchSoundTimer=null;},38);
+      _scratchSoundTimer = setTimeout(() => { _scratchSoundTimer = null; }, 36);
     }
 
-    // Vérif % révélé (seuil 65%)
-    if(!revealed && ++checkThrottle%10===0){
-      const px=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-      let cleared=0;
-      for(let i=3;i<px.length;i+=4)if(px[i]<128)cleared++;
-      const pct=cleared/(canvas.width*canvas.height);
-      if(pct>.65){
-        revealed=true;
+    // Vérif révélation (65% effacé)
+    if (!scratchRevealed && ++checkThrottle % 10 === 0) {
+      const sample = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let cleared = 0;
+      for (let i = 3; i < sample.length; i += 4) if (sample[i] < 128) cleared++;
+      const pct = cleared / (canvas.width * canvas.height);
+      if (pct > 0.65) {
+        scratchRevealed = true;
+        cancelAnimationFrame(shimmerRaf);
+        if (animId) { cancelAnimationFrame(animId); animId = null; }
         pCanvas.remove();
-        if(animId){cancelAnimationFrame(animId);animId=null;}
-        _hmReveal(film,idx,canvas);
+        _hmReveal(film, idx, canvas);
       }
     }
   };
 
-  let drawing=false;
-  const getPos=(e)=>{
-    const r=canvas.getBoundingClientRect();
-    const t=e.touches?e.touches[0]:e;
-    return{x:(t.clientX-r.left)*(W/r.width),y:(t.clientY-r.top)*(H/r.height)};
+  // ── Événements ──
+  let drawing = false;
+  const getPos = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: (t.clientX - r.left) * (W / r.width), y: (t.clientY - r.top) * (H / r.height) };
   };
-  canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);lastScratchX=p.x;lastScratchY=p.y;scratch(p.x,p.y);});
-  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);});
-  canvas.addEventListener('mouseup',()=>drawing=false);
-  canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);lastScratchX=p.x;lastScratchY=p.y;scratch(p.x,p.y);},{passive:false});
-  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);scratch(p.x,p.y);},{passive:false});
-  canvas.addEventListener('touchend',()=>drawing=false);
 
-  // Swipe navigation
-  let swipeStartX=0,swipeStartY=0;
-  canvas.addEventListener('touchstart',e=>{swipeStartX=e.touches[0].clientX;swipeStartY=e.touches[0].clientY;},{passive:true});
-  canvas.addEventListener('touchend',e=>{
-    const dx=e.changedTouches[0].clientX-swipeStartX;
-    const dy=Math.abs(e.changedTouches[0].clientY-swipeStartY);
-    if(Math.abs(dx)>60&&dy<40){hmNavigate(dx<0?1:-1);}
-  },{passive:true});
+  canvas.addEventListener('mousedown', e => {
+    drawing = true;
+    const p = getPos(e); lastX = p.x; lastY = p.y; scratch(p.x, p.y);
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (!drawing) return;
+    const p = getPos(e); scratch(p.x, p.y);
+  });
+  canvas.addEventListener('mouseup', () => drawing = false);
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    drawing = true;
+    const p = getPos(e); lastX = p.x; lastY = p.y; scratch(p.x, p.y);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!drawing) return;
+    const p = getPos(e); scratch(p.x, p.y);
+  }, { passive: false });
+  canvas.addEventListener('touchend', () => drawing = false);
+
+  // Swipe navigation (gauche/droite sur le canvas)
+  let swipeStartX = 0, swipeStartY = 0;
+  canvas.addEventListener('touchstart', e => { swipeStartX = e.touches[0].clientX; swipeStartY = e.touches[0].clientY; }, { passive: true });
+  canvas.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - swipeStartX;
+    const dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
+    if (Math.abs(dx) > 60 && dy < 40) { hmNavigate(dx < 0 ? 1 : -1); }
+  }, { passive: true });
   }); // end requestAnimationFrame
 }
 
