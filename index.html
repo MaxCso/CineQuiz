@@ -5688,19 +5688,17 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 
   <!-- SPACE CINÉ -->
-  <div class="scr" id="arc-invaders" style="overflow:hidden;">
+  <div class="scr" id="arc-invaders" style="overflow:hidden;display:flex;flex-direction:column;">
     <div class="arc-bg" style="background:radial-gradient(ellipse 52% 42% at 35% 28%,rgba(120,80,255,.32) 0%,transparent 60%),radial-gradient(ellipse 44% 38% at 70% 65%,rgba(80,40,200,.22) 0%,transparent 56%),radial-gradient(ellipse 80% 70% at 50% 50%,transparent 30%,rgba(0,0,0,.92) 100%);"></div>
-    <div class="arc-head" style="padding:max(54px,env(safe-area-inset-top)) 18px 10px;flex-shrink:0;position:relative;z-index:1;">
+    <div class="arc-head" id="inv-head" style="padding:max(54px,env(safe-area-inset-top)) 18px 10px;flex-shrink:0;position:relative;z-index:2;">
       <div class="ibtn" onclick="go('arcade-menu');stopInvaders()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></div>
       <div class="arc-title">🎬 SPACE CINÉ</div>
       <div class="arc-score-badge">Score : <span id="inv-score">0</span></div>
     </div>
-    <div class="arc-center" style="flex:1;min-height:0;padding:0 12px max(12px,env(safe-area-inset-bottom));justify-content:center;gap:0;position:relative;z-index:1;">
-      <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;">
-        <canvas id="inv-canvas" style="border-radius:16px;border:1px solid rgba(120,80,255,.2);display:block;max-width:100%;max-height:100%;"></canvas>
-      </div>
-      <div style="font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-align:center;padding:6px 0;flex-shrink:0;">← GLISSE → POUR VISER · TAP POUR TIRER</div>
+    <div id="inv-game-area" style="flex:1;min-height:0;position:relative;z-index:1;">
+      <canvas id="inv-canvas" style="display:block;position:absolute;inset:0;width:100%;height:100%;"></canvas>
     </div>
+    <div id="inv-hint" style="font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-align:center;padding:6px 0;flex-shrink:0;position:relative;z-index:2;">← GLISSE → POUR VISER · TAP POUR TIRER</div>
     <div id="inv-over" class="arc-gameover" style="display:none;">
       <div class="arc-go-title" style="color:#7850ff;">GAME OVER</div>
       <div class="arc-go-score">Score : <span id="inv-final"></span></div>
@@ -17514,417 +17512,422 @@ document.addEventListener('keydown',e=>{
 
 
 // ─── SPACE CINÉ — Space Invaders ───
-let _invAnim=null, _invState=null;
+let _invAnim = null, _invState = null;
 
-// Emojis films pour les envahisseurs
-const INV_EMOJIS = ['🎬','🎭','🎞','🍿','🎥','📽','🏆','🎦','⭐','🎪'];
-// Noms de films courts pour les score popups
-const INV_FILMS = ['Alien','Matrix','Psycho','Jaws','Blade','Dune','Heat','Tenet','Drive','Leon'];
+const INV_EMOJIS  = ['🎬','🎭','🎞','🍿','🎥','📽','🏆','🎦','⭐','🎪'];
 
-function startInvaders(){
+function startInvaders() {
   go('arc-invaders');
-  document.getElementById('inv-over').style.display='none';
-  document.getElementById('inv-score').textContent='0';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    const cv = document.getElementById('inv-canvas');
-    const wrap = cv.parentElement;
-    const W = Math.min(wrap.clientWidth - 4, 380);
-    const H = Math.min(wrap.clientHeight - 4, 560);
-    cv.width = W; cv.height = H;
-    cv.style.width = W+'px'; cv.style.height = H+'px';
+  document.getElementById('inv-over').style.display = 'none';
+  document.getElementById('inv-score').textContent = '0';
+  cancelAnimationFrame(_invAnim); _invAnim = null;
+  if (_invState) { _invState.dead = true; _invState = null; }
+  document.removeEventListener('keydown', _invKey);
 
-    // Grille d'envahisseurs : 7 colonnes × 4 lignes
-    const COLS=7, ROWS=4;
-    const ew=34, eh=28, hgap=(W - COLS*ew)/(COLS+1), vgap=30;
-    const invaders=[];
-    for(let r=0;r<ROWS;r++){
-      for(let c=0;c<COLS;c++){
-        invaders.push({
-          x: hgap + c*(ew+hgap) + ew/2,
-          y: 55 + r*(eh+vgap),
-          alive: true,
-          emoji: INV_EMOJIS[(r*COLS+c)%INV_EMOJIS.length],
-          row: r, col: c,
-          hp: r===0?1:r<=1?1:2, // rangées du fond plus résistantes
-        });
-      }
-    }
+  // Attendre que le DOM soit rendu et que l'écran soit visible
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const area = document.getElementById('inv-game-area');
+    const cv   = document.getElementById('inv-canvas');
+    if (!area || !cv) return;
 
-    _invState = {
-      W, H,
-      invaders,
-      // Vaisseau joueur
-      ship: { x: W/2, y: H-36, w: 36, h: 22, vx: 0 },
-      // Tirs joueur
-      bullets: [],
-      // Tirs ennemis
-      eBullets: [],
-      // Mouvement flotte
-      fleetDx: 1.2, fleetDy: 0,
-      fleetTimer: 0, fleetInterval: 55,
-      score: 0,
-      lives: 3,
-      wave: 1,
-      frame: 0,
-      running: false,
-      started: false,
-      particles: [],
-      lastShot: 0,
-      // Touch
-      touchX: null,
-    };
+    const W = area.clientWidth  || 360;
+    const H = area.clientHeight || 500;
+    cv.width  = W;
+    cv.height = H;
 
-    cancelAnimationFrame(_invAnim);
-    _invLoop();
-
-    // Controls touch : glisser pour déplacer, tap pour tirer
-    let _touchStartX = null;
-    cv.ontouchstart = e => {
-      e.preventDefault();
-      _touchStartX = e.touches[0].clientX;
-      if(_invState) _invState.touchX = e.touches[0].clientX;
-    };
-    cv.ontouchmove = e => {
-      e.preventDefault();
-      if(!_invState || _touchStartX===null) return;
-      const dx = e.touches[0].clientX - _touchStartX;
-      _touchStartX = e.touches[0].clientX;
-      _invState.ship.x = Math.max(20, Math.min(_invState.W-20, _invState.ship.x + dx * 1.6));
-    };
-    cv.ontouchend = e => {
-      e.preventDefault();
-      if(_invState) _invShoot();
-    };
-    cv.onclick = () => { if(_invState) _invShoot(); };
-
-    // Keyboard
-    document.addEventListener('keydown', _invKeyDown);
+    _invInit(cv, W, H);
   }));
 }
 
-let _invKeys = {};
-function _invKeyDown(e){
-  if(!_invState) return;
-  if(e.key==='ArrowLeft'||e.key==='a') _invState.ship.x = Math.max(20,_invState.ship.x-22);
-  if(e.key==='ArrowRight'||e.key==='d') _invState.ship.x = Math.min(_invState.W-20,_invState.ship.x+22);
-  if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();_invShoot();}
+function _invMakeGrid(W, H, wave) {
+  const COLS = 7, ROWS = 4;
+  const cellW = Math.floor(W / (COLS + 1));
+  const cellH = 32;
+  const startY = 52;
+  const invaders = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      invaders.push({
+        x   : cellW * (c + 1),
+        y   : startY + r * (cellH + 8),
+        alive: true,
+        emoji: INV_EMOJIS[(r * COLS + c + wave * 2) % INV_EMOJIS.length],
+        hp  : r < 2 ? 1 : 2,
+        row : r, col: c,
+        flash: 0,
+      });
+    }
+  }
+  return invaders;
 }
 
-function _invShoot(){
-  const s = _invState; if(!s||!s.started) return;
+function _invInit(cv, W, H) {
+  const state = {
+    W, H, dead: false, started: false, running: false,
+    wave   : 1,
+    score  : 0,
+    lives  : 3,
+    frame  : 0,
+    invaders: _invMakeGrid(W, H, 1),
+    ship   : { x: W / 2, vy: 0 },
+    bullets: [],
+    eBullets: [],
+    particles: [],
+    fleetDir  : 1,
+    fleetTimer: 0,
+    lastShot  : 0,
+    waveMsg   : null,
+  };
+  _invState = state;
+
+  // ── Touch ──
+  let _tx0 = null;
+  cv.ontouchstart = e => {
+    e.preventDefault();
+    _tx0 = e.touches[0].clientX;
+    if (!state.started) { state.started = true; state.running = true; }
+  };
+  cv.ontouchmove = e => {
+    e.preventDefault();
+    if (!state.running || _tx0 === null) return;
+    const dx = (e.touches[0].clientX - _tx0) * 1.8;
+    _tx0 = e.touches[0].clientX;
+    state.ship.x = Math.max(16, Math.min(W - 16, state.ship.x + dx));
+  };
+  cv.ontouchend = e => {
+    e.preventDefault();
+    if (state.running) _invFire(state);
+  };
+  cv.onclick = () => {
+    if (!state.started) { state.started = true; state.running = true; return; }
+    if (state.running) _invFire(state);
+  };
+  document.addEventListener('keydown', _invKey);
+
+  _invLoop();
+}
+
+function _invKey(e) {
+  if (!_invState || !_invState.running) return;
+  const s = _invState;
+  const spd = s.W * 0.06;
+  if (e.key === 'ArrowLeft'  || e.key === 'a') s.ship.x = Math.max(16, s.ship.x - spd);
+  if (e.key === 'ArrowRight' || e.key === 'd') s.ship.x = Math.min(s.W - 16, s.ship.x + spd);
+  if (e.key === ' ' || e.key === 'ArrowUp') { e.preventDefault(); _invFire(s); }
+}
+
+function _invFire(s) {
   const now = Date.now();
-  if(now - s.lastShot < 280) return;
+  if (now - s.lastShot < 300) return;
   s.lastShot = now;
-  s.bullets.push({ x: s.ship.x, y: s.ship.y - 14, vy: -9, w:3, h:12 });
+  s.bullets.push({ x: s.ship.x, y: s.H - 52, vy: -s.H * 0.018 });
 }
 
-function stopInvaders(){
-  cancelAnimationFrame(_invAnim); _invAnim=null;
-  if(_invState) _invState.running=false;
-  _invState=null;
-  document.removeEventListener('keydown', _invKeyDown);
+function stopInvaders() {
+  cancelAnimationFrame(_invAnim); _invAnim = null;
+  if (_invState) { _invState.dead = true; _invState = null; }
+  document.removeEventListener('keydown', _invKey);
   const cv = document.getElementById('inv-canvas');
-  if(cv){ try{cv.getContext('2d').clearRect(0,0,cv.width,cv.height);}catch(e){} cv.width=1;cv.height=1; }
+  if (cv) { try { cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); } catch(e){} }
 }
 
-function _invLoop(){
-  const s = _invState; if(!s) return;
-  const cv = document.getElementById('inv-canvas'); if(!cv) return;
+function _invLoop() {
+  const s = _invState;
+  if (!s || s.dead) return;
+  const cv = document.getElementById('inv-canvas');
+  if (!cv) return;
   const ctx = cv.getContext('2d');
-  const W=s.W, H=s.H;
+  const W = s.W, H = s.H;
 
-  if(s.running){
+  // ── UPDATE ──
+  if (s.running) {
     s.frame++;
+    const alive = s.invaders.filter(i => i.alive);
 
-    // ── Mouvement flotte ──
+    // Mouvement flotte
+    const speed = 0.8 + (1 - alive.length / 28) * 2.4 + (s.wave - 1) * 0.35;
+    const interval = Math.max(6, 28 - alive.length);
     s.fleetTimer++;
-    const alive = s.invaders.filter(i=>i.alive);
-    const speed = 1.2 + (1 - alive.length/(7*4))*2.8 + (s.wave-1)*0.4;
-    if(s.fleetTimer >= Math.max(12, s.fleetInterval - alive.length*1.2)){
-      s.fleetTimer=0;
-      let hitWall=false;
-      alive.forEach(i=>{ i.x += s.fleetDx * speed; });
-      const minX = Math.min(...alive.map(i=>i.x));
-      const maxX = Math.max(...alive.map(i=>i.x));
-      if(maxX > W-16 || minX < 16){
-        s.fleetDx *= -1;
-        alive.forEach(i=>{ i.y += 18; });
-        hitWall=true;
+    if (s.fleetTimer >= interval) {
+      s.fleetTimer = 0;
+      alive.forEach(i => i.x += s.fleetDir * speed);
+      const minX = Math.min(...alive.map(i => i.x));
+      const maxX = Math.max(...alive.map(i => i.x));
+      if (maxX > W - 14 || minX < 14) {
+        s.fleetDir *= -1;
+        alive.forEach(i => { i.y += 16; });
       }
     }
 
-    // ── Tir ennemi aléatoire ──
-    if(s.frame % Math.max(28, 60 - s.wave*4) === 0 && alive.length){
-      // Choisir un envahisseur de la colonne la plus basse
-      const cols = {};
-      alive.forEach(i=>{ if(!cols[i.col]||i.y>cols[i.col].y) cols[i.col]=i; });
-      const shooters = Object.values(cols);
-      const shooter = shooters[Math.floor(Math.random()*shooters.length)];
-      if(shooter) s.eBullets.push({ x:shooter.x, y:shooter.y+14, vy:3.5+s.wave*0.3, w:4, h:10 });
+    // Tir ennemi
+    const fireRate = Math.max(20, 55 - s.wave * 5);
+    if (s.frame % fireRate === 0 && alive.length > 0) {
+      // Trouve le plus bas dans chaque colonne
+      const colMap = {};
+      alive.forEach(i => { if (!colMap[i.col] || i.y > colMap[i.col].y) colMap[i.col] = i; });
+      const shooters = Object.values(colMap);
+      const sh = shooters[Math.floor(Math.random() * shooters.length)];
+      if (sh) s.eBullets.push({ x: sh.x, y: sh.y + 14, vy: H * 0.009 + s.wave * 0.6 });
     }
 
-    // ── Déplacement tirs ──
-    s.bullets.forEach(b=>b.y+=b.vy);
-    s.bullets = s.bullets.filter(b=>b.y>-20);
-    s.eBullets.forEach(b=>b.y+=b.vy);
-    s.eBullets = s.eBullets.filter(b=>b.y<H+20);
+    // Mouvement bullets
+    s.bullets  = s.bullets.filter(b  => { b.y  += b.vy;  return b.y  > -10; });
+    s.eBullets = s.eBullets.filter(b => { b.y  += b.vy;  return b.y  < H + 10; });
 
-    // ── Collisions tirs joueur ↔ envahisseurs ──
-    s.bullets.forEach(b=>{
-      s.invaders.forEach(inv=>{
-        if(!inv.alive) return;
-        if(Math.abs(b.x-inv.x)<18 && Math.abs(b.y-inv.y)<14){
+    // Collisions bullet ↔ invader
+    for (let bi = s.bullets.length - 1; bi >= 0; bi--) {
+      const b = s.bullets[bi];
+      let hit = false;
+      for (const inv of s.invaders) {
+        if (!inv.alive) continue;
+        if (Math.abs(b.x - inv.x) < 16 && Math.abs(b.y - inv.y) < 14) {
           inv.hp--;
-          b.y=-999; // détruire le tir
-          if(inv.hp<=0){
-            inv.alive=false;
-            const pts = (4-inv.row)*10 + 10;
+          inv.flash = 6;
+          hit = true;
+          if (inv.hp <= 0) {
+            inv.alive = false;
+            const pts = (4 - inv.row) * 10 + 10;
             s.score += pts;
-            document.getElementById('inv-score').textContent=s.score;
-            // Particules explosion
-            for(let p=0;p<8;p++){
-              const a=Math.random()*Math.PI*2, sp=1+Math.random()*3;
-              s.particles.push({x:inv.x,y:inv.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:`hsl(${260+Math.random()*80},80%,65%)`});
+            document.getElementById('inv-score').textContent = s.score;
+            for (let p = 0; p < 7; p++) {
+              const a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * 2.5;
+              s.particles.push({ x: inv.x, y: inv.y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: 1, r: 3, color: `hsl(${260+Math.random()*80},80%,65%)` });
             }
-            // Flash score
-            s.particles.push({x:inv.x,y:inv.y-10,vx:0,vy:-0.8,life:1.5,text:'+'+pts,color:'#a07aff'});
-          } else {
-            // Hit flash (sans destruction)
-            s.particles.push({x:inv.x,y:inv.y,vx:0,vy:-0.5,life:0.5,color:'rgba(255,200,80,.8)',text:'💥'});
+            s.particles.push({ x: inv.x, y: inv.y - 8, vx: 0, vy: -0.6, life: 1.8, text: '+'+pts, color: '#c0a0ff' });
           }
+          break;
         }
-      });
-    });
-    s.bullets = s.bullets.filter(b=>b.y>-20);
-
-    // ── Collisions tirs ennemis ↔ joueur ──
-    s.eBullets.forEach(b=>{
-      const ship=s.ship;
-      if(Math.abs(b.x-ship.x)<18 && Math.abs(b.y-ship.y)<12){
-        b.y=H+99;
-        s.lives--;
-        // Explosion joueur
-        for(let p=0;p<10;p++){
-          const a=Math.random()*Math.PI*2, sp=2+Math.random()*3;
-          s.particles.push({x:ship.x,y:ship.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color:`hsl(${Math.random()*60+180},90%,65%)`});
-        }
-        if(s.lives<=0){ _invGameOver(); return; }
       }
-    });
-
-    // ── Envahisseurs arrivent en bas ──
-    if(alive.some(i=>i.y > H-60)){ _invGameOver(); return; }
-
-    // ── Vague suivante ──
-    if(alive.length===0){
-      s.wave++;
-      s.eBullets=[];
-      s.bullets=[];
-      // Réinitialiser la grille, plus serrée et plus rapide
-      const COLS=7, ROWS=4, ew=34, eh=28;
-      const hgap=(W - COLS*ew)/(COLS+1);
-      s.invaders.forEach((inv,idx)=>{
-        const r=Math.floor(idx/COLS), c=idx%COLS;
-        inv.alive=true;
-        inv.x=hgap + c*(ew+hgap) + ew/2;
-        inv.y=55 + r*(eh+30);
-        inv.hp=r===0?1:r<=1?1:2;
-        inv.emoji=INV_EMOJIS[(idx+s.wave*3)%INV_EMOJIS.length];
-      });
-      // Bonus de vague
-      s.score += s.wave*50;
-      document.getElementById('inv-score').textContent=s.score;
-      s.particles.push({x:W/2,y:H/2,vx:0,vy:-1,life:2,text:'VAGUE '+s.wave+' !',color:'#a07aff'});
+      if (hit) { s.bullets.splice(bi, 1); }
     }
 
-    // ── Particules ──
-    s.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=0.04;});
-    s.particles=s.particles.filter(p=>p.life>0);
+    // Collisions eBullet ↔ ship
+    const shipY = H - 36;
+    for (let bi = s.eBullets.length - 1; bi >= 0; bi--) {
+      const b = s.eBullets[bi];
+      if (Math.abs(b.x - s.ship.x) < 20 && Math.abs(b.y - shipY) < 16) {
+        s.eBullets.splice(bi, 1);
+        s.lives--;
+        for (let p = 0; p < 10; p++) {
+          const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 3;
+          s.particles.push({ x: s.ship.x, y: shipY, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: 1.2, r: 3, color: `hsl(${200+Math.random()*60},90%,65%)` });
+        }
+        if (s.lives <= 0) { _invGameOver(); return; }
+      }
+    }
+
+    // Envahisseurs arrivent en bas
+    if (s.invaders.some(i => i.alive && i.y > H - 65)) { _invGameOver(); return; }
+
+    // Vague suivante
+    const stillAlive = s.invaders.filter(i => i.alive);
+    if (stillAlive.length === 0) {
+      s.wave++;
+      s.invaders = _invMakeGrid(W, H, s.wave);
+      s.bullets = []; s.eBullets = [];
+      const bonus = s.wave * 50;
+      s.score += bonus;
+      document.getElementById('inv-score').textContent = s.score;
+      s.particles.push({ x: W/2, y: H/2, vx:0, vy:-0.5, life: 2.5, text: 'VAGUE '+s.wave+' !  +'+bonus, color: '#a07aff' });
+    }
+
+    // Particules
+    s.particles = s.particles.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.life -= 0.035;
+      return p.life > 0;
+    });
+    s.invaders.forEach(i => { if (i.flash > 0) i.flash--; });
   }
 
-  // ══════════════════ DESSIN ══════════════════
+  // ── DRAW ──
   // Fond étoilé
-  ctx.fillStyle='#06050f';
-  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#04030e';
+  ctx.fillRect(0, 0, W, H);
 
-  // Étoiles (pseudo-aléatoires mais stables)
-  ctx.fillStyle='rgba(255,255,255,.5)';
-  for(let i=0;i<60;i++){
-    const sx=((i*137+13)%W), sy=((i*71+7)%H);
-    const sz=i%3===0?1.5:0.8;
-    ctx.fillRect(sx,sy,sz,sz);
+  // Étoiles stables
+  for (let i = 0; i < 55; i++) {
+    const sx = (i * 137 + 17) % W;
+    const sy = (i * 73  + 11) % H;
+    const sz = i % 4 === 0 ? 1.5 : 0.8;
+    ctx.globalAlpha = 0.4 + (i % 3) * 0.2;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(sx, sy, sz, sz);
   }
-
-  // Grille néon très subtile
-  ctx.strokeStyle='rgba(120,80,255,.04)';
-  ctx.lineWidth=1;
-  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.globalAlpha = 1;
 
   // Envahisseurs
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  s.invaders.forEach(inv=>{
-    if(!inv.alive) return;
-    // Aura
-    const hue = 260 + inv.row*20;
-    ctx.shadowColor=`hsla(${hue},80%,60%,.6)`;
-    ctx.shadowBlur=8;
-    ctx.font=`${20}px serif`;
-    ctx.fillText(inv.emoji, inv.x, inv.y);
-    // HP bar si >1
-    if(inv.hp>1){
-      ctx.shadowBlur=0;
-      ctx.fillStyle='rgba(255,80,80,.6)';
-      ctx.fillRect(inv.x-10,inv.y+13,20,3);
-      ctx.fillStyle='rgba(255,180,80,.9)';
-      ctx.fillRect(inv.x-10,inv.y+13,inv.hp===2?10:20,3);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '20px serif';
+  s.invaders.forEach(inv => {
+    if (!inv.alive) return;
+    if (inv.flash > 0) {
+      ctx.globalAlpha = 0.5 + Math.sin(inv.flash * 1.2) * 0.5;
     }
+    ctx.shadowColor = `hsla(${260 + inv.row * 25},80%,65%,.7)`;
+    ctx.shadowBlur = 8;
+    ctx.fillText(inv.emoji, inv.x, inv.y);
+    // HP bar si hp>1
+    if (inv.hp > 1) {
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = 'rgba(80,40,180,.6)';
+      ctx.fillRect(inv.x - 10, inv.y + 14, 20, 3);
+      ctx.fillStyle = '#c0a0ff';
+      ctx.fillRect(inv.x - 10, inv.y + 14, 10, 3);
+    }
+    ctx.globalAlpha = 1;
   });
-  ctx.shadowBlur=0;
+  ctx.shadowBlur = 0;
 
-  // Tirs joueur (lasers violets)
-  s.bullets.forEach(b=>{
-    const grd=ctx.createLinearGradient(b.x,b.y,b.x,b.y+b.h);
-    grd.addColorStop(0,'rgba(200,160,255,0)');
-    grd.addColorStop(0.4,'rgba(160,100,255,1)');
-    grd.addColorStop(1,'rgba(255,220,255,1)');
-    ctx.fillStyle=grd;
-    ctx.shadowColor='rgba(160,100,255,.8)';
-    ctx.shadowBlur=8;
-    ctx.fillRect(b.x-b.w/2,b.y-b.h,b.w,b.h);
+  // Tirs joueur
+  s.bullets.forEach(b => {
+    const g = ctx.createLinearGradient(b.x, b.y + 14, b.x, b.y - 2);
+    g.addColorStop(0, 'rgba(180,120,255,0)');
+    g.addColorStop(1, 'rgba(220,180,255,1)');
+    ctx.fillStyle = g;
+    ctx.shadowColor = 'rgba(160,100,255,.9)';
+    ctx.shadowBlur = 10;
+    ctx.fillRect(b.x - 2, b.y - 14, 4, 16);
   });
-  ctx.shadowBlur=0;
 
-  // Tirs ennemis (rouge orangé)
-  s.eBullets.forEach(b=>{
-    const grd=ctx.createLinearGradient(b.x,b.y-b.h,b.x,b.y);
-    grd.addColorStop(0,'rgba(255,150,50,1)');
-    grd.addColorStop(1,'rgba(255,50,50,0)');
-    ctx.fillStyle=grd;
-    ctx.shadowColor='rgba(255,100,50,.7)';
-    ctx.shadowBlur=6;
-    ctx.fillRect(b.x-b.w/2,b.y-b.h,b.w,b.h);
+  // Tirs ennemis
+  s.eBullets.forEach(b => {
+    const g = ctx.createLinearGradient(b.x, b.y - 12, b.x, b.y + 2);
+    g.addColorStop(0, 'rgba(255,100,50,1)');
+    g.addColorStop(1, 'rgba(255,50,50,0)');
+    ctx.fillStyle = g;
+    ctx.shadowColor = 'rgba(255,80,30,.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillRect(b.x - 2.5, b.y - 12, 5, 14);
   });
-  ctx.shadowBlur=0;
+  ctx.shadowBlur = 0;
 
-  // Vaisseau joueur (caméra ciné stylisée)
-  const ship=s.ship;
+  // Vaisseau joueur
+  const shipX = s.ship.x, shipY = H - 36;
   ctx.save();
-  ctx.translate(ship.x, ship.y);
-  // Corps principal
-  ctx.fillStyle='#7850ff';
-  ctx.shadowColor='rgba(120,80,255,.8)';
-  ctx.shadowBlur=16;
+  ctx.translate(shipX, shipY);
+  ctx.shadowColor = 'rgba(120,80,255,.9)';
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = '#8060ff';
   ctx.beginPath();
-  ctx.moveTo(0,-ship.h/2);
-  ctx.lineTo(ship.w/2, ship.h/2);
-  ctx.lineTo(-ship.w/2, ship.h/2);
+  ctx.moveTo(0, -18);
+  ctx.lineTo(18, 12);
+  ctx.lineTo(8, 6);
+  ctx.lineTo(0, 10);
+  ctx.lineTo(-8, 6);
+  ctx.lineTo(-18, 12);
   ctx.closePath();
   ctx.fill();
-  // Objectif caméra au centre
-  ctx.fillStyle='#1a0a3a';
-  ctx.shadowBlur=0;
-  ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(100,180,255,.8)';
-  ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.9)';
-  ctx.beginPath();ctx.arc(2,-2,1.5,0,Math.PI*2);ctx.fill();
+  // Objectif caméra
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#1a0a3a';
+  ctx.beginPath(); ctx.arc(0, -2, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(120,200,255,.9)';
+  ctx.beginPath(); ctx.arc(0, -2, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.beginPath(); ctx.arc(1.5, -3.5, 1.5, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 
-  // Vies (petits vaisseaux)
-  for(let l=0;l<s.lives;l++){
+  // Ligne de base
+  ctx.strokeStyle = 'rgba(120,80,255,.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, H - 18); ctx.lineTo(W, H - 18); ctx.stroke();
+
+  // Vies
+  for (let l = 0; l < s.lives; l++) {
     ctx.save();
-    ctx.translate(14+l*22, H-12);
-    ctx.fillStyle='rgba(120,80,255,.7)';
-    ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(8,6);ctx.lineTo(-8,6);ctx.closePath();ctx.fill();
+    ctx.translate(12 + l * 24, H - 9);
+    ctx.fillStyle = 'rgba(130,90,255,.75)';
+    ctx.shadowColor = 'rgba(120,80,255,.5)';
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(0,-7); ctx.lineTo(9,5); ctx.lineTo(-9,5); ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }
+  ctx.shadowBlur = 0;
 
-  // Particules + textes flottants
-  s.particles.forEach(p=>{
-    ctx.globalAlpha=Math.min(1,p.life);
-    if(p.text){
-      ctx.font=`bold ${p.text.length>3?13:16}px 'Bebas Neue',sans-serif`;
-      ctx.fillStyle=p.color;
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
-      ctx.shadowColor=p.color;
-      ctx.shadowBlur=8;
-      ctx.fillText(p.text,p.x,p.y);
-    } else {
-      ctx.fillStyle=p.color;
-      ctx.shadowColor=p.color;
-      ctx.shadowBlur=6;
-      ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
-    }
-  });
-  ctx.globalAlpha=1;
-  ctx.shadowBlur=0;
-
-  // Score wave indicator
-  if(s.wave>1){
-    ctx.textAlign='right';
-    ctx.font='12px Bebas Neue,sans-serif';
-    ctx.fillStyle='rgba(160,100,255,.5)';
-    ctx.fillText('VAGUE '+s.wave, W-12, H-10);
+  // Wave badge
+  if (s.wave > 1) {
+    ctx.textAlign = 'right';
+    ctx.font = '11px Bebas Neue,sans-serif';
+    ctx.fillStyle = 'rgba(160,120,255,.45)';
+    ctx.fillText('VAGUE ' + s.wave, W - 10, H - 6);
   }
 
+  // Particules
+  s.particles.forEach(p => {
+    ctx.globalAlpha = Math.min(1, p.life * 1.2);
+    if (p.text) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${p.text.length > 6 ? 12 : 15}px 'Bebas Neue',sans-serif`;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.fillText(p.text, p.x, p.y);
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 5;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r || 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  });
+  ctx.globalAlpha = 1;
+
   // Écran de démarrage
-  if(!s.started){
-    ctx.fillStyle='rgba(6,5,15,.75)';
-    ctx.fillRect(0,0,W,H);
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.font=`bold ${Math.round(H*0.048)}px 'Bebas Neue',sans-serif`;
-    ctx.fillStyle='rgba(160,120,255,.95)';
-    ctx.shadowColor='rgba(120,80,255,.6)';
-    ctx.shadowBlur=20;
-    ctx.fillText('SPACE CINÉ', W/2, H/2-22);
-    ctx.shadowBlur=0;
-    ctx.font=`${Math.round(H*0.030)}px sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,.6)';
-    ctx.fillText('TAP pour démarrer', W/2, H/2+14);
-    ctx.font=`${Math.round(H*0.022)}px sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,.3)';
-    ctx.fillText('Glisse ← → · Tap = tir', W/2, H/2+42);
+  if (!s.started) {
+    ctx.fillStyle = 'rgba(4,3,14,.80)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-    // Render invaders preview
-    ctx.font='18px serif';
-    INV_EMOJIS.slice(0,5).forEach((e,i)=>{
-      ctx.globalAlpha=0.5+Math.sin(Date.now()/600+i)*0.3;
-      ctx.fillText(e, W/2-80+i*40, H/2-70);
+    ctx.font = `bold ${Math.round(H * 0.052)}px 'Bebas Neue',sans-serif`;
+    ctx.fillStyle = 'rgba(180,140,255,.95)';
+    ctx.shadowColor = 'rgba(120,80,255,.7)';
+    ctx.shadowBlur = 24;
+    ctx.fillText('SPACE CINÉ', W / 2, H / 2 - 26);
+
+    ctx.shadowBlur = 0;
+    ctx.font = `${Math.round(H * 0.032)}px sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.fillText('TAP pour démarrer', W / 2, H / 2 + 12);
+
+    ctx.font = `${Math.round(H * 0.024)}px sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    ctx.fillText('Glisse ← → pour viser · Tap pour tirer', W / 2, H / 2 + 40);
+
+    // Preview emojis animés
+    const t = Date.now() / 700;
+    INV_EMOJIS.slice(0, 5).forEach((em, i) => {
+      ctx.globalAlpha = 0.55 + Math.sin(t + i * 0.9) * 0.25;
+      ctx.font = '22px serif';
+      ctx.fillText(em, W / 2 - 88 + i * 44, H / 2 - 68);
     });
-    ctx.globalAlpha=1;
-
-    // Start on tap
-    const cv=document.getElementById('inv-canvas');
-    const startOnce=()=>{
-      if(_invState){_invState.started=true;_invState.running=true;}
-      cv.removeEventListener('click',startOnce);
-      cv.ontouchend=e=>{e.preventDefault();if(_invState)_invShoot();};
-    };
-    cv.addEventListener('click',startOnce,{once:true});
+    ctx.globalAlpha = 1;
   }
 
   _invAnim = requestAnimationFrame(_invLoop);
 }
 
-function _invGameOver(){
-  const s=_invState; if(!s) return;
-  cancelAnimationFrame(_invAnim); s.running=false;
-  document.getElementById('inv-final').textContent=s.score;
-  const prev=_getArcadeHS('invaders')||0;
-  const msg=document.getElementById('inv-best-msg');
-  if(s.score>prev){
-    _saveArcadeHS('invaders',s.score);
-    const el=document.getElementById('arc-hs-invaders');
-    if(el)el.textContent='🏆 Record : '+s.score;
-    if(msg)msg.textContent='Nouveau record !';
+function _invGameOver() {
+  const s = _invState; if (!s) return;
+  cancelAnimationFrame(_invAnim); _invAnim = null;
+  s.running = false;
+  document.getElementById('inv-final').textContent = s.score;
+  const prev = _getArcadeHS('invaders') || 0;
+  const msg  = document.getElementById('inv-best-msg');
+  if (s.score > prev) {
+    _saveArcadeHS('invaders', s.score);
+    const el = document.getElementById('arc-hs-invaders');
+    if (el) el.textContent = '🏆 Record : ' + s.score;
+    if (msg) msg.textContent = '★ Nouveau record !';
   } else {
-    if(msg)msg.textContent='Record : '+prev;
+    if (msg) msg.textContent = 'Record : ' + prev;
   }
-  document.getElementById('inv-over').style.display='flex';
+  document.getElementById('inv-over').style.display = 'flex';
 }
 
 // ─── PONG ───
