@@ -252,6 +252,17 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 #home-bg.visible{opacity:1;}
 
+/* Canvas neural noise sur l'accueil */
+#home-neuro{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  display:block;
+  z-index:0;pointer-events:none;
+  opacity:0;
+  transition:opacity 1.4s ease;
+}
+#home-neuro.visible{opacity:1;}
+
 /* Halos anim-s en CSS pur - 3 spots color-s qui d-rivent lentement */
 #home-bg::before{
   content:'';position:absolute;inset:-30%;width:160%;height:160%;
@@ -3902,17 +3913,24 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 /* Hint swipe bas */
 .hmv-hint{
-  position:absolute;bottom:max(env(safe-area-inset-bottom),20px);
+  position:absolute;
+  bottom:max(env(safe-area-inset-bottom),16px);
   left:0;right:0;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
   pointer-events:none;
-  animation:hmvHintBounce 2s ease-in-out infinite;
+  z-index:20;
+  transition:opacity .3s;
+  animation:hmvHintBounce 2.4s ease-in-out infinite;
 }
-.hmv-hint-text{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;}
-.hmv-hint svg{color:rgba(255,255,255,.25);}
+.hmv-hint-text{
+  font-size:9px;color:rgba(255,255,255,.32);
+  letter-spacing:2px;text-transform:uppercase;
+  text-align:center;line-height:1.6;
+}
+.hmv-hint svg{color:rgba(255,255,255,.22);}
 @keyframes hmvHintBounce{
   0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-6px);}
+  50%{transform:translateY(-5px);}
 }
 
 /* Panneau infos (slide-up) */
@@ -4604,7 +4622,9 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 <div class="wrap" id="wrap">
 
   <!-- FOND PROJECTEUR ANIMÉ -->
-  <div id="home-bg"></div>
+  <div id="home-bg">
+    <canvas id="home-neuro"></canvas>
+  </div>
 
   <!-- HOME -->
   <div class="scr on" id="home">
@@ -8421,6 +8441,105 @@ const ANECDOTES=[
   {text:"Le film 'Mad Max' (1979) de George Miller a coûté 400 000 dollars australiens. Il est entré au Guinness des Records comme le film le plus rentable de l'histoire par rapport à son budget.",tag:"Box-office"},
   {text:"Pour préparer 'Raging Bull', Robert De Niro a pris 27 kilos après avoir appris à vraiment boxer. Il a disputé trois vrais combats amateurs pour que les scènes soient authentiques.",tag:"Acteur"},
   {text:"Le générique de 'Seven' (1995) a été conçu par Kyle Cooper en seulement quelques semaines avec un budget minimal. Il est devenu la référence absolue du générique de film noir.",tag:"Technique"},
+
+  // ── Pack 3 — 100 nouvelles anecdotes ──
+  {text:"Tom Hanks a perdu 25 kilos pour 'Seul au monde' (2000) en ne mangeant que des fruits et en courant chaque jour. La production a suspendu le tournage 1 an pour lui laisser le temps de maigrir.",tag:"Acteur"},
+  {text:"Le son du sabre laser de 'Star Wars' a été créé par Ben Burtt en combinant le bourdonnement d'un vieux téléviseur et le moteur d'un projecteur de cinéma défectueux.",tag:"Son"},
+  {text:"Lors du tournage de 'Jaws' (1975), le requin mécanique tombait en panne constamment. Spielberg a décidé de ne presque jamais le montrer — ce qui a rendu le film bien plus effrayant.",tag:"Tournage"},
+  {text:"La musique iconique de 'La Panthère rose' a été composée par Henry Mancini en une nuit. Le réalisateur l'avait commandée pour une scène provisoire et l'a gardée définitivement.",tag:"Musique"},
+  {text:"Daniel Craig a subi plus de 25 blessures physiques pendant le tournage de 'Casino Royale'. L'équipe médicale était en permanence sur le plateau.",tag:"Acteur"},
+  {text:"Le décor de la planète Tatooine dans 'Star Wars' a été construit en Tunisie. Certains bâtiments sont encore debout et accessibles aux touristes aujourd'hui.",tag:"Décors"},
+  {text:"Heath Ledger s'est enfermé seul dans une chambre d'hôtel pendant 6 semaines pour préparer le rôle du Joker dans 'The Dark Knight'. Il tenait un journal au nom du personnage.",tag:"Acteur"},
+  {text:"Le film 'Parasite' de Bong Joon-ho (2019) est le premier film non-anglophone à remporter l'Oscar du Meilleur Film en 92 ans d'histoire de la cérémonie.",tag:"Histoire"},
+  {text:"Audrey Hepburn chantait elle-même 'Moon River' dans 'Breakfast at Tiffany's'. Le studio voulait couper la scène — Henry Mancini et le réalisateur ont refusé catégoriquement.",tag:"Musique"},
+  {text:"Le tournage de 'Apocalypse Now' a duré 238 jours au lieu des 16 prévus. Marlon Brando est arrivé sur le plateau sans avoir lu le script et pesant 40 kilos de trop.",tag:"Tournage"},
+  {text:"Le mot 'Rosebud' dans 'Citizen Kane' (1941) était un surnom privé de William Randolph Hearst pour une partie intime de sa maîtresse. Orson Welles le savait et l'a utilisé délibérément.",tag:"Histoire"},
+  {text:"Sigourney Weaver, pour 'Aliens', a insisté pour que son personnage soit celle qui manie les armes les plus lourdes sur le tournage. Elle s'est entraînée avec de vrais Marines américains.",tag:"Acteur"},
+  {text:"Le générique de 'Se7en' a été réalisé par David Fincher avec une caméra Super-8 dans son appartement le week-end. Il a coûté moins de 10 000 dollars.",tag:"Technique"},
+  {text:"Joaquin Phoenix a perdu 23 kilos pour jouer Arthur Fleck dans 'Joker' (2019). Il a développé une démarche si particulière que Todd Phillips l'a gardée telle quelle, sans chorégraphie.",tag:"Acteur"},
+  {text:"Le producteur de '2001 : L'Odyssée de l'espace' a essayé de faire couper 17 minutes du film à la sortie, pensant que Kubrick avait perdu la tête. Le film est devenu un chef-d'œuvre absolu.",tag:"Histoire"},
+  {text:"La scène du cheval dans 'Le Parrain' a nécessité une tête de cheval réelle — achetée à une entreprise d'équarrissage. L'acteur John Marley (qui joue la scène) n'était pas prévenu.",tag:"Tournage"},
+  {text:"Le budget effets spéciaux de 'Terminator 2' (1991) était de 15 millions de dollars — soit plus que l'intégralité du budget du premier 'Terminator' (1984).",tag:"Technique"},
+  {text:"Meryl Streep a appris l'accent polonais pour 'Le Choix de Sophie' en 3 mois, ainsi que des rudiments de polonais et d'allemand. Elle a déclaré que c'était le rôle le plus difficile de sa carrière.",tag:"Acteur"},
+  {text:"Dans 'Retour vers le Futur', le flux condensateur était censé être logé dans un frigo atomique. Steven Spielberg a convaincu Zemeckis de changer pour une voiture, craignant que des enfants copient.",tag:"Anecdote"},
+  {text:"Le réalisateur David Lynch compose lui-même une grande partie des musiques et ambiances sonores de ses films. Il a appris seul la guitare, la batterie et la production électronique.",tag:"Musique"},
+  {text:"Anthony Hopkins n'apparaît à l'écran que 16 minutes dans 'Le Silence des Agneaux' — l'un des rôles les plus courts à avoir remporté l'Oscar du Meilleur Acteur.",tag:"Acteur"},
+  {text:"Pour 'Braveheart' (1995), Mel Gibson a utilisé jusqu'à 1 600 figurants irlandais membres de la réserve militaire irlandaise. Certains jouaient les Anglais l'après-midi et les Écossais le matin.",tag:"Tournage"},
+  {text:"La scène de la douche dans 'Psycho' (1960) dure 45 secondes et est composée de 78 plans différents. Janet Leigh a mis 7 jours à la tourner avec Hitchcock.",tag:"Tournage"},
+  {text:"Le réalisateur de 'Mad Max: Fury Road' George Miller a gardé le film en pré-production pendant 17 ans, attendant la technologie et le budget nécessaires. Le film a remporté 6 Oscars en 2016.",tag:"Histoire"},
+  {text:"Jim Carrey est resté dans la peau du Grinch pendant toute la durée du tournage, même hors caméra. Les maquilleurs lui ont appris des techniques de torture mentale pour supporter les 8h30 de maquillage quotidien.",tag:"Acteur"},
+  {text:"Le son de la Force dans 'Star Wars' — ce bourdonnement grave — a été créé à partir de l'interférence électrique captée par un enregistreur posé trop près d'un écran de télévision.",tag:"Son"},
+  {text:"Pour 'Schindler's List', Spielberg refusait de garder l'argent généré par le film, le considérant comme 'du sang money'. Il a reversé tous ses bénéfices à la Shoah Foundation.",tag:"Histoire"},
+  {text:"Le rôle de Pretty Woman devait initialement être une histoire sombre sur la prostitution et la drogue. C'est Disney qui a racheté le projet et imposé d'en faire une comédie romantique.",tag:"Anecdote"},
+  {text:"Dans 'The Truman Show' (1998), Peter Weir a fait installer de vraies caméras cachées dans la ville décor. Certains membres de la production ne savaient pas qu'ils étaient filmés en permanence.",tag:"Tournage"},
+  {text:"Christoph Waltz ne parlait pas un mot de français avant 'Inglourious Basterds'. Il a appris sa tirade d'ouverture phonétiquement en 3 semaines. Il a remporté l'Oscar du Meilleur Second Rôle.",tag:"Acteur"},
+  {text:"Le budget de 'Moonlight' (2016) était de 1,5 million de dollars. Il a remporté l'Oscar du Meilleur Film face à des productions à 100 millions. La remise du prix a donné lieu à la bévue des Oscars la plus mémorable.",tag:"Box-office"},
+  {text:"Ryan Gosling a été choisi pour 'N'oublie jamais' parce que le réalisateur pensait qu'il n'était 'pas beau au sens hollywoodien'. Gosling a perdu 25 kilos pour le rôle.",tag:"Casting"},
+  {text:"Le film 'Grease' (1978) a été tourné alors qu'Olivia Newton-John avait 29 ans et John Travolta 23 ans. Ils jouaient des lycéens.",tag:"Anecdote"},
+  {text:"Pour 'Black Swan' (2010), Natalie Portman a suivi un entraînement de ballet intensif pendant un an, six heures par jour. Elle a quand même eu besoin d'une doublure pour les séquences les plus techniques.",tag:"Acteur"},
+  {text:"La tour Eiffel n'est presque jamais visible dans les films censés se passer à Paris — car filmer la tour illuminée la nuit est soumis à des droits d'auteur jusqu'en 2044.",tag:"Technique"},
+  {text:"Dans 'Interstellar', les données scientifiques sur les trous noirs fournies par le réalisateur Christopher Nolan au physicien Kip Thane ont conduit à la publication de trois articles scientifiques.",tag:"Technique"},
+  {text:"Le casting de 'Forrest Gump' a d'abord proposé le rôle à John Travolta, Chevy Chase et Bill Murray — tous ont refusé. Tom Hanks a accepté sans lire le script entier.",tag:"Casting"},
+  {text:"Pour 'Les Misérables' (2012), Tom Hooper a fait chanter tous ses acteurs en direct sur le plateau au lieu de synchroniser sur une bande musicale préenregistrée — une première dans l'histoire de la comédie musicale.",tag:"Musique"},
+  {text:"Le réalisateur Ari Aster a mis 4 ans à financer 'Midsommar' après le succès d'Hérédité. Les investisseurs refusaient de financer un film d'horreur se déroulant en pleine lumière du jour.",tag:"Histoire"},
+  {text:"Dans 'Shrek', Eddie Murphy (l'Âne) et Mike Myers (Shrek) n'ont jamais enregistré leurs scènes ensemble. Toutes leurs interactions ont été montées à partir d'enregistrements séparés.",tag:"Technique"},
+  {text:"Sharon Tate est apparue dans 13 films entre 1963 et 1969. Roman Polanski a refusé de retirer son nom du générique de 'Rosemary's Baby' après son assassinat — considérant cela comme un hommage.",tag:"Histoire"},
+  {text:"L'actrice Halle Berry a exigé que son cachet pour 'X-Men' soit reversé à des associations caritatives après avoir remporté l'Oscar pour 'Monster's Ball' — estimant qu'elle était désormais sous-payée.",tag:"Casting"},
+  {text:"L'effet sonore du vaisseau Millennium Falcon dans 'Star Wars' est un mélange de moteur d'avion DC-3, d'un moteur de jeep et d'un ventilateur de bureau des années 1950.",tag:"Son"},
+  {text:"Le rôle de Jack dans 'Titanic' a été proposé à Matthew McConaughey avant Leonardo DiCaprio. James Cameron a insisté pour DiCaprio malgré les réserves du studio.",tag:"Casting"},
+  {text:"Dans 'La La Land' (2016), Ryan Gosling a appris à jouer du piano de zéro en 3 mois pour le film. Il a insisté pour que ses mains soient visibles dans chaque plan de piano.",tag:"Acteur"},
+  {text:"'Gone with the Wind' (1939) a brûlé les vieux décors d'Atlanta Picture qui occupaient ses plateaux en les utilisant pour les scènes d'incendie d'Atlanta. Économique et spectaculaire.",tag:"Tournage"},
+  {text:"Le réalisateur de 'Whiplash' Damien Chazelle a filmé la première scène de baguettes en 2 jours avec 1 acteur et une caméra. Elle est restée quasi identique dans la version finale.",tag:"Tournage"},
+  {text:"Pour le tournage de 'Cast Away', Tom Hanks et toute l'équipe ont quitté l'île pendant un an pour que Wilson Hanks puisse prendre du poids pour la deuxième partie du film.",tag:"Acteur"},
+  {text:"Le réalisateur Guillermo del Toro garde des carnets de croquis détaillés de tous ses monstres et décors. Son carnet pour 'Le Labyrinthe de Pan' contient plus de 300 pages de dessins.",tag:"Anecdote"},
+  {text:"La bande originale de 'Drive' (2011) a été composée avant même que le tournage ne commence. Ryan Gosling conduisait en écoutant les morceaux pour trouver le rythme de son personnage.",tag:"Musique"},
+  {text:"Dans 'Le Seigneur des Anneaux', les acteurs jouant les Hobbits ont développé leurs propres pieds prosthétiques customisés et refusaient de les retirer entre les prises pour 'rester dans le personnage'.",tag:"Tournage"},
+  {text:"Le réalisateur Sidney Lumet a tourné '12 Hommes en colère' (1957) en faisant délibérément rétrécir la salle au fil du film — en utilisant des objectifs de plus en plus larges et en abaissant la caméra.",tag:"Technique"},
+  {text:"Charlize Theron a pris 15 kilos et rasé ses sourcils pour 'Monster' (2003). Sa transformation si radicale a déconcerté sa propre mère qui ne l'a pas reconnue sur les photos de tournage.",tag:"Acteur"},
+  {text:"Le film 'Room' (2015) a été tourné dans un ordre chronologique strict pour que Jacob Tremblay (7 ans) comprenne vraiment ce que son personnage vivait. Le réalisateur lui offrait des jouets à chaque scène difficile.",tag:"Tournage"},
+  {text:"Tarantino a écrit le rôle de Mia Wallace dans 'Pulp Fiction' en pensant à Uma Thurman dès le départ. Il lui a lu le script au téléphone depuis une cabine à Los Angeles.",tag:"Casting"},
+  {text:"L'acteur qui joue le méchant dans 'Die Hard' — Alan Rickman — est tombé d'une hauteur de 12 mètres pour la scène finale. On lui avait dit qu'il tomberait au compte de 3. On l'a lâché au compte de 1.",tag:"Tournage"},
+  {text:"Pour donner de la profondeur à E.T., Steven Spielberg a demandé aux acteurs de ne jamais regarder directement la marionnette dans les yeux pendant les répétitions.",tag:"Technique"},
+  {text:"Le film 'Her' (2013) de Spike Jonze a été tourné dans l'ordre inverse — la fin en premier. Scarlett Johansson a enregistré toutes ses répliques vocales depuis son appartement new-yorkais.",tag:"Tournage"},
+  {text:"Dans 'Le Silence des Agneaux', Jodie Foster était tellement petite comparée à ses partenaires masculins que la production a dû creuser des tranchées sur le plateau pour les faire paraître plus grands.",tag:"Technique"},
+  {text:"La maison de Psycho à Universal Studios a été construite à seulement 60% de la taille réelle pour créer une illusion de hauteur terrifiante sur pellicule.",tag:"Décors"},
+  {text:"Adam Driver a servi dans les Marines américains avant de devenir acteur. Il s'est engagé après le 11 septembre et a été libéré pour une blessure de vélo avant d'être déployé.",tag:"Acteur"},
+  {text:"Le film 'Her' utilisait initialement la voix de Samantha Morton pour le rôle de l'IA. Après le tournage entier, Spike Jonze a décidé de tout re-enregistrer avec Scarlett Johansson.",tag:"Anecdote"},
+  {text:"Dans 'Avatar' (2009), les acteurs jouaient dans un décor quasi-vide avec des combinaisons à capteurs. James Cameron leur a fait apprendre la culture des Na'vi, incluant une langue inventée de 1000 mots.",tag:"Technique"},
+  {text:"La scène de l'autostop dans 'Mulholland Drive' de David Lynch a été tournée 70 fois. Lynch n'a jamais expliqué aux acteurs ce que la scène signifiait — même après la sortie du film.",tag:"Tournage"},
+  {text:"Rami Malek a porté 4 kilos de prothèses dentaires pour jouer Freddie Mercury dans 'Bohemian Rhapsody'. Il lui a fallu plusieurs mois pour apprendre à parler normalement avec.",tag:"Acteur"},
+  {text:"Pour 'Dunkerque' (2017), Christopher Nolan a refusé d'utiliser des effets numériques pour les soldats sur la plage. Il a dirigé 6 000 figurants réels habillés en uniformes d'époque.",tag:"Tournage"},
+  {text:"Le compositeur Hans Zimmer a créé la bande originale d'Inception sans jamais voir de scènes du film. Il travaillait uniquement à partir du script et de conversations avec Nolan.",tag:"Musique"},
+  {text:"Dans 'Edward aux mains d'argent', Tim Burton a insisté pour que Johnny Depp ne parle presque pas. Plus de la moitié des intentions du personnage sont communiquées uniquement par les yeux.",tag:"Anecdote"},
+  {text:"La fin de 'Chinatown' (1974) a été réécrite par le producteur Robert Evans contre la volonté de Polanski. Le réalisateur voulait que la fille survive. Le dénouement tragique est devenu iconique.",tag:"Histoire"},
+  {text:"Pour 'American History X', Edward Norton a appris à jouer au hockey sur gazon de zéro en 6 semaines. Il a également subi un régime de musculation intense pour incarner un néo-nazi crédible.",tag:"Acteur"},
+  {text:"Le plan d'ouverture de 'Touch of Evil' (1958) d'Orson Welles — un plan-séquence de 3 min 20 — a été tourné en une seule prise après des semaines de répétitions avec grues et acteurs.",tag:"Technique"},
+  {text:"Pour 'Atonement' (2007), le réalisateur Joe Wright a recréé la plage de Dunkerque avec 1000 figurants, 30 chevaux et 50 véhicules d'époque. La scène de 5 minutes a été tournée en une seule prise.",tag:"Tournage"},
+  {text:"Le film 'Whiplash' a été tourné en 19 jours. Miles Teller saignait réellement dans certaines scènes de batterie — les bandages n'étaient pas de la fiction.",tag:"Tournage"},
+  {text:"Dans 'La Vie est belle' (1946), Frank Capra voulait que Jimmy Stewart pleure de vraies larmes. Plutôt que de le forcer, il a fait asphalter le sol du décor de la rivière gelée pour que l'acteur glisse vraiment.",tag:"Tournage"},
+  {text:"Le compositeur Ennio Morricone et Sergio Leone étaient camarades de classe à l'école primaire. Ils se sont retrouvés 30 ans plus tard pour travailler ensemble sur 'Pour une poignée de dollars'.",tag:"Musique"},
+  {text:"Dans 'Gravity' (2013), les acteurs étaient suspendus dans des harnais pendant des journées entières de tournage. Sandra Bullock a décrit les sessions de tournage comme 'les 10 jours les plus misérables de ma vie'.",tag:"Tournage"},
+  {text:"Les effets visuels de 'The Matrix' ont été développés en partie par des animateurs de jeux vidéo — une première dans l'industrie cinématographique de l'époque.",tag:"Technique"},
+  {text:"Pour 'Brooklyn' (2015), Saoirse Ronan a décliné plusieurs grandes productions pour accepter ce film indépendant. Elle a déclaré avoir pleuré en lisant le script dans un taxi londonien.",tag:"Casting"},
+  {text:"La musique de 'Pirates des Caraïbes' a été composée par Hans Zimmer en une semaine — il avait accepté le projet trop tard. Il a travaillé 24h sur 24 avec une équipe de compositeurs.",tag:"Musique"},
+  {text:"Dans 'Silence of the Lambs', Jonathan Demme filmait souvent Anthony Hopkins regardant directement dans l'objectif pour briser le 4e mur et mettre le spectateur dans la peau de Clarice.",tag:"Technique"},
+  {text:"Steven Spielberg a tourné les scènes de guerre de 'Il faut sauver le soldat Ryan' dans un ordre volontairement chaotique pour que les acteurs ressentent une vraie désorientation.",tag:"Tournage"},
+  {text:"Lady Bird (2017) de Greta Gerwig détient le record du film avec la meilleure note critique sur Rotten Tomatoes — avec 100% pendant plusieurs semaines après sa sortie.",tag:"Histoire"},
+  {text:"Dans 'Mulholland Drive', la boîte bleue mystérieuse n'a jamais été expliquée par Lynch. Il a dit aux journalistes : 'Vous savez déjà ce qu'elle contient, vous l'avez vu.'",tag:"Anecdote"},
+  {text:"Le film 'Stalker' d'Andreï Tarkovski (1979) a dû être entièrement retourné après que la pellicule initiale soit accidentellement détruite par un laboratoire. Tarkovski a recommencé sans budget supplémentaire.",tag:"Histoire"},
+  {text:"Dans 'Requiem for a Dream', Darren Aronofsky a utilisé une 'hip-hop montage' — une technique de montage ultra-rapide — pour recréer les effets physiologiques de la dépendance chez le spectateur.",tag:"Technique"},
+  {text:"Cate Blanchett est apparue dans plus de 70 films depuis 1994 mais n'a jamais signé de contrat de plus de 3 films avec un même studio — refusant délibérément de se lier à des franchises.",tag:"Acteur"},
+  {text:"Le film 'Elephant' de Gus Van Sant (2003), Palme d'Or à Cannes, a été tourné avec des lycéens non-professionnels qui improvisaient la majorité de leurs dialogues.",tag:"Tournage"},
+  {text:"Dans '12 Years a Slave', Chiwetel Ejiofor n'a jamais regardé les rushes de ses propres scènes — craignant que voir sa performance le rende moins naturel pour les scènes suivantes.",tag:"Acteur"},
+  {text:"La bande son de '2001 : L'Odyssée de l'espace' a été choisie par Kubrick pour remplacer la musique originale d'Alex North juste avant la sortie. North ne l'a appris qu'en allant voir le film.",tag:"Musique"},
+  {text:"Pour 'Hereditary' (2018), Toni Collette a déclaré avoir vécu dans la maison du film pendant toute la préproduction pour 'absorber son atmosphère'. Elle dormait dans la chambre du grenier.",tag:"Acteur"},
+  {text:"Dans 'No Country for Old Men', les frères Coen ont tourné la scène finale du film en premier — avant même d'avoir décidé comment le reste de l'histoire se déroulerait.",tag:"Tournage"},
+  {text:"La célèbre affiche de 'Vertigo' d'Hitchcock, créée par Saul Bass, a été conçue en une semaine pour un cachet de 3 000 dollars. Elle est aujourd'hui considérée comme l'une des plus grandes affiches de l'histoire.",tag:"Histoire"},
+  {text:"Le film 'Yi Yi' de Edward Yang (2000) dure 3 heures. Yang a déclaré qu'il voulait que le spectateur 'vive une vie entière en 180 minutes' — chaque plan calculé au centième de seconde.",tag:"Technique"},
+  {text:"Dans 'The Master' (2012), Paul Thomas Anderson a tourné certaines scènes en 65mm — un format abandonné depuis les années 1960. Il a fallu retrouver et restaurer des caméras d'époque.",tag:"Technique"},
+  {text:"Gena Rowlands dans 'A Woman Under the Influence' (1974) de Cassavetes a refusé tout maquillage et toute chorégraphie des émotions. Son mari-réalisateur lui demandait simplement 'sois malade' pour chaque prise.",tag:"Acteur"},
+  {text:"Le budget de 'Paranormal Activity' était de 15 000 dollars. Le film a rapporté 193 millions au box-office — soit un retour sur investissement de 1 289 900%.",tag:"Box-office"},
+  {text:"Pour 'Oldboy' (2003), le réalisateur Park Chan-wook a demandé à ses acteurs de manger de vrais poulpes vivants. Min-sik Choi, bouddhiste pratiquant, a prié pour chacun des animaux avant de les manger.",tag:"Tournage"},
 ];
 
 const DECENNIE_FILMS=[
@@ -11213,10 +11332,11 @@ function _hmvRender() {
   // Hint adapté au contexte
   const hint = document.getElementById('hmv-hint');
   if (hint) {
+    const arrowUp = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>';
     if (_hmvList.length > 1) {
-      hint.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg><span class="hmv-hint-text">SWIPE POUR LES INFOS</span>';
+      hint.innerHTML = arrowUp + '<span class="hmv-hint-text">SWIPE ↑ INFOS &nbsp;·&nbsp; SWIPE ← FILM SUIVANT</span>';
     } else {
-      hint.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg><span class="hmv-hint-text">SWIPE ↑ INFOS &nbsp;·&nbsp; ← SUIVANT</span>';
+      hint.innerHTML = arrowUp + '<span class="hmv-hint-text">SWIPE POUR LES INFOS</span>';
     }
     hint.style.opacity = '1';
   }
@@ -19173,6 +19293,172 @@ setInterval(updateDailyCountdown,60000);
 runSplash();
 const _hbg2=document.getElementById('home-bg');
 if(_hbg2)_hbg2.classList.add('visible');
+
+// ── Neural Noise sur l'accueil ──
+(function initHomeNeuro(){
+  const canvas = document.getElementById('home-neuro');
+  if (!canvas) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pointer = { x: 0.5, y: 0.5, tX: 0.5, tY: 0.5 };
+  let uniforms, animId;
+  let _stopped = false;
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+
+  const vsSource = `
+    precision mediump float;
+    varying vec2 vUv;
+    attribute vec2 a_position;
+    void main() {
+      vUv = .5 * (a_position + 1.);
+      gl_Position = vec4(a_position, 0.0, 1.0);
+    }
+  `;
+
+  // Même shader que le splash — palette identique
+  const fsSource = `
+    precision mediump float;
+    varying vec2 vUv;
+    uniform float u_time;
+    uniform float u_ratio;
+    uniform vec2 u_pointer_position;
+    uniform float u_scroll_progress;
+
+    vec2 rotate(vec2 uv, float th) {
+      return mat2(cos(th), -sin(th), sin(th), cos(th)) * uv;
+    }
+
+    float neuro_shape(vec2 uv, float t, float p) {
+      vec2 sine_acc = vec2(0.);
+      vec2 res = vec2(0.);
+      float scale = 8.;
+      for (int j = 0; j < 15; j++) {
+        uv = rotate(uv, 1.);
+        sine_acc = rotate(sine_acc, 1.);
+        vec2 layer = uv * scale + float(j) + sine_acc - t;
+        sine_acc += sin(layer);
+        res += (.5 + .5 * cos(layer)) / scale;
+        scale *= (1.2 - .07 * p);
+      }
+      return res.x + res.y;
+    }
+
+    void main() {
+      vec2 uv = .5 * vUv;
+      uv.x *= u_ratio;
+
+      float t = .001 * u_time;
+      float p = u_scroll_progress;
+
+      float noise = neuro_shape(uv, t, p);
+
+      noise = 1.2 * pow(noise, 3.);
+      noise += pow(noise, 10.);
+      noise = max(.0, noise - .5);
+      noise *= (1. - length(vUv - .5));
+
+      // Même palette que le splash : doré / bordeaux / bleu profond
+      vec3 color = vec3(0.04, 0.03, 0.06);
+      color = mix(color, vec3(0.72, 0.44, 0.08), pow(noise, .8));
+      color = mix(color, vec3(0.55, 0.10, 0.18), pow(noise, 1.4));
+      color = mix(color, vec3(0.96, 0.79, 0.26), pow(noise, 2.5));
+
+      // Influence du pointeur
+      float dist = length(uv - u_pointer_position * vec2(u_ratio, 1.));
+      color += vec3(0.04, 0.08, 0.18) * (1. - smoothstep(0., .4, dist)) * noise;
+
+      // Alpha réduit par rapport au splash pour rester subtil sur l'accueil
+      gl_FragColor = vec4(color, noise * 0.65 + 0.03);
+    }
+  `;
+
+  function createShader(src, type) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    return sh;
+  }
+
+  const prog = gl.createProgram();
+  gl.attachShader(prog, createShader(vsSource, gl.VERTEX_SHADER));
+  gl.attachShader(prog, createShader(fsSource, gl.FRAGMENT_SHADER));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  uniforms = {
+    u_time:             gl.getUniformLocation(prog, 'u_time'),
+    u_ratio:            gl.getUniformLocation(prog, 'u_ratio'),
+    u_pointer_position: gl.getUniformLocation(prog, 'u_pointer_position'),
+    u_scroll_progress:  gl.getUniformLocation(prog, 'u_scroll_progress'),
+  };
+
+  function resize() {
+    const w = canvas.offsetWidth  * dpr;
+    const h = canvas.offsetHeight * dpr;
+    canvas.width  = w;
+    canvas.height = h;
+    gl.viewport(0, 0, w, h);
+    gl.uniform1f(uniforms.u_ratio, w / h);
+  }
+
+  function render() {
+    if (_stopped) return;
+    pointer.x += (pointer.tX - pointer.x) * 0.04;
+    pointer.y += (pointer.tY - pointer.y) * 0.04;
+    gl.uniform1f(uniforms.u_time, performance.now());
+    gl.uniform2f(uniforms.u_pointer_position, pointer.x, pointer.y);
+    gl.uniform1f(uniforms.u_scroll_progress, 0.0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    animId = requestAnimationFrame(render);
+  }
+
+  // Suivi du pointeur/doigt sur l'accueil
+  const home = document.getElementById('home');
+  function onMove(e) {
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.clientX ?? e.touches?.[0]?.clientX) - r.left;
+    const cy = (e.clientY ?? e.touches?.[0]?.clientY) - r.top;
+    pointer.tX = cx / r.width;
+    pointer.tY = 1. - cy / r.height;
+  }
+  if (home) {
+    home.addEventListener('mousemove', onMove, { passive: true });
+    home.addEventListener('touchmove', onMove, { passive: true });
+  }
+
+  // Pause automatique quand l'accueil n'est pas visible (économie batterie)
+  const observer = new MutationObserver(() => {
+    const isVisible = home && home.classList.contains('on');
+    if (isVisible && _stopped) {
+      _stopped = false;
+      resize();
+      render();
+    } else if (!isVisible && !_stopped) {
+      _stopped = true;
+      if (animId) cancelAnimationFrame(animId);
+    }
+  });
+  if (home) observer.observe(home, { attributes: true, attributeFilter: ['class'] });
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Apparition en fondu après le splash
+  setTimeout(() => {
+    canvas.classList.add('visible');
+    _stopped = false;
+    render();
+  }, 800);
+})();
 // Tutoriel : seulement au 1er lancement, jamais après
 const _s=ls();
 if(!_s.onboardingDone){
