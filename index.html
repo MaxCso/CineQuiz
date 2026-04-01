@@ -223,6 +223,128 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 #arc-slots .arc-head{padding:max(54px,env(safe-area-inset-top)) 18px 10px;flex-shrink:0;}
 
 #arc-slots .arc-center{flex:1;min-height:0;padding:8px 18px max(16px,env(safe-area-inset-bottom));justify-content:center;}
+
+/* ══ VIDÉOTHÈQUE SECRÈTE ══ */
+#arc-videos{overflow:hidden !important;background:#06040c;}
+#arc-videos-bg::before{background:radial-gradient(ellipse 55% 45% at 30% 25%,rgba(255,40,100,.42) 0%,transparent 56%),radial-gradient(ellipse 45% 38% at 72% 65%,rgba(200,20,80,.26) 0%,transparent 56%),radial-gradient(ellipse 38% 32% at 55% 80%,rgba(255,80,140,.16) 0%,transparent 54%);}
+#arc-videos-bg::after{background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 28%,rgba(0,0,0,.94) 100%);}
+#arc-videos>*:not(.arc-bg){position:relative;z-index:1;}
+
+/* Lecteur */
+.vz-player-wrap{
+  flex-shrink:0;
+  width:100%;
+  background:#000;
+  position:relative;
+}
+#vz-video{
+  display:block;width:100%;
+  aspect-ratio:16/9;
+  object-fit:contain;
+  background:#000;
+}
+.vz-overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  /* fond semi-transparent visible uniquement en pause */
+  background:rgba(0,0,0,0);
+  transition:background .2s;
+}
+.vz-overlay.paused{background:rgba(0,0,0,.35);}
+.vz-play-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  opacity:0;transition:opacity .2s,transform .15s;
+  pointer-events:none;
+}
+.vz-play-btn svg{width:22px;height:22px;margin-left:3px;}
+.vz-overlay.paused .vz-play-btn{opacity:1;}
+/* Barre de contrôle */
+.vz-bar-wrap{
+  padding:7px 14px 9px;
+  background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
+  position:absolute;bottom:0;left:0;right:0;
+}
+.vz-prog-track{
+  width:100%;height:4px;background:rgba(255,255,255,.18);
+  border-radius:2px;cursor:pointer;position:relative;margin-bottom:5px;
+  overflow:hidden;
+}
+.vz-prog-fill{
+  height:100%;border-radius:2px;width:0%;
+  background:linear-gradient(90deg,rgba(255,60,120,.8),rgba(255,100,150,1));
+  transition:width .4s linear;
+}
+.vz-times{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:9px;color:rgba(255,255,255,.42);letter-spacing:.3px;
+}
+.vz-title-inline{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.5px;
+  color:rgba(255,255,255,.6);
+  text-align:center;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:0 8px;
+}
+
+/* Liste des vidéos */
+.vz-list{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:10px 14px max(20px,env(safe-area-inset-bottom,20px));
+  display:flex;flex-direction:column;gap:0;
+}
+.vz-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 10px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:background .15s;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.vz-item:last-child{border-bottom:none;}
+.vz-item:active{background:rgba(255,255,255,.06);}
+.vz-item.active{background:rgba(255,60,120,.08);border-color:transparent;}
+.vz-item-num{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;
+  color:rgba(255,255,255,.18);letter-spacing:.5px;
+  width:22px;text-align:center;flex-shrink:0;
+}
+.vz-item.active .vz-item-num{color:rgba(255,60,120,.7);}
+.vz-item-thumb{
+  width:52px;height:34px;border-radius:8px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.vz-item-thumb video{width:100%;height:100%;object-fit:cover;pointer-events:none;}
+.vz-item-thumb-icon{font-size:16px;color:rgba(255,255,255,.3);}
+.vz-item.active .vz-item-thumb{border-color:rgba(255,60,120,.4);background:rgba(255,60,120,.08);}
+/* Equalizer animé sur la vignette active */
+.vz-item-eq{
+  position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;
+  gap:2px;padding:4px 6px;background:rgba(0,0,0,.5);
+}
+.vz-item-eq span{
+  width:3px;border-radius:1px;
+  background:rgba(255,60,120,.9);
+  animation:jkEq .7s ease-in-out infinite alternate;
+}
+.vz-item-eq span:nth-child(2){animation-delay:.18s;animation-duration:.9s;}
+.vz-item-eq span:nth-child(3){animation-delay:.35s;animation-duration:.6s;}
+.vz-item-info{flex:1;min-width:0;}
+.vz-item-name{
+  font-size:12px;font-weight:500;
+  color:rgba(255,255,255,.72);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  line-height:1.3;
+  transition:color .2s;
+}
+.vz-item.active .vz-item-name{color:rgba(255,80,130,.95);}
+@keyframes vzFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 /* Slots redesign */
 .slots-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;}
 .slots-credit-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:20px;padding:8px 18px;}
@@ -895,6 +1017,21 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 #game-bg.mode-jukebox{background:radial-gradient(ellipse 70% 55% at 50% 38%,rgba(155,95,0,.8) 0%,#07050a 65%);}
 #game-bg.mode-jukebox::before{background:radial-gradient(ellipse 52% 42% at 36% 26%,rgba(215,145,8,.44) 0%,transparent 58%),radial-gradient(ellipse 44% 38% at 68% 66%,rgba(165,85,0,.26) 0%,transparent 56%),radial-gradient(ellipse 38% 32% at 20% 70%,rgba(95,45,0,.18) 0%,transparent 54%);}
 #game-bg.mode-jukebox::after{background:radial-gradient(ellipse 40% 32% at 62% 42%,rgba(188,110,4,.15) 0%,transparent 52%),radial-gradient(ellipse 80% 70% at 50% 50%,transparent 26%,rgba(0,0,0,.87) 100%);}
+
+/* ─── KONAMI UNLOCK ─── */
+@keyframes jkKonamiPulse{0%{box-shadow:0 0 0 0 rgba(245,200,66,.7);}70%{box-shadow:0 0 0 22px rgba(245,200,66,0);}100%{box-shadow:0 0 0 0 rgba(245,200,66,0);}}
+@keyframes jkKonamiReveal{0%{opacity:0;transform:translateY(16px) scale(.92);}60%{opacity:1;transform:translateY(-3px) scale(1.02);}100%{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes jkKonamiShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px);}40%{transform:translateX(5px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
+.jk-konami-flash{animation:jkKonamiPulse .5s ease both !important;}
+/* Indicateur progression: 6 points sous l'icône hero */
+.jk-konami-dots{display:flex;gap:5px;justify-content:center;margin-top:4px;height:8px;flex-shrink:0;}
+.jk-konami-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.12);transition:background .12s,transform .12s,box-shadow .12s;}
+.jk-konami-dot.lit{background:var(--gold);transform:scale(1.4);box-shadow:0 0 5px rgba(245,200,66,.6);}
+/* Zone vidéo header */
+.jk-vid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;animation:jkKonamiReveal .45s cubic-bezier(.34,1.56,.64,1) both;}
+.jk-vid-back{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px;cursor:pointer;padding:6px 10px 6px 6px;border-radius:10px;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent;}
+.jk-vid-back:active{background:rgba(255,255,255,.07);color:var(--tx);}
+.jk-vid-zone-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:rgba(245,200,66,.45);}
 /* ─── MUSIC MANAGER — liste épurée ─── */
 .music-track-row{
   display:flex;align-items:center;gap:10px;
@@ -2515,83 +2652,167 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .mx1{background:rgba(232,52,74,.1);color:var(--red);border-color:rgba(232,52,74,.25);}
 .shd2{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);letter-spacing:1px;transition:transform .2s;}
 .shd2.bump{animation:mbBump .3s cubic-bezier(.34,1.56,.64,1);}
-/* toast */
-/* ─── TOAST SCORE — effet blob morphing ─── */
+/* ─── SYSTÈME DE NOTIFICATION POINTS — version compacte ─── */
 
-@keyframes toastBlobIn{
-  0%  {opacity:0;transform:translateY(-110%) scale(.72);border-radius:50% 50% 50% 50%/50% 50% 50% 50%;}
-  40% {opacity:1;transform:translateY(6px) scale(1.04);border-radius:38% 62% 54% 46%/42% 44% 56% 58%;}
-  60% {transform:translateY(-3px) scale(.98);border-radius:52% 48% 44% 56%/56% 58% 42% 44%;}
-  78% {transform:translateY(2px) scale(1.01);border-radius:44% 56% 50% 50%/50% 46% 54% 50%;}
-  100%{opacity:1;transform:translateY(0) scale(1);border-radius:20px;}
-}
-@keyframes toastBlobOut{
-  0%  {opacity:1;transform:translateY(0) scale(1);border-radius:20px;}
-  30% {transform:translateY(-4px) scale(1.02);border-radius:44% 56% 48% 52%/46% 50% 50% 54%;}
-  100%{opacity:0;transform:translateY(-110%) scale(.75);border-radius:50% 50% 50% 50%/50% 50% 50% 50%;}
-}
+/* Keyframe glow générique (utilisée aussi par les badges) */
 @keyframes toastGlowOk{
-  0%,100%{box-shadow:0 6px 32px rgba(0,0,0,.55),0 0 0 1px rgba(46,204,113,.25),0 0 28px rgba(46,204,113,.0);}
-  50%{box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 1px rgba(46,204,113,.45),0 0 36px rgba(46,204,113,.18);}
+  0%,100%{box-shadow:0 6px 32px rgba(0,0,0,.55),0 0 0 1px rgba(46,204,113,.25);}
+  50%{box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 1px rgba(46,204,113,.45),0 0 30px rgba(46,204,113,.15);}
 }
-@keyframes toastGlowNeutral{
-  0%,100%{box-shadow:0 6px 32px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);}
-  50%{box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12);}
+
+/* Pill compact en coin haut-droit */
+@keyframes pillIn{
+  0%  {opacity:0;transform:translateY(-6px) scale(.82);}
+  60% {opacity:1;transform:translateY(2px) scale(1.04);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
 }
-@keyframes toastBlobMorph{
-  0%,100%{border-radius:20px;}
-  20%{border-radius:26px 14px 22px 18px/18px 22px 14px 26px;}
-  40%{border-radius:14px 26px 18px 22px/22px 18px 26px 14px;}
-  60%{border-radius:22px 18px 14px 26px/14px 26px 18px 22px;}
-  80%{border-radius:18px 22px 26px 14px/26px 14px 22px 18px;}
+@keyframes pillOut{
+  0%  {opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-8px) scale(.88);}
+}
+@keyframes pillShimmer{
+  0%,100%{box-shadow:0 2px 12px rgba(46,204,113,.12),0 0 0 1px rgba(46,204,113,.2);}
+  50%{box-shadow:0 2px 18px rgba(46,204,113,.28),0 0 0 1px rgba(46,204,113,.38);}
 }
 
 .tst{
   position:absolute;
-  top:calc(max(14px,env(safe-area-inset-top,14px)) + 96px);
-  left:12px;right:12px;
-  transform:translateY(-110%) scale(.72);
-  background:rgba(10,10,20,.97);
+  top:calc(max(14px,env(safe-area-inset-top,14px)) + 50px);
+  right:14px;left:auto;
+  max-width:180px;
+  transform:translateY(-6px) scale(.82);
+  background:rgba(8,10,18,.92);
   border:1px solid rgba(255,255,255,.1);
-  border-radius:20px;
-  padding:10px 16px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border-radius:14px;
+  padding:7px 12px 7px 10px;
+  display:flex;align-items:center;gap:8px;
   opacity:0;pointer-events:none;
   z-index:100;
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  box-shadow:0 6px 32px rgba(0,0,0,.5);
-  will-change:transform,border-radius,opacity;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  will-change:transform,opacity;
 }
 .tst.on{
-  opacity:1;
-  pointer-events:all;
-  animation:toastBlobIn .55s cubic-bezier(.34,1.56,.64,1) both;
+  opacity:1;pointer-events:all;
+  animation:pillIn .28s cubic-bezier(.34,1.56,.64,1) both;
 }
 .tst.leaving{
-  animation:toastBlobOut .38s cubic-bezier(.55,0,.45,1) both;
+  animation:pillOut .22s ease both;
+  pointer-events:none;
 }
 .tst.ok{
-  border-color:rgba(46,204,113,.3);
-  animation:toastBlobIn .55s cubic-bezier(.34,1.56,.64,1) both,
-            toastBlobMorph 3s ease-in-out 0.55s infinite,
-            toastGlowOk 2s ease-in-out 0.55s infinite;
+  border-color:rgba(46,204,113,.25);
+  animation:pillIn .28s cubic-bezier(.34,1.56,.64,1) both,
+            pillShimmer 2s ease-in-out .28s infinite;
 }
 .tst.ok.leaving{
-  animation:toastBlobOut .38s cubic-bezier(.55,0,.45,1) both;
+  animation:pillOut .22s ease both;
 }
 
-/* Mode vrai/faux */
-.game-vraifaux .tst{top:calc(max(14px,env(safe-area-inset-top,14px)) + 52px);}
+/* Mode vrai/faux — légèrement plus bas car header plus petit */
+.game-vraifaux .tst{top:calc(max(14px,env(safe-area-inset-top,14px)) + 44px);}
+
+/* Icône check/croix */
+.tst-icon{
+  width:20px;height:20px;border-radius:6px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+}
+.tst.ok .tst-icon{background:rgba(46,204,113,.15);}
+
+/* Score + label empilés */
+.tst-body{display:flex;flex-direction:column;gap:1px;min-width:0;}
 .tpts{
-  font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;line-height:1;
   letter-spacing:1px;flex-shrink:0;
-  animation:none;
 }
 @keyframes ptsPopIn{0%{transform:scale(.5) translateY(8px);opacity:0;}100%{transform:scale(1) translateY(0);opacity:1;}}
-.tmsg{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:.3px;flex:1;text-align:right;}
-.tans{font-size:11px;color:rgba(255,255,255,.6);margin-top:0;font-style:italic;line-height:1.4;text-align:right;flex:1;}
+.tmsg{font-size:10px;color:rgba(255,255,255,.42);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tans{font-size:10px;color:rgba(255,255,255,.55);font-style:italic;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* ─── PROGRESS DOTS ─── */
+/* ─── FLOATING POINTS — +pts qui monte et disparaît depuis le score ─── */
+@keyframes floatUp{
+  0%  {opacity:0;transform:translateY(0) scale(.7);}
+  20% {opacity:1;transform:translateY(-6px) scale(1.05);}
+  70% {opacity:1;transform:translateY(-22px) scale(1);}
+  100%{opacity:0;transform:translateY(-36px) scale(.9);}
+}
+.float-pts{
+  position:absolute;
+  right:14px;
+  pointer-events:none;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;letter-spacing:1px;
+  z-index:150;
+  animation:floatUp .9s ease both;
+  will-change:transform,opacity;
+}
+.float-pts.bonus{font-size:18px;color:var(--gold);}
+.float-pts.normal{color:rgba(46,204,113,.9);}
+
+/* ─── JUKEBOX TABS ─── */
+.jk-tabs{display:flex;gap:6px;margin-bottom:10px;flex-shrink:0;}
+.jk-tab{
+  flex:1;padding:8px 4px;border-radius:12px;
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;
+  text-align:center;cursor:pointer;transition:all .18s;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  color:rgba(255,255,255,.38);
+}
+.jk-tab.active{background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.35);color:var(--gold);}
+.jk-tab:active{transform:scale(.96);}
+
+/* ─── ZONE VIDÉO ─── */
+.jk-vid-section{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(20px,env(safe-area-inset-bottom,20px));}
+.jk-vid-player-wrap{
+  width:100%;background:#000;border-radius:16px;overflow:hidden;
+  position:relative;margin-bottom:12px;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.08);
+  aspect-ratio:16/9;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+.jk-vid-player-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
+.jk-vid-now{
+  padding:0 2px 12px;flex-shrink:0;
+}
+.jk-vid-now-title{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;
+  color:var(--gold);line-height:1.1;margin-bottom:2px;
+}
+.jk-vid-now-count{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;}
+.jk-vid-list{display:flex;flex-direction:column;gap:1px;}
+.jk-vid-row{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 8px;border-radius:12px;
+  cursor:pointer;transition:background .15s;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.jk-vid-row:active{background:rgba(255,255,255,.06);}
+.jk-vid-row.active{background:rgba(245,200,66,.06);}
+.jk-vid-row.active .jk-vid-row-name{color:var(--gold);}
+.jk-vid-thumb{
+  width:54px;height:36px;border-radius:8px;flex-shrink:0;overflow:hidden;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.jk-vid-row.active .jk-vid-thumb{border-color:rgba(245,200,66,.35);}
+.jk-vid-thumb-icon{font-size:18px;pointer-events:none;}
+.jk-vid-play-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.45);opacity:0;transition:opacity .18s;
+}
+.jk-vid-row:active .jk-vid-play-overlay{opacity:1;}
+.jk-vid-row.active .jk-vid-play-overlay{opacity:1;background:rgba(245,200,66,.2);}
+.jk-vid-eq{display:flex;align-items:flex-end;gap:2px;height:12px;}
+.jk-vid-eq span{width:3px;border-radius:1px;background:var(--gold);animation:jkEq .7s ease-in-out infinite alternate;}
+.jk-vid-eq span:nth-child(2){animation-delay:.18s;animation-duration:.9s;}
+.jk-vid-eq span:nth-child(3){animation-delay:.35s;animation-duration:.6s;}
+.jk-vid-row-info{flex:1;min-width:0;}
+.jk-vid-row-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
+.jk-vid-row-num{font-size:10px;color:rgba(255,255,255,.26);margin-top:1px;letter-spacing:.3px;}
+/* fond vidéo */
+#game-bg.mode-jukebox-vid{background:radial-gradient(ellipse 70% 55% at 50% 38%,rgba(60,10,100,.8) 0%,#07050a 65%);}
+#game-bg.mode-jukebox-vid::before{background:radial-gradient(ellipse 52% 42% at 36% 26%,rgba(130,40,200,.38) 0%,transparent 58%),radial-gradient(ellipse 44% 38% at 68% 66%,rgba(80,10,150,.24) 0%,transparent 56%);}
+#game-bg.mode-jukebox-vid::after{background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 26%,rgba(0,0,0,.9) 100%);}
 .pdots{display:flex;gap:3px;padding:4px 18px 6px;flex-shrink:0;}
 .dot{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.1);transition:background .3s,transform .2s;}
 .dot.dc{background:rgba(245,200,66,.25);}
@@ -3161,9 +3382,14 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   flex:1;min-height:0;
   overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:20px 0 max(60px,env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;
 }
-.hm-secret-panel{display:none;}
-.hm-secret-panel.active{display:block;}
+/* Panel vidéo : gère son propre scroll — désactive le parent */
+.hm-secret-scroll.vid-active{overflow:hidden;padding:0;}
+.hm-secret-panel{display:none;flex:1;min-height:0;}
+.hm-secret-panel.active{display:flex;flex-direction:column;flex:1;min-height:0;}
+/* Panels non-vidéo gardent leur padding */
+#hm-secret-panel-1.active,#hm-secret-panel-2.active,#hm-secret-panel-3.active{display:block;}
 
 /* Titres sections */
 .hm-secret-stitle{
@@ -3191,16 +3417,77 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 /* play overlay supprimé */
 .hm-secret-video-label{display:none;}
 
-/* ── Lignes bandes-annonces ── */
-.hm-trailer-row{
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,200,80,.1);
-  border-radius:12px;padding:12px 14px;cursor:pointer;
-  transition:background .15s,border-color .2s;
+/* ── PANEL 0 : LECTEUR BANDES-ANNONCES style Jukebox ── */
+.hm-vid-player-wrap{
+  position:relative;width:100%;background:#000;
+  border-radius:14px;overflow:hidden;
+  border:1px solid rgba(255,200,80,.15);
+  aspect-ratio:16/9;
+  box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 40px rgba(255,200,80,.04);
+  margin:0 0 10px;flex-shrink:0;
 }
-.hm-trailer-row:active{background:rgba(255,200,80,.08);border-color:rgba(255,200,80,.3);}
-.hm-trailer-title{font-size:13px;color:rgba(255,255,255,.75);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.hm-trailer-play{flex-shrink:0;font-size:11px;color:rgba(255,200,80,.7);margin-left:12px;letter-spacing:1px;}
+.hm-vid-player-wrap::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 65%,rgba(0,0,0,.3) 100%);
+}
+.hm-vid-player-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
+/* Placeholder quand aucune vidéo n'est sélectionnée */
+.hm-vid-placeholder{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  color:rgba(255,200,80,.25);pointer-events:none;z-index:1;
+}
+.hm-vid-placeholder-icon{font-size:36px;opacity:.5;}
+.hm-vid-placeholder-text{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2px;}
+/* Now playing info */
+.hm-vid-now{margin-bottom:10px;padding:0 2px;flex-shrink:0;}
+.hm-vid-now-title{
+  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;
+  color:rgba(255,200,80,.9);line-height:1.1;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.hm-vid-now-count{font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.5px;}
+/* Liste des bandes-annonces */
+.hm-vid-list-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.hm-trailer-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 6px;border-radius:12px;cursor:pointer;
+  transition:background .15s;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.hm-trailer-row:active{background:rgba(255,200,80,.06);}
+.hm-trailer-row.active{background:rgba(255,200,80,.07);}
+.hm-trailer-row.active .hm-trailer-title{color:rgba(255,200,80,.95);}
+/* Miniature style jukebox */
+.hm-trailer-thumb{
+  width:54px;height:36px;border-radius:8px;flex-shrink:0;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,200,80,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;position:relative;overflow:hidden;
+  transition:border-color .15s;
+}
+.hm-trailer-row.active .hm-trailer-thumb{border-color:rgba(255,200,80,.4);}
+.hm-trailer-play-ov{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.4);opacity:0;transition:opacity .15s;
+}
+.hm-trailer-row:active .hm-trailer-play-ov,.hm-trailer-row.active .hm-trailer-play-ov{opacity:1;}
+.hm-trailer-row.active .hm-trailer-play-ov{background:rgba(255,200,80,.18);}
+/* Equalizer animé */
+.hm-vid-eq{display:flex;align-items:flex-end;gap:2px;height:13px;flex-shrink:0;}
+.hm-vid-eq span{width:3px;border-radius:1px;background:rgba(255,200,80,.8);animation:jkEq .7s ease-in-out infinite alternate;}
+.hm-vid-eq span:nth-child(2){animation-delay:.18s;animation-duration:.9s;}
+.hm-vid-eq span:nth-child(3){animation-delay:.35s;animation-duration:.6s;}
+/* Info texte */
+.hm-trailer-info{flex:1;min-width:0;}
+.hm-trailer-title{font-size:13px;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
+.hm-trailer-num{font-size:10px;color:rgba(255,255,255,.24);margin-top:1px;letter-spacing:.3px;}
+/* Ligne exclusive hiddenmovies.mp4 */
+.hm-trailer-special{
+  border-bottom:1px solid rgba(255,200,80,.12) !important;
+  margin-bottom:2px;
+}
+.hm-trailer-special .hm-trailer-title{color:rgba(255,200,80,.85) !important;}
 .hm-secret-filmstrip{
   height:16px;margin:0 20px;
   background:repeating-linear-gradient(90deg,rgba(255,200,80,.07) 0px,rgba(255,200,80,.07) 3px,transparent 3px,transparent 16px),
@@ -4939,9 +5226,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div class="qa" id="qa"></div>
     <div class="agrid" id="agrid"></div>
     <div class="tst" id="toast" onclick="if(nextQTimer){clearTimeout(nextQTimer);hideToast();advanceQ();}">
-      <div class="tpts" id="tpts">+300</div>
-      <div style="flex:1;text-align:right;min-width:0;">
-        <div class="tmsg" id="tmsg">Excellent !</div>
+      <div class="tst-icon" id="tst-icon">✓</div>
+      <div class="tst-body">
+        <div class="tpts" id="tpts">+300</div>
+        <div class="tmsg" id="tmsg">Correct</div>
         <div class="tans" id="tans"></div>
       </div>
     </div>
@@ -5181,11 +5469,20 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   <div class="scr" id="jukebox">
     <div class="jk-topbar">
       <div class="ibtn" onclick="closeJukebox()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></div>
-      <div class="jk-title">🎵 JUKEBOX</div>
+      <div class="jk-title" id="jk-title-tap">🎵 JUKEBOX</div>
       <div style="width:40px;"></div>
     </div>
     <div class="jk-hero">
       <span class="jk-icon" id="jk-icon" aria-hidden="true">🎵</span>
+      <!-- Indicateur de progression Konami (invisible jusqu'au 1er tap) -->
+      <div class="jk-konami-dots" id="jk-konami-dots" style="opacity:0;">
+        <div class="jk-konami-dot" id="jk-kd-0"></div>
+        <div class="jk-konami-dot" id="jk-kd-1"></div>
+        <div class="jk-konami-dot" id="jk-kd-2"></div>
+        <div class="jk-konami-dot" id="jk-kd-3"></div>
+        <div class="jk-konami-dot" id="jk-kd-4"></div>
+        <div class="jk-konami-dot" id="jk-kd-5"></div>
+      </div>
       <div class="jk-track" id="jk-track">—</div>
       <div class="jk-mode" id="jk-mode">—</div>
       <div class="jk-progress-zone">
@@ -5201,11 +5498,40 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div class="jk-btn" onclick="playerNext()"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,4 15,12 5,20"/><rect x="16" y="4" width="3" height="16" rx="1.5"/></svg></div>
       </div>
     </div>
-    <div class="shd" style="margin-bottom:8px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-      <span>Toutes les pistes</span>
-      <span style="font-size:9px;color:var(--mt);letter-spacing:.5px;">CHOISIS TON AMBIANCE</span>
+
+    <!-- Section musiques (visible par défaut) -->
+    <div id="jk-music-section" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <div class="shd" style="margin-bottom:8px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+        <span>Toutes les pistes</span>
+        <span style="font-size:9px;color:var(--mt);letter-spacing:.5px;">CHOISIS TON AMBIANCE</span>
+      </div>
+      <div class="jk-playlist" id="jk-playlist"></div>
     </div>
-    <div class="jk-playlist" id="jk-playlist"></div>
+
+    <!-- Section vidéos secrètes -->
+    <div id="jk-video-section" style="flex:1;display:none;flex-direction:column;min-height:0;">
+      <!-- Header avec retour -->
+      <div class="jk-vid-header">
+        <div class="jk-vid-back" onclick="jkSwitchTab('music')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          RETOUR
+        </div>
+        <div class="jk-vid-zone-label">📽 ZONE SECRÈTE</div>
+        <div style="width:60px;"></div>
+      </div>
+      <div class="jk-vid-player-wrap">
+        <video id="jk-video-player" playsinline preload="metadata"
+          style="width:100%;height:100%;display:block;object-fit:contain;background:#000;"
+          onended="jkVidEnded()"></video>
+      </div>
+      <div class="jk-vid-now" id="jk-vid-now">
+        <div class="jk-vid-now-title" id="jk-vid-now-title">Choisis une vidéo</div>
+        <div class="jk-vid-now-count" id="jk-vid-now-count">— / 17 vidéos</div>
+      </div>
+      <div class="jk-vid-section">
+        <div class="jk-vid-list" id="jk-vid-list"></div>
+      </div>
+    </div>
   </div>
 
 
@@ -5318,9 +5644,59 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div class="arc-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
 
+        <!-- VIDÉOTHÈQUE SECRÈTE -->
+        <div class="arc-card" style="--arc-color:rgba(255,60,120,.85);--arc-bg:rgba(255,60,120,.1);" onclick="openVideoZone()">
+          <div class="arc-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="15" height="12" rx="2"/><path d="M17 9l5-3v12l-5-3"/><circle cx="8" cy="12" r="2" fill="currentColor" opacity=".5"/></svg>
+          </div>
+          <div class="arc-card-body">
+            <div class="arc-card-name">VIDÉOTHÈQUE</div>
+            <div class="arc-card-sub">Archives classifiées</div>
+            <div class="arc-card-hs" style="color:rgba(255,60,120,.8);">📼 ${ARC_VIDEOS.length} vidéos</div>
+          </div>
+          <div class="arc-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+
       </div>
     </div><!-- /arc-center -->
+    </div><!-- /arc-center -->
   </div><!-- /arcade-menu -->
+
+  <!-- ══ VIDÉOTHÈQUE SECRÈTE ══ -->
+  <div class="scr" id="arc-videos">
+    <div class="arc-bg" id="arc-videos-bg"></div>
+
+    <!-- Header -->
+    <div class="arc-head" style="padding:max(54px,env(safe-area-inset-top)) 18px 10px;flex-shrink:0;position:relative;z-index:2;">
+      <div class="ibtn" onclick="closeVideoZone()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="arc-title">📼 VIDÉOTHÈQUE</div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <!-- Lecteur vidéo principal -->
+    <div class="vz-player-wrap" id="vz-player-wrap">
+      <video id="vz-video" playsinline preload="metadata" webkit-playsinline></video>
+      <div class="vz-overlay" id="vz-overlay" onclick="vzTogglePlay()">
+        <div class="vz-play-btn" id="vz-play-btn">
+          <svg id="vz-play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
+        </div>
+      </div>
+      <!-- Barre de progression -->
+      <div class="vz-bar-wrap">
+        <div class="vz-prog-track" id="vz-prog-track" onclick="vzSeek(event)">
+          <div class="vz-prog-fill" id="vz-prog-fill"></div>
+        </div>
+        <div class="vz-times">
+          <span id="vz-cur">0:00</span>
+          <span class="vz-title-inline" id="vz-title-inline">—</span>
+          <span id="vz-dur">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des vidéos -->
+    <div class="vz-list" id="vz-list"></div>
+  </div>
 
   <!-- SPEED QUIZ -->
   <div class="scr" id="arc-speedquiz">
@@ -5900,57 +6276,32 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <!-- Scroll content -->
     <div class="hm-secret-scroll">
 
-      <!-- PANEL 0 : VIDÉO -->
-      <div class="hm-secret-panel active" id="hm-secret-panel-0">
-        <div style="height:18px;"></div>
-        <div class="hm-secret-stitle">PROJECTION EXCLUSIVE</div>
-        <div class="hm-secret-screen-frame">
-          <video id="hm-secret-video" class="hm-secret-video" controls playsinline preload="metadata">
-            <source src="hiddenmovies.mp4" type="video/mp4">
-          </video>
-        </div>
-        <div class="hm-secret-filmstrip"></div>
-        <div style="padding:16px 20px 0;">
-          <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.6;text-align:center;letter-spacing:.3px;">
-            Contenu exclusif Hidden Movies —<br>réservé aux découvreurs de la salle secrète.
-          </div>
-        </div>
+      <!-- PANEL 0 : BANDES-ANNONCES style lecteur intégré -->
+      <div class="hm-secret-panel active" id="hm-secret-panel-0" style="flex-direction:column;height:100%;">
+        <div style="padding:14px 16px 0;display:flex;flex-direction:column;height:100%;gap:0;">
 
-        <!-- ── BANDES-ANNONCES ── -->
-        <div style="padding:20px 20px 16px;">
-          <div class="hm-secret-stitle" style="margin-bottom:14px;">BANDES-ANNONCES</div>
-          <div style="display:flex;flex-direction:column;gap:7px;">
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('A Beautiful Day.mp4','A Beautiful Day')"><span class="hm-trailer-title">A Beautiful Day</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('A tombeau ouvert.mp4','À tombeau ouvert')"><span class="hm-trailer-title">À tombeau ouvert</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('After Hours.mp4','After Hours')"><span class="hm-trailer-title">After Hours</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Aftersun.mp4','Aftersun')"><span class="hm-trailer-title">Aftersun</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('American Beauty.mp4','American Beauty')"><span class="hm-trailer-title">American Beauty</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('American Honey.mp4','American Honey')"><span class="hm-trailer-title">American Honey</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Boogie Nights.mp4','Boogie Nights')"><span class="hm-trailer-title">Boogie Nights</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Breakfast Club.mp4','Breakfast Club')"><span class="hm-trailer-title">Breakfast Club</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Captain Fantastic.mp4','Captain Fantastic')"><span class="hm-trailer-title">Captain Fantastic</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Charlie Countryman.mp4','Charlie Countryman')"><span class="hm-trailer-title">Charlie Countryman</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Dans la peau de John Malkovich.mp4','Dans la peau de John Malkovich')"><span class="hm-trailer-title">Dans la peau de John Malkovich</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Demolition.mp4','Demolition')"><span class="hm-trailer-title">Demolition</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Dream Scenario.mp4','Dream Scenario')"><span class="hm-trailer-title">Dream Scenario</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Ex Machina.mp4','Ex Machina')"><span class="hm-trailer-title">Ex Machina</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Garden State.mp4','Garden State')"><span class="hm-trailer-title">Garden State</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Good Time.mp4','Good Time')"><span class="hm-trailer-title">Good Time</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Her.mp4','Her')"><span class="hm-trailer-title">Her</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Human Traffic.mp4','Human Traffic')"><span class="hm-trailer-title">Human Traffic</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Into the Wild.mp4','Into the Wild')"><span class="hm-trailer-title">Into the Wild</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Lost River.mp4','Lost River')"><span class="hm-trailer-title">Lost River</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Love Lies Bleeding.mp4','Love Lies Bleeding')"><span class="hm-trailer-title">Love Lies Bleeding</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Mid90s.mp4','Mid90s')"><span class="hm-trailer-title">Mid90s</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Mud.mp4','Mud')"><span class="hm-trailer-title">Mud</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Risky Business.mp4','Risky Business')"><span class="hm-trailer-title">Risky Business</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Sound of Metal.mp4','Sound of Metal')"><span class="hm-trailer-title">Sound of Metal</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Stand by Me.mp4','Stand by Me')"><span class="hm-trailer-title">Stand by Me</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('The Place Beyond the Pines.mp4','The Place Beyond the Pines')"><span class="hm-trailer-title">The Place Beyond the Pines</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Uncut Gems.mp4','Uncut Gems')"><span class="hm-trailer-title">Uncut Gems</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Vanilla Sky.mp4','Vanilla Sky')"><span class="hm-trailer-title">Vanilla Sky</span><span class="hm-trailer-play">▶</span></div>
-            <div class="hm-trailer-row" onclick="hmTrailerPlay('Victoria.mp4','Victoria')"><span class="hm-trailer-title">Victoria</span><span class="hm-trailer-play">▶</span></div>
+          <!-- Player vidéo fixe -->
+          <div class="hm-vid-player-wrap" id="hm-vid-player-wrap">
+            <video id="hm-secret-video" class="hm-secret-video" playsinline preload="metadata"
+              style="width:100%;height:100%;display:block;object-fit:contain;background:#000;"
+              onended="hmVidEnded()"></video>
+            <div class="hm-vid-placeholder" id="hm-vid-placeholder">
+              <div class="hm-vid-placeholder-icon">🎬</div>
+              <div class="hm-vid-placeholder-text">CHOISIS UNE BANDE-ANNONCE</div>
+            </div>
           </div>
+
+          <!-- Now playing -->
+          <div class="hm-vid-now">
+            <div class="hm-vid-now-title" id="hm-vid-now-title">Sélectionne un film</div>
+            <div class="hm-vid-now-count" id="hm-vid-now-count">— / 30 bandes-annonces</div>
+          </div>
+
+          <!-- Liste scrollable -->
+          <div class="hm-vid-list-wrap">
+            <div id="hm-vid-list"></div>
+          </div>
+
         </div>
       </div>
 
@@ -6781,11 +7132,14 @@ function showToastMsg(msg){
   // Mini toast sans score
   const t=document.getElementById('toast');if(!t)return;
   t.className='tst ok';
+  const icon=document.getElementById('tst-icon');
+  if(icon)icon.textContent='✦';
   document.getElementById('tpts').textContent='';
   document.getElementById('tmsg').textContent=msg;
-  document.getElementById('tans').textContent='';
+  const tans=document.getElementById('tans');
+  if(tans){tans.textContent='';tans.style.display='none';}
   t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),2000);
+  setTimeout(()=>{hideToast();},1800);
 }
 
 function renderBestScores(s){
@@ -14247,16 +14601,19 @@ function loadQ(){
       const t=document.getElementById('toast');
       if(t){
         t.className='tst '+(ok?'ok':'');
+        const icon=document.getElementById('tst-icon');
+        if(icon)icon.textContent=ok?'✓':'✗';
         document.getElementById('tpts').style.color=ok?'var(--green)':'var(--red)';
-        document.getElementById('tpts').textContent=ok?`+${pts} pts`:'✗';
-        document.getElementById('tmsg').textContent=ok?`x${m} — ${q.films[q.correct].title}`:`${q.films[q.correct].title}`;
-        document.getElementById('tans').textContent='';
+        document.getElementById('tpts').textContent=ok?`+${pts}`:'✗';
+        document.getElementById('tmsg').textContent=ok?q.films[q.correct].title:`${q.films[q.correct].title}`;
+        const tans=document.getElementById('tans');
+        if(tans){tans.textContent='';tans.style.display='none';}
         t.classList.add('on');
       }
       if(ok){okCnt++;combo++;showComboBanner(combo);}else{combo=0;}
       dotRes[curQ]=ok;
       if(nextQTimer)clearTimeout(nextQTimer);
-      nextQTimer=setTimeout(()=>{hideToast();advanceQ();},ok?1600:2200);
+      nextQTimer=setTimeout(()=>{hideToast();advanceQ();},ok?1000:1800);
     };
     document.querySelectorAll('.vf-card').forEach((card,i)=>{
       card.onclick=()=>_vfAnswer(i);
@@ -14697,7 +15054,6 @@ function showToast(ok,pts,m,ans){
   const sh=document.getElementById('scorehd');
   if(sh){sh.classList.remove('bump');void sh.offsetWidth;sh.classList.add('bump');}
   if(selMode==='training'){
-    // Toujours afficher la bonne réponse en mode entraînement
     const btns=Array.from(document.querySelectorAll('#agrid .ab'));
     const q=qs[curQ];
     if(q&&btns[q.correct])btns[q.correct].classList.add('ok');
@@ -14706,23 +15062,40 @@ function showToast(ok,pts,m,ans){
     return;
   }
   if(ok){
-    // Bonne réponse : petite bulle verte, auto-dismiss
     const t=document.getElementById('toast');
+    const icon=document.getElementById('tst-icon');
+    const tptsEl=document.getElementById('tpts');
+    const tmsgEl=document.getElementById('tmsg');
+    const tansEl=document.getElementById('tans');
+
     t.className='tst ok';
     t.style.cursor='pointer';
-    document.getElementById('tpts').style.color='var(--green)';
-    document.getElementById('tpts').textContent='+'+pts+' pts';
-    document.getElementById('tmsg').textContent=m===3?'⚡ Ultra rapide ! x3':m===2?'👍 Bien joué ! x2':'✓ Correct';
-    document.getElementById('tans').textContent=ans||'';
+
+    // Icône selon multiplicateur
+    if(icon){icon.textContent=m>=3?'⚡':m>=2?'✦':'✓';}
+
+    tptsEl.style.color=m>=3?'var(--gold)':m>=2?'#a8e063':'var(--green)';
+    tptsEl.textContent='+'+pts;
+
+    // Message court et lisible
+    if(m>=3)tmsgEl.textContent='Ultra rapide ×3';
+    else if(m>=2)tmsgEl.textContent='Rapide ×2';
+    else tmsgEl.textContent='Correct';
+
+    tansEl.textContent=ans||'';
+    tansEl.style.display=ans?'block':'none';
+
     t.classList.add('on');
-    // Tap sur le toast = passe à la suite immédiatement
+
+    // Floating +pts depuis le score si multiplicateur bonus
+    if(m>=2)_spawnFloatPts(pts,m);
+
     const skipFn=()=>{t.removeEventListener('click',skipFn);if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}hideToast();advanceQ();};
     t.addEventListener('click',skipFn,{once:true});
-    // auto-dismiss après 1.4s (réduit pour éviter le bug iOS throttle)
     if(nextQTimer)clearTimeout(nextQTimer);
-    nextQTimer=setTimeout(()=>{t.removeEventListener('click',skipFn);hideToast();advanceQ();},1400);
+    // Auto-dismiss plus court pour fluidité
+    nextQTimer=setTimeout(()=>{t.removeEventListener('click',skipFn);hideToast();advanceQ();},1100);
   } else {
-    // Mauvaise réponse : panneau bas persistant
     const q=qs[curQ];
     document.getElementById('ws-title').textContent=ans===null?'⏱ Temps écoulé !':'✗ Raté !';
     const correctAns=ans||(q&&q.answers?q.answers[q.correct]:null)||'—';
@@ -14731,12 +15104,29 @@ function showToast(ok,pts,m,ans){
     document.getElementById('ws-scrim').classList.add('on');
   }
 }
+
+// Floating pts — petit chip animé qui monte depuis la zone score
+function _spawnFloatPts(pts,m){
+  const sh=document.getElementById('scorehd');
+  const game=document.getElementById('game');
+  if(!sh||!game)return;
+  const el=document.createElement('div');
+  el.className='float-pts '+(m>=3?'bonus':'normal');
+  el.textContent='+'+pts;
+  // Positionner près du score header
+  const r=sh.getBoundingClientRect();
+  const gr=game.getBoundingClientRect();
+  el.style.top=(r.top-gr.top-4)+'px';
+  el.style.right='14px';
+  game.appendChild(el);
+  el.addEventListener('animationend',()=>el.remove(),{once:true});
+}
 function hideToast(){
   const t=document.getElementById('toast');
   if(!t.classList.contains('on'))return;
   t.classList.add('leaving');
   t.classList.remove('on');
-  setTimeout(()=>{t.classList.remove('leaving');t.style.animation='';},420);
+  setTimeout(()=>{t.classList.remove('leaving');t.style.animation='';},250);
 }
 function closeWrongSheet(){
   document.getElementById('wrong-sheet').classList.remove('on');
@@ -15601,26 +15991,29 @@ function handleVersusAnswer(idx,q){
   const t=document.getElementById('toast');
   if(t){
     t.className='tst '+(ok?'ok':'');
+    const icon=document.getElementById('tst-icon');
+    if(icon)icon.textContent=ok?'✓':'✗';
     document.getElementById('tpts').style.color=ok?VS_COLORS[vsCurIdx]:'var(--red)';
-    document.getElementById('tpts').textContent=ok?`+${pts} pts`:'✗';
-    document.getElementById('tmsg').textContent=ok?`x${m} · ${curP.name} !`:'Raté !';
-    document.getElementById('tans').textContent='';
+    document.getElementById('tpts').textContent=ok?`+${pts}`:'✗';
+    document.getElementById('tmsg').textContent=ok?curP.name:'Raté !';
+    const tans=document.getElementById('tans');
+    if(tans){tans.textContent='';tans.style.display='none';}
     t.classList.add('on');
   }
 
   vsTurn++;
   const qIdx=Math.floor(vsTurn/vsPlayers.length);
   if(qIdx>=vsQs.length){
-    setTimeout(()=>{hideToast();endVersus();},ok?1400:2200);
+    setTimeout(()=>{hideToast();endVersus();},ok?1000:1800);
     return;
   }
 
   const nextIdx=vsTurn%vsPlayers.length;
   const switchingPlayer=nextIdx!==vsCurIdx;
   if(switchingPlayer){
-    setTimeout(()=>{hideToast();showVersusHandoff(vsPlayers[nextIdx].name,()=>loadVersusQ());},ok?1400:2200);
+    setTimeout(()=>{hideToast();showVersusHandoff(vsPlayers[nextIdx].name,()=>loadVersusQ());},ok?1000:1800);
   } else {
-    setTimeout(()=>{hideToast();loadVersusQ();},ok?1400:2200);
+    setTimeout(()=>{hideToast();loadVersusQ();},ok?1000:1800);
   }
 }
 
@@ -16624,7 +17017,19 @@ function openJukebox(){
   go('jukebox');
   markJkSeen();
   stopMus();
-  // Sync shuffle button state
+  // Toujours démarrer sur la section musique
+  const musicSec=document.getElementById('jk-music-section');
+  const videoSec=document.getElementById('jk-video-section');
+  const hero=document.querySelector('#jukebox .jk-hero');
+  if(musicSec)musicSec.style.display='flex';
+  if(videoSec)videoSec.style.display='none';
+  if(hero)hero.style.display='';
+  // Reset des points Konami visuellement
+  const dotsWrap=document.getElementById('jk-konami-dots');
+  if(dotsWrap&&_jkKonamiStep===0)dotsWrap.style.opacity='0';
+  // Init Konami (safe à appeler plusieurs fois)
+  _jkKonamiInit();
+  // Sync shuffle
   const sb=document.getElementById('jk-shuffle-btn');
   if(sb){sb.style.color=_jkShuffle?'var(--gold)':'rgba(255,255,255,.6)';sb.style.borderColor=_jkShuffle?'rgba(245,200,66,.4)':'rgba(255,255,255,.11)';}
   if(!window._jkAudio||window._jkAudio.paused){_jkPlayKey(_jkCurrentKey(),_jkIdx);}
@@ -16639,11 +17044,192 @@ function closeJukebox(){
     fadeTrack(jka,0,500,()=>{jka.pause();});
     window._jkAudio=null;
   }
+  // Pause vidéo si active
+  const vid=document.getElementById('jk-video-player');
+  if(vid&&!vid.paused)vid.pause();
   go('home');
   const gbg=document.getElementById('game-bg');if(gbg)gbg.classList.remove('on');
   updateMiniPlayer();
-  // Relancer la musique d'ambiance si la musique est activée
   if(musOn) setTimeout(()=>playMus(),300);
+}
+
+// ══ ZONE VIDÉO SECRÈTE ══
+const JK_VIDEOS=[
+  {name:"1 Menu Whopper",                                         src:"1 Menu Whopper.mp4"},
+  {name:"C'est quoi ce poulet",                                   src:"C'est quoi ce poulet.mp4"},
+  {name:"C'est quoi ces bruits de golmon",                        src:"C'est quoi ces bruits de golmon.mp4"},
+  {name:"Ça va peter",                                            src:"Ça va peter.mp4"},
+  {name:"Des casseroles sur les murs",                            src:"Des casseroles sur les murs.mp4"},
+  {name:"Etienne le Bolideur, fan de Bolidage - Véga Missyl",    src:"Etienne le Bolideur, fan de Bolidage - Véga Missyl.mp4"},
+  {name:"Exactement ouais ouais ouais ouais t'es bien renseigné toi", src:"Exactement ouais ouais ouais ouais t'es bien renseigné toi.mp4"},
+  {name:"Granades attention grenades",                            src:"Granades attention grenades.mp4"},
+  {name:"Le prof d'itec tombe d'une armoire",                     src:"Le prof d'itec tombe d'une armoire.mp4"},
+  {name:"Macron explosion",                                       src:"Macron explosion.mp4"},
+  {name:"Maître Yoda",                                            src:"Maître Yoda.mp4"},
+  {name:"Mec qui fait des cris strident aiguë",                   src:"Mec qui fait des cris strident aiguë.mp4"},
+  {name:"Mec qui ronfle fort",                                    src:"Mec qui ronfle fort.mp4"},
+  {name:"Morsay ça c'est ma fusée",                               src:"Morsay ça c'est ma fusée.mp4"},
+  {name:"Ne t'inquiète pas ça va bien se passer",                 src:"Ne t'inquiète pas ça va bien se passer.mp4"},
+  {name:"Robot qui detek les mouches sur les cadav",              src:"Robot qui detek les mouches sur les cadav.mp4"},
+  {name:"Un front kick t'es dans l'eau",                          src:"Un front kick t'es dans l'eau.mp4"},
+];
+let _jkVidIdx=-1;
+
+// ══ KONAMI SECRET — 3× icône 🎵 puis 3× titre JUKEBOX ══
+// Séquence : ['icon','icon','icon','title','title','title']
+const JK_KONAMI_SEQ=['icon','icon','icon','title','title','title'];
+let _jkKonamiStep=0;
+let _jkKonamiTimer=null;
+let _jkVidUnlocked=false; // devient true une fois débloqué (persistant par session)
+
+function _jkKonamiTap(zone){
+  // Si déjà débloqué, taper sur l'icône ouvre directement la zone
+  if(_jkVidUnlocked&&zone==='icon'){jkSwitchTab('video');return;}
+
+  const expected=JK_KONAMI_SEQ[_jkKonamiStep];
+  if(zone!==expected){
+    // Mauvaise zone — reset avec secousse
+    if(_jkKonamiStep>0){
+      const icon=document.getElementById('jk-icon');
+      if(icon){icon.style.animation='none';void icon.offsetWidth;icon.style.animation='jkKonamiShake .35s ease both,xpIconFloat 4s ease-in-out 0.4s infinite';}
+    }
+    _jkKonamiStep=0;
+    _jkKonamiUpdateDots();
+    return;
+  }
+
+  _jkKonamiStep++;
+
+  // Afficher les points dès le 1er tap
+  const dotsWrap=document.getElementById('jk-konami-dots');
+  if(dotsWrap)dotsWrap.style.opacity='1';
+
+  // Flash sur l'élément touché
+  const icon=document.getElementById('jk-icon');
+  const titleEl=document.getElementById('jk-title-tap');
+  if(zone==='icon'&&icon){icon.classList.add('jk-konami-flash');setTimeout(()=>icon.classList.remove('jk-konami-flash'),500);}
+  if(zone==='title'&&titleEl){titleEl.classList.add('jk-konami-flash');setTimeout(()=>titleEl.classList.remove('jk-konami-flash'),500);}
+
+  _jkKonamiUpdateDots();
+
+  // Reset auto après 4 secondes d'inactivité
+  clearTimeout(_jkKonamiTimer);
+  _jkKonamiTimer=setTimeout(()=>{
+    _jkKonamiStep=0;
+    _jkKonamiUpdateDots();
+    if(dotsWrap)setTimeout(()=>{if(_jkKonamiStep===0)dotsWrap.style.opacity='0';},600);
+  },4000);
+
+  // Séquence complète !
+  if(_jkKonamiStep>=JK_KONAMI_SEQ.length){
+    clearTimeout(_jkKonamiTimer);
+    _jkKonamiStep=0;
+    _jkVidUnlocked=true;
+    setTimeout(()=>{
+      if(dotsWrap)dotsWrap.style.opacity='0';
+      _jkKonamiUpdateDots();
+      jkSwitchTab('video');
+    },380);
+  }
+}
+
+function _jkKonamiUpdateDots(){
+  for(let i=0;i<6;i++){
+    const d=document.getElementById('jk-kd-'+i);
+    if(d)d.classList.toggle('lit',i<_jkKonamiStep);
+  }
+}
+
+function _jkKonamiInit(){
+  if(window._jkKonamiInited)return;
+  window._jkKonamiInited=true;
+  // Rendre l'icône et le titre cliquables pour le Konami
+  const icon=document.getElementById('jk-icon');
+  const titleEl=document.getElementById('jk-title-tap');
+  if(icon){
+    icon.style.pointerEvents='all';
+    icon.style.cursor='pointer';
+    icon.addEventListener('click',()=>_jkKonamiTap('icon'));
+    icon.addEventListener('touchend',(e)=>{e.preventDefault();_jkKonamiTap('icon');},{passive:false});
+  }
+  if(titleEl){
+    titleEl.style.cursor='pointer';
+    titleEl.style.userSelect='none';
+    titleEl.addEventListener('click',()=>_jkKonamiTap('title'));
+    titleEl.addEventListener('touchend',(e)=>{e.preventDefault();_jkKonamiTap('title');},{passive:false});
+  }
+}
+
+function jkSwitchTab(tab){
+  const musicSec=document.getElementById('jk-music-section');
+  const videoSec=document.getElementById('jk-video-section');
+  const hero=document.querySelector('#jukebox .jk-hero');
+  const gbg=document.getElementById('game-bg');
+
+  if(tab==='video'){
+    musicSec.style.display='none';
+    videoSec.style.display='flex';
+    videoSec.style.flexDirection='column';
+    // Masquer le hero audio pour maximiser l'espace vidéo
+    if(hero)hero.style.display='none';
+    if(gbg)gbg.className='on mode-jukebox-vid';
+    // Pause audio
+    if(window._jkAudio&&!window._jkAudio.paused){
+      window._jkAudio.pause();_stopProgInterval();updateJukeboxDisplay();
+    }
+    buildJkVidList();
+  } else {
+    videoSec.style.display='none';
+    musicSec.style.display='flex';
+    if(hero)hero.style.display='';
+    if(gbg)gbg.className='on mode-jukebox';
+    // Pause vidéo
+    const vid=document.getElementById('jk-video-player');
+    if(vid&&!vid.paused)vid.pause();
+    if(!window._jkAudio||window._jkAudio.paused){_jkPlayKey(_jkCurrentKey(),_jkIdx);}
+  }
+}
+
+function buildJkVidList(){
+  const list=document.getElementById('jk-vid-list');if(!list)return;
+  list.innerHTML=JK_VIDEOS.map((v,i)=>{
+    const active=i===_jkVidIdx;
+    const playIcon=`<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="6,3 20,12 6,21"/></svg>`;
+    const eq=active?`<div class="jk-vid-eq"><span></span><span></span><span></span></div>`:
+      `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    return`<div class="jk-vid-row${active?' active':''}" onclick="jkPlayVid(${i})">
+      <div class="jk-vid-thumb">
+        <span class="jk-vid-thumb-icon">🎬</span>
+        <div class="jk-vid-play-overlay">${playIcon}</div>
+      </div>
+      <div class="jk-vid-row-info">
+        <div class="jk-vid-row-name">${v.name}</div>
+        <div class="jk-vid-row-num">Vidéo ${i+1} / ${JK_VIDEOS.length}</div>
+      </div>
+      ${eq}
+    </div>`;
+  }).join('');
+}
+
+function jkPlayVid(idx){
+  _jkVidIdx=idx;
+  const v=JK_VIDEOS[idx];
+  const vid=document.getElementById('jk-video-player');
+  const titleEl=document.getElementById('jk-vid-now-title');
+  const countEl=document.getElementById('jk-vid-now-count');
+  if(!vid||!v)return;
+  vid.src=v.src;
+  vid.load();
+  vid.play().catch(()=>{});
+  if(titleEl)titleEl.textContent=v.name;
+  if(countEl)countEl.textContent=(idx+1)+' / '+JK_VIDEOS.length+' vidéos';
+  buildJkVidList();
+}
+
+function jkVidEnded(){
+  // Passer à la suivante automatiquement
+  const next=(_jkVidIdx+1)%JK_VIDEOS.length;
+  jkPlayVid(next);
 }
 
 function initMiniPlayer(){
@@ -17837,11 +18423,22 @@ function openHMSecret(){
 
   // ── Réinitialiser l'état ──
   hmSecretTab(0,document.querySelectorAll('.hm-secret-tab')[0]);
+  // Panel vidéo actif dès l'ouverture
+  const scroll=document.querySelector('.hm-secret-scroll');
+  if(scroll)scroll.classList.add('vid-active');
   _hmRenderSecretFilm();
   hmOracleReset();
-  hmTrailerRender();
+  buildHmVidList();
+  // Reset player vidéo
   const vid=document.getElementById('hm-secret-video');
-  if(vid){vid.currentTime=0;vid.pause();}
+  if(vid){vid.pause();vid.src='';vid.load();}
+  _hmVidIdx=-1;
+  const placeholder=document.getElementById('hm-vid-placeholder');
+  if(placeholder)placeholder.style.display='flex';
+  const titleEl=document.getElementById('hm-vid-now-title');
+  const countEl=document.getElementById('hm-vid-now-count');
+  if(titleEl)titleEl.textContent='Sélectionne un film';
+  if(countEl)countEl.textContent='— / '+HM_TRAILERS.length+' bandes-annonces';
 
   // ── Fade out musique en cours puis lancer ambiance salle secrète ──
   if(typeof fadeTrack==='function' && typeof window._musicCache!=='undefined'){
@@ -17940,25 +18537,116 @@ function closeHMSecret(){
 //  BANDES-ANNONCES PERSONNALISÉES — Hidden Movies
 // ══════════════════════════════════════════
 
-function hmTrailerPlay(filename, title){
-  // Pauser la vidéo principale
-  const mainVid=document.getElementById('hm-secret-video');
-  if(mainVid) mainVid.pause();
-  // Créer overlay plein écran
-  const overlay=document.createElement('div');
-  overlay.id='hm-trailer-player-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
-  overlay.innerHTML=
-    '<button onclick="var o=document.getElementById(\'hm-trailer-player-overlay\');var v=o.querySelector(\'video\');if(v){v.pause();v.src=\'\';}o.remove();" style="position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:18px;z-index:2;">✕</button>'
-    +'<div style="position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;right:60px;font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:1.5px;color:rgba(255,200,80,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;">'+title+'</div>'
-    +'<div style="width:100%;display:flex;justify-content:center;padding:0 16px;">'
-    +'<video src="'+filename+'" controls autoplay playsinline style="width:min(90vw,440px);aspect-ratio:16/9;border-radius:12px;background:#000;max-height:60vh;"></video>'
-    +'</div>';
-  document.body.appendChild(overlay);
+// ══ HIDDEN MOVIES — LECTEUR BANDES-ANNONCES INLINE (style Jukebox) ══
+const HM_TRAILERS=[
+  {name:'Hidden Movies — Film exclusif', src:'hiddenmovies.mp4', special:true},
+  {name:'A Beautiful Day',           src:'A Beautiful Day.mp4'},
+  {name:'À tombeau ouvert',          src:'A tombeau ouvert.mp4'},
+  {name:'After Hours',               src:'After Hours.mp4'},
+  {name:'Aftersun',                  src:'Aftersun.mp4'},
+  {name:'American Beauty',           src:'American Beauty.mp4'},
+  {name:'American Honey',            src:'American Honey.mp4'},
+  {name:'Boogie Nights',             src:'Boogie Nights.mp4'},
+  {name:'Breakfast Club',            src:'Breakfast Club.mp4'},
+  {name:'Captain Fantastic',         src:'Captain Fantastic.mp4'},
+  {name:'Charlie Countryman',        src:'Charlie Countryman.mp4'},
+  {name:'Dans la peau de John Malkovich', src:'Dans la peau de John Malkovich.mp4'},
+  {name:'Demolition',                src:'Demolition.mp4'},
+  {name:'Dream Scenario',            src:'Dream Scenario.mp4'},
+  {name:'Ex Machina',                src:'Ex Machina.mp4'},
+  {name:'Garden State',              src:'Garden State.mp4'},
+  {name:'Good Time',                 src:'Good Time.mp4'},
+  {name:'Her',                       src:'Her.mp4'},
+  {name:'Human Traffic',             src:'Human Traffic.mp4'},
+  {name:'Into the Wild',             src:'Into the Wild.mp4'},
+  {name:'Lost River',                src:'Lost River.mp4'},
+  {name:'Love Lies Bleeding',        src:'Love Lies Bleeding.mp4'},
+  {name:'Mid90s',                    src:'Mid90s.mp4'},
+  {name:'Mud',                       src:'Mud.mp4'},
+  {name:'Risky Business',            src:'Risky Business.mp4'},
+  {name:'Sound of Metal',            src:'Sound of Metal.mp4'},
+  {name:'Stand by Me',               src:'Stand by Me.mp4'},
+  {name:'The Place Beyond the Pines',src:'The Place Beyond the Pines.mp4'},
+  {name:'Uncut Gems',                src:'Uncut Gems.mp4'},
+  {name:'Vanilla Sky',               src:'Vanilla Sky.mp4'},
+  {name:'Victoria',                  src:'Victoria.mp4'},
+];
+let _hmVidIdx=-1;
+
+function buildHmVidList(){
+  const list=document.getElementById('hm-vid-list');
+  if(!list)return;
+  const playIcon=`<svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><polygon points="6,3 20,12 6,21"/></svg>`;
+
+  // Séparateur entre l'exclusif et les bandes-annonces
+  const sep=`<div style="font-size:9px;letter-spacing:2.5px;color:rgba(255,200,80,.3);font-family:'Bebas Neue',sans-serif;padding:10px 6px 5px;text-transform:uppercase;">Bandes-annonces</div>`;
+
+  list.innerHTML=HM_TRAILERS.map((v,i)=>{
+    const active=i===_hmVidIdx;
+    const indicator=active
+      ?`<div class="hm-vid-eq"><span></span><span></span><span></span></div>`
+      :`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".28"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+
+    const thumb = v.special
+      ? `<div class="hm-trailer-thumb" style="border-color:rgba(255,200,80,.35);background:rgba(255,200,80,.07);">
+           <span style="font-size:16px;">✦</span>
+           <div class="hm-trailer-play-ov">${playIcon}</div>
+         </div>`
+      : `<div class="hm-trailer-thumb">
+           <span style="font-size:16px;">🎬</span>
+           <div class="hm-trailer-play-ov">${playIcon}</div>
+         </div>`;
+
+    const sub = v.special
+      ? `<div class="hm-trailer-num" style="color:rgba(255,200,80,.45);letter-spacing:.5px;">✦ EXCLUSIF</div>`
+      : `<div class="hm-trailer-num">${i} / ${HM_TRAILERS.length - 1} bandes-annonces</div>`;
+
+    const row = `<div class="hm-trailer-row${active?' active':''}${v.special?' hm-trailer-special':''}" onclick="hmTrailerPlay(${i})">
+      ${thumb}
+      <div class="hm-trailer-info">
+        <div class="hm-trailer-title">${v.name}</div>
+        ${sub}
+      </div>
+      ${indicator}
+    </div>`;
+
+    // Insérer le séparateur avant le 2e élément
+    return (i===1 ? sep : '') + row;
+  }).join('');
+}
+
+function hmTrailerPlay(idx){
+  _hmVidIdx=idx;
+  const v=HM_TRAILERS[idx];
+  const vid=document.getElementById('hm-secret-video');
+  const titleEl=document.getElementById('hm-vid-now-title');
+  const countEl=document.getElementById('hm-vid-now-count');
+  const placeholder=document.getElementById('hm-vid-placeholder');
+  if(!vid||!v)return;
+  if(placeholder)placeholder.style.display='none';
+  vid.src=v.src;
+  vid.load();
+  vid.play().catch(()=>{});
+  if(titleEl)titleEl.textContent=v.name;
+  if(countEl)countEl.textContent=v.special
+    ? '✦ Contenu exclusif Hidden Movies'
+    : idx+' / '+(HM_TRAILERS.length-1)+' bandes-annonces';
+  buildHmVidList();
+  // Scroll la ligne active dans la liste
+  setTimeout(()=>{
+    const list=document.getElementById('hm-vid-list');
+    const active=list&&list.querySelector('.hm-trailer-row.active');
+    if(active)active.scrollIntoView({block:'nearest',behavior:'smooth'});
+  },80);
+}
+
+function hmVidEnded(){
+  const next=(_hmVidIdx+1)%HM_TRAILERS.length;
+  hmTrailerPlay(next);
 }
 
 function hmTrailerRender(){
-  // Statique — rien à rendre dynamiquement
+  buildHmVidList();
 }
 
 function hmSecretTab(idx,btn){
@@ -17967,7 +18655,15 @@ function hmSecretTab(idx,btn){
   if(btn)btn.classList.add('active');
   const panel=document.getElementById('hm-secret-panel-'+idx);
   if(panel)panel.classList.add('active');
-  if(idx!==0){const vid=document.getElementById('hm-secret-video');if(vid)vid.pause();}
+  // Panel 0 : scroll géré en interne — désactiver l'overflow du conteneur parent
+  const scroll=document.querySelector('.hm-secret-scroll');
+  if(scroll)scroll.classList.toggle('vid-active',idx===0);
+  if(idx===0){
+    buildHmVidList();
+  } else {
+    const vid=document.getElementById('hm-secret-video');
+    if(vid&&!vid.paused)vid.pause();
+  }
 }
 
 // hmSecretPlayVideo supprimé — lecteur natif utilisé directement
