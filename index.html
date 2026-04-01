@@ -3601,8 +3601,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   box-shadow:
     0 32px 80px rgba(0,0,0,.8),
     0 0 0 1px rgba(255,255,255,.08),
-    0 0 30px 4px rgba(var(--halo-r,120),var(--halo-g,50),var(--halo-b,200),.15),
-    0 0 60px 12px rgba(var(--halo-r,120),var(--halo-g,50),var(--halo-b,200),.06);
+    0 0 30px 4px rgba(var(--halo-r,0),var(--halo-g,0),var(--halo-b,0),.0),
+    0 0 60px 12px rgba(var(--halo-r,0),var(--halo-g,0),var(--halo-b,0),.0);
 }
 .hmv-poster.interacting{
   transition: none;
@@ -11252,8 +11252,21 @@ function _hmvRender() {
 
 function _hmvOpenInfo() {
   _hmvInfoOpen = true;
-  document.getElementById('hmv-info').classList.add('open');
+  const infoPanel = document.getElementById('hmv-info');
+  infoPanel.classList.add('open');
   document.getElementById('hmv-hint').style.opacity = '0';
+  // Attach swipe-down-to-close directly on panel (scroll intercepts viewer gestures)
+  if (!infoPanel._swipeCloseInit) {
+    infoPanel._swipeCloseInit = true;
+    let _ipSY = 0;
+    infoPanel.addEventListener('touchstart', function(e) {
+      _ipSY = e.touches[0].clientY;
+    }, { passive: true });
+    infoPanel.addEventListener('touchend', function(e) {
+      const dy = e.changedTouches[0].clientY - _ipSY;
+      if (dy > 60 && infoPanel.scrollTop <= 2) _hmvCloseInfo();
+    }, { passive: true });
+  }
 }
 
 function _hmvCloseInfo(animate = true) {
@@ -11422,7 +11435,7 @@ function _hmvTick() {
       `${ox.toFixed(1)}px ${oy.toFixed(1)}px ${spread}px 1px hsla(${hue.toFixed(0)},75%,62%,${alpha.toFixed(3)})`,
       '0 32px 80px rgba(0,0,0,.8)',
       '0 0 0 1px rgba(255,255,255,.08)',
-      `0 0 30px 4px rgba(var(--halo-r,120),var(--halo-g,50),var(--halo-b,200),.12)`,
+      `0 0 30px 4px rgba(var(--halo-r,0),var(--halo-g,0),var(--halo-b,0),.08)`,
     ].join(', ');
     poster.classList.add('touching');
   }
