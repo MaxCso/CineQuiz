@@ -6307,6 +6307,10 @@ const MUSIC_FILES={
   jk7:         'Everything In Its Right Place.mp3',
   jk8:         'In The Waiting Line.mp3',
   jk9:         "La femme d'argent.mp3",
+  jk10:        'How to Disappear Completely.mp3',
+  jk11:        'Donkey.mp3',
+  jk12:        'Jurassic Park.mp3',
+  flingo:      'FLINGO.mp3',
   // Nouveaux modes — alias vers les pistes jukebox
   pitch:       'music-jk1.mp3',
   versusfilms: 'music-jk2.mp3',
@@ -6350,6 +6354,10 @@ const MUSIC_TRACK_NAMES={
   jk7:         'Everything In Its Right Place',
   jk8:         'In The Waiting Line',
   jk9:         "La Femme d'Argent",
+  jk10:        'How to Disappear Completely',
+  jk11:        'Donkey',
+  jk12:        'Jurassic Park',
+  flingo:      'FLINGO',
 };
 
 // Labels lisibles pour le gestionnaire
@@ -6388,6 +6396,10 @@ const MUSIC_LABELS={
   jk7:         {icon:'🟡',label:'Everything In Its Right Place'},
   jk8:         {icon:'⏳',label:'In The Waiting Line'},
   jk9:         {icon:'🇫🇷',label:"La Femme d'Argent"},
+  jk10:        {icon:'🌧️',label:'How to Disappear Completely'},
+  jk11:        {icon:'🫏',label:'Donkey'},
+  jk12:        {icon:'🦕',label:'Jurassic Park'},
+  flingo:      {icon:'🔐',label:'Zone Secrète'},
 };
 
 function _getSrc(key){
@@ -6492,7 +6504,7 @@ function toggleMusic(){
 }
 
 // ── GESTIONNAIRE MUSIQUE (profil) ──
-const MUSIC_MANAGER_KEYS=['home','quiz','photo','year','replique','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','quiadit','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9'];
+const MUSIC_MANAGER_KEYS=['home','quiz','photo','year','replique','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','quiadit','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9','jk10','jk11','jk12','flingo'];
 
 function getAmbientKey(){
   try{return localStorage.getItem('cq_ambient_key')||'home';}catch{return'home';}
@@ -16801,6 +16813,10 @@ const TRACK_UNLOCK={
   jk7:         {cond:()=>true},
   jk8:         {cond:()=>true},
   jk9:         {cond:()=>true},
+  jk10:        {cond:()=>true},
+  jk11:        {cond:()=>true},
+  jk12:        {cond:()=>true},
+  flingo:      {cond:()=>_jkVidUnlocked, hint:'???'},
 };
 function isTrackUnlocked(k){const s=ls();const u=TRACK_UNLOCK[k];return!u||u.cond(s);}
 
@@ -16897,6 +16913,10 @@ function closeJukebox(){
     const jka=window._jkAudio;
     fadeTrack(jka,0,500,()=>{jka.pause();});
     window._jkAudio=null;
+  }
+  // Arrêter FLINGO si actif
+  if(window._flingoAudio&&!window._flingoAudio.paused){
+    fadeTrack(window._flingoAudio,0,500,()=>{window._flingoAudio.pause();window._flingoAudio.currentTime=0;});
   }
   // Pause vidéo si active
   const vid=document.getElementById('jk-video-player');
@@ -17027,9 +17047,16 @@ function jkSwitchTab(tab){
     // Masquer le hero audio pour maximiser l'espace vidéo
     if(hero)hero.style.display='none';
     if(gbg)gbg.className='on mode-jukebox-vid';
-    // Pause audio
+    // Pause audio jukebox normal et lancer FLINGO en ambiance
     if(window._jkAudio&&!window._jkAudio.paused){
       window._jkAudio.pause();_stopProgInterval();updateJukeboxDisplay();
+    }
+    // Lancer FLINGO comme ambiance de la zone secrète
+    const flingoSrc=MUSIC_FILES['flingo'];
+    if(flingoSrc){
+      if(!window._flingoAudio){window._flingoAudio=new Audio(flingoSrc);window._flingoAudio.loop=true;window._flingoAudio.volume=0;}
+      window._flingoAudio.play().catch(()=>{});
+      fadeTrack(window._flingoAudio,0.38,1200);
     }
     buildJkVidList();
   } else {
@@ -17037,6 +17064,10 @@ function jkSwitchTab(tab){
     musicSec.style.display='flex';
     if(hero)hero.style.display='';
     if(gbg)gbg.className='on mode-jukebox';
+    // Arrêter FLINGO progressivement
+    if(window._flingoAudio&&!window._flingoAudio.paused){
+      fadeTrack(window._flingoAudio,0,700,()=>{window._flingoAudio.pause();window._flingoAudio.currentTime=0;});
+    }
     // Pause vidéo
     const vid=document.getElementById('jk-video-player');
     if(vid&&!vid.paused)vid.pause();
