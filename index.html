@@ -16849,9 +16849,13 @@ function _jkPlayKey(key,idx){
   if(!src){updateMiniPlayer();updateJukeboxDisplay();return;}
   const a=new Audio(src);
   a.loop=false;a.volume=0.55;a._jkKey=key;
+  const _thisAudio=a;
   window._jkAudio=a;
   a.play().catch(()=>{});
-  a.addEventListener('ended',()=>{playerNext();});
+  a.addEventListener('ended',()=>{
+    // Ne passer à la suivante que si cet audio est toujours l'actif (lecture continue)
+    if(window._jkAudio===_thisAudio){playerNext();}
+  });
   _curMode=key;musOn=true;
   const bm=document.getElementById('btn-music');if(bm)bm.style.opacity='1';
   updateMiniPlayer();updateJukeboxDisplay();buildJkPlaylist();_startProgInterval();
