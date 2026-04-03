@@ -1268,12 +1268,12 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 .vs-player-input input::placeholder{color:rgba(255,255,255,.25);}
 .vs-nb-label{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;align-self:flex-start;}
-.vs-nb-row{display:flex;gap:8px;width:100%;}
+.vs-nb-row{display:flex;gap:8px;width:100%;justify-content:center;}
 .vs-nb-btn{
-  flex:1;padding:11px;border-radius:12px;background:rgba(255,255,255,.07);
+  padding:11px 20px;border-radius:12px;background:rgba(255,255,255,.07);
   border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);
   font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;
-  cursor:pointer;transition:all .18s;text-align:center;
+  cursor:pointer;transition:all .18s;text-align:center;min-width:80px;
 }
 .vs-nb-btn.on{border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.12);color:var(--gold);}
 /* Setup joueurs */
@@ -2564,13 +2564,13 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 
 /* Pill compact en coin haut-droit */
 @keyframes pillIn{
-  0%  {opacity:0;transform:translateY(-6px) scale(.82);}
-  60% {opacity:1;transform:translateY(2px) scale(1.04);}
-  100%{opacity:1;transform:translateY(0) scale(1);}
+  0%  {opacity:0;transform:translateX(-50%) translateY(-6px) scale(.82);}
+  60% {opacity:1;transform:translateX(-50%) translateY(2px) scale(1.04);}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
 }
 @keyframes pillOut{
-  0%  {opacity:1;transform:translateY(0) scale(1);}
-  100%{opacity:0;transform:translateY(-8px) scale(.88);}
+  0%  {opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+  100%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.88);}
 }
 @keyframes pillShimmer{
   0%,100%{box-shadow:0 2px 12px rgba(46,204,113,.12),0 0 0 1px rgba(46,204,113,.2);}
@@ -2580,9 +2580,9 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .tst{
   position:absolute;
   top:calc(max(14px,env(safe-area-inset-top,14px)) + 54px);
-  right:12px;left:auto;
+  right:auto;left:50%;
   max-width:200px;
-  transform:translateY(-10px) scale(.86);
+  transform:translateX(-50%) translateY(-10px) scale(.86);
   background:rgba(10,12,22,.94);
   border:1px solid rgba(255,255,255,.09);
   border-radius:16px;
@@ -6287,8 +6287,8 @@ const MUSIC_FILES={
   vraifaux:    'music-vraifaux.mp3',
   decennie:    'music-decennie.mp3',
   quiadit:     'music-quiadit.mp3',
-  versus:      'music-versus.mp3',
-  training:    'music-training.mp3',
+  versus:      'All That We Perceive.mp3',
+  training:    'All That We Perceive.mp3',
   bonus:       'ambiance-bonus.mp3',
   arcade:      'music-arcade.mp3',
   snake:       'music-snake.mp3',
@@ -6341,8 +6341,8 @@ const MUSIC_TRACK_NAMES={
   vraifaux:    'Stone in Focus',
   decennie:    'Celeste',
   quiadit:     'Revenant',
-  versus:      'American Beauty',
-  training:    'American Beauty',
+  versus:      'All That We Perceive',
+  training:    'All That We Perceive',
   bonus:       'Lonely Blues',
   arcade:      '37°2',
   snake:       'Severance',
@@ -15852,7 +15852,7 @@ function startVersus(){
         <div class="vs-players-inputs" id="vs-inputs">${inputs}</div>
         <div class="vs-nb-label">Manches (5 questions chacune)</div>
         <div class="vs-nb-row" id="vs-nb-row">
-          ${[1,2,3,4].map(n=>`<div class="vs-nb-btn${n===(_nbQ/5)?' on':''}" onclick="vsSetNb(${n*5},this)">${n} manche${n>1?'s':''}</div>`).join('')}
+          ${[2,3,4].map(n=>`<div class="vs-nb-btn${n===(_nbQ/5)?' on':''}" onclick="vsSetNb(${n*5},this)">${n} manches</div>`).join('')}
         </div>
         <button onclick="window._vsLaunch&&window._vsLaunch()" style="width:100%;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;margin-top:4px;">🎬 LANCER LE DUEL</button>
       </div>`;
@@ -17132,9 +17132,6 @@ let _jkVidUnlocked=false;
 try{if(localStorage.getItem('cq_jk_secret_found'))_jkVidUnlocked=true;}catch{}
 
 function _jkKonamiTap(zone){
-  // Si déjà débloqué, taper sur l'icône ouvre directement la zone
-  if(_jkVidUnlocked&&zone==='icon'){jkSwitchTab('video');return;}
-
   const expected=JK_KONAMI_SEQ[_jkKonamiStep];
   if(zone!==expected){
     // Mauvaise zone — reset avec secousse
