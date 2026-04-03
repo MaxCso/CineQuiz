@@ -4310,6 +4310,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 }
 .hm-scratch-canvas{
   position:absolute;top:0;left:0;
+  width:100% !important;height:100% !important;
   z-index:4;
   cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f5c842' stroke-width='2' opacity='0.8'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f5c842'/%3E%3C/svg%3E") 16 16, crosshair;
   touch-action:none;
@@ -5775,13 +5776,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           </div>
         </div>
       </div>
-      <!-- Navigation gauche/droite -->
-      <button class="hm-nav-btn hm-nav-prev" onclick="hmNavigate(-1)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <button class="hm-nav-btn hm-nav-next" onclick="hmNavigate(1)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
       <!-- Compteur -->
       <div class="hm-scratch-counter" id="hm-scratch-counter"></div>
       <!-- Barre XP -->
@@ -11863,10 +11857,14 @@ function _hmRenderCard(idx){
 
 function _hmInitScratch(canvas, film, idx){
   requestAnimationFrame(()=>{
+  // Mesurer le conteneur scratch (hm-scratch-wrap) plutôt que le parent direct
+  // pour avoir la vraie taille disponible même si le layout n'est pas encore stabilisé
+  const scratchWrap = document.getElementById('hm-scratch-wrap');
   const wrap = canvas.parentElement;
-  const rect = wrap.getBoundingClientRect();
-  const W   = Math.round(rect.width)  || 375;
-  const H   = Math.round(rect.height) || 600;
+  const measureEl = scratchWrap || wrap;
+  const rect = measureEl.getBoundingClientRect();
+  const W   = Math.round(rect.width  || measureEl.offsetWidth)  || 390;
+  const H   = Math.round(rect.height || measureEl.offsetHeight) || 600;
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
   // ══ ARCHITECTURE : 3 couches superposées ══
@@ -11877,7 +11875,7 @@ function _hmInitScratch(canvas, film, idx){
 
   // ── CANVAS TEXTURE (fond métallique visible) ──
   const texCanvas = document.createElement('canvas');
-  texCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:3;display:none;`;
+  texCanvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;display:none;`;
   texCanvas.width  = W * DPR;
   texCanvas.height = H * DPR;
   wrap.appendChild(texCanvas);
@@ -11958,7 +11956,7 @@ function _hmInitScratch(canvas, film, idx){
   let shimmerPos = -0.25;
   // Le shimmer accumulerait trop → on le redessine sur un canvas dédié overlay
   const shCanvas = document.createElement('canvas');
-  shCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
+  shCanvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
   shCanvas.width = W * DPR; shCanvas.height = H * DPR;
   wrap.appendChild(shCanvas);
   _hmExtraCanvases.push(shCanvas);
@@ -11985,8 +11983,8 @@ function _hmInitScratch(canvas, film, idx){
   // ── CANVAS MASQUE GRATTAGE (transparent, destination-out) ──
   canvas.width  = W * DPR;
   canvas.height = H * DPR;
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
+  canvas.style.width  = '100%';
+  canvas.style.height = '100%';
   canvas.style.zIndex = '4';
   // Pas de filter SVG ici — on gère les bords via le gradient du pinceau
   const ctx = canvas.getContext('2d');
@@ -12039,7 +12037,7 @@ function _hmInitScratch(canvas, film, idx){
 
   // ── CANVAS PARTICULES ──
   const pCanvas = document.createElement('canvas');
-  pCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:6;`;
+  pCanvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6;`;
   pCanvas.width  = W * DPR;
   pCanvas.height = H * DPR;
   wrap.appendChild(pCanvas);
