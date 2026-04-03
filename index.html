@@ -4310,7 +4310,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 }
 .hm-scratch-canvas{
   position:absolute;top:0;left:0;
-  width:100% !important;height:100% !important;
   z-index:4;
   cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f5c842' stroke-width='2' opacity='0.8'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f5c842'/%3E%3C/svg%3E") 16 16, crosshair;
   touch-action:none;
@@ -10750,11 +10749,9 @@ let _hmIdx=0;          // index courant
 let _hmScratching=false;
 let _hmCtx=null;
 let _hmRevealed=new Set(); // indices révélés (persistés)
-// Références globales pour annuler les RAF et nettoyer les canvas
-// lors de la navigation entre cartes (évite fuites mémoire / crashes)
-let _hmShimmerRaf=null;
-let _hmParticleRaf=null;
-let _hmExtraCanvases=[];
+let _hmShimmerRaf=null;   // RAF shimmer actif (pour annulation propre)
+let _hmParticleRaf=null;  // RAF particules actif (pour annulation propre)
+let _hmExtraCanvases=[];  // canvas dynamiques créés (texCanvas, shCanvas, pCanvas)
 
 function _hmLoadRevealed(){
   try{const r=localStorage.getItem('hm_revealed');if(r)_hmRevealed=new Set(JSON.parse(r));}catch{}
@@ -11319,11 +11316,12 @@ function _hmvRender() {
   // Hint adapté au contexte
   const hint = document.getElementById('hmv-hint');
   if (hint) {
-    const arrowUp = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>';
+    const arrowUp   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>';
+    const arrowLeft = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>';
     if (_hmvList.length > 1) {
-      hint.innerHTML = arrowUp + '<span class="hmv-hint-text">SWIPE ↑ INFOS &nbsp;·&nbsp; SWIPE ← FILM SUIVANT</span>';
+      hint.innerHTML = arrowUp + '<span class="hmv-hint-text">SWIPE ↑ INFOS<br>SWIPE ← FILM SUIVANT</span>';
     } else {
-      hint.innerHTML = arrowUp + '<span class="hmv-hint-text">SWIPE POUR LES INFOS</span>';
+      hint.innerHTML = arrowUp + '<span class="hmv-hint-text">SWIPE ↑ INFOS<br>SWIPE ← NOUVELLE CARTE</span>';
     }
     hint.style.opacity = '1';
   }
@@ -11405,6 +11403,10 @@ function closeHMViewer() {
     const s=ls();const userLvl=glv(s.xp);
     const next=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&!_hmRevealed.has(i));
     if(next>=0){_hmIdx=next;_hmRenderCard(_hmIdx);}
+    else{
+      // Plus aucune carte à gratter → aller sur la collection
+      hmSwitchTab('collection');
+    }
   }
 }
 
@@ -11707,7 +11709,7 @@ function openHM(){
 function closeHM(){
   _hmStopAudio();
   _hmCloseSheet();
-  // Stopper tous les RAF et supprimer les canvas orphelins
+  // Annuler les RAF et canvas orphelins
   if(_hmShimmerRaf){cancelAnimationFrame(_hmShimmerRaf);_hmShimmerRaf=null;}
   if(_hmParticleRaf){cancelAnimationFrame(_hmParticleRaf);_hmParticleRaf=null;}
   _hmExtraCanvases.forEach(c=>{try{c.remove();}catch(e){}});
@@ -11770,8 +11772,7 @@ function _hmRenderCard(idx){
   hint.innerHTML='';
   hint.classList.remove('hidden');
 
-  // ── Annuler tous les RAF en cours et supprimer les canvas orphelins ──
-  // (shimmer, particules, textures) — évite les fuites mémoire et les crashes
+  // Annuler les RAF et supprimer les canvas dynamiques de la carte précédente
   if(_hmShimmerRaf){cancelAnimationFrame(_hmShimmerRaf);_hmShimmerRaf=null;}
   if(_hmParticleRaf){cancelAnimationFrame(_hmParticleRaf);_hmParticleRaf=null;}
   _hmExtraCanvases.forEach(c=>{try{c.remove();}catch(e){}});
@@ -11857,187 +11858,146 @@ function _hmRenderCard(idx){
 
 function _hmInitScratch(canvas, film, idx){
   requestAnimationFrame(()=>{
-  // Mesurer le conteneur scratch (hm-scratch-wrap) plutôt que le parent direct
-  // pour avoir la vraie taille disponible même si le layout n'est pas encore stabilisé
-  const scratchWrap = document.getElementById('hm-scratch-wrap');
   const wrap = canvas.parentElement;
-  const measureEl = scratchWrap || wrap;
-  const rect = measureEl.getBoundingClientRect();
-  const W   = Math.round(rect.width  || measureEl.offsetWidth)  || 390;
-  const H   = Math.round(rect.height || measureEl.offsetHeight) || 600;
+  const rect = wrap.getBoundingClientRect();
+  const W   = Math.round(rect.width)  || 375;
+  const H   = Math.round(rect.height) || 600;
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  // ══ ARCHITECTURE : 3 couches superposées ══
-  // 1. wrap > hm-scratch-under  → affiche floue + poster (déjà en place)
-  // 2. texCanvas (nouveau)      → texture métallique premium, z-index 3
-  // 3. canvas (masque scratch)  → transparent par défaut, destination-out, z-index 4
-  // 4. pCanvas (copeaux)        → particules, z-index 5
+  // ══ ARCHITECTURE SIMPLIFIÉE ══
+  // - hm-scratch-under (z auto) : affiche floue + poster → visible quand on gratte
+  // - canvas masque (z-index 4) : texture holographique dessinée dessus, destination-out efface
+  // - shCanvas (z-index 5)      : shimmer animé par-dessus en screen
+  // - pCanvas  (z-index 6)      : copeaux
 
-  // ── CANVAS TEXTURE (fond métallique visible) ──
-  const texCanvas = document.createElement('canvas');
-  texCanvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;display:none;`;
-  texCanvas.width  = W * DPR;
-  texCanvas.height = H * DPR;
-  wrap.appendChild(texCanvas);
-  _hmExtraCanvases.push(texCanvas);
-  const tCtx = texCanvas.getContext('2d');
+  // ── CANVAS MASQUE = texture holographique ──
+  canvas.width  = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;z-index:4;touch-action:none;display:block;`;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+  _hmCtx = ctx;
 
-  // 1. Gradient argenté multi-stops
-  const gBase = tCtx.createLinearGradient(0, 0, W * 0.7, H);
-  gBase.addColorStop(0.00, '#d0d0da');
-  gBase.addColorStop(0.12, '#eeeef5');
-  gBase.addColorStop(0.28, '#b4b4c4');
-  gBase.addColorStop(0.45, '#e4e4ee');
-  gBase.addColorStop(0.60, '#c0c0d0');
-  gBase.addColorStop(0.78, '#e8e8f2');
-  gBase.addColorStop(1.00, '#babac8');
-  tCtx.fillStyle = gBase;
-  tCtx.fillRect(0, 0, W, H);
+  // 1. Fond argenté
+  const gBase = ctx.createLinearGradient(0, 0, W, H);
+  gBase.addColorStop(0.00, '#c8c8d8');
+  gBase.addColorStop(0.18, '#e8e8f4');
+  gBase.addColorStop(0.36, '#b8b8cc');
+  gBase.addColorStop(0.52, '#dcdcec');
+  gBase.addColorStop(0.68, '#c0c0d4');
+  gBase.addColorStop(0.84, '#e0e0f0');
+  gBase.addColorStop(1.00, '#b0b0c8');
+  ctx.fillStyle = gBase;
+  ctx.fillRect(0, 0, W, H);
 
-  // 2. Grain de bruit argenté (pixel par pixel)
-  const imgData = tCtx.getImageData(0, 0, W * DPR, H * DPR);
+  // 2. Couche holographique irisée
+  const gHolo = ctx.createLinearGradient(0, 0, W * 1.2, H * 0.8);
+  gHolo.addColorStop(0.00, 'rgba(200,100,255,0.18)');
+  gHolo.addColorStop(0.15, 'rgba(100,180,255,0.14)');
+  gHolo.addColorStop(0.30, 'rgba(100,255,200,0.16)');
+  gHolo.addColorStop(0.45, 'rgba(255,220,100,0.14)');
+  gHolo.addColorStop(0.60, 'rgba(255,100,150,0.16)');
+  gHolo.addColorStop(0.75, 'rgba(150,100,255,0.14)');
+  gHolo.addColorStop(0.90, 'rgba(100,220,255,0.18)');
+  gHolo.addColorStop(1.00, 'rgba(200,255,150,0.12)');
+  ctx.fillStyle = gHolo;
+  ctx.fillRect(0, 0, W, H);
+
+  // 3. Grain argenté fin (putImageData opère en coords bitmap, ignore le scale)
+  const imgData = ctx.getImageData(0, 0, W * DPR, H * DPR);
   const d = imgData.data;
   for (let i = 0; i < d.length; i += 4) {
-    const n = (Math.random() - 0.5) * 26;
+    const n = (Math.random() - 0.5) * 22;
     d[i]   = Math.min(255, Math.max(0, d[i]   + n));
     d[i+1] = Math.min(255, Math.max(0, d[i+1] + n));
-    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n * 0.6));
+    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n * 0.7));
   }
-  tCtx.putImageData(imgData, 0, 0);
+  ctx.putImageData(imgData, 0, 0);
+  // putImageData ignore le transform — le scale DPR est toujours actif, pas besoin de le ré-appliquer
 
-  // 3. Guilloché : losanges fins (effet billet/luxe)
-  tCtx.save();
-  tCtx.strokeStyle = '#505068';
-  tCtx.lineWidth = 0.55;
-  const step = 13;
-  tCtx.globalAlpha = 0.055;
-  for (let x = -H; x < W + H; x += step) {
-    tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x + H, H); tCtx.stroke();
-    tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x - H, H); tCtx.stroke();
+  // 4. Guilloché fin
+  ctx.save();
+  ctx.globalAlpha = 0.045;
+  ctx.strokeStyle = '#6060a0';
+  ctx.lineWidth = 0.4;
+  for (let x = -H; x < W + H; x += 10) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x - H, H); ctx.stroke();
   }
-  tCtx.globalAlpha = 0.03;
-  for (let y = 0; y < H; y += 7) {
-    tCtx.beginPath(); tCtx.moveTo(0, y); tCtx.lineTo(W, y); tCtx.stroke();
-  }
-  tCtx.restore();
+  ctx.restore();
 
-  // 4. Orbe de brillance centrale froide
-  const gCenter = tCtx.createRadialGradient(W*.5, H*.36, 0, W*.5, H*.36, W*.7);
-  gCenter.addColorStop(0,   'rgba(255,255,255,0.20)');
-  gCenter.addColorStop(0.4, 'rgba(220,220,240,0.07)');
-  gCenter.addColorStop(1,   'rgba(180,180,200,0.00)');
-  tCtx.fillStyle = gCenter;
-  tCtx.fillRect(0, 0, W, H);
+  // 5. Orbe central
+  const gCenter = ctx.createRadialGradient(W*.5, H*.38, 0, W*.5, H*.38, W*.65);
+  gCenter.addColorStop(0,   'rgba(255,255,255,0.28)');
+  gCenter.addColorStop(0.3, 'rgba(220,220,255,0.10)');
+  gCenter.addColorStop(1,   'rgba(180,180,220,0.00)');
+  ctx.fillStyle = gCenter;
+  ctx.fillRect(0, 0, W, H);
 
-  // 5. Reflets dorés aux coins
-  [[0,0],[W,0],[0,H],[W,H]].forEach(([cx,cy]) => {
-    const gr = tCtx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.32);
-    gr.addColorStop(0,   'rgba(245,200,80,0.10)');
-    gr.addColorStop(0.5, 'rgba(200,160,40,0.04)');
-    gr.addColorStop(1,   'rgba(180,140,20,0.00)');
-    tCtx.fillStyle = gr;
-    tCtx.fillRect(0, 0, W, H);
+  // 6. Reflets violets aux coins
+  [[0,0,'rgba(168,85,247,0.12)'],[W,0,'rgba(100,180,255,0.10)'],[0,H,'rgba(255,100,200,0.09)'],[W,H,'rgba(168,85,247,0.11)']].forEach(([cx,cy,col]) => {
+    const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.4);
+    gr.addColorStop(0,   col);
+    gr.addColorStop(0.5, col.replace(/[\d.]+\)$/, '0.03)'));
+    gr.addColorStop(1,   col.replace(/[\d.]+\)$/, '0)'));
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
   });
 
-  // 6. Texte gravé
-  tCtx.save();
-  tCtx.textAlign = 'center'; tCtx.textBaseline = 'middle';
-  tCtx.globalAlpha = 0.30;
-  tCtx.font = `700 10px -apple-system, sans-serif`;
-  tCtx.fillStyle = '#505068';
-  tCtx.fillText('✦  GRATTE POUR RÉVÉLER  ✦', W / 2, H / 2 + 12);
-  tCtx.globalAlpha = 0.16;
-  tCtx.font = `600 9px -apple-system, sans-serif`;
-  tCtx.fillStyle = '#606078';
-  tCtx.fillText(film.g.toUpperCase(), W / 2, H / 2 + 30);
-  tCtx.restore();
+  // 7. Texte gravé
+  ctx.save();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.globalAlpha = 0.28;
+  ctx.font = `700 11px -apple-system, sans-serif`;
+  ctx.fillStyle = '#4040a0';
+  ctx.fillText('✦  GRATTE POUR RÉVÉLER  ✦', W / 2, H / 2 + 10);
+  ctx.globalAlpha = 0.14;
+  ctx.font = `600 9px -apple-system, sans-serif`;
+  ctx.fillStyle = '#5050b0';
+  ctx.fillText(film.g.toUpperCase(), W / 2, H / 2 + 28);
+  ctx.restore();
 
-  // Shimmer diagonal animé sur canvas dédié overlay
-  let shimmerPos = -0.25;
-  // Le shimmer accumulerait trop → on le redessine sur un canvas dédié overlay
+  // ── SHIMMER animé par-dessus (mix-blend-mode:screen) ──
+  let shimmerPos = -0.3;
+  let shimmerTargetX = 0.5;
+  let shimmerCurX = 0.5;
   const shCanvas = document.createElement('canvas');
-  shCanvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
+  shCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
   shCanvas.width = W * DPR; shCanvas.height = H * DPR;
   wrap.appendChild(shCanvas);
   _hmExtraCanvases.push(shCanvas);
   const shCtx = shCanvas.getContext('2d');
   shCtx.scale(DPR, DPR);
+
   const animShimmer2 = () => {
     shCtx.clearRect(0, 0, W, H);
-    shimmerPos += 0.0035;
-    if (shimmerPos > 1.3) shimmerPos = -0.25;
-    const cx0 = W * (shimmerPos - 0.18);
-    const cx1 = W * (shimmerPos + 0.18);
-    const sh = shCtx.createLinearGradient(cx0, 0, cx1, H * 0.6);
+    shimmerPos += 0.004;
+    if (shimmerPos > 1.4) shimmerPos = -0.3;
+    const cx0 = W * (shimmerPos - 0.22);
+    const cx1 = W * (shimmerPos + 0.22);
+    const sh = shCtx.createLinearGradient(cx0, 0, cx1, H * 0.7);
     sh.addColorStop(0,    'rgba(255,255,255,0)');
-    sh.addColorStop(0.38, 'rgba(30,30,30,0.04)');
-    sh.addColorStop(0.50, 'rgba(255,255,255,0.13)');
-    sh.addColorStop(0.62, 'rgba(30,30,30,0.04)');
+    sh.addColorStop(0.35, 'rgba(200,180,255,0.06)');
+    sh.addColorStop(0.50, 'rgba(255,255,255,0.18)');
+    sh.addColorStop(0.65, 'rgba(180,220,255,0.06)');
     sh.addColorStop(1,    'rgba(255,255,255,0)');
     shCtx.fillStyle = sh;
+    shCtx.fillRect(0, 0, W, H);
+    shimmerCurX += (shimmerTargetX - shimmerCurX) * 0.06;
+    const hue = Math.round(shimmerCurX * 280);
+    const sh2 = shCtx.createRadialGradient(W * shimmerCurX, H * 0.4, 0, W * shimmerCurX, H * 0.4, W * 0.5);
+    sh2.addColorStop(0,   `hsla(${hue},80%,75%,0.10)`);
+    sh2.addColorStop(0.4, `hsla(${hue+40},70%,65%,0.05)`);
+    sh2.addColorStop(1,   'rgba(0,0,0,0)');
+    shCtx.fillStyle = sh2;
     shCtx.fillRect(0, 0, W, H);
     _hmShimmerRaf = requestAnimationFrame(animShimmer2);
   };
   _hmShimmerRaf = requestAnimationFrame(animShimmer2);
 
-  // ── CANVAS MASQUE GRATTAGE (transparent, destination-out) ──
-  canvas.width  = W * DPR;
-  canvas.height = H * DPR;
-  canvas.style.width  = '100%';
-  canvas.style.height = '100%';
-  canvas.style.zIndex = '4';
-  // Pas de filter SVG ici — on gère les bords via le gradient du pinceau
-  const ctx = canvas.getContext('2d');
-  ctx.scale(DPR, DPR);
-  _hmCtx = ctx;
-
-  // Le canvas masque doit "couper" dans la texture.
-  // Technique : on le rend opaque blanc, puis destination-out gratte dedans.
-  // La texture est en dessous → quand le masque est transparent = texture visible.
-  // On initialise le masque OPAQUE (blanc) → cache la texture en entier.
-  // Puis destination-out creuse des trous dans ce masque blanc.
-  // Mais le canvas est positionné AU-DESSUS de texCanvas, donc il faut qu'il soit blanc opaque.
-  // → On initialise en blanc semi-opaque pour cacher la texture sous-jacente.
-
-  // Canvas masque = blanc opaque (cache texCanvas)
-  ctx.fillStyle = 'rgba(0,0,0,0.001)'; // quasi transparent mais initialise le bitmap
-  ctx.fillRect(0, 0, W, H);
-
-  // Pour que le canvas masque cache la texture :
-  // on va l'utiliser comme clip : la texture est visible SEULEMENT là où le masque est grattée.
-  // Architecture finale :
-  //   texCanvas (z3) + shCanvas (z3 screen) → texture avec shimmer
-  //   canvas masque (z4)                    → blanc opaque, grattage creuse des trous
-  //   pCanvas (z5)                          → copeaux
-
-  // Remplir le canvas masque en blanc pour cacher la texture
-  ctx.fillStyle = '#ccc'; // couleur peu importe, on utilisera globalAlpha
-  // En fait : le canvas masque DOIT être opaque pour masquer la texCanvas en dessous.
-  // On utilise une couleur très légèrement transparente pour voir juste un soupçon de la texture.
-  // Solution propre : peindre en blanc opaque.
-  ctx.fillStyle = 'rgba(255,255,255,1)';
-  ctx.fillRect(0, 0, W, H);
-  // Puis on recopie la texture par-dessus (le canvas masque devient lui-même la texture).
-  // Non : la texture est dans texCanvas. Le masque cache texCanvas.
-  // Quand on gratte avec destination-out, on perce le masque blanc → la texture apparaît dessous.
-
-  // MAIS: si le canvas est blanc il va cacher shCanvas aussi.
-  // Solution: shCanvas passe SOUS le masque (z-index 3 < 4), ce qui est correct.
-  // Tout simplement : canvas masque = blanc opaque. Destination-out perce des trous.
-  // La texture + shimmer sont en dessous (z3), visibles à travers les trous. ✓
-
-  // Réinitialiser correctement : blanc opaque
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(220,220,225,1)'; // argenté très léger pour harmonie
-  ctx.fillRect(0, 0, W, H);
-  // Recopier la texture par-dessus le fond uni (pour que le masque porte aussi la texture)
-  // Ainsi les bords non grattés = texture, et les trous = texture texCanvas (identique).
-  // → On copie l'image du texCanvas dans le masque canvas pour uniformité totale.
-  ctx.drawImage(texCanvas, 0, 0, W * DPR, H * DPR, 0, 0, W, H);
-
   // ── CANVAS PARTICULES ──
   const pCanvas = document.createElement('canvas');
-  pCanvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6;`;
+  pCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:6;`;
   pCanvas.width  = W * DPR;
   pCanvas.height = H * DPR;
   wrap.appendChild(pCanvas);
@@ -12045,33 +12005,35 @@ function _hmInitScratch(canvas, film, idx){
   const pCtx = pCanvas.getContext('2d');
   pCtx.scale(DPR, DPR);
 
-  // Pool de copeaux argentés
+  // Pool de copeaux holographiques
   const particles = [];
   const CHIP_COLORS = [
-    '#d4d4d8','#eaeaf0','#c0c0cc','#f0f0f6',
-    'rgba(245,200,80,0.95)',
-    'rgba(180,220,255,0.85)',
-    'rgba(220,180,255,0.75)',
+    '#d0d0e8','#e8e8f8','#c0c0dc','#f0f0ff',
+    'rgba(200,150,255,0.95)',  // violet
+    'rgba(150,200,255,0.90)',  // bleu
+    'rgba(255,180,220,0.90)',  // rose
+    'rgba(180,255,220,0.85)',  // vert menthe
+    'rgba(255,230,150,0.90)',  // doré
   ];
   const spawnChips = (x, y, speed = 1) => {
-    const count = Math.floor(Math.random() * 5) + 4;
+    const count = Math.floor(Math.random() * 6) + 4;
     for (let i = 0; i < count; i++) {
       const angle  = Math.random() * Math.PI * 2;
-      const spd    = (Math.random() * 2.5 + 0.8) * speed;
-      const size   = Math.random() * 5 + 1.5;
-      const isHolo = Math.random() < 0.22;
+      const spd    = (Math.random() * 2.8 + 0.9) * speed;
+      const size   = Math.random() * 5.5 + 1.5;
+      const isHolo = Math.random() < 0.45; // plus de copeaux colorés
       particles.push({
         x, y,
         vx: Math.cos(angle) * spd,
-        vy: Math.sin(angle) * spd - 1.5,
+        vy: Math.sin(angle) * spd - 1.8,
         size,
         color: CHIP_COLORS[Math.floor(Math.random() * (isHolo ? CHIP_COLORS.length : 4))],
-        alpha: 0.9,
-        decay: Math.random() * 0.04 + 0.022,
+        alpha: 0.95,
+        decay: Math.random() * 0.038 + 0.018,
         rot: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.45,
+        rotSpeed: (Math.random() - 0.5) * 0.5,
         type: ['chip','flake','dot'][Math.floor(Math.random() * 3)],
-        scaleY: 0.25 + Math.random() * 0.5,
+        scaleY: 0.22 + Math.random() * 0.55,
       });
     }
   };
@@ -12123,29 +12085,46 @@ function _hmInitScratch(canvas, film, idx){
     const dx = x - lastX, dy = y - lastY;
     const dist = Math.sqrt(dx * dx + dy * dy);
     scratchSpeed = Math.min(3, Math.max(0.5, dist / 10));
-    const radius = 26 + scratchSpeed * 12; // 26–62px
+    const radius = 28 + scratchSpeed * 13; // 28–67px
+
+    // Mettre à jour la position du reflet irisé
+    shimmerTargetX = Math.max(0.05, Math.min(0.95, x / W));
 
     ctx.globalCompositeOperation = 'destination-out';
 
-    // Pinceau principal : net au centre, fondu progressif
+    // Pinceau avec bords irréguliers naturels
     const drawSpot = (sx, sy, r) => {
-      const g = ctx.createRadialGradient(sx, sy, r * 0.02, sx, sy, r);
+      // Spot principal net
+      const g = ctx.createRadialGradient(sx, sy, r * 0.01, sx, sy, r);
       g.addColorStop(0,    'rgba(0,0,0,1)');
-      g.addColorStop(0.60, 'rgba(0,0,0,1)');
-      g.addColorStop(0.82, 'rgba(0,0,0,0.75)');
+      g.addColorStop(0.55, 'rgba(0,0,0,1)');
+      g.addColorStop(0.78, 'rgba(0,0,0,0.85)');
+      g.addColorStop(0.92, 'rgba(0,0,0,0.40)');
       g.addColorStop(1,    'rgba(0,0,0,0)');
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
+      // Micro-bosses aléatoires sur le bord → effet "déchirure" naturelle
+      const bumps = 5;
+      for (let b = 0; b < bumps; b++) {
+        const bAngle = Math.random() * Math.PI * 2;
+        const bDist  = r * (0.72 + Math.random() * 0.28);
+        const bR     = r * (0.12 + Math.random() * 0.18);
+        const bx = sx + Math.cos(bAngle) * bDist;
+        const by = sy + Math.sin(bAngle) * bDist;
+        ctx.beginPath(); ctx.arc(bx, by, bR, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fill();
+      }
     };
 
     drawSpot(x, y, radius);
 
-    // Interpolation entre dernière et nouvelle position → trait continu sans pointillés
+    // Interpolation continue sans pointillés
     if (dist > 3) {
-      const steps = Math.ceil(dist / (radius * 0.65));
+      const steps = Math.ceil(dist / (radius * 0.55));
       for (let i = 1; i < steps; i++) {
         const t = i / steps;
-        drawSpot(lastX + dx * t, lastY + dy * t, radius);
+        drawSpot(lastX + dx * t, lastY + dy * t, radius * (0.9 + Math.random() * 0.2));
       }
     }
 
@@ -12163,23 +12142,18 @@ function _hmInitScratch(canvas, film, idx){
       _scratchSoundTimer = setTimeout(() => { _scratchSoundTimer = null; }, 36);
     }
 
-    // Vérif révélation (65%) — échantillonnage sur canvas réduit pour éviter le freeze
+    // Vérif révélation (65%)
     if (!scratchRevealed && ++checkThrottle % 10 === 0) {
-      const sampleW = 80, sampleH = Math.round(80 * H / W);
-      const offCtx = document.createElement('canvas');
-      offCtx.width = sampleW; offCtx.height = sampleH;
-      const oCtx = offCtx.getContext('2d');
-      oCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, sampleW, sampleH);
-      const sample = oCtx.getImageData(0, 0, sampleW, sampleH).data;
+      const sample = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
       let cleared = 0;
       for (let i = 3; i < sample.length; i += 4) if (sample[i] < 128) cleared++;
-      const pct = cleared / (sampleW * sampleH);
+      const pct = cleared / (canvas.width * canvas.height);
       if (pct > 0.65) {
         scratchRevealed = true;
-        if (_hmShimmerRaf){cancelAnimationFrame(_hmShimmerRaf);_hmShimmerRaf=null;}
+        if (_hmShimmerRaf) { cancelAnimationFrame(_hmShimmerRaf); _hmShimmerRaf = null; }
         if (animId) { cancelAnimationFrame(animId); animId = null; _hmParticleRaf = null; }
         _hmExtraCanvases.forEach(c=>{try{c.remove();}catch(e){}});
-        _hmExtraCanvases=[];
+        _hmExtraCanvases = [];
         _hmReveal(film, idx, canvas);
       }
     }
@@ -12200,7 +12174,7 @@ function _hmInitScratch(canvas, film, idx){
   // Swipe navigation gauche/droite
   let swipeStartX = 0, swipeStartY = 0;
 
-  // Un seul listener touchstart (passive:false pour pouvoir appeler preventDefault)
+  // Un seul listener touchstart (passive:false pour preventDefault)
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     drawing = true;
@@ -12350,53 +12324,72 @@ function _hmReveal(film, idx, canvas){
 
   const card=document.getElementById('hm-scratch-card');
   const scratchFront=document.getElementById('hm-scratch-front');
+  const scratchUnder=document.getElementById('hm-scratch-under');
 
-  // 1. Flash blanc sur toute la carte
-  const flash=document.createElement('div');
-  flash.style.cssText='position:absolute;inset:0;background:#fff;pointer-events:none;z-index:20;border-radius:inherit;opacity:0;transition:opacity .08s ease-in;';
-  card.appendChild(flash);
+  // 1. Vibration mobile
+  if(navigator.vibrate) navigator.vibrate([20,10,50,10,30]);
+
+  // 2. Fondu du canvas masque
+  canvas.style.transition='opacity .4s ease';
+  canvas.style.opacity='0';
+  setTimeout(()=>{if(canvas.parentElement)canvas.remove();},420);
+
+  // 3. Flash lumineux élégant (sweep diagonal plutôt que flash blanc brutal)
+  const sweep=document.createElement('div');
+  sweep.style.cssText=`
+    position:absolute;inset:0;pointer-events:none;z-index:20;border-radius:inherit;
+    background:linear-gradient(115deg,
+      transparent 0%,
+      rgba(200,160,255,0.0) 30%,
+      rgba(220,200,255,0.55) 50%,
+      rgba(200,160,255,0.0) 70%,
+      transparent 100%);
+    background-size:200% 100%;
+    background-position:-100% 0;
+    transition:background-position 0.5s cubic-bezier(.25,.46,.45,.94),opacity 0.3s ease;
+    opacity:0;
+  `;
+  card.appendChild(sweep);
   requestAnimationFrame(()=>{
-    flash.style.opacity='.7';
+    sweep.style.opacity='1';
+    sweep.style.backgroundPosition='200% 0';
     setTimeout(()=>{
-      flash.style.transition='opacity .35s ease-out';
-      flash.style.opacity='0';
-      setTimeout(()=>flash.remove(),400);
-    },80);
+      sweep.style.transition='opacity 0.4s ease';
+      sweep.style.opacity='0';
+      setTimeout(()=>sweep.remove(),420);
+    },500);
   });
 
-  // 2. Vibration mobile
-  if(navigator.vibrate) navigator.vibrate([30,15,60]);
-
-  // 3. Particules multicolores (plus nombreuses)
-  const rect=card.getBoundingClientRect();
-  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  const holoColors=['#ff6eb4','#ffd700','#00eeff','#ff4444','#aaff00','#cc88ff','#ffaa00','#ffffff'];
-  for(let i=0;i<52;i++){
-    const p=document.createElement('div');
-    const size=3+Math.random()*8;
-    const angle=Math.random()*Math.PI*2;
-    const dist=80+Math.random()*160;
-    const dur=0.7+Math.random()*0.6;
-    const delay=Math.random()*0.2;
-    const col=holoColors[Math.floor(Math.random()*holoColors.length)];
-    p.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;border-radius:${Math.random()>.5?'50%':'3px'};background:${col};pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 ${size*2.5}px ${col};animation:hmParticle ${dur}s ease-out ${delay}s forwards;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`;
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),(dur+delay)*1000+100);
+  // 4. Reveal de l'affiche sous le grattage (scale + brightness)
+  if(scratchUnder){
+    const img=scratchUnder.querySelector('img, .hm-scratch-poster');
+    if(img){
+      img.style.transition='none';
+      img.style.filter='brightness(0) saturate(0)';
+      img.style.transform='scale(1.08)';
+      setTimeout(()=>{
+        img.style.transition='filter 0.6s ease, transform 0.7s cubic-bezier(.34,1.4,.64,1)';
+        img.style.filter='brightness(1) saturate(1)';
+        img.style.transform='scale(1)';
+      },80);
+    }
   }
 
-  // 4. Effacer le canvas avec fondu
-  canvas.style.transition='opacity .35s ease';
-  canvas.style.opacity='0';
-  setTimeout(()=>{canvas.style.display='none';},350);
-
-  // 5. Zoom élastique sur l'affiche révélée
-  if(scratchFront){
-    scratchFront.style.transition='none';
-    scratchFront.style.transform='scale(0.92)';
-    setTimeout(()=>{
-      scratchFront.style.transition='transform .55s cubic-bezier(.34,1.56,.64,1)';
-      scratchFront.style.transform='scale(1)';
-    },60);
+  // 5. Particules multicolores holographiques
+  const rect=card.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height*.38;
+  const holoColors=['#c084fc','#818cf8','#38bdf8','#fb7185','#a78bfa','#f0abfc','#67e8f9','#fde68a'];
+  for(let i=0;i<44;i++){
+    const p=document.createElement('div');
+    const size=2.5+Math.random()*7;
+    const angle=Math.random()*Math.PI*2;
+    const dist=60+Math.random()*180;
+    const dur=0.65+Math.random()*0.7;
+    const delay=Math.random()*0.18;
+    const col=holoColors[Math.floor(Math.random()*holoColors.length)];
+    p.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;border-radius:${Math.random()>.4?'50%':'4px'};background:${col};pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 ${size*3}px ${col};animation:hmParticle ${dur}s ease-out ${delay}s forwards;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),(dur+delay)*1000+100);
   }
 
   // Cacher l'indice
@@ -12408,18 +12401,38 @@ function _hmReveal(film, idx, canvas){
   _hmSaveRevealed();
   _hmPlaySlideAudio(idx, _hmFilms);
 
-  // Ouvrir le viewer
+  // 6. Entrée cinématique du viewer (depuis le bas, avec scale)
   setTimeout(()=>{
     _hmvList=[{idx,film}];
     _hmvIdx=0;_hmvInfoOpen=false;
     _hmvRender();
-    document.getElementById('hm-viewer').classList.add('on');
+
+    const viewer=document.getElementById('hm-viewer');
+    // Préparer l'animation d'entrée
+    viewer.style.transition='none';
+    viewer.style.opacity='0';
+    viewer.style.transform='translateY(40px) scale(0.96)';
+    viewer.style.display='flex';
+    viewer.style.pointerEvents='all';
+
+    requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+      viewer.style.transition='opacity 0.45s cubic-bezier(.25,.46,.45,.94), transform 0.45s cubic-bezier(.34,1.2,.64,1)';
+      viewer.style.opacity='1';
+      viewer.style.transform='translateY(0) scale(1)';
+      // Nettoyer après l'animation
+      setTimeout(()=>{
+        viewer.style.transition='opacity .3s ease';
+        viewer.style.transform='';
+        viewer.classList.add('on');
+      },460);
+    });});
+
     document.body.style.overflow='hidden';
     const hmEl=document.getElementById('hm');
     if(hmEl)hmEl.style.overflow='hidden';
     _hmvInitGestures();
     _hmvInitHolo();
-  }, 650);
+  }, 380);
 }
 
 function _hmShowSheet(film, idx){
