@@ -1862,6 +1862,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 @keyframes slideInRight{from{opacity:0;transform:translateX(22px);}to{opacity:1;transform:translateX(0);}}
 @keyframes slideOutLeft{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(-22px);}}
 @keyframes fadeScaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+@keyframes vsCountPop{0%{opacity:0;transform:scale(1.6);}60%{opacity:1;transform:scale(.92);}100%{opacity:1;transform:scale(1);}}
 @keyframes slideInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 .qa.q-exit{animation:slideOutLeft .16s cubic-bezier(.4,0,1,.6) both;}
 .qa.q-enter{animation:slideInRight .22s cubic-bezier(0,.55,.45,1) both;}
@@ -2886,7 +2887,6 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .prp{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .4s;}
 .prp.on{background:var(--gold);}
 .prhint{position:absolute;top:8px;right:9px;background:rgba(10,10,15,.78);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:3px 8px;font-size:10px;color:var(--mt);letter-spacing:1px;backdrop-filter:blur(8px);}
-.photo-meta-overlay{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,10,15,.72);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.5px;font-style:italic;backdrop-filter:blur(8px);white-space:nowrap;}
 .htxt{font-size:11px;color:var(--mt);text-align:center;margin-top:6px;font-style:italic;flex-shrink:0;}
 
 /* Duo/Solo mode */
@@ -14468,13 +14468,14 @@ function loadQ(){
     qa.style.paddingTop='';
     revStage=0;
     qa.innerHTML=`
+      <div class="qtl">🎬 Affiche Mystère</div>
       <div class="pmw" id="pmw">
         <img id="pimg" src="${q.poster}" alt="?" style="filter:blur(22px) brightness(.7);transition:filter 1.8s ease;" crossorigin="anonymous">
         <div class="pmo"></div>
         <div class="prhint">Quel film ?</div>
-        <div class="photo-meta-overlay">🎞️ ${q.genre} · ${q.year}</div>
         <div class="prbar"><div class="prp" id="pp0"></div><div class="prp" id="pp1"></div><div class="prp" id="pp2"></div><div class="prp" id="pp3"></div></div>
-      </div>`;
+      </div>
+      <div class="htxt" id="photo-hint">🎞️ ${q.genre} · ${q.year}</div>`;
     revInt=setInterval(()=>{
       if(ansed)return;
       revStage=Math.min(revStage+1,3);
@@ -15360,17 +15361,9 @@ function showToast(ok,pts,m,ans){
     if(m>=2)_spawnFloatPts(pts,m);
 
     if(nextQTimer)clearTimeout(nextQTimer);
-    // Modes avec explication : laisser plus de temps pour lire
-    const explDelay=(selMode==='vraifaux')?3500:1100;
-    nextQTimer=setTimeout(()=>{hideToast();advanceQ();},explDelay);
+    nextQTimer=setTimeout(()=>{hideToast();advanceQ();},1100);
   } else {
     const q=qs[curQ];
-    // Vraifaux : l'explication est déjà visible dans la question, pas besoin du wrong-sheet
-    if(selMode==='vraifaux'){
-      if(nextQTimer)clearTimeout(nextQTimer);
-      nextQTimer=setTimeout(()=>{advanceQ();},3500);
-      return;
-    }
     document.getElementById('ws-title').textContent=ans===null?'⏱ Temps écoulé !':'✗ Raté !';
     const correctAns=ans||(q&&q.answers?q.answers[q.correct]:null)||'—';
     document.getElementById('ws-ans').textContent=correctAns;
@@ -16361,12 +16354,15 @@ function showVersusRoundHandoff(nextRoundNum, cb){
       <div style="font-size:10px;letter-spacing:3px;color:rgba(245,200,66,.5);font-family:'Bebas Neue',sans-serif;">FIN DE LA MANCHE ${prevRound}</div>
       <div style="font-size:44px;animation:rIconPop .5s cubic-bezier(.34,1.56,.64,1) both">📊</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);letter-spacing:2px;">SCORES ACTUELS</div>
-      <div style="display:flex;gap:12px;width:100%;justify-content:center;">
-        ${vsPlayers.map((p,i)=>`
-          <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 10px;max-width:120px;">
+      <div style="display:flex;gap:10px;width:100%;justify-content:center;">
+        ${roundScores.map((p,i)=>`
+          <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid ${VS_COLORS[i].replace('var(--gold)','rgba(245,200,66,.3)')};border-radius:16px;padding:14px 10px;max-width:140px;">
             <div style="font-size:11px;color:${VS_COLORS[i]};font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${VS_COLORS[i]};line-height:1;">${p.score}</div>
-            <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:4px;">${p.correct}✓ / ${p.dots.length}Q</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${VS_COLORS[i]};line-height:1;">${p.score}</div>
+            <div style="display:flex;gap:4px;justify-content:center;margin:8px 0 4px;">
+              ${p.roundDots.map(ok=>`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ok?'var(--green)':'var(--red)'};"></span>`).join('')}
+            </div>
+            <div style="font-size:9px;color:rgba(255,255,255,.3);">Cette manche : ${p.roundDots.filter(Boolean).length}/${p.roundDots.length}</div>
           </div>`).join('')}
       </div>
       ${vsPlayers.length>=2 && vsPlayers[0].score!==vsPlayers[1].score?`<div style="font-size:13px;color:rgba(255,255,255,.45);">🏅 <strong style="color:${VS_COLORS[sorted[0].idx]}">${leader.name}</strong> mène la partie</div>`:''}
@@ -16397,9 +16393,29 @@ function showVersusHandoff(playerName,cb){
       <div style="font-size:12px;color:rgba(255,255,255,.28);margin-top:-4px;">Couvre l'écran jusqu'à être prêt</div>
     </div>`;
   const btn=document.createElement('button');
-  btn.style.cssText=`width:100%;grid-column:1/-1;background:${color};color:#000;border:none;border-radius:18px;padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;`;
+  btn.style.cssText=`width:100%;grid-column:1/-1;background:${color};color:#000;border:none;border-radius:18px;padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:opacity .2s;`;
   btn.innerHTML=`JE SUIS PRÊT — ${playerName.toUpperCase()} 🎬`;
-  btn.onclick=cb;
+  btn.onclick=()=>{
+    btn.disabled=true;btn.style.opacity='.35';
+    const game=document.getElementById('game');
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:20;gap:10px;';
+    overlay.innerHTML=`
+      <div style="font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;margin-bottom:4px;">PRÉPARE-TOI !</div>
+      <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:${color};line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">3</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.4);">${playerName}</div>`;
+    game.appendChild(overlay);
+    let count=3;
+    const tick=setInterval(()=>{
+      count--;
+      if(count>0){
+        const el=document.getElementById('vs-cnum');
+        if(el){el.textContent=count;el.style.animation='none';void el.offsetWidth;el.style.animation='vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both';}
+      } else {
+        clearInterval(tick);overlay.remove();cb();
+      }
+    },750);
+  };
   grid.appendChild(btn);
 }
 
