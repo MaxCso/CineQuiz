@@ -16204,29 +16204,37 @@ function vsSetPlayers(n,el){if(window._vsSetPlayers)window._vsSetPlayers(n);}
 function vsSetNb(n,el){if(window._vsSetNb)window._vsSetNb(n,el);}
 
 function loadVersusQ(){
-  // Calcul de la manche courante
   const ROUND_SIZE=5;
-  const qIdx=Math.floor(vsTurn/vsPlayers.length);
+  // Chaque joueur répond aux 5 questions d'une manche en entier avant de passer le téléphone
+  // playerBlock = index du bloc courant (joueur × manche)
+  const playerBlock=Math.floor(vsTurn/ROUND_SIZE);
+  vsCurIdx=playerBlock%vsPlayers.length;
+  const roundNum=Math.floor(playerBlock/vsPlayers.length); // 0-indexed
+  const qInRound=vsTurn%ROUND_SIZE; // 0..4
+  const qIdx=roundNum*ROUND_SIZE+qInRound;
+
   if(qIdx>=vsQs.length){endVersus();return;}
 
-  vsCurIdx=vsTurn%vsPlayers.length;
   const curP=vsPlayers[vsCurIdx];
   const q=vsQs[qIdx];
 
-  // Détecter le début d'une nouvelle manche (sauf la toute première)
-  const questionInRound=qIdx%ROUND_SIZE; // 0..4
-  const roundNum=Math.floor(qIdx/ROUND_SIZE)+1;
-  const isNewRound=questionInRound===0 && qIdx>0;
-
-  if(isNewRound && vsCurIdx===0){
-    // Fin de manche — afficher le récap et demander de passer le téléphone
-    showVersusRoundHandoff(roundNum, ()=>{
-      _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE);
-    });
+  // Transition en début de bloc joueur (sauf tout premier tour)
+  if(qInRound===0 && vsTurn>0){
+    if(vsCurIdx===0){
+      // Tous les joueurs ont fini cette manche → récap + prochaine manche
+      showVersusRoundHandoff(roundNum+1,()=>{
+        _doLoadVersusQ(qIdx,curP,q,qInRound,ROUND_SIZE);
+      });
+    } else {
+      // Même manche, joueur suivant → passer le téléphone
+      showVersusHandoff(curP.name,()=>{
+        _doLoadVersusQ(qIdx,curP,q,qInRound,ROUND_SIZE);
+      });
+    }
     return;
   }
 
-  _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE);
+  _doLoadVersusQ(qIdx,curP,q,qInRound,ROUND_SIZE);
 }
 
 function _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE){
@@ -16302,23 +16310,8 @@ function handleVersusAnswer(idx,q){
   }
 
   vsTurn++;
-  const qIdx=Math.floor(vsTurn/vsPlayers.length);
-  if(qIdx>=vsQs.length){
-    setTimeout(()=>{hideToast();endVersus();},ok?1000:1800);
-    return;
-  }
-
-  // Passer le téléphone uniquement entre les manches (toutes les 5 questions)
-  const ROUND_SIZE=5;
-  const nextIdx=vsTurn%vsPlayers.length;
-  const nextQInRound=qIdx%ROUND_SIZE;
-  const isEndOfRound=nextQInRound===0; // début d'une nouvelle manche
-
-  if(isEndOfRound && nextIdx===0){
-    setTimeout(()=>{hideToast();showVersusRoundHandoff(Math.floor(qIdx/ROUND_SIZE)+1,()=>loadVersusQ());},ok?1000:1800);
-  } else {
-    setTimeout(()=>{hideToast();loadVersusQ();},ok?1000:1800);
-  }
+  // Toute la logique de transition (handoff, fin de manche, fin de partie) est gérée dans loadVersusQ
+  setTimeout(()=>{hideToast();loadVersusQ();},ok?1000:1800);
 }
 
 function curPName(){return vsPlayers[vsCurIdx]?.name||'Joueur';}
@@ -16367,7 +16360,7 @@ function showVersusRoundHandoff(nextRoundNum, cb){
     </div>`;
 
   const btn=document.createElement('button');
-  btn.style.cssText=`width:100%;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;`;
+  btn.style.cssText=`width:100%;grid-column:1/-1;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;`;
   btn.innerHTML=`⚔️ MANCHE ${nextRoundNum}`;
   btn.onclick=cb;
   grid.appendChild(btn);
