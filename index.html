@@ -773,9 +773,12 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .vf-expl{
   background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.28);
   border-radius:14px;padding:11px 15px;font-size:12px;color:rgba(255,255,255,.6);
-  line-height:1.55;display:none;
+  line-height:1.55;display:none;cursor:pointer;user-select:none;
 }
 .vf-expl.show{display:block;animation:fadeScaleIn .35s ease both;}
+.vf-expl.show:active{opacity:.7;}
+.vf-tap-hint{display:none;text-align:center;font-size:10px;color:rgba(255,255,255,.22);letter-spacing:.5px;padding-bottom:2px;}
+.vf-tap-hint.show{display:block;animation:fadeScaleIn .4s ease .8s both;}
 /* -- PROFIL PARTAGÉ -- */
 /* ── GESTIONNAIRE MUSIQUE PROFIL ── */
 /* ─── MINI-PLAYER HOME ─── */
@@ -1859,15 +1862,15 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 @keyframes tapPulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
 
 /* -- TRANSITIONS QUESTIONS -- */
-@keyframes slideInRight{from{opacity:0;transform:translateX(22px);}to{opacity:1;transform:translateX(0);}}
-@keyframes slideOutLeft{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(-22px);}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(38px) scale(.97);}to{opacity:1;transform:translateX(0) scale(1);}}
+@keyframes slideOutLeft{from{opacity:1;transform:translateX(0) scale(1);}to{opacity:0;transform:translateX(-38px) scale(.97);}}
 @keyframes fadeScaleIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
 @keyframes vsCountPop{0%{opacity:0;transform:scale(1.6);}60%{opacity:1;transform:scale(.92);}100%{opacity:1;transform:scale(1);}}
-@keyframes slideInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-.qa.q-exit{animation:slideOutLeft .16s cubic-bezier(.4,0,1,.6) both;}
-.qa.q-enter{animation:slideInRight .22s cubic-bezier(0,.55,.45,1) both;}
-.agrid.q-exit{animation:slideOutLeft .16s cubic-bezier(.4,0,1,.6) both;}
-.agrid.q-enter{animation:slideInUp .26s cubic-bezier(.34,1.56,.64,1) .03s both;}
+@keyframes slideInUp{from{opacity:0;transform:translateY(22px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.qa.q-exit{animation:slideOutLeft .2s cubic-bezier(.4,0,1,.6) both;}
+.qa.q-enter{animation:slideInRight .28s cubic-bezier(.22,.68,0,1.2) both;}
+.agrid.q-exit{animation:slideOutLeft .2s cubic-bezier(.4,0,1,.6) both;}
+.agrid.q-enter{animation:slideInUp .3s cubic-bezier(.34,1.4,.64,1) .04s both;}
 
 /* -- COMBO VISUEL -- */
 #combo-banner{
@@ -2887,6 +2890,7 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
 .prp{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .4s;}
 .prp.on{background:var(--gold);}
 .prhint{position:absolute;top:8px;right:9px;background:rgba(10,10,15,.78);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:3px 8px;font-size:10px;color:var(--mt);letter-spacing:1px;backdrop-filter:blur(8px);}
+.photo-meta-overlay{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,10,15,.72);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.5px;font-style:italic;backdrop-filter:blur(8px);white-space:nowrap;}
 .htxt{font-size:11px;color:var(--mt);text-align:center;margin-top:6px;font-style:italic;flex-shrink:0;}
 
 /* Duo/Solo mode */
@@ -14468,14 +14472,13 @@ function loadQ(){
     qa.style.paddingTop='';
     revStage=0;
     qa.innerHTML=`
-      <div class="qtl">🎬 Affiche Mystère</div>
       <div class="pmw" id="pmw">
         <img id="pimg" src="${q.poster}" alt="?" style="filter:blur(22px) brightness(.7);transition:filter 1.8s ease;" crossorigin="anonymous">
         <div class="pmo"></div>
         <div class="prhint">Quel film ?</div>
+        <div class="photo-meta-overlay">🎞️ ${q.genre} · ${q.year}</div>
         <div class="prbar"><div class="prp" id="pp0"></div><div class="prp" id="pp1"></div><div class="prp" id="pp2"></div><div class="prp" id="pp3"></div></div>
-      </div>
-      <div class="htxt" id="photo-hint">🎞️ ${q.genre} · ${q.year}</div>`;
+      </div>`;
     revInt=setInterval(()=>{
       if(ansed)return;
       revStage=Math.min(revStage+1,3);
@@ -14756,6 +14759,7 @@ function loadQ(){
       <div class="vf-wrap">
         <div class="vf-question">${q.q}</div>
         <div class="vf-expl" id="vf-expl">💡 ${q.expl}</div>
+        <div class="vf-tap-hint" id="vf-tap-hint">↑ Toucher l'explication pour continuer</div>
       </div>`;
     // Boutons VRAI / FAUX stylisés
     const btnV=mkBtn('VRAI ✓',0);btnV.style.cssText+='border-color:rgba(16,185,129,.4);font-size:15px;font-weight:700;letter-spacing:1px;';
@@ -14767,7 +14771,17 @@ function loadQ(){
       _origHandle(idx);
       setTimeout(()=>{
         const expl=document.getElementById('vf-expl');
-        if(expl)expl.classList.add('show');
+        const hint=document.getElementById('vf-tap-hint');
+        if(expl){
+          expl.classList.add('show');
+          // Tap sur l'explication = passer à la question suivante
+          expl.addEventListener('click',()=>{
+            if(!ansed)return;
+            if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+            advanceQ();
+          },{once:true});
+        }
+        if(hint)hint.classList.add('show');
       },300);
     };
     btnV.onclick=()=>{if(!ansed)_vfHandle(0);};
@@ -15361,9 +15375,15 @@ function showToast(ok,pts,m,ans){
     if(m>=2)_spawnFloatPts(pts,m);
 
     if(nextQTimer)clearTimeout(nextQTimer);
-    nextQTimer=setTimeout(()=>{hideToast();advanceQ();},1100);
+    const explDelay=(selMode==='vraifaux')?3500:1100;
+    nextQTimer=setTimeout(()=>{hideToast();advanceQ();},explDelay);
   } else {
     const q=qs[curQ];
+    if(selMode==='vraifaux'){
+      if(nextQTimer)clearTimeout(nextQTimer);
+      nextQTimer=setTimeout(()=>{advanceQ();},3500);
+      return;
+    }
     document.getElementById('ws-title').textContent=ans===null?'⏱ Temps écoulé !':'✗ Raté !';
     const correctAns=ans||(q&&q.answers?q.answers[q.correct]:null)||'—';
     document.getElementById('ws-ans').textContent=correctAns;
@@ -15440,15 +15460,15 @@ function advanceQ(){
       fetchTrivia().then(raw=>txQuestions(raw)).then(more=>{
         if(selMode==='survie'&&_survieGameOver)return; // partie terminée pendant le fetch
         qs=[...qs,...more];
-        buildDots();loadQ();
+        buildDots();animateQTransition(loadQ);
       }).catch(()=>{
         if(selMode==='survie'&&_survieGameOver)return;
         // En cas d'erreur réseau, utiliser les questions disponibles ou terminer
-        if(curQ<qs.length){buildDots();loadQ();}else{endGame();}
+        if(curQ<qs.length){buildDots();animateQTransition(loadQ);}else{endGame();}
       });
       return;
     }
-    buildDots();loadQ();
+    buildDots();animateQTransition(loadQ);
     return;
   }
   buildDots();if(curQ<TOTAL){animateQTransition(loadQ);}else endGame();
