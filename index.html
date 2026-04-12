@@ -1060,19 +1060,42 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 /* Boutons */
 .mode-info-btns{display:flex;gap:10px;width:100%;}
 .mode-info-play{
-  flex:2;background:var(--mi-color,var(--gold));color:#000;
-  border:none;border-radius:16px;padding:17px;
+  flex:2;color:#000;
+  border:none;border-radius:16px;padding:18px;
   font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;
-  cursor:pointer;transition:transform .15s,box-shadow .15s;
-  box-shadow:0 6px 24px rgba(0,0,0,.35);
+  cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
   position:relative;overflow:hidden;
+  /* Gradient enrichi — la couleur du mode en version "foil" */
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--mi-color,var(--gold)) 70%,#fff 30%) 0%,
+    var(--mi-color,var(--gold)) 40%,
+    color-mix(in srgb,var(--mi-color,var(--gold)) 85%,#000 15%) 100%
+  );
+  box-shadow:
+    0 6px 28px color-mix(in srgb,var(--mi-color,var(--gold)) 55%,transparent),
+    0 1px 0 rgba(255,255,255,.45) inset,
+    0 -2px 0 rgba(0,0,0,.2) inset;
 }
 .mode-info-play::after{
-  content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
-  animation:btnglare 2.8s ease 1s infinite;pointer-events:none;
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(
+    108deg,
+    transparent 20%,
+    rgba(255,255,255,.15) 38%,
+    rgba(255,255,255,.5)  48%,
+    rgba(255,255,255,.15) 58%,
+    transparent 76%
+  );
+  background-size:300% 100%;
+  background-position:-120% 0;
+  animation:pbtn-glare 3s ease-in-out 1.2s infinite;
+  pointer-events:none;
 }
-.mode-info-play:active{transform:scale(.97);}
+.mode-info-play:active{
+  transform:scale(.97);
+  box-shadow:0 2px 12px color-mix(in srgb,var(--mi-color,var(--gold)) 35%,transparent),0 1px 0 rgba(255,255,255,.3) inset;
+  animation:none;
+}
 .mode-info-close{
   flex:1;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);
   border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:17px;
@@ -1439,7 +1462,90 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .dmc-header,.dmc-emoji,.dmc-footer,.dmc-icon,.dmc-date,.dmc-tag{display:none;}
 @keyframes dmcFadeIn{from{opacity:0;transform:translateX(-5px);}to{opacity:1;transform:translateX(0);}}
 
-/* ─── ANECDOTE DU JOUR ─── */
+/* ─── ANECDOTE DU JOUR — DESIGN CINÉMATOGRAPHIQUE ─── */
+@keyframes anecHalo{
+  0%,100%{opacity:.5;transform:scale(1);}
+  50%{opacity:.8;transform:scale(1.08);}
+}
+@keyframes anecFadeIn{
+  from{opacity:0;transform:translateY(10px) scale(.98);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+@keyframes filmScroll{
+  from{background-position:0 0;}
+  to{background-position:0 28px;}
+}
+
+.anec-cinema-card{
+  position:relative;overflow:hidden;border-radius:22px;
+  margin-bottom:10px;cursor:pointer;
+  min-height:148px;
+  background:linear-gradient(160deg,#0d0a16 0%,#0a0a12 50%,#0c0e0a 100%);
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 8px 40px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.06) inset;
+  animation:anecFadeIn .45s cubic-bezier(.22,.68,0,1.2) both;
+}
+/* Halo de couleur en fond */
+.anec-halo{
+  position:absolute;inset:0;pointer-events:none;
+  border-radius:inherit;z-index:0;
+  animation:anecHalo 5s ease-in-out infinite;
+}
+/* Accent gauche coloré */
+.anec-film-strip{
+  position:absolute;left:0;top:12%;bottom:12%;width:4px;
+  border-radius:0 4px 4px 0;
+  z-index:1;
+}
+/* Contenu principal */
+.anec-content{
+  position:relative;z-index:2;
+  padding:14px 18px 12px 18px;
+  display:flex;flex-direction:column;gap:0;
+}
+/* Header : label + date */
+.anec-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:11px;
+}
+.anec-label{
+  font-size:8px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;
+}
+.anec-date{
+  font-size:10px;color:rgba(255,255,255,.3);
+  font-weight:500;letter-spacing:.3px;
+}
+/* Ligne emoji + texte */
+.anec-body{display:flex;align-items:flex-start;gap:12px;}
+.anec-emoji{
+  font-size:28px;flex-shrink:0;
+  width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.anec-txt{
+  flex:1;min-width:0;
+  font-size:13.5px;color:rgba(255,255,255,.85);
+  line-height:1.65;font-weight:400;padding-top:2px;
+}
+/* Footer */
+.anec-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:12px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+.anec-tag{
+  font-size:9px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;border-radius:6px;padding:3px 9px;
+}
+.anecdote-dots{display:flex;gap:5px;align-items:center;}
+.anecdote-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.anecdote-dot.active{width:18px;border-radius:3px;}
+
+/* ─── ANCIENNE ANECDOTE DU JOUR ─── */
 .anecdote-card{
   background:linear-gradient(150deg,rgba(20,14,4,.95),rgba(12,9,3,.9));
   border:1px solid rgba(245,200,66,.18);border-radius:20px;
@@ -1465,81 +1571,79 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .anecdote-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .25s;}
 .anecdote-dot.active{width:16px;border-radius:3px;background:var(--gold);}
 
-/* -- BOUTON JOUER : shimmer holographique (inspired by simeydotme) -- */
-@property --pbtn-shimmer{syntax:'<angle>';inherits:false;initial-value:33deg;}
-@keyframes pbtn-shimmer-spin{
-  0%   {--pbtn-shimmer:0deg;}
-  100% {--pbtn-shimmer:360deg;}
+/* -- BOUTON JOUER : foil doré premium -- */
+@keyframes pbtn-glare{
+  0%  {background-position:-120% 0;}
+  60%,100%{background-position:220% 0;}
+}
+@keyframes pbtn-glow-pulse{
+  0%,100%{box-shadow:0 6px 28px rgba(245,200,66,.45),0 1px 0 rgba(255,255,255,.5) inset,0 -3px 0 rgba(0,0,0,.22) inset;}
+  50%    {box-shadow:0 10px 48px rgba(245,200,66,.7),0 1px 0 rgba(255,255,255,.5) inset,0 -3px 0 rgba(0,0,0,.22) inset;}
 }
 @keyframes pbtn-shimmer-slide{
   to{background-position:calc(100% + 4rem) 0;}
 }
-@keyframes pbtn-glow-pulse{
-  0%,100%{box-shadow:0 6px 28px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
-  50%    {box-shadow:0 8px 44px rgba(245,200,66,.75),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;}
-}
 
 .pbtn{
-  width:100%;border:none;border-radius:20px;height:64px;
-  color:#000;cursor:pointer;
-  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:5px;
+  width:100%;border:none;border-radius:20px;height:68px;
+  color:#1a0e00;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:6px;
   display:flex;align-items:center;justify-content:center;gap:12px;
   position:relative;overflow:hidden;
-  transition:transform .15s,box-shadow .15s,scale .2s;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
   margin-top:4px;
-  /* Fond doré de base */
-  background:linear-gradient(100deg,#f5c842 0%,#ffe566 45%,#e8a800 100%);
-  box-shadow:0 6px 32px rgba(245,200,66,.5),0 1px 0 rgba(255,255,255,.35) inset,0 -2px 0 rgba(0,0,0,.18) inset;
-  /* Bordure lumineuse animée */
-  outline:2px solid transparent;
-  outline-offset:2px;
-  animation:pbtn-glow-pulse 3s ease-in-out 1s infinite;
+  /* Fond doré multi-couche avec profondeur */
+  background:linear-gradient(170deg,
+    #ffe97a 0%,
+    #f5c842 28%,
+    #e8a800 55%,
+    #f5c842 72%,
+    #ffd84a 100%
+  );
+  box-shadow:
+    0 8px 36px rgba(245,200,66,.5),
+    0 1px 0 rgba(255,255,255,.55) inset,
+    0 -3px 0 rgba(100,60,0,.3) inset,
+    inset 0 0 20px rgba(255,220,80,.2);
+  animation:pbtn-glow-pulse 3.5s ease-in-out 0.5s infinite;
 }
 
-/* Layer shimmer via ::before (arc-en-ciel) */
+/* Grain doré */
 .pbtn::before{
   content:'';
-  position:absolute;inset:0;
-  background:
-    conic-gradient(from var(--pbtn-shimmer, 33deg) at 50% 50%,
-      transparent   0deg,
-      rgba(255,255,255,.55) 90deg,
-      rgba(245,200,66,.6)   180deg,
-      rgba(255,150,50,.4)   270deg,
-      transparent   360deg
-    );
-  border-radius:inherit;
-  mix-blend-mode:screen;
-  animation:pbtn-shimmer-spin 3.5s linear infinite;
-  opacity:.7;
+  position:absolute;inset:0;border-radius:inherit;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background-size:cover;
+  mix-blend-mode:overlay;
+  opacity:.5;
   pointer-events:none;
 }
 
-/* Layer glare via ::after (balayage diagonal) */
+/* Glare unique, propre, rapide */
 .pbtn::after{
   content:'';
   position:absolute;inset:0;
   background:linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(255,255,255,.45) 45%,
-    rgba(255,240,180,.6)  50%,
-    rgba(255,255,255,.45) 55%,
-    transparent 70%
+    108deg,
+    transparent 20%,
+    rgba(255,255,255,.18) 38%,
+    rgba(255,248,210,.65) 48%,
+    rgba(255,255,255,.18) 58%,
+    transparent 76%
   );
-  background-size:250% 100%;
-  animation:pbtn-shimmer-slide 2.4s ease-in-out 0.8s infinite;
+  background-size:300% 100%;
+  background-position:-120% 0;
+  animation:pbtn-glare 3s ease-in-out 1s infinite;
   pointer-events:none;
 }
 
 .pbtn:active{
-  transform:scale(.97);
-  box-shadow:0 2px 14px rgba(245,200,66,.3);
+  transform:scale(.96);
+  box-shadow:0 3px 16px rgba(245,200,66,.35),0 1px 0 rgba(255,255,255,.4) inset,0 -2px 0 rgba(100,60,0,.25) inset;
   animation:none;
 }
-.pbtn:active::before{opacity:.4;}
-.pbtn-icon{font-size:22px;position:relative;z-index:1;}
-.pbtn-text{position:relative;z-index:1;}
+.pbtn-icon{font-size:22px;position:relative;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));}
+.pbtn-text{position:relative;z-index:1;text-shadow:0 1px 2px rgba(255,200,0,.3);}
 
 /* -- FOND DE JEU par mode -- */
 #game-bg{
@@ -2595,7 +2699,7 @@ body.theme-sepia .pbtn{background:linear-gradient(100deg,#d4a847,#a07828);}
   border:1.5px solid transparent;transition:all .2s cubic-bezier(.34,1.56,.64,1);
 }
 .mb.bump{animation:mbBump .35s cubic-bezier(.34,1.56,.64,1);}
-@keyframes mbBump{0%{transform:scale(1);}40%{transform:scale(1.28);}70%{transform:scale(.93);}100%{transform:scale(1);}}
+@keyframes mbBump{0%{transform:scale(1);}30%{transform:scale(1.38);color:var(--gold);}65%{transform:scale(.92);}100%{transform:scale(1);}}
 .mx3{background:rgba(46,204,113,.15);color:var(--green);border-color:rgba(46,204,113,.4);box-shadow:0 0 12px rgba(46,204,113,.2);}
 .mx2{background:rgba(243,156,18,.15);color:#f39c12;border-color:rgba(243,156,18,.35);box-shadow:0 0 10px rgba(243,156,18,.15);}
 .mx1{background:rgba(232,52,74,.1);color:var(--red);border-color:rgba(232,52,74,.25);}
@@ -4753,25 +4857,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <span class="daily-countdown" id="daily-countdown">⏳ —</span>
       </div>
     </div>
-    <!-- Message du Jour -->
-    <div id="h-daily-msg"></div>
-    <!-- Mini-player -->
-    <div class="mini-player" id="mini-player" onclick="openJukebox()">
-      <div class="mp-icon" id="mp-icon">🎵</div>
-      <div class="mp-info">
-        <div class="mp-track" id="mp-track">—</div>
-        <div class="mp-mode" id="mp-mode">Musique</div>
-        <div class="mp-bar-wrap"><div class="mp-bar" id="mp-bar"></div></div>
-      </div>
-      <div class="mp-controls" onclick="event.stopPropagation()">
-        <div class="mp-btn" onclick="playerPrev()" title="Précédent"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="19,20 9,12 19,4"/><rect x="5" y="4" width="3" height="16" rx="1.5"/></svg></div>
-        <div class="mp-btn play" id="mp-play-btn" onclick="playerPlayPause()" title="Lecture/Pause"><svg id="mp-play-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></div>
-        <div class="mp-btn" onclick="playerNext()" title="Suivant"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,4 15,12 5,20"/><rect x="16" y="4" width="3" height="16" rx="1.5"/></svg></div>
-      </div>
-    </div>
-    <!-- Badges -->
-    <div class="shd"><span>Badges</span><span id="h-bct" style="color:var(--gold)">0 débloqué</span></div>
-    <div class="bscroll" id="h-bdg"></div>
+    <!-- Message du Jour (fusionné avec Anecdote) -->
+    <div id="h-daily-msg" style="display:none"></div>
+
+
 
     <!-- Suggestion de mode -->
     <div id="h-mode-suggest" style="margin-bottom:10px;display:none;"></div>
@@ -8241,71 +8330,42 @@ const TK='2dca580c2a14b55200e784d157207b4d';
 const TI='https://image.tmdb.org/t/p/w500';
 const TA='https://image.tmdb.org/t/p/w185';
 const POOL=[
-// ── Classics & monuments ──
-550,278,238,424,240,389,129,497,637,155,680,13,120,122,27205,157336,335984,475557,
-11,1891,1892,11138,9806,10681,585,10193,862,12,218,629,641,857,769,280,197,578,
-346,107,624,598,77,8587,671,762,207,429,274,559,101,453,105,4935,10020,4247,792,
-1422,226,161,8965,22,11324,423,264,9619,510,1724,8966,297762,
-// ── Films français ──
-194,194662,1877,614,1394,10529,45612,539,264264,10780,22803,19404,79600,
-41078,11658,36211,26836,75174,72105,91491,14611,233208,14160,242224,
-49521,108222,13506,264264,11013,197082,11072,51739,130925,16836,
-// ── Horreur ──
-694919,348,245891,372058,244786,503919,398818,724089,808,14836,82702,254128,
-293660,260513,321612,313369,76341,420818,361743,77338,2062,
-420818,861227,646683,772074,870450,762504,575264,568160,437752,718789,
-// ── Animation ──
-862,585,10193,12,129,9806,38757,10681,820818,11138,315162,920,228,420,354912,
-324857,425,109445,157350,150540,332562,260514,508439,496243,
-// ── Science-fiction ──
-27205,157336,438631,335984,11,1891,1892,118340,283995,299537,284053,49521,
-693134,726209,823464,822119,718789,569094,614933,872585,438148,566525,953,679,
-330459,181808,181812,260513,10138,102382,284052,283995,
-// ── Drames primés ──
-503919,244786,372058,475557,424,240,389,637,497,155,680,13,122,278,238,
-496243,399055,581734,476669,467244,438631,274,207,674324,578701,765245,
-// ── Action & blockbusters ──
-299536,299534,24428,1726,68721,284054,1771,49026,264660,315635,337167,
-299538,458156,385128,497698,580489,585511,614917,634649,635302,646385,653346,
-661374,667257,675353,678512,696374,734253,748783,762509,791226,829799,
-// ── Comédies & feel-good ──
-68718,862,9806,10193,13,585,14836,808,197,77338,2062,578,264,101,453,
-181533,559969,603,639933,624860,614906,567811,
-// ── Thrillers & polars ──
-209,680,155,272,11324,629,769,641,77338,4197,1824,2501,1422,792,510,226,
-161,105,107,792,423,264,9619,597208,614933,760104,787699,799379,839033,877817,882598,
-// ── Récents 2020-2025 ──
-566525,569094,572154,580489,585511,597208,614917,634649,635302,646385,653346,
-661374,667257,675353,678512,693134,696374,718789,724089,726209,734253,
-748783,760104,762509,774752,787699,791226,799379,822119,823464,829799,839033,
-848326,872585,877817,882598,889737,912649,915935,933260,940551,945961,951891,
+550,278,238,424,240,389,129,497,637,155,
+680,13,120,122,27205,157336,335984,475557,11,1891,
+1892,11138,9806,10681,585,10193,862,12,218,629,
+641,857,769,280,197,578,346,107,624,598,
+77,8587,671,762,207,429,274,559,101,453,
+105,4935,10020,4247,792,1422,226,161,8965,22,
+11324,423,264,9619,510,1724,8966,297762,194,194662,
+1877,614,1394,10529,45612,539,264264,10780,22803,19404,
+79600,41078,11658,36211,26836,75174,72105,91491,14611,233208,
+14160,242224,49521,108222,13506,11013,197082,11072,51739,130925,
+16836,694919,348,245891,372058,244786,503919,398818,724089,808,
+14836,82702,254128,293660,260513,321612,313369,76341,420818,361743,
+77338,2062,861227,646683,772074,870450,762504,575264,568160,437752,
+718789,38757,820818,315162,920,228,420,354912,324857,425,
+109445,157350,150540,332562,260514,508439,496243,438631,118340,283995,
+299537,284053,693134,726209,823464,822119,569094,614933,872585,438148,
+566525,953,679,330459,181808,181812,10138,102382,284052,399055,
+581734,476669,467244,674324,578701,765245,299536,299534,24428,1726,
+68721,284054,1771,49026,264660,315635,337167,299538,458156,385128,
+497698,580489,585511,614917,634649,635302,646385,653346,661374,667257,
+675353,678512,696374,734253,748783,762509,791226,829799,68718,181533,
+559969,603,639933,624860,614906,567811,209,272,4197,1824,
+2501,597208,760104,787699,799379,839033,877817,882598,2020,2025,
+572154,774752,848326,889737,912649,915935,933260,940551,945961,951891,
 955555,957452,965150,975359,976573,978796,984736,985939,1010600,1013860,
-1022789,1029575,1035048,1041613,1043905,1075794,1087822,1094138,1100782,
-1126166,1131459,1138194,1156593,1166489,1184918,1214314,1241982,1252171,
-// ── Cinéma du monde ──
-19404,129,194662,10529,45612,21519,79186,35,43905,496243,765245,674324,
-696374,557342,520763,674,10020,34,44217,17177,10590,8587,14160,242224,
-// ── Westerns & épopées ──
-37165,297762,324668,258489,68718,78,746,235,4348,1574,37165,
-// ── Biopics & drames historiques ──
-205587,466272,399055,476669,428,254,772,840,807,581734,674324,578701,
-// ── Romances cultes ──
-13,77,571,578,263,637,197,14160,10020,15121,15414,
-// ── Marvel & DC ──
-99861,100402,168259,363088,522627,299537,284053,
-// ── Cinéma coréen ──
-496243,765245,674324,696374,557342,245891,458156,
-// ── Films espagnols & latinos ──
-10529,539,429,637,9342,80,38,16290,769,
-// ── Arthouse & cinéma du monde (nouveaux) ──
-590180,621397,636812,530782,785084,947770,492188,331482,546554,
-300668,264660,530385,493922,12162,195066,4034,16907,72545,
-// ── Drames récents & primés ──
-615457,644502,617557,359724,368232,404368,433021,359940,
-473033,525413,542188,797021,841633,
-// ── Classiques manquants ──
-346,548,843,11103,670,358353,10783,400535,503919,560144,
-120467,37165,492,334,1783,1555,2649,530,
+1022789,1029575,1035048,1041613,1043905,1075794,1087822,1094138,1100782,1126166,
+1131459,1138194,1156593,1166489,1184918,1214314,1241982,1252171,21519,79186,
+35,43905,557342,520763,674,34,44217,17177,10590,37165,
+324668,258489,78,746,235,4348,1574,205587,466272,428,
+254,772,840,807,571,263,15121,15414,99861,100402,
+168259,363088,522627,9342,80,38,16290,590180,621397,636812,
+530782,785084,947770,492188,331482,546554,300668,530385,493922,12162,
+195066,4034,16907,72545,615457,644502,617557,359724,368232,404368,
+433021,359940,473033,525413,542188,797021,841633,548,843,11103,
+670,358353,10783,400535,560144,120467,492,334,1783,1555,
+2649,530
 ];
 
 const GENRE_IDS={Action:28,'Science-Fiction':878,Drame:18,Horreur:27,Animation:16,Comédie:35};
@@ -13637,7 +13697,7 @@ function refHome(){
   document.getElementById('h-bst').textContent=s.best;
   document.getElementById('h-gms').textContent=s.games;
   const ul=s.unlocked.length;
-  document.getElementById('h-bct').textContent=ul+' débloqué'+(ul>1?'s':'');
+  const bctEl=document.getElementById('h-bct');if(bctEl)bctEl.textContent=ul+' débloqué'+(ul>1?'s':'');
 
   // ── STREAK — animation + emoji + couleur selon intensité ──
   const strEl=document.getElementById('h-str');
@@ -13686,7 +13746,7 @@ function refHome(){
   }
   // Badges
   const sorted=[...BADGES].sort((a,b)=>{const ao=s.unlocked.includes(a.id),bo=s.unlocked.includes(b.id);return ao===bo?0:ao?-1:1;});
-  document.getElementById('h-bdg').innerHTML=sorted.map(b=>{
+  const bdgEl=document.getElementById('h-bdg');if(bdgEl)bdgEl.innerHTML=sorted.map(b=>{
     const ok=s.unlocked.includes(b.id);
     const isNew=ok&&!(s.seen||[]).includes(b.id);
     return`<div class="bc ${ok?'ok':'lk'}" onclick="openBadge('${b.id}')">${isNew?'<div class="bc-new"></div>':''}<div class="bci">${b.icon}</div><div class="bcn">${b.name}</div></div>`;
@@ -14003,27 +14063,60 @@ function renderDailyAnecdote(){
     ANECDOTES[(seed+7)%ANECDOTES.length],
     ANECDOTES[(seed+17)%ANECDOTES.length],
   ];
-  const dateStr=d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
   _anecIdx=0;
 
   function render(i){
     const a=anecs[i];
     const dots=anecs.map((_,j)=>`<div class="anecdote-dot${j===i?' active':''}"></div>`).join('');
-    el.innerHTML=`<div class="anecdote-card" id="anec-inner">
-      <div class="anecdote-header">
-        <div class="anecdote-label-wrap">
-          <div class="anecdote-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-          <span class="anecdote-label">Anecdote du jour</span>
+    const dateStr=d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+
+    // Palette par tag
+    const tagPalette={
+      "Tournage":  {emoji:"🎬",color:"#f5a623",bg:"rgba(245,166,35,.12)",border:"rgba(245,166,35,.25)",halo:"rgba(245,166,35,.18)"},
+      "Box-office":{emoji:"💰",color:"#4ade80",bg:"rgba(74,222,128,.10)",border:"rgba(74,222,128,.22)",halo:"rgba(74,222,128,.15)"},
+      "Casting":   {emoji:"🎭",color:"#c084fc",bg:"rgba(192,132,252,.10)",border:"rgba(192,132,252,.22)",halo:"rgba(192,132,252,.15)"},
+      "Studios":   {emoji:"🏛️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)",halo:"rgba(96,165,250,.15)"},
+      "Anecdote":  {emoji:"💡",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)",halo:"rgba(251,191,36,.15)"},
+      "Son":       {emoji:"🔊",color:"#34d399",bg:"rgba(52,211,153,.10)",border:"rgba(52,211,153,.22)",halo:"rgba(52,211,153,.15)"},
+      "Réalisateur":{emoji:"🎥",color:"#f87171",bg:"rgba(248,113,113,.10)",border:"rgba(248,113,113,.22)",halo:"rgba(248,113,113,.15)"},
+      "Acteur":    {emoji:"🌟",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)",halo:"rgba(251,191,36,.15)"},
+      "Oscars":    {emoji:"🏆",color:"#f5c842",bg:"rgba(245,200,66,.12)",border:"rgba(245,200,66,.28)",halo:"rgba(245,200,66,.2)"},
+      "Musique":   {emoji:"🎼",color:"#a78bfa",bg:"rgba(167,139,250,.10)",border:"rgba(167,139,250,.22)",halo:"rgba(167,139,250,.15)"},
+      "Costumes":  {emoji:"👗",color:"#f472b6",bg:"rgba(244,114,182,.10)",border:"rgba(244,114,182,.22)",halo:"rgba(244,114,182,.15)"},
+      "Technique": {emoji:"⚙️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)",halo:"rgba(96,165,250,.15)"},
+      "Histoire":  {emoji:"📖",color:"#fb923c",bg:"rgba(251,146,60,.10)",border:"rgba(251,146,60,.22)",halo:"rgba(251,146,60,.15)"},
+      "Effets":    {emoji:"✨",color:"#e879f9",bg:"rgba(232,121,249,.10)",border:"rgba(232,121,249,.22)",halo:"rgba(232,121,249,.15)"},
+      "Script":    {emoji:"📝",color:"#94a3b8",bg:"rgba(148,163,184,.10)",border:"rgba(148,163,184,.22)",halo:"rgba(148,163,184,.15)"},
+    };
+    const p=tagPalette[a.tag]||{emoji:"🎬",color:"#f5c842",bg:"rgba(245,200,66,.10)",border:"rgba(245,200,66,.22)",halo:"rgba(245,200,66,.18)"};
+
+    el.innerHTML=`
+    <div class="anec-cinema-card" id="anec-inner" style="border-color:${p.border};">
+      <!-- Halo coloré -->
+      <div class="anec-halo" style="background:radial-gradient(ellipse 70% 55% at 50% 100%,${p.halo} 0%,transparent 70%);"></div>
+      <!-- Accent gauche -->
+      <div class="anec-film-strip" style="background:linear-gradient(to bottom,transparent,${p.color},transparent);"></div>
+      <!-- Contenu -->
+      <div class="anec-content">
+        <div class="anec-head">
+          <span class="anec-label" style="color:${p.color};">✦ Anecdote du jour</span>
+          <span class="anec-date">${dateStr}</span>
         </div>
-        <span class="anecdote-date">${dateStr}</span>
-      </div>
-      <div class="anecdote-text" id="anec-text">${a.text}</div>
-      <div class="anecdote-footer">
-        <span class="anecdote-tag">${a.tag}</span>
-        <div class="anecdote-dots">${dots}</div>
+        <div class="anec-body">
+          <div class="anec-emoji" style="background:${p.bg};border-color:${p.border};">${p.emoji}</div>
+          <div class="anec-txt">${a.text}</div>
+        </div>
+        <div class="anec-footer">
+          <span class="anec-tag" style="color:${p.color};background:${p.bg};border:1px solid ${p.border};">${a.tag}</span>
+          <div class="anecdote-dots" style="--dot-color:${p.color}">${dots}</div>
+        </div>
       </div>
     </div>`;
-    const card=el.querySelector('.anecdote-card');
+
+    // Dot active coloré
+    el.querySelectorAll('.anecdote-dot.active').forEach(d=>d.style.background=p.color);
+
+    const card=el.querySelector('.anec-cinema-card');
     setupSwipeHoriz(card,
       ()=>{ _anecIdx=(_anecIdx+1)%3; render(_anecIdx); },
       ()=>{ _anecIdx=(_anecIdx+2)%3; render(_anecIdx); }
@@ -16503,22 +16596,37 @@ function handleVersusAnswer(idx,q){
   const curP=vsPlayers[vsCurIdx];
   curP.score+=pts;if(ok)curP.correct++;curP.dots.push(ok);
 
-  const t=document.getElementById('toast');
-  if(t){
-    t.className='tst '+(ok?'ok':'');
-    const icon=document.getElementById('tst-icon');
-    if(icon)icon.textContent=ok?'✓':'✗';
-    document.getElementById('tpts').style.color=ok?VS_COLORS[vsCurIdx]:'var(--red)';
-    document.getElementById('tpts').textContent=ok?`+${pts}`:'✗';
-    document.getElementById('tmsg').textContent=ok?curP.name:'Raté !';
-    const tans=document.getElementById('tans');
-    if(tans){tans.textContent='';tans.style.display='none';}
-    t.classList.add('on');
-  }
+  // Afficher le score delta flottant sur le scoreboard
+  const color=VS_COLORS[vsCurIdx];
+  const scoreEl=document.getElementById('scorehd');
+  if(scoreEl){scoreEl.textContent=`${curP.score} pts`;scoreEl.classList.remove('bump');void scoreEl.offsetWidth;scoreEl.classList.add('bump');}
 
-  vsTurn++;
-  // Toute la logique de transition (handoff, fin de manche, fin de partie) est gérée dans loadVersusQ
-  setTimeout(()=>{hideToast();loadVersusQ();},ok?1000:1800);
+  // Feedback visuel in-place : bandeau résultat sous la question
+  const qa=document.getElementById('qa');
+  const feedback=document.createElement('div');
+  feedback.style.cssText=`margin:10px 18px 0;padding:12px 15px;border-radius:14px;font-size:13px;line-height:1.5;animation:fadeScaleIn .25s ease both;cursor:pointer;user-select:none;flex-shrink:0;
+    background:${ok?'rgba(46,204,113,.12)':'rgba(232,52,74,.1)'};
+    border:1px solid ${ok?'rgba(46,204,113,.35)':'rgba(232,52,74,.3)'};`;
+  const correctLabel=q.answers[q.correct];
+  feedback.innerHTML=ok
+    ? `<span style="color:var(--green);font-weight:700;">✓ Bonne réponse !</span><span style="color:rgba(255,255,255,.55);margin-left:6px;">+${pts} pts${m>=3?' ⚡':m>=2?' ✦':''}</span>`
+    : `<span style="color:var(--red);font-weight:700;">✗ Raté</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${correctLabel}</strong></span>`;
+  // Sous-ligne tap pour passer
+  const hint=document.createElement('div');
+  hint.style.cssText='font-size:10px;color:rgba(255,255,255,.22);margin-top:5px;letter-spacing:.3px;';
+  hint.textContent='Toucher pour continuer ›';
+  feedback.appendChild(hint);
+  qa.appendChild(feedback);
+
+  // Tap sur le feedback = avancer immédiatement
+  let _vsAdvTimer=setTimeout(()=>{_vsAdvance();},ok?1400:2200);
+  function _vsAdvance(){
+    clearTimeout(_vsAdvTimer);
+    feedback.removeEventListener('click',_vsAdvance);
+    vsTurn++;
+    loadVersusQ();
+  }
+  feedback.addEventListener('click',_vsAdvance,{once:true});
 }
 
 function curPName(){return vsPlayers[vsCurIdx]?.name||'Joueur';}
