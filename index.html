@@ -3482,7 +3482,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 
 /* Overlay compte à rebours */
 #hm-countdown-overlay{
-  position:absolute;inset:0;z-index:100;
+  position:fixed;inset:0;z-index:9999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:#000;
   pointer-events:none;
@@ -6588,8 +6588,8 @@ const MUSIC_FILES={
   vraifaux:    'music-vraifaux.mp3',
   decennie:    'music-decennie.mp3',
   quiadit:     'music-quiadit.mp3',
-  versus:      'American Beauty.mp3',
-  training:    'American Beauty.mp3',
+  versus:      'All That We Perceive.mp3',
+  training:    'music-training.mp3',
   bonus:       'ambiance-bonus.mp3',
   arcade:      'music-arcade.mp3',
   snake:       'music-snake.mp3',
@@ -6611,6 +6611,7 @@ const MUSIC_FILES={
   jk13:        'Shot In The Back Of The Head.mp3',
   jk14:        'Bitter Sweet Symphony.mp3',
   jk15:        'Svefn-g-englar.mp3',
+  jk16:        'music-versus.mp3',
   // Nouveaux modes — alias vers les pistes jukebox
   pitch:       'music-jk1.mp3',
   versusfilms: 'music-jk2.mp3',
@@ -6642,7 +6643,7 @@ const MUSIC_TRACK_NAMES={
   vraifaux:    'Stone in Focus',
   decennie:    'Celeste',
   quiadit:     'Revenant',
-  versus:      'American Beauty',
+  versus:      'All That We Perceive',
   training:    'American Beauty',
   bonus:       'Lonely Blues',
   arcade:      '37°2',
@@ -6665,6 +6666,7 @@ const MUSIC_TRACK_NAMES={
   jk13:        'Shot In The Back Of The Head',
   jk14:        'Bitter Sweet Symphony',
   jk15:        'Svefn-g-englar',
+  jk16:        'American Beauty',
 };
 
 // Labels lisibles pour le gestionnaire
@@ -6686,7 +6688,7 @@ const MUSIC_LABELS={
   vraifaux:    {icon:'🎯',label:'Vrai ou Faux'},
   decennie:    {icon:'🏔️',label:'Décennie'},
   quiadit:     {icon:'🐻',label:'Qui a dit ça ?'},
-  versus:      {icon:'🌹',label:'Multijoueur'},
+  versus:      {icon:'🌌',label:'Multijoueur'},
   training:    {icon:'🌹',label:'Entraînement'},
   bonus:       {icon:'🎺',label:'Bonus'},
   arcade:      {icon:'🌡️',label:'Arcade'},
@@ -6709,6 +6711,7 @@ const MUSIC_LABELS={
   jk13:        {icon:'🎵',label:'Shot In The Back Of The Head'},
   jk14:        {icon:'🎻',label:'Bitter Sweet Symphony'},
   jk15:        {icon:'❄️',label:'Svefn-g-englar'},
+  jk16:        {icon:'🌹',label:'American Beauty'},
 };
 
 function _getSrc(key){
@@ -6813,7 +6816,7 @@ function toggleMusic(){
 }
 
 // ── GESTIONNAIRE MUSIQUE (profil) ──
-const MUSIC_MANAGER_KEYS=['home','quiz','photo','year','replique','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','quiadit','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9','jk10','jk11','jk12','jk13','jk14','jk15'];
+const MUSIC_MANAGER_KEYS=['home','quiz','photo','year','replique','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','quiadit','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9','jk10','jk11','jk12','jk13','jk14','jk15','jk16'];
 
 function getAmbientKey(){
   try{return localStorage.getItem('cq_ambient_key')||'home';}catch{return'home';}
@@ -11620,7 +11623,7 @@ function _hmBuildCollectionStats(films){
         <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:#c084fc;line-height:1;margin-bottom:4px;">${scratched}</div>
         <div style="font-size:8px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;">Grattés</div>
       </div>
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;text-align:center;">
+      <div id="hm-secret-trigger" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;text-align:center;cursor:pointer;user-select:none;transition:box-shadow .2s;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:#c084fc;line-height:1;margin-bottom:4px;">${unlocked}</div>
         <div style="font-size:8px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;">Débloqués</div>
       </div>
@@ -17840,6 +17843,7 @@ const TRACK_UNLOCK={
   jk13:        {cond:s=>(s.best||0)>=1500,                 hint:'1 500 pts en une partie'},
   jk14:        {cond:s=>(s.best||0)>=2000,                 hint:'2 000 pts en une partie'},
   jk15:        {cond:s=>(s.perfects||0)>=1,                hint:'1 partie parfaite (10/10)'},
+  jk16:        {cond:s=>isModeUnlocked('versus'),           hint:'Débloquer Multijoueur'},
 };
 function isTrackUnlocked(k){const s=ls();const u=TRACK_UNLOCK[k];return!u||u.cond(s);}
 
@@ -18117,9 +18121,6 @@ function _jkKonamiInit(){
 }
 
 function _jkSecretEntry(){
-  const jkEl=document.getElementById('jukebox');
-  if(!jkEl)return;
-
   function jkTick(freq,vol=0.07){
     try{
       const ctx=window._hmSecretAudioCtx||(window._hmSecretAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
@@ -18132,90 +18133,46 @@ function _jkSecretEntry(){
     }catch(e_){}
   }
 
-  // ── Phase 1 : cadenas qui s'ouvre (0 → 700ms) ──
+  // Overlay plein écran (injecté dans body)
   const overlay=document.createElement('div');
-  overlay.style.cssText='position:absolute;inset:0;z-index:600;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;';
   overlay.innerHTML=`
     <div id="jk-lock-wrap" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-      <div id="jk-lock-icon" style="color:#f5c842;animation:lockGlow 1s ease-in-out infinite;">
-        <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' width='64' height='64'>
-          <rect x='3' y='11' width='18' height='11' rx='2'/>
-          <path id='jk-lock-shackle' d='M7 11V7a5 5 0 0 1 10 0v4' style='transform-origin:17px 9px;'/>
-        </svg>
-      </div>
-      <div id="jk-lock-label" style="font-size:9px;letter-spacing:4px;color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;">DÉVERROUILLÉ</div>
-    </div>
-    <div id="jk-cd-num" style="font-family:'Bebas Neue',sans-serif;font-size:110px;color:#f5c842;line-height:1;opacity:0;text-shadow:0 0 50px rgba(245,200,66,.7);">3</div>
-    <div id="jk-cd-label" style="font-size:10px;letter-spacing:4px;color:rgba(255,255,255,.3);opacity:0;">ZONE SECRÈTE</div>
-  `;
-  jkEl.appendChild(overlay);
+      <div id="jk-lock-icon" style="font-size:80px;animation:lockGlow 1s ease-in-out infinite;line-height:1;">🔒</div>
+      <div style="font-size:9px;letter-spacing:4px;color:rgba(245,200,66,.55);font-family:'Bebas Neue',sans-serif;">DÉVERROUILLÉ</div>
+    </div>`;
+  document.body.appendChild(overlay);
 
-  const cdNum=document.getElementById('jk-cd-num');
-  const cdLabel=document.getElementById('jk-cd-label');
   const lockWrap=document.getElementById('jk-lock-wrap');
-  const lockShackle=document.getElementById('jk-lock-shackle');
 
-  // Animation cadenas : secousse → déverrouillage
+  // 0ms : son grave
   jkTick(300,0.05);
+
+  // 250ms : cadenas s'ouvre
   setTimeout(()=>{
-    // Le cadenas s'ouvre (anse qui pivote)
-    if(lockShackle){lockShackle.style.transition='transform .4s cubic-bezier(.34,1.56,.64,1)';lockShackle.style.transform='rotate(-30deg)';}
-    jkTick(440,0.08);
+    const icon=document.getElementById('jk-lock-icon');
+    if(icon){icon.style.transition='transform .3s cubic-bezier(.34,1.56,.64,1)';icon.style.transform='scale(1.25)';icon.textContent='🔓';}
+    jkTick(520,0.08);
   },250);
+
+  // 700ms : flash doré + zone vidéo
   setTimeout(()=>{
-    // Flash doré + le cadenas disparaît, le compte à rebours apparaît
-    if(lockWrap){lockWrap.style.transition='opacity .25s, transform .25s';lockWrap.style.opacity='0';lockWrap.style.transform='scale(1.4)';}
-    jkTick(660,0.09);
+    if(lockWrap){lockWrap.style.transition='opacity .2s, transform .2s';lockWrap.style.opacity='0';lockWrap.style.transform='scale(1.4)';}
+    jkTick(800,0.12);
+    setTimeout(()=>jkTick(1000,0.08),80);
+
+    const flashEl=document.createElement('div');
+    flashEl.style.cssText='position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#f5c842,#fff);pointer-events:none;opacity:0;transition:opacity .06s;';
+    document.body.appendChild(flashEl);
+    requestAnimationFrame(()=>{ flashEl.style.opacity='1'; });
+    setTimeout(()=>{ flashEl.style.transition='opacity .4s ease-out'; flashEl.style.opacity='0'; },60);
+    setTimeout(()=>flashEl.remove(),500);
+
+    setTimeout(()=>{
+      overlay.remove();
+      jkSwitchTab('video');
+    },280);
   },700);
-  setTimeout(()=>{
-    if(lockWrap)lockWrap.style.display='none';
-
-    // ── Phase 2 : compte à rebours ──
-    // 3
-    cdLabel.style.opacity='1';
-    cdNum.style.opacity='1';
-    cdNum.style.animation='vsCountPop .45s cubic-bezier(.34,1.56,.64,1) both';
-    jkTick(440,0.09);
-
-    setTimeout(()=>{
-      cdNum.textContent='2';
-      cdNum.style.animation='none';void cdNum.offsetWidth;
-      cdNum.style.animation='vsCountPop .45s cubic-bezier(.34,1.56,.64,1) both';
-      jkTick(523,0.09);
-    },650);
-
-    setTimeout(()=>{
-      cdNum.textContent='1';
-      cdNum.style.animation='none';void cdNum.offsetWidth;
-      cdNum.style.animation='vsCountPop .45s cubic-bezier(.34,1.56,.64,1) both';
-      jkTick(659,0.1);
-    },1300);
-
-    setTimeout(()=>{
-      cdNum.style.transition='transform .35s ease-in, opacity .35s ease-in';
-      cdNum.style.transform='scale(3.5)';
-      cdNum.style.opacity='0';
-      cdLabel.style.transition='opacity .3s';
-      cdLabel.style.opacity='0';
-
-      const flashEl=document.createElement('div');
-      flashEl.style.cssText='position:absolute;inset:0;z-index:700;background:linear-gradient(135deg,#f5c842,#fff);pointer-events:none;opacity:0;transition:opacity .08s;';
-      jkEl.appendChild(flashEl);
-      requestAnimationFrame(()=>{ flashEl.style.opacity='1'; });
-      setTimeout(()=>{ flashEl.style.transition='opacity .4s ease-out'; flashEl.style.opacity='0'; },80);
-      setTimeout(()=>flashEl.remove(),550);
-
-      jkTick(880,0.15);
-      setTimeout(()=>jkTick(1100,0.1),90);
-      setTimeout(()=>jkTick(660,0.07),220);
-
-      setTimeout(()=>{
-        overlay.remove();
-        jkSwitchTab('video');
-      },350);
-
-    },1950);
-  },900);
 }
 
 function jkSwitchTab(tab){
@@ -19659,136 +19616,63 @@ const HM_SECRET_FILMS = [
 ];
 
 (function initHMSecretTrigger(){
-  // Séquence : label→subtitle→label→wrap→subtitle→label→wrap→label→subtitle→wrap→label→subtitle→wrap
-  // 3 zones : 'label' = "HIDDEN MOVIES", 'subtitle' = compteur films, 'wrap' = tout le bloc titre
-  // Règles : timeout 1.8s entre chaque tap | erreur = reset silencieux | dots visibles seulement à partir du 4ème tap
-  const HM_SEQ=['label','subtitle','label','subtitle','label','subtitle','label'];
-  const HM_SEQ_LEN=HM_SEQ.length; // 7
-  let _step=0, _timer=null, _lastTap=0;
+  // 7 taps sur la card "DÉBLOQUÉS" (id=hm-secret-trigger) dans Vue d'ensemble
+  const TAPS_NEEDED=7;
+  let _count=0, _timer=null, _lastTap=0;
 
-  // Indicateur de progression discret (points visuels sous le titre)
-  const DOTS_ID='hm-secret-dots';
-  function _ensureDots(){
-    if(document.getElementById(DOTS_ID))return;
-    const wrap=document.querySelector('#hm .hm-title-wrap');
-    if(!wrap)return;
-    const d=document.createElement('div');
-    d.id=DOTS_ID;
-    d.style.cssText='display:flex;gap:4px;justify-content:center;margin-top:3px;opacity:0;transition:opacity .3s;';
-    for(let i=0;i<HM_SEQ_LEN;i++){
-      const dot=document.createElement('div');
-      dot.id='hm-kd-'+i;
-      dot.style.cssText='width:4px;height:4px;border-radius:50%;background:rgba(192,132,252,.2);transition:background .12s,transform .12s;';
-      d.appendChild(dot);
-    }
-    wrap.appendChild(d);
-  }
-
-  function _updateDots(){
-    const dotsWrap=document.getElementById(DOTS_ID);
-    if(!dotsWrap)return;
-    if(_step>=3)dotsWrap.style.opacity='1';
-    for(let i=0;i<HM_SEQ_LEN;i++){
-      const d=document.getElementById('hm-kd-'+i);
-      if(d){
-        if(i<_step){d.style.background='rgba(192,132,252,.85)';d.style.transform='scale(1.4)';}
-        else{d.style.background='rgba(192,132,252,.18)';d.style.transform='scale(1)';}
-      }
-    }
-  }
-
-  function _reset(){
-    _step=0;_lastTap=0;
-    clearTimeout(_timer);
-    _updateDots();
-    const dotsWrap=document.getElementById(DOTS_ID);
-    if(dotsWrap)setTimeout(()=>{if(_step===0)dotsWrap.style.opacity='0';},800);
-  }
-
-  function _playTick(step){
+  function _playTick(n){
     try{
       const ctx=window._hmSecretAudioCtx||(window._hmSecretAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
-      const osc=ctx.createOscillator();const gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.frequency.value=280+(step/HM_SEQ_LEN)*600;
-      osc.type='sine';
-      gain.gain.setValueAtTime(0.035+step*0.008,ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.1);
-      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.1);
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';o.frequency.value=280+(n/TAPS_NEEDED)*600;
+      g.gain.setValueAtTime(0.03+n*0.008,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.1);
+      o.start();o.stop(ctx.currentTime+0.1);
     }catch(e_){}
   }
 
-  function onZoneTap(zone,e){
-    if(e&&e.type==='click'&&e.sourceCapabilities?.firesTouchEvents)return;
-    if(e){e.stopPropagation();}
+  function _reset(){
+    _count=0;_lastTap=0;clearTimeout(_timer);
+    const card=document.getElementById('hm-secret-trigger');
+    if(card)card.style.boxShadow='';
+  }
 
+  function onTap(e){
+    if(e.type==='click'&&e.sourceCapabilities?.firesTouchEvents)return;
+    e.stopPropagation();
     const now=Date.now();
-    // Timeout 1.8s entre taps
-    if(_step>0&&now-_lastTap>2500){_reset();}
+    if(_count>0&&now-_lastTap>2500){_reset();}
     _lastTap=now;
+    _count++;
+    _playTick(_count);
 
-    const expected=HM_SEQ[_step];
-    if(zone!==expected){
-      // Erreur silencieuse — reset sans feedback
-      _reset();
-      return;
+    // Feedback visuel progressif : glow violet sur la card
+    const card=document.getElementById('hm-secret-trigger');
+    if(card){
+      const intensity=_count/TAPS_NEEDED;
+      card.style.boxShadow=`0 0 ${Math.round(4+intensity*24)}px rgba(192,132,252,${0.12+intensity*0.65})`;
     }
-
-    _step++;
-    _ensureDots();
-    _updateDots();
-    _playTick(_step);
 
     clearTimeout(_timer);
     _timer=setTimeout(()=>_reset(),2500);
 
-    if(_step>=HM_SEQ_LEN){
+    if(_count>=TAPS_NEEDED){
       clearTimeout(_timer);
       _reset();
-      // Flash final sur tout le header
-      const wrap=document.querySelector('#hm .hm-title-wrap');
-      if(wrap){
-        wrap.style.transition='filter .1s';
-        wrap.style.filter='drop-shadow(0 0 28px rgba(192,132,252,1)) brightness(1.5)';
-        setTimeout(()=>{wrap.style.filter='';wrap.style.transition='';},350);
-      }
-      setTimeout(()=>{
-        try{localStorage.setItem('cq_hm_secret_found','1');}catch{}
-        openHMSecret();
-      },180);
+      try{localStorage.setItem('cq_hm_secret_found','1');}catch{}
+      openHMSecret();
     }
   }
 
-  function attachTrigger(){
-    const wrap=document.querySelector('#hm .hm-title-wrap');
-    const label=document.getElementById('hm-secret-label');
-    const subtitle=document.getElementById('hm-unlocked-count');
-    if(!wrap){setTimeout(attachTrigger,400);return;}
-
-
-
-    // Zone 'label' = "HIDDEN MOVIES"
-    if(label){
-      label.addEventListener('click',e=>{e.stopPropagation();onZoneTap('label',e);});
-      label.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();onZoneTap('label',e);},{passive:false});
-    }
-
-    // Zone 'subtitle' = compteur films
-    if(subtitle){
-      subtitle.style.cursor='pointer';
-      subtitle.style.userSelect='none';
-      subtitle.addEventListener('click',e=>{e.stopPropagation();onZoneTap('subtitle',e);});
-      subtitle.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();onZoneTap('subtitle',e);},{passive:false});
-    }
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',attachTrigger);
-  }else{
-    setTimeout(attachTrigger,300);
-  }
+  // Délégation sur document — card est générée dynamiquement
+  document.addEventListener('click',function(e){
+    if(e.target.closest('#hm-secret-trigger'))onTap(e);
+  });
+  document.addEventListener('touchend',function(e){
+    if(e.target.closest('#hm-secret-trigger'))onTap(e);
+  },{passive:false});
 })();
-
 let _hmSecretFilmIdx=Math.floor(Math.random()*HM_SECRET_FILMS.length);
 
 function openHMSecret(){
@@ -19874,36 +19758,23 @@ function openHMSecret(){
   }
 
   // ══ SÉQUENCE D'ENTRÉE CINÉMATIQUE ══
+  // Cadenas → flash → rideaux (~1.4s)
 
-  // ── Overlay avec cadenas puis compte à rebours ──
   const overlay=document.createElement('div');
   overlay.id='hm-countdown-overlay';
   overlay.innerHTML=`
-    <div id="hm-lock-wrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-      <div id="hm-lock-icon" style="color:#c084fc;animation:lockGlow 1s ease-in-out infinite;">
-        <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' width='64' height='64'>
-          <rect x='3' y='11' width='18' height='11' rx='2'/>
-          <path id='hm-lock-shackle' d='M7 11V7a5 5 0 0 1 10 0v4' style='transform-origin:17px 9px;'/>
-        </svg>
-      </div>
-      <div style="font-size:9px;letter-spacing:4px;color:rgba(192,132,252,.5);font-family:'Bebas Neue',sans-serif;">DÉVERROUILLÉ</div>
-    </div>
-    <div id="hm-countdown-number" style="opacity:0;">3</div>
-    <div id="hm-countdown-dots" style="opacity:0;">
-      <span></span><span></span><span></span><span></span><span></span>
+    <div id="hm-lock-wrap" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div id="hm-lock-icon" style="font-size:80px;animation:lockGlow 1s ease-in-out infinite;line-height:1;">🔒</div>
+      <div style="font-size:9px;letter-spacing:4px;color:rgba(192,132,252,.55);font-family:'Bebas Neue',sans-serif;">DÉVERROUILLÉ</div>
     </div>`;
-  document.getElementById('hm').appendChild(overlay);
+  document.body.appendChild(overlay);
 
-  const cdNum=document.getElementById('hm-countdown-number');
-  const cdDots=document.getElementById('hm-countdown-dots');
   const hmLockWrap=document.getElementById('hm-lock-wrap');
-  const hmLockShackle=document.getElementById('hm-lock-shackle');
 
   // Afficher la room en fond (rideaux fermés)
   room.style.display='flex';
   room.style.opacity='0';
 
-  // Tick son helper
   function hmTick(freq,vol=0.06){
     try{
       const ctx=window._hmSecretAudioCtx||(window._hmSecretAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
@@ -19916,79 +19787,44 @@ function openHMSecret(){
     }catch(e_){}
   }
 
-  // ── Phase 1 : cadenas (0 → 800ms) ──
+  // 0ms : son grave + cadenas fermé
   hmTick(300,0.04);
-  setTimeout(()=>{
-    if(hmLockShackle){hmLockShackle.style.transition='transform .45s cubic-bezier(.34,1.56,.64,1)';hmLockShackle.style.transform='rotate(-30deg)';}
-    hmTick(440,0.07);
-  },220);
-  setTimeout(()=>{
-    if(hmLockWrap){hmLockWrap.style.transition='opacity .25s, transform .25s';hmLockWrap.style.opacity='0';hmLockWrap.style.transform='scale(1.35)';}
-    hmTick(660,0.08);
-  },700);
 
-  // ── Phase 2 : compte à rebours (800ms → 2800ms) ──
+  // 250ms : cadenas s'ouvre
   setTimeout(()=>{
-    if(hmLockWrap)hmLockWrap.style.display='none';
+    const icon=document.getElementById('hm-lock-icon');
+    if(icon){icon.style.transition='transform .3s cubic-bezier(.34,1.56,.64,1)';icon.style.transform='scale(1.25)';icon.textContent='🔓';}
+    hmTick(520,0.08);
+  },250);
 
-  // 3
-  cdNum.style.animation='hmCdPop .4s cubic-bezier(.34,1.56,.64,1) both';
-  cdNum.style.opacity='1';
-  cdDots.style.opacity='1';
-  hmTick(440,0.08);
-
+  // 700ms : cadenas disparaît + flash
   setTimeout(()=>{
-    // 2
-    cdNum.textContent='2';
-    cdNum.style.animation='none';void cdNum.offsetWidth;
-    cdNum.style.animation='hmCdPop .4s cubic-bezier(.34,1.56,.64,1) both';
-    hmTick(523,0.08);
-  },700);
+    if(hmLockWrap){hmLockWrap.style.transition='opacity .2s, transform .2s';hmLockWrap.style.opacity='0';hmLockWrap.style.transform='scale(1.4)';}
+    hmTick(800,0.12);
+    setTimeout(()=>hmTick(1000,0.08),80);
 
-  setTimeout(()=>{
-    // 1
-    cdNum.textContent='1';
-    cdNum.style.animation='none';void cdNum.offsetWidth;
-    cdNum.style.animation='hmCdPop .4s cubic-bezier(.34,1.56,.64,1) both';
-    hmTick(659,0.09);
-  },1400);
-
-  setTimeout(()=>{
-    // Flash blanc + son d'ouverture
-    cdNum.style.animation='hmCdFadeOut .35s ease-out both';
-    cdDots.style.opacity='0';
-
-    // Flash blanc intense
+    // Flash violet intense
     const flashEl=document.createElement('div');
-    flashEl.style.cssText='position:absolute;inset:0;z-index:200;background:#fff;pointer-events:none;animation:hmFlashWhite .55s ease-out both;';
-    document.getElementById('hm').appendChild(flashEl);
-    setTimeout(()=>flashEl.remove(),600);
-
-    // Grain burst
-    const grainEl=document.createElement('div');
-    grainEl.style.cssText='position:absolute;inset:0;z-index:199;pointer-events:none;animation:hmGrainBurst .5s ease-out both;background:#fff;mix-blend-mode:overlay;opacity:.4;';
-    document.getElementById('hm').appendChild(grainEl);
-    setTimeout(()=>grainEl.remove(),550);
-
-    hmTick(880,0.14);
-    setTimeout(()=>hmTick(1100,0.1),80);
-    setTimeout(()=>hmTick(660,0.06),200);
+    flashEl.style.cssText='position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#c084fc,#fff);pointer-events:none;opacity:0;transition:opacity .06s;';
+    document.body.appendChild(flashEl);
+    requestAnimationFrame(()=>{ flashEl.style.opacity='1'; });
+    setTimeout(()=>{ flashEl.style.transition='opacity .4s ease-out'; flashEl.style.opacity='0'; },60);
+    setTimeout(()=>flashEl.remove(),500);
 
     // Retirer overlay
-    setTimeout(()=>overlay.remove(),320);
+    setTimeout(()=>overlay.remove(),280);
 
-    // Révéler la room + ouvrir rideaux
+    // Révéler room + rideaux
     setTimeout(()=>{
       room.style.opacity='1';room.style.pointerEvents='all';
-      room.style.transition='opacity .3s ease';
-      // Rideaux s'ouvrent avec un léger délai dramatique
+      room.style.transition='opacity .25s ease';
       setTimeout(()=>{
         document.getElementById('hm-curtain-left').classList.add('open');
         document.getElementById('hm-curtain-right').classList.add('open');
-      },120);
-    },200);
+      },100);
+    },180);
 
-    // Lancer musique secrète
+    // Musique
     setTimeout(()=>{
       if(!window._secretAudio){
         window._secretAudio=new Audio('Everything In Its Right Place.mp3');
@@ -19998,10 +19834,9 @@ function openHMSecret(){
       window._secretAudio.currentTime=0;
       window._secretAudio.play().catch(()=>{});
       if(typeof fadeTrack==='function') fadeTrack(window._secretAudio,0.28,2000);
-    },400);
+    },350);
 
-  },2050);
-  },800); // fin setTimeout phase 2
+  },700);
 
   // ── Swipe gauche/droite pour changer d'onglet (swipe bas DÉSACTIVÉ) ──
   const HM_SECRET_TABS_COUNT = 4;
