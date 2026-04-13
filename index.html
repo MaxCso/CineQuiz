@@ -6013,9 +6013,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <button class="hm-back" onclick="closeHM()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <div class="hm-title-wrap">
-        <div id="hm-secret-label" style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:#c084fc;line-height:1;cursor:pointer;user-select:none;">HIDDEN MOVIES</div>
-        <div class="hm-subtitle" id="hm-unlocked-count" style="cursor:pointer;user-select:none;">— films débloqués</div>
+      <div class="hm-title-wrap" style="display:flex;align-items:center;justify-content:center;">
+        <img id="hm-logo-trigger" src="hiddenmovies.svg" alt="Hidden Movies" style="height:28px;max-width:160px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(192,132,252,.4));cursor:pointer;user-select:none;">
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <!-- Bouton reset -->
@@ -19616,62 +19615,33 @@ const HM_SECRET_FILMS = [
 ];
 
 (function initHMSecretTrigger(){
-  // 7 taps sur la card "DÉBLOQUÉS" (id=hm-secret-trigger) dans Vue d'ensemble
-  const TAPS_NEEDED=7;
-  let _count=0, _timer=null, _lastTap=0;
-
-  function _playTick(n){
-    try{
-      const ctx=window._hmSecretAudioCtx||(window._hmSecretAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      o.type='sine';o.frequency.value=280+(n/TAPS_NEEDED)*600;
-      g.gain.setValueAtTime(0.03+n*0.008,ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.1);
-      o.start();o.stop(ctx.currentTime+0.1);
-    }catch(e_){}
-  }
-
-  function _reset(){
-    _count=0;_lastTap=0;clearTimeout(_timer);
-    const card=document.getElementById('hm-secret-trigger');
-    if(card)card.style.boxShadow='';
-  }
+  const TAPS=7;
+  let _n=0, _t=null;
 
   function onTap(e){
     if(e.type==='click'&&e.sourceCapabilities?.firesTouchEvents)return;
     e.stopPropagation();
     const now=Date.now();
-    if(_count>0&&now-_lastTap>2500){_reset();}
-    _lastTap=now;
-    _count++;
-    _playTick(_count);
-
-    // Feedback visuel progressif : glow violet sur la card
-    const card=document.getElementById('hm-secret-trigger');
-    if(card){
-      const intensity=_count/TAPS_NEEDED;
-      card.style.boxShadow=`0 0 ${Math.round(4+intensity*24)}px rgba(192,132,252,${0.12+intensity*0.65})`;
-    }
-
-    clearTimeout(_timer);
-    _timer=setTimeout(()=>_reset(),2500);
-
-    if(_count>=TAPS_NEEDED){
-      clearTimeout(_timer);
-      _reset();
+    // Reset silencieux si > 2.5s d'inactivité
+    if(_n>0&&now-(_t||0)>2500){_n=0;}
+    _t=now;
+    _n++;
+    if(_n>=TAPS){
+      _n=0;
       try{localStorage.setItem('cq_hm_secret_found','1');}catch{}
       openHMSecret();
     }
   }
 
-  // Délégation sur document — card est générée dynamiquement
-  document.addEventListener('click',function(e){
-    if(e.target.closest('#hm-secret-trigger'))onTap(e);
-  });
-  document.addEventListener('touchend',function(e){
-    if(e.target.closest('#hm-secret-trigger'))onTap(e);
-  },{passive:false});
+  function attach(){
+    const logo=document.getElementById('hm-logo-trigger');
+    if(!logo){setTimeout(attach,400);return;}
+    logo.addEventListener('click',onTap);
+    logo.addEventListener('touchend',e=>{e.preventDefault();onTap(e);},{passive:false});
+  }
+
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',attach);}
+  else{setTimeout(attach,300);}
 })();
 let _hmSecretFilmIdx=Math.floor(Math.random()*HM_SECRET_FILMS.length);
 
