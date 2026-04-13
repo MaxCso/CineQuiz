@@ -3605,6 +3605,38 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
   background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 65%,rgba(0,0,0,.3) 100%);
 }
+/* Contrôles custom */
+.hm-vid-controls{
+  position:absolute;bottom:0;left:0;right:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;
+  background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 100%);
+  opacity:0;transition:opacity .22s;
+}
+.hm-vid-player-wrap:hover .hm-vid-controls,
+.hm-vid-player-wrap.show-controls .hm-vid-controls{opacity:1;}
+.hm-vid-ctrl-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;cursor:pointer;flex-shrink:0;
+  transition:background .15s,transform .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.hm-vid-ctrl-btn:active{background:rgba(255,200,80,.25);transform:scale(.9);}
+.hm-vid-progress{
+  flex:1;margin:0 10px;height:4px;border-radius:4px;
+  background:rgba(255,255,255,.18);cursor:pointer;position:relative;
+}
+.hm-vid-progress-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,#f5c842,#ffb800);
+  width:0%;pointer-events:none;transition:width .1s linear;
+}
+.hm-vid-time{
+  font-size:9px;color:rgba(255,255,255,.6);letter-spacing:.5px;
+  font-family:'Bebas Neue',sans-serif;min-width:32px;text-align:right;
+}
 .hm-vid-player-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
 /* Placeholder quand aucune vidéo n'est sélectionnée */
 .hm-vid-placeholder{
@@ -6390,13 +6422,26 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div style="padding:14px 16px 0;display:flex;flex-direction:column;height:100%;gap:0;">
 
           <!-- Player vidéo fixe -->
-          <div class="hm-vid-player-wrap" id="hm-vid-player-wrap">
+          <div class="hm-vid-player-wrap" id="hm-vid-player-wrap" onclick="hmVidTogglePlay()" ontouchend="hmVidShowControls(event)">
             <video id="hm-secret-video" class="hm-secret-video" playsinline preload="metadata"
               style="width:100%;height:100%;display:block;object-fit:contain;background:#000;"
-              onended="hmVidEnded()"></video>
+              onended="hmVidEnded()" ontimeupdate="hmVidTimeUpdate()"></video>
             <div class="hm-vid-placeholder" id="hm-vid-placeholder">
               <div class="hm-vid-placeholder-icon">🎬</div>
               <div class="hm-vid-placeholder-text">CHOISIS UNE BANDE-ANNONCE</div>
+            </div>
+            <!-- Contrôles custom -->
+            <div class="hm-vid-controls" id="hm-vid-controls">
+              <div class="hm-vid-ctrl-btn" id="hm-vid-play-btn" onclick="event.stopPropagation();hmVidTogglePlay()">
+                <svg id="hm-vid-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+              <div class="hm-vid-progress" id="hm-vid-progress" onclick="event.stopPropagation();hmVidSeek(event)">
+                <div class="hm-vid-progress-fill" id="hm-vid-progress-fill"></div>
+              </div>
+              <div class="hm-vid-time" id="hm-vid-time">0:00</div>
+              <div class="hm-vid-ctrl-btn" onclick="event.stopPropagation();hmVidFullscreen()" style="margin-left:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </div>
             </div>
           </div>
 
@@ -19837,6 +19882,71 @@ function openHMSecret(){
   };
   room.addEventListener('touchstart',room._swipeHandler,{passive:true});
   room.addEventListener('touchend',room._swipeHandler,{passive:true});
+}
+
+// ── Contrôles vidéo salle secrète ──
+let _hmVidControlTimer=null;
+
+function hmVidTogglePlay(){
+  const vid=document.getElementById('hm-secret-video');
+  const wrap=document.getElementById('hm-vid-player-wrap');
+  const icon=document.getElementById('hm-vid-play-icon');
+  if(!vid||vid.readyState<2)return;
+  if(vid.paused){
+    vid.play().catch(()=>{});
+    if(icon)icon.innerHTML='<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+  }else{
+    vid.pause();
+    if(icon)icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+  hmVidShowControls();
+}
+
+function hmVidTimeUpdate(){
+  const vid=document.getElementById('hm-secret-video');
+  const fill=document.getElementById('hm-vid-progress-fill');
+  const time=document.getElementById('hm-vid-time');
+  if(!vid)return;
+  if(fill&&vid.duration){fill.style.width=Math.round(vid.currentTime/vid.duration*100)+'%';}
+  if(time){
+    const t=Math.floor(vid.currentTime);
+    time.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60;
+  }
+  // Sync icône play/pause
+  const icon=document.getElementById('hm-vid-play-icon');
+  if(icon){
+    if(vid.paused){icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';}
+    else{icon.innerHTML='<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';}
+  }
+}
+
+function hmVidShowControls(e){
+  if(e){e.stopPropagation();}
+  const wrap=document.getElementById('hm-vid-player-wrap');
+  if(!wrap)return;
+  wrap.classList.add('show-controls');
+  clearTimeout(_hmVidControlTimer);
+  _hmVidControlTimer=setTimeout(()=>wrap.classList.remove('show-controls'),2800);
+}
+
+function hmVidSeek(e){
+  const vid=document.getElementById('hm-secret-video');
+  const bar=document.getElementById('hm-vid-progress');
+  if(!vid||!bar||!vid.duration)return;
+  const rect=bar.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  vid.currentTime=Math.max(0,Math.min(1,pct))*vid.duration;
+}
+
+function hmVidFullscreen(){
+  const vid=document.getElementById('hm-secret-video');
+  const wrap=document.getElementById('hm-vid-player-wrap');
+  if(!vid)return;
+  const el=vid;
+  if(el.requestFullscreen)el.requestFullscreen();
+  else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+  else if(el.webkitEnterFullscreen)el.webkitEnterFullscreen(); // iOS
+  else if(wrap.requestFullscreen)wrap.requestFullscreen();
 }
 
 function closeHMSecret(){
