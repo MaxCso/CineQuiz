@@ -3743,6 +3743,12 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .hm-vid-now-count{font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.5px;}
+/* Glitch overlay HM */
+.hm-glitch-overlay{
+  position:absolute;inset:0;z-index:10;pointer-events:none;
+  opacity:0;border-radius:inherit;
+}
+.hm-glitch-overlay.active{opacity:1;}
 /* Liste des bandes-annonces */
 .hm-vid-list-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .hm-trailer-row{
@@ -5860,6 +5866,11 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       </div>
       <!-- Compteur -->
       <div class="jk-vid-counter" id="jk-vid-counter">CH 01 — 1 / 44</div>
+      <!-- Liste scrollable -->
+      <div class="jk-vid-section">
+        <div style="font-size:9px;color:rgba(245,200,66,.3);letter-spacing:2px;font-family:'Bebas Neue',sans-serif;padding:8px 0 6px;">TOUTES LES VIDÉOS</div>
+        <div class="jk-vid-list" id="jk-vid-list"></div>
+      </div>
     </div>
   </div>
 
@@ -6557,6 +6568,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
             <video id="hm-secret-video" class="hm-secret-video" playsinline preload="metadata"
               style="width:100%;height:100%;display:block;object-fit:contain;background:#000;"
               onended="hmVidEnded()" ontimeupdate="hmVidTimeUpdate()"></video>
+            <div class="hm-glitch-overlay" id="hm-glitch-overlay"></div>
             <div class="hm-vid-placeholder" id="hm-vid-placeholder">
               <div class="hm-vid-placeholder-icon">🎬</div>
               <div class="hm-vid-placeholder-text">CHOISIS UNE BANDE-ANNONCE</div>
@@ -18537,6 +18549,7 @@ function jkSwitchTab(tab){
     if(_jkVidIdx<0)_jkVidIdx=0;
     jkPlayVid(_jkVidIdx,true);
     if(window._jkSwipeAttach)window._jkSwipeAttach();
+    buildJkVidList();
   } else {
     videoSec.style.display='none';
     musicSec.style.display='flex';
@@ -18550,29 +18563,128 @@ function jkSwitchTab(tab){
 }
 
 function buildJkVidList(){
-  // No-op — liste supprimée, interface TV zapping
+  const list=document.getElementById('jk-vid-list');if(!list)return;
+  list.innerHTML=JK_VIDEOS.map((v,i)=>{
+    const active=i===_jkVidIdx;
+    const playIcon=`<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="6,3 20,12 6,21"/></svg>`;
+    const eq=active?`<div class="jk-vid-eq"><span></span><span></span><span></span></div>`
+      :`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    const specialStyle=v.special?` style="border-bottom:1px solid rgba(245,200,66,.2);margin-bottom:4px;"`:'' ;
+    const nameStyle=v.special?` style="color:rgba(245,200,66,.9);font-weight:600;"`:'' ;
+    const icon=v.icon||(v.special?'🔫':'🎬');
+    return `<div class="jk-vid-row${active?' active':''}${v.special?' jk-vid-special':''}"${specialStyle} onclick="jkPlayVid(${i})">
+      <div class="jk-vid-thumb">
+        <span class="jk-vid-thumb-icon">${icon}</span>
+        <div class="jk-vid-play-overlay">${playIcon}</div>
+      </div>
+      <div class="jk-vid-row-info">
+        <div class="jk-vid-row-name"${nameStyle}>${v.name}</div>
+        <div class="jk-vid-row-num">${v.special?'Zone Secrète':'Vidéo '+(i)+' / '+(JK_VIDEOS.length-1)}</div>
+      </div>
+      ${eq}
+    </div>`;
+  }).join('');
+  // Scroll vers la vidéo active
+  if(_jkVidIdx>=0){
+    setTimeout(()=>{
+      const active=list.querySelector('.jk-vid-row.active');
+      if(active)active.scrollIntoView({block:'nearest',behavior:'smooth'});
+    },100);
+  }
 }
 
+// ── Glitch canvas + Web Audio ──
 let _jkGlitchTimer=null;
+let _jkAudioCtx=null;
+function _jkGetAudioCtx(){
+  if(!_jkAudioCtx)try{_jkAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  return _jkAudioCtx;
+}
+
+function jkPlayZapSound(){
+  const ctx=_jkGetAudioCtx();if(!ctx)return;
+  try{
+    const dur=0.18;
+    const buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*dur),ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++){
+      const t=i/ctx.sampleRate;
+      // Bruit blanc décroissant + sweep fréquentiel
+      data[i]=(Math.random()*2-1)*Math.exp(-t*22)
+               +Math.sin(2*Math.PI*(800+t*-3000)*t)*0.18*Math.exp(-t*18);
+    }
+    const src=ctx.createBufferSource();
+    src.buffer=buf;
+    const gain=ctx.createGain();
+    gain.gain.setValueAtTime(0.55,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    src.connect(gain);gain.connect(ctx.destination);
+    src.start();
+  }catch(e){}
+}
+
 function jkTriggerGlitch(cb){
   const ov=document.getElementById('jk-glitch-overlay');
-  if(!ov)return cb&&cb();
-  ov.innerHTML='<div class="jk-glitch-noise"></div>';
-  const colors=['rgba(255,50,50,.55)','rgba(50,255,200,.55)','rgba(255,220,50,.55)','rgba(150,50,255,.55)','rgba(255,255,255,.35)'];
-  for(let i=0;i<8;i++){
-    const bar=document.createElement('div');
-    bar.className='jk-glitch-bar';
-    bar.style.cssText=`top:${Math.random()*100}%;height:${2+Math.random()*12}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation:jkGlitchSlide ${80+Math.random()*120}ms linear ${Math.random()*80}ms both;`;
-    ov.appendChild(bar);
+  if(!ov){cb&&cb();return;}
+
+  jkPlayZapSound();
+
+  // Canvas noise
+  const canvas=document.createElement('canvas');
+  const pw=ov.parentElement?ov.parentElement.offsetWidth:360;
+  const ph=ov.parentElement?ov.parentElement.offsetHeight:200;
+  canvas.width=pw||360;canvas.height=ph||200;
+  canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:1;';
+  const ctx2=canvas.getContext('2d');
+
+  // Frame 1 : bruit dense + lignes RGB
+  const id=ctx2.createImageData(canvas.width,canvas.height);
+  const d=id.data;
+  for(let i=0;i<d.length;i+=4){
+    const v=Math.random()*255|0;
+    d[i]=v;d[i+1]=Math.random()*255|0;d[i+2]=Math.random()*255|0;d[i+3]=Math.random()>0.55?180:0;
   }
-  ov.style.background=`rgba(0,0,0,${0.3+Math.random()*.4})`;
+  ctx2.putImageData(id,0,0);
+
+  // Lignes horizontales décalées (aberration chromatique)
+  ctx2.save();
+  for(let i=0;i<12;i++){
+    const y=Math.random()*canvas.height;
+    const h=2+Math.random()*14;
+    const dx=(Math.random()-.5)*30;
+    ctx2.drawImage(canvas,0,y,canvas.width,h,dx,y,canvas.width,h);
+  }
+  // Bandes colorées semi-transparentes
+  [[255,30,30],[30,255,200],[255,220,30],[180,30,255]].forEach(([r,g,b])=>{
+    if(Math.random()>.5)return;
+    ctx2.fillStyle=`rgba(${r},${g},${b},${0.12+Math.random()*.2})`;
+    ctx2.fillRect(0,Math.random()*canvas.height,canvas.width,2+Math.random()*10);
+  });
+  ctx2.restore();
+
+  ov.innerHTML='';
+  ov.appendChild(canvas);
   ov.classList.add('active');
+
+  // Frame 2 après 80ms : bruit allégé
+  const t1=setTimeout(()=>{
+    const id2=ctx2.createImageData(canvas.width,canvas.height);
+    const d2=id2.data;
+    for(let i=0;i<d2.length;i+=4){
+      const v=Math.random()*255|0;
+      d2[i]=v;d2[i+1]=v;d2[i+2]=v;d2[i+3]=Math.random()>0.7?120:0;
+    }
+    ctx2.clearRect(0,0,canvas.width,canvas.height);
+    ctx2.putImageData(id2,0,0);
+  },80);
+
   clearTimeout(_jkGlitchTimer);
   _jkGlitchTimer=setTimeout(()=>{
+    clearTimeout(t1);
     ov.classList.remove('active');
-    ov.style.background='';
-    if(cb)cb();
-  },320);
+    ov.innerHTML='';
+    cb&&cb();
+  },220);
 }
 
 let _jkOsdTimer=null;
@@ -18616,6 +18728,7 @@ function jkPlayVid(idx,skipGlitch){
     const svgPause=document.getElementById('jk-pp-svg-pause');
     if(svgPlay)svgPlay.style.display='none';
     if(svgPause)svgPause.style.display='none';
+    buildJkVidList();
   };
   if(skipGlitch){doLoad();return;}
   vid.pause();
@@ -20058,7 +20171,7 @@ const HM_SECRET_FILMS = [
 
 (function initHMSecretTrigger(){
   const TAPS=6;
-  const LONG_PRESS_MS=3000;
+  const LONG_PRESS_MS=2000;
   let _n=0, _t=null, _lpTimer=null, _waitingLongPress=false;
 
   function resetAll(){
@@ -20392,6 +20505,60 @@ const HM_TRAILERS=[
 ];
 let _hmVidIdx=-1;
 
+// ── Glitch + son pour HM (réutilise le même AudioCtx que le Jukebox) ──
+function hmTriggerGlitch(cb){
+  const ov=document.getElementById('hm-glitch-overlay');
+  if(!ov){cb&&cb();return;}
+
+  // Son zap TV
+  try{
+    const ctx=window._jkAudioCtx||(window._jkAudioCtx=new(window.AudioContext||window.webkitAudioContext)());
+    const dur=0.16;
+    const buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*dur),ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++){
+      const t=i/ctx.sampleRate;
+      data[i]=(Math.random()*2-1)*Math.exp(-t*24)+Math.sin(2*Math.PI*(900+t*-2800)*t)*0.15*Math.exp(-t*20);
+    }
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const gain=ctx.createGain();gain.gain.setValueAtTime(0.5,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    src.connect(gain);gain.connect(ctx.destination);src.start();
+  }catch(e){}
+
+  // Canvas noise
+  const canvas=document.createElement('canvas');
+  const pw=ov.parentElement?ov.parentElement.offsetWidth:360;
+  const ph=ov.parentElement?ov.parentElement.offsetHeight:200;
+  canvas.width=pw||360;canvas.height=ph||200;
+  canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;';
+  const ctx2=canvas.getContext('2d');
+  const id=ctx2.createImageData(canvas.width,canvas.height);
+  const d=id.data;
+  for(let i=0;i<d.length;i+=4){
+    d[i]=Math.random()*255|0;d[i+1]=Math.random()*255|0;d[i+2]=Math.random()*255|0;
+    d[i+3]=Math.random()>0.55?170:0;
+  }
+  ctx2.putImageData(id,0,0);
+  for(let i=0;i<10;i++){
+    const y=Math.random()*canvas.height,h=2+Math.random()*12,dx=(Math.random()-.5)*28;
+    ctx2.drawImage(canvas,0,y,canvas.width,h,dx,y,canvas.width,h);
+  }
+  [[255,30,30],[30,220,180],[255,215,30],[160,30,255]].forEach(([r,g,b])=>{
+    if(Math.random()>.5)return;
+    ctx2.fillStyle=`rgba(${r},${g},${b},${0.1+Math.random()*.18})`;
+    ctx2.fillRect(0,Math.random()*canvas.height,canvas.width,2+Math.random()*9);
+  });
+  ov.innerHTML='';ov.appendChild(canvas);ov.classList.add('active');
+
+  const t1=setTimeout(()=>{
+    const id2=ctx2.createImageData(canvas.width,canvas.height);const d2=id2.data;
+    for(let i=0;i<d2.length;i+=4){const v=Math.random()*255|0;d2[i]=v;d2[i+1]=v;d2[i+2]=v;d2[i+3]=Math.random()>0.72?100:0;}
+    ctx2.clearRect(0,0,canvas.width,canvas.height);ctx2.putImageData(id2,0,0);
+  },75);
+
+  setTimeout(()=>{clearTimeout(t1);ov.classList.remove('active');ov.innerHTML='';cb&&cb();},210);
+}
+
 function buildHmVidList(){
   const list=document.getElementById('hm-vid-list');
   if(!list)return;
@@ -20434,35 +20601,46 @@ function buildHmVidList(){
   }).join('');
 }
 
+let _hmLastPlayIdx=-1;
 function hmTrailerPlay(idx){
-  _hmVidIdx=idx;
   const v=HM_TRAILERS[idx];
   const vid=document.getElementById('hm-secret-video');
   const titleEl=document.getElementById('hm-vid-now-title');
   const countEl=document.getElementById('hm-vid-now-count');
   const placeholder=document.getElementById('hm-vid-placeholder');
   if(!vid||!v)return;
-  // Couper la musique d'ambiance pendant la lecture de la vidéo
-  _hmFadeOutAudio();
-  if(window._secretAudio&&!window._secretAudio.paused){
-    if(typeof fadeTrack==='function') fadeTrack(window._secretAudio,0,600,()=>{window._secretAudio.pause();});
-    else window._secretAudio.pause();
+
+  const doPlay=()=>{
+    _hmVidIdx=idx;
+    _hmFadeOutAudio();
+    if(window._secretAudio&&!window._secretAudio.paused){
+      if(typeof fadeTrack==='function') fadeTrack(window._secretAudio,0,600,()=>{window._secretAudio.pause();});
+      else window._secretAudio.pause();
+    }
+    if(placeholder)placeholder.style.display='none';
+    vid.src=encodeURIComponent(v.src).replace(/%2F/g,'/');
+    vid.load();
+    vid.play().catch(()=>{});
+    if(titleEl)titleEl.textContent=v.name;
+    if(countEl)countEl.textContent=v.special
+      ? '✦ Contenu exclusif Hidden Movies'
+      : idx+' / '+(HM_TRAILERS.length-1)+' bandes-annonces';
+    buildHmVidList();
+    setTimeout(()=>{
+      const list=document.getElementById('hm-vid-list');
+      const active=list&&list.querySelector('.hm-trailer-row.active');
+      if(active)active.scrollIntoView({block:'nearest',behavior:'smooth'});
+    },80);
+  };
+
+  // Glitch seulement si on change de vidéo (pas au premier lancement)
+  if(_hmLastPlayIdx>=0&&_hmLastPlayIdx!==idx){
+    vid.pause();
+    hmTriggerGlitch(doPlay);
+  } else {
+    doPlay();
   }
-  if(placeholder)placeholder.style.display='none';
-  vid.src=encodeURIComponent(v.src).replace(/%2F/g,'/');
-  vid.load();
-  vid.play().catch(()=>{});
-  if(titleEl)titleEl.textContent=v.name;
-  if(countEl)countEl.textContent=v.special
-    ? '✦ Contenu exclusif Hidden Movies'
-    : idx+' / '+(HM_TRAILERS.length-1)+' bandes-annonces';
-  buildHmVidList();
-  // Scroll la ligne active dans la liste
-  setTimeout(()=>{
-    const list=document.getElementById('hm-vid-list');
-    const active=list&&list.querySelector('.hm-trailer-row.active');
-    if(active)active.scrollIntoView({block:'nearest',behavior:'smooth'});
-  },80);
+  _hmLastPlayIdx=idx;
 }
 
 function hmVidEnded(){
