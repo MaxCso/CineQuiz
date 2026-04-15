@@ -2973,6 +2973,13 @@ body.theme-rose #home-bg::before{background:
   box-shadow:0 8px 32px rgba(0,0,0,.6);
 }
 .jk-vid-player-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
+.jk-vid-tap-overlay{position:absolute;inset:0;z-index:2;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.jk-vid-pp-icon{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none;}
+.jk-vid-pp-icon.show{opacity:1;}
+.jk-vid-pp-icon svg{color:#fff;width:22px;height:22px;}
+.jk-vid-fs-btn{position:absolute;bottom:8px;right:8px;z-index:3;width:34px;height:34px;border-radius:9px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .1s;}
+.jk-vid-fs-btn:active{background:rgba(245,200,66,.2);transform:scale(.9);}
+.jk-vid-fs-btn svg{color:rgba(255,255,255,.7);width:15px;height:15px;}
 .jk-vid-now{
   padding:0 2px 12px;flex-shrink:0;
 }
@@ -5771,6 +5778,16 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <video id="jk-video-player" playsinline preload="metadata"
           style="width:100%;height:100%;display:block;object-fit:contain;background:#000;"
           onended="jkVidEnded()"></video>
+        <div class="jk-vid-tap-overlay" onclick="jkTogglePlayPause()">
+          <div class="jk-vid-pp-icon" id="jk-pp-icon">
+            <svg id="jk-pp-svg-play" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="6 3 20 12 6 21"/></svg>
+            <svg id="jk-pp-svg-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </div>
+        </div>
+        <div class="jk-vid-fs-btn" onclick="jkToggleFullscreen()" title="Plein écran">
+          <svg id="jk-fs-icon-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <svg id="jk-fs-icon-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="14" y1="10" x2="21" y2="3"/></svg>
+        </div>
       </div>
       <!-- Titre en lecture -->
       <div class="jk-vid-now" id="jk-vid-now">
@@ -17009,7 +17026,29 @@ function showVersusRoundHandoff(nextRoundNum, cb){
   const btn=document.createElement('button');
   btn.style.cssText=`width:100%;grid-column:1/-1;background:linear-gradient(100deg,#f5c842,#e8a800);color:#000;border:none;border-radius:18px;padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;`;
   btn.innerHTML=`⚔️ MANCHE ${nextRoundNum}`;
-  btn.onclick=cb;
+  btn.onclick=()=>{
+    btn.disabled=true;btn.style.opacity='.35';
+    const game=document.getElementById('game');
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:20;gap:10px;';
+    const firstP=vsPlayers[0];
+    const firstColor=VS_COLORS[0];
+    overlay.innerHTML=`
+      <div style="font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;margin-bottom:4px;">PRÉPARE-TOI !</div>
+      <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:${firstColor};line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">3</div>
+      <div style="font-size:15px;color:rgba(255,255,255,.55);">Manche ${nextRoundNum} — C'est à <strong style="color:${firstColor};">${firstP.name}</strong></div>`;
+    game.appendChild(overlay);
+    let count=3;
+    const tick=setInterval(()=>{
+      count--;
+      if(count>0){
+        const el=document.getElementById('vs-cnum');
+        if(el){el.textContent=count;el.style.animation='none';void el.offsetWidth;el.style.animation='vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both';haptic('countdown');}
+      } else {
+        clearInterval(tick);overlay.remove();cb();
+      }
+    },750);
+  };
   grid.appendChild(btn);
 }
 
@@ -18137,27 +18176,51 @@ function closeJukebox(){
 
 // ══ ZONE VIDÉO SECRÈTE ══
 const JK_VIDEOS=[
-  {name:"FLINGO FREESTYLE",                                        src:"FLINGO FREESTYLE.mp4", special:true, icon:'🔫'},
-  {name:"Spidey",                                                  src:"Spidey.mp4", special:true, icon:'🕷️'},
-  {name:"Hero",                                                    src:"Hero.mp4", special:true, icon:'🦸'},
-  {name:"The Accountant",                                          src:"The Accountant.mp4"},
-  {name:"1 Menu Whopper",                                         src:"1 Menu Whopper.mp4"},
-  {name:"C'est quoi ce poulet",                                   src:"Cest quoi ce poulet.mp4"},
-  {name:"C'est quoi ces bruits de golmon",                        src:"Cest quoi ces bruits de golmon.mp4"},
-  {name:"Ça va peter",                                            src:"Ca va peter.mp4"},
-  {name:"Des casseroles sur les murs",                            src:"Des casseroles sur les murs.mp4"},
-  {name:"Etienne le Bolideur, fan de Bolidage - Véga Missyl",    src:"Etienne le Bolideur, fan de Bolidage - Vega Missyl.mp4"},
-  {name:"Exactement ouais ouais ouais ouais t'es bien renseigné toi", src:"Exactement ouais ouais ouais ouais tes bien renseigne toi.mp4"},
-  {name:"Granades attention grenades",                            src:"Granades attention grenades.mp4"},
-  {name:"Le prof d'itec tombe d'une armoire",                     src:"Le prof ditec tombe dune armoire.mp4"},
-  {name:"Macron explosion",                                       src:"Macron explosion.mp4"},
-  {name:"Maître Yoda",                                            src:"Maitre Yoda.mp4"},
-  {name:"Mec qui fait des cris strident aiguë",                   src:"Mec qui fait des cris strident aigue.mp4"},
-  {name:"Mec qui ronfle fort",                                    src:"Mec qui ronfle fort.mp4"},
-  {name:"Morsay ça c'est ma fusée",                               src:"Morsay ca c'est ma fusee.mp4"},
-  {name:"Ne t'inquiète pas ça va bien se passer",                 src:"Ne t'inquiete pas ca va bien se passer.mp4"},
-  {name:"Robot qui detek les mouches sur les cadav",              src:"Robot qui detek les mouches sur les cadav.mp4"},
-  {name:"Un front kick t'es dans l'eau",                          src:"Un front kick tes dans leau.mp4"},
+  {name:"Spidey",                          src:"Spidey.mp4",                                  special:true, icon:'🕷️'},
+  {name:"Hero",                            src:"Hero.mp4",                                    special:true, icon:'🦸'},
+  {name:"Heath",                           src:"Heath.mp4"},
+  {name:"Space Odyssey",                   src:"Space Odyssey.mp4"},
+  {name:"𝘼 𝙇𝙤𝙫𝙚 𝙇𝙚𝙩𝙩𝙚𝙧 𝙩𝙤 𝘾𝙞𝙣𝙚𝙢𝙖",         src:"𝘼 𝙇𝙤𝙫𝙚 𝙇𝙚𝙩𝙩𝙚𝙧 𝙩𝙤 𝘾𝙞𝙣𝙚𝙢𝙖.mp4"},
+  {name:"After Hours",                     src:"AH.mp4"},
+  {name:"Apocalypse Now",                  src:"Apocalypse Now.mp4"},
+  {name:"Blade Runner 2049",               src:"Blade Runner 2049.mp4"},
+  {name:"Boogie Nights",                   src:"BN.mp4"},
+  {name:"Boxing in Cinema",               src:"𝗕𝗢𝗫𝗜𝗡𝗚 𝗜𝗡 𝗖𝗜𝗡𝗘𝗠𝗔.mp4"},
+  {name:"Casino",                          src:"Casino.mp4"},
+  {name:"Chamber Of Reflection",          src:"Chamber Of Reflection.mp4"},
+  {name:"Christmas",                       src:"𝙲𝙷𝚁𝙸𝚂𝚃𝙼𝙰𝚂.mp4"},
+  {name:"Cinema Matters",                 src:"𝗖𝗜𝗡𝗘𝗠𝗔 𝗠𝗔𝗧𝗧𝗘𝗥𝗦.mp4"},
+  {name:"Collateral",                      src:"Collateral.mp4"},
+  {name:"Corleone",                        src:"Corleone.mp4"},
+  {name:"Dance in Cinema",                src:"𝗗𝗔𝗡𝗖𝗘 𝘪𝘯 𝘊𝘪𝘯𝘦𝘮𝘢.mp4"},
+  {name:"Deadpool",                        src:"Deadpool.mp4"},
+  {name:"Every Living Breathing Moment",  src:"Every Living Breathing Moment.mp4"},
+  {name:"Fight Club",                      src:"Fight Club.mp4"},
+  {name:"Goodfellas",                      src:"Goodfellas.mp4"},
+  {name:"Hold onto hope",                  src:"Hold onto hope.mp4"},
+  {name:"I wanna make movies one day",     src:"I wanna make movies one day.mp4"},
+  {name:"La Haine",                        src:"La Haine.mp4"},
+  {name:"Let Down",                        src:"Let Down.mp4"},
+  {name:"Life with Passion",              src:"𝗟𝗜𝗙𝗘 𝗪𝗜𝗧𝗛 𝗣𝗔𝗦𝗦𝗜𝗢𝗡.mp4"},
+  {name:"Love in Cinema",                 src:"𝗟𝗢𝗩𝗘 𝒊𝒏 𝑪𝒊𝒏𝒆𝒎𝒂.mp4"},
+  {name:"Love Letter to Cinema",          src:"L𝗼𝘃𝗲 𝗟𝗲𝘁𝘁𝗲𝗿 𝘁𝗼 𝗖𝗶𝗻𝗲𝗺𝗔.mp4"},
+  {name:"Mid90s",                          src:"90s.mp4"},
+  {name:"Music in Movies",                src:"Music in Movies.mp4"},
+  {name:"Nightcrawler",                    src:"Nightcrawler.mp4"},
+  {name:"Prisoners",                       src:"Prisoners.mp4"},
+  {name:"Psycho Killer",                  src:"𝗣𝗦𝗬𝗖𝗛𝗢 𝗞𝗜𝗟𝗟𝗘𝗥.mp4"},
+  {name:"Pulp Fiction",                    src:"Pulp Fiction.mp4"},
+  {name:"Tarantino",                       src:"Tarantino.mp4"},
+  {name:"Rise and Fall",                   src:"Rise and Fall.mp4"},
+  {name:"Smile",                           src:"Smile.mp4"},
+  {name:"Spring",                          src:"𝑆𝑝𝑟𝑖𝑛𝑔.mp4"},
+  {name:"Superbad",                        src:"Superbad.mp4"},
+  {name:"The Dark Knight",                 src:"The Dark Knight.mp4"},
+  {name:"The Matrix",                      src:"The Matrix.mp4"},
+  {name:"The Usual Suspects",              src:"The Usual Suspects.mp4"},
+  {name:"The Wolf of Wall Street",         src:"The Wolf of Wall Street.mp4"},
+  {name:"Where did the magic go",          src:"Where did the magic go.mp4"},
+  {name:"Winter",                          src:"𝑾𝑰𝑵𝑻𝑬𝑹.mp4"},
 ];
 let _jkVidIdx=-1;
 
@@ -18165,7 +18228,7 @@ let _jkVidIdx=-1;
 // Zones : 'icon' (🎵 grand), 'title' (JUKEBOX topbar), 'mode' (label piste courante)
 // ══ KONAMI SWIPE — ↑↓←→↑↓←→ sur l'emoji 🎵 ══
 // Séquence : up down left right up down left right (8 swipes)
-const JK_SWIPE_SEQ=['up','down','left','right','up','down','left','right'];
+const JK_SWIPE_SEQ=['up','up','down','down','left','right','left','right'];
 const JK_KONAMI_LEN=JK_SWIPE_SEQ.length; // 8
 let _jkKonamiStep=0;
 let _jkKonamiTimer=null;
@@ -18178,31 +18241,22 @@ function _jkSwipe(dir){
   // Reset si > 3s d'inactivité
   if(_jkKonamiStep>0&&now-_jkLastSwipeTime>3000){
     _jkKonamiStep=0;
-    _jkKonamiUpdateDots();
   }
   _jkLastSwipeTime=now;
 
   if(dir!==JK_SWIPE_SEQ[_jkKonamiStep]){
     // Mauvaise direction — reset silencieux
     _jkKonamiStep=0;
-    _jkKonamiUpdateDots();
     clearTimeout(_jkKonamiTimer);
     return;
   }
 
   _jkKonamiStep++;
 
-  // Dots visibles à partir du 2ème swipe
-  const dotsWrap=document.getElementById('jk-konami-dots');
-  if(_jkKonamiStep>=2&&dotsWrap)dotsWrap.style.opacity='1';
-  _jkKonamiUpdateDots();
-
   // Reset auto après 3s d'inactivité
   clearTimeout(_jkKonamiTimer);
   _jkKonamiTimer=setTimeout(()=>{
     _jkKonamiStep=0;_jkLastSwipeTime=0;
-    _jkKonamiUpdateDots();
-    if(dotsWrap)setTimeout(()=>{if(_jkKonamiStep===0)dotsWrap.style.opacity='0';},600);
   },3000);
 
   // Séquence complète !
@@ -18211,17 +18265,12 @@ function _jkSwipe(dir){
     _jkKonamiStep=0;_jkLastSwipeTime=0;
     _jkVidUnlocked=true;
     try{localStorage.setItem('cq_jk_secret_found','1');}catch{}
-    if(dotsWrap){dotsWrap.style.opacity='0';}
-    _jkKonamiUpdateDots();
     _jkSecretEntry();
   }
 }
 
 function _jkKonamiUpdateDots(){
-  for(let i=0;i<JK_KONAMI_LEN;i++){
-    const d=document.getElementById('jk-kd-'+i);
-    if(d)d.classList.toggle('lit',i<_jkKonamiStep);
-  }
+  // Feedback visuel désactivé — dots toujours éteints
 }
 
 function _jkKonamiInit(){
@@ -18427,12 +18476,12 @@ function jkSwitchTab(tab){
     // Lancer automatiquement FLINGO FREESTYLE à l'entrée dans la zone secrète
     const mainVid=document.getElementById('jk-video-player');
     if(mainVid){
-      mainVid.src='FLINGO FREESTYLE.mp4';
+      mainVid.src='Spidey.mp4';
       mainVid.load();
       mainVid.play().catch(()=>{});
       const titleEl=document.getElementById('jk-vid-now-title');
       const countEl=document.getElementById('jk-vid-now-count');
-      if(titleEl)titleEl.textContent='FLINGO FREESTYLE';
+      if(titleEl)titleEl.textContent='Spidey';
       if(countEl)countEl.textContent='Zone Secrète';
       _jkVidIdx=-1; // aucune vidéo de la liste active
       buildJkVidList(); // re-render liste sans highlight
@@ -18495,6 +18544,63 @@ function jkVidEnded(){
   if(JK_VIDEOS[next]&&JK_VIDEOS[next].special) next=firstNormal>=0?firstNormal:next;
   jkPlayVid(next);
 }
+
+let _jkPpTimer=null;
+function jkTogglePlayPause(){
+  const vid=document.getElementById('jk-video-player');
+  const icon=document.getElementById('jk-pp-icon');
+  const svgPlay=document.getElementById('jk-pp-svg-play');
+  const svgPause=document.getElementById('jk-pp-svg-pause');
+  if(!vid||!vid.src)return;
+  if(vid.paused){
+    vid.play().catch(()=>{});
+    svgPlay.style.display='none'; svgPause.style.display='block';
+  } else {
+    vid.pause();
+    svgPlay.style.display='block'; svgPause.style.display='none';
+  }
+  icon.classList.add('show');
+  clearTimeout(_jkPpTimer);
+  _jkPpTimer=setTimeout(()=>icon.classList.remove('show'),700);
+}
+
+function jkToggleFullscreen(){
+  const wrap=document.querySelector('.jk-vid-player-wrap');
+  const vid=document.getElementById('jk-video-player');
+  const iconEnter=document.getElementById('jk-fs-icon-enter');
+  const iconExit=document.getElementById('jk-fs-icon-exit');
+  // iOS : plein écran natif sur la vidéo
+  if(vid.webkitEnterFullscreen&&!document.fullscreenElement&&!document.webkitFullscreenElement){
+    vid.webkitEnterFullscreen();return;
+  }
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    const req=wrap.requestFullscreen||wrap.webkitRequestFullscreen;
+    if(req) req.call(wrap).then(()=>{
+      iconEnter.style.display='none'; iconExit.style.display='block';
+    }).catch(()=>{});
+  } else {
+    const ex=document.exitFullscreen||document.webkitExitFullscreen;
+    if(ex) ex.call(document).then(()=>{
+      iconEnter.style.display='block'; iconExit.style.display='none';
+    }).catch(()=>{});
+  }
+}
+document.addEventListener('fullscreenchange',()=>{
+  const iconEnter=document.getElementById('jk-fs-icon-enter');
+  const iconExit=document.getElementById('jk-fs-icon-exit');
+  if(!iconEnter||!iconExit)return;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    iconEnter.style.display='block'; iconExit.style.display='none';
+  }
+});
+document.addEventListener('webkitfullscreenchange',()=>{
+  const iconEnter=document.getElementById('jk-fs-icon-enter');
+  const iconExit=document.getElementById('jk-fs-icon-exit');
+  if(!iconEnter||!iconExit)return;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    iconEnter.style.display='block'; iconExit.style.display='none';
+  }
+});
 
 function initMiniPlayer(){
   if(_curMode){const idx=JK_KEYS.indexOf(_curMode);if(idx>=0)_jkIdx=idx;}
@@ -19827,22 +19933,42 @@ const HM_SECRET_FILMS = [
 ];
 
 (function initHMSecretTrigger(){
-  const TAPS=7;
-  let _n=0, _t=null;
+  const TAPS=6;
+  const LONG_PRESS_MS=3000;
+  let _n=0, _t=null, _lpTimer=null, _waitingLongPress=false;
+
+  function resetAll(){
+    _n=0; _waitingLongPress=false;
+    clearTimeout(_lpTimer); _lpTimer=null;
+  }
 
   function onTap(e){
     if(e.type==='click'&&e.sourceCapabilities?.firesTouchEvents)return;
+    if(_waitingLongPress)return;
     e.stopPropagation();
     const now=Date.now();
-    // Reset silencieux si > 2.5s d'inactivité
     if(_n>0&&now-(_t||0)>2500){_n=0;}
     _t=now;
     _n++;
     if(_n>=TAPS){
-      _n=0;
+      _waitingLongPress=true;
+    }
+  }
+
+  function onPressStart(e){
+    if(!_waitingLongPress)return;
+    e.preventDefault();e.stopPropagation();
+    clearTimeout(_lpTimer);
+    _lpTimer=setTimeout(()=>{
+      resetAll();
       try{localStorage.setItem('cq_hm_secret_found','1');}catch{}
       openHMSecret();
-    }
+    },LONG_PRESS_MS);
+  }
+
+  function onPressEnd(e){
+    if(!_waitingLongPress)return;
+    clearTimeout(_lpTimer);_lpTimer=null;
   }
 
   function attach(){
@@ -19850,6 +19976,12 @@ const HM_SECRET_FILMS = [
     if(!logo){setTimeout(attach,400);return;}
     logo.addEventListener('click',onTap);
     logo.addEventListener('touchend',e=>{e.preventDefault();onTap(e);},{passive:false});
+    logo.addEventListener('mousedown',onPressStart);
+    logo.addEventListener('touchstart',e=>{e.preventDefault();onPressStart(e);},{passive:false});
+    logo.addEventListener('mouseup',onPressEnd);
+    logo.addEventListener('mouseleave',onPressEnd);
+    logo.addEventListener('touchend',e=>{e.preventDefault();onPressEnd(e);},{passive:false});
+    logo.addEventListener('touchcancel',onPressEnd);
   }
 
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',attach);}
