@@ -5882,11 +5882,8 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div id="jk-video-section" style="flex:1;display:none;flex-direction:column;min-height:0;">
       <!-- Header avec retour -->
       <div class="jk-vid-header">
-        <div class="jk-vid-back" onclick="jkSwitchTab('music')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          RETOUR
-        </div>
-        <div class="jk-vid-zone-label">📽 ZONE SECRÈTE</div>
+        <div style="width:60px;"></div>
+        <div class="jk-vid-zone-label" id="jk-vid-zone-label">📺 CINÉTEK</div>
         <div style="width:60px;"></div>
       </div>
       <!-- Lecteur vidéo -->
@@ -6606,8 +6603,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div class="hm-secret-vignette"></div>
     <div class="hm-secret-projector-beam"></div>
     <!-- Rideaux d'ouverture -->
-    <div class="hm-secret-curtain-left" id="hm-curtain-left"></div>
-    <div class="hm-secret-curtain-right" id="hm-curtain-right"></div>
+
     <!-- Topbar -->
     <div class="hm-secret-topbar">
       <div class="hm-secret-close" onclick="closeHMSecret()">
@@ -18654,8 +18650,11 @@ function jkSwitchTab(tab){
     if(window._jkAudio&&!window._jkAudio.paused){
       window._jkAudio.pause();_stopProgInterval();updateJukeboxDisplay();
     }
-    // Lancer la première vidéo automatiquement à l'entrée dans la zone secrète
-    if(_jkVidIdx<0)_jkVidIdx=0;
+    // Lancer une vidéo aléatoire à l'entrée dans la zone secrète
+    if(_jkVidIdx<0){
+      let r=Math.floor(Math.random()*JK_VIDEOS.length);
+      _jkVidIdx=r;
+    }
     jkPlayVid(_jkVidIdx,true);
     if(window._jkSwipeAttach)window._jkSwipeAttach();
     buildJkVidList();
@@ -18815,7 +18814,7 @@ function jkShowBanner(name,idx){
   const counter=document.getElementById('jk-vid-counter');
   if(!banner||!title)return;
   title.textContent=name;
-  if(ch)ch.textContent='CH '+String(idx+1).padStart(2,'0')+' — ZONE SECRÈTE';
+  if(ch)ch.textContent='CH '+String(idx+1).padStart(2,'0')+' — CINÉTEK';
   if(counter)counter.textContent='CH '+String(idx+1).padStart(2,'0')+' — '+(idx+1)+' / '+JK_VIDEOS.length+' vidéos';
   banner.classList.add('show');
   clearTimeout(_jkBannerTimer);
@@ -20429,8 +20428,7 @@ function openHMSecret(){
       room.style.opacity='1';room.style.pointerEvents='all';
       room.style.transition='opacity .3s ease';
       setTimeout(()=>{
-        document.getElementById('hm-curtain-left').classList.add('open');
-        document.getElementById('hm-curtain-right').classList.add('open');
+
       },80);
       // Musique secrète
       setTimeout(()=>{
@@ -20543,8 +20541,7 @@ function hmVidFullscreen(){
 function closeHMSecret(){
   const room=document.getElementById('hm-secret-room');
   if(!room)return;
-  document.getElementById('hm-curtain-left').classList.remove('open');
-  document.getElementById('hm-curtain-right').classList.remove('open');
+
   const vid=document.getElementById('hm-secret-video');
   if(vid)vid.pause();
   // Stopper la musique secrète
