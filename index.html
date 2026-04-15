@@ -467,19 +467,42 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .sml{font-size:8px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;}
 
 /* ─── DAILY CARD renforcé ─── */
+@property --dc-angle{syntax:'<angle>';inherits:false;initial-value:0deg;}
+@keyframes dcBorderSpin{from{--dc-angle:0deg;}to{--dc-angle:360deg;}}
 .daily-card{
-  background:linear-gradient(135deg,rgba(30,22,5,.95),rgba(18,13,3,.9));
-  border:1.5px solid rgba(245,200,66,.4);
-  border-radius:20px;padding:16px;margin-bottom:9px;
-  cursor:pointer;position:relative;overflow:hidden;
-  transition:transform .18s,box-shadow .18s;
-  box-shadow:0 4px 24px rgba(245,200,66,.08);
+  border:none;
+  border-radius:20px;padding:0;margin-bottom:9px;
+  cursor:pointer;position:relative;
+  transition:transform .18s;
 }
 .daily-card:active{transform:scale(.98);}
+/* Shimmer bordure */
 .daily-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,200,66,.07) 0%,transparent 70%);
+  content:'';position:absolute;inset:-1px;border-radius:21px;z-index:0;
+  background:conic-gradient(
+    from var(--dc-angle,0deg),
+    rgba(245,200,66,0) 0%,
+    rgba(245,200,66,0) 42%,
+    rgba(255,235,130,.42) 49%,
+    rgba(245,200,66,.28) 50%,
+    rgba(255,235,130,.42) 51%,
+    rgba(245,200,66,0) 58%,
+    rgba(245,200,66,0) 100%
+  );
+  animation:dcBorderSpin 3.5s linear infinite;
   pointer-events:none;
+}
+/* Fond intérieur */
+.daily-card::after{
+  content:'';position:absolute;inset:1px;border-radius:19px;
+  background:linear-gradient(135deg,#1e1602,#130e02);
+  z-index:0;pointer-events:none;
+}
+.daily-card>*{position:relative;z-index:1;}
+.daily-card-inner{
+  position:relative;z-index:1;
+  padding:16px;border-radius:19px;
+  background:radial-gradient(ellipse 80% 55% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 70%);
 }
 .daily-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .daily-label{display:flex;align-items:center;gap:8px;}
@@ -1128,15 +1151,17 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 .mode-info-over.on{display:flex;opacity:1;pointer-events:all;}
 .mode-info-sh{
-  background:linear-gradient(180deg,rgba(18,14,8,.99),rgba(10,8,4,.99));
+  background:linear-gradient(180deg,rgba(16,12,6,.99),rgba(10,8,3,.99));
   border-radius:28px 28px 0 0;
-  border:1px solid rgba(255,255,255,.08);border-bottom:none;
+  border:1px solid rgba(245,200,66,.14);border-bottom:none;
+  border-top:1px solid rgba(245,200,66,.22);
   padding:0 22px max(32px,env(safe-area-inset-bottom,32px));
   width:100%;max-width:500px;
   max-height:92dvh;overflow-y:auto;overflow-x:hidden;
   transform:translateY(60px);
   transition:transform .32s cubic-bezier(.34,1.56,.64,1);
   position:relative;
+  box-shadow:0 -4px 40px rgba(0,0,0,.5);
 }
 .mode-info-over.on .mode-info-sh{transform:translateY(0);}
 .mode-info-accent{
@@ -1476,17 +1501,31 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .vs-final-card-score{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);}
 .vs-final-card-correct{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;}
 .daily-card{
-  background:linear-gradient(135deg,rgba(245,200,66,.14),rgba(232,168,0,.06));
-  border:1.5px solid rgba(245,200,66,.35);
-  border-radius:18px;padding:14px 16px;margin-bottom:9px;
-  cursor:pointer;position:relative;overflow:hidden;
-  transition:transform .18s,box-shadow .18s;
+  border:none;
+  border-radius:20px;padding:0;margin-bottom:9px;
+  cursor:pointer;position:relative;
+  transition:transform .18s;
 }
 .daily-card:active{transform:scale(.98);}
 .daily-card::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(245,200,66,.07),transparent);
-  animation:btnglare 3.5s ease 2s infinite;
+  content:'';position:absolute;inset:-1px;border-radius:21px;z-index:0;
+  background:conic-gradient(
+    from var(--dc-angle,0deg),
+    rgba(245,200,66,0) 0%,
+    rgba(245,200,66,0) 42%,
+    rgba(255,235,130,.42) 49%,
+    rgba(245,200,66,.28) 50%,
+    rgba(255,235,130,.42) 51%,
+    rgba(245,200,66,0) 58%,
+    rgba(245,200,66,0) 100%
+  );
+  animation:dcBorderSpin 3.5s linear infinite;
+  pointer-events:none;
+}
+.daily-card::after{
+  content:'';position:absolute;inset:1px;border-radius:19px;
+  background:linear-gradient(135deg,#1e1602,#130e02);
+  z-index:0;pointer-events:none;
 }
 .daily-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .daily-label{display:flex;align-items:center;gap:8px;}
@@ -2237,9 +2276,17 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 /* Bloc score */
 .r-score-block{
   text-align:center;margin:14px 0 18px;width:100%;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(150deg,rgba(20,14,4,.97),rgba(12,9,3,.94));
+  border:1px solid rgba(245,200,66,.18);
   border-radius:20px;padding:16px 0 14px;
+  position:relative;overflow:hidden;
+  box-shadow:0 2px 16px rgba(0,0,0,.3);
 }
+.r-score-block::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(245,200,66,.35),transparent);}
+.r-score-block::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 65%);
+  pointer-events:none;}
 .rscore{
   font-family:'Bebas Neue',sans-serif;font-size:88px;line-height:1;
   color:var(--gold);letter-spacing:2px;
@@ -2263,20 +2310,28 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 /* Stats */
 .rstats{display:flex;gap:8px;width:100%;margin-bottom:12px;animation:fadeScaleIn .4s ease .45s both;}
 .rst{
-  flex:1;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:14px 6px;text-align:center;
+  flex:1;
+  background:linear-gradient(150deg,rgba(20,14,4,.97),rgba(12,9,3,.94));
+  border:1px solid rgba(245,200,66,.15);border-radius:16px;padding:14px 6px;text-align:center;
   position:relative;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);
 }
-.rst::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.25;}
+.rst::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
 .rstv{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);line-height:1.1;}
 .rstl{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
 /* Chart */
 .r-chart{
-  width:100%;background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  width:100%;
+  background:linear-gradient(150deg,rgba(16,20,30,.97),rgba(10,13,22,.95));
+  border:1px solid rgba(74,140,255,.15);border-radius:16px;
   padding:14px 12px;margin-bottom:10px;
+  position:relative;overflow:hidden;
   animation:fadeScaleIn .4s ease .5s both;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);
 }
+.r-chart::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(74,140,255,.3),transparent);}
 .r-chart-title{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;}
 .r-bars{display:flex;gap:4px;align-items:flex-end;height:56px;}
 .r-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
@@ -2302,11 +2357,16 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .r-missed-ans{font-size:11px;color:rgba(46,204,113,.75);font-weight:600;}
 /* XP block amélioré */
 .r-xp-block{
-  width:100%;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.09);border-radius:16px;
+  width:100%;
+  background:linear-gradient(150deg,rgba(20,14,4,.97),rgba(12,9,3,.94));
+  border:1px solid rgba(245,200,66,.18);border-radius:16px;
   padding:14px 16px;margin-bottom:10px;
+  position:relative;overflow:hidden;
   animation:fadeScaleIn .4s ease .6s both;
+  box-shadow:0 2px 14px rgba(0,0,0,.25);
 }
+.r-xp-block::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
 .r-xp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .r-xp-label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px;}
 .r-xp-val{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);}
@@ -3072,6 +3132,35 @@ body.theme-rose #home-bg::before{background:
 .jk-swipe-hint.right{right:10px;}
 .jk-swipe-hint svg{color:rgba(255,255,255,.5);width:20px;height:20px;}
 /* Bandeau titre style sous-titre TV */
+/* Bandeau de lancement CINÉTEK */
+.jk-launch-banner{
+  position:absolute;inset:0;z-index:20;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.78);border-radius:16px;
+  opacity:0;pointer-events:none;
+  transition:opacity .4s;
+}
+.jk-launch-banner.show{opacity:1;}
+.jk-launch-station{
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:4px;
+  color:rgba(245,200,66,.5);margin-bottom:6px;
+}
+.jk-launch-title{
+  font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;
+  color:#fff;line-height:1;margin-bottom:4px;
+  text-shadow:0 0 20px rgba(245,200,66,.3);
+}
+.jk-launch-ch{
+  font-size:10px;color:rgba(255,255,255,.35);letter-spacing:2px;
+}
+.jk-launch-bar{
+  width:48px;height:2px;border-radius:2px;
+  background:rgba(245,200,66,.4);margin-top:10px;
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 2.2s linear;
+}
+.jk-launch-banner.show .jk-launch-bar{transform:scaleX(1);}
+
 .jk-tv-banner{
   position:absolute;bottom:0;left:0;right:0;z-index:5;
   padding:20px 14px 10px;
@@ -3529,7 +3618,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 /* BADGE MODAL */
 .mover{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
 .mover.on{display:flex;opacity:1;pointer-events:all;}
-.msh{background:var(--sf);border-radius:22px 22px 0 0;padding:22px 22px max(26px,env(safe-area-inset-bottom,26px));width:100%;max-width:500px;transform:translateY(40px);transition:transform .3s cubic-bezier(.25,.46,.45,.94);will-change:transform;}
+.msh{background:linear-gradient(180deg,rgba(16,12,6,.99),rgba(10,8,3,.99));border-radius:22px 22px 0 0;border:1px solid rgba(245,200,66,.14);border-bottom:none;border-top:1px solid rgba(245,200,66,.2);padding:22px 22px max(26px,env(safe-area-inset-bottom,26px));width:100%;max-width:500px;transform:translateY(40px);transition:transform .3s cubic-bezier(.25,.46,.45,.94);will-change:transform;box-shadow:0 -4px 40px rgba(0,0,0,.5);}
 .mover.on .msh{transform:translateY(0);}
 .mhdl{width:34px;height:4px;border-radius:2px;background:var(--sf2);margin:0 auto 16px;}
 .mbi{font-size:50px;text-align:center;margin-bottom:8px;}
@@ -5270,18 +5359,20 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <div id="h-anecdote"></div>
     <!-- Défi Quotidien -->
     <div class="daily-card" id="daily-card" onclick="openDaily()">
-      <div class="daily-card-top">
-        <div class="daily-label">
-          <div class="daily-flame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg></div>
-          <span class="daily-title">DÉFI DU JOUR</span>
+      <div class="daily-card-inner">
+        <div class="daily-card-top">
+          <div class="daily-label">
+            <div class="daily-flame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg></div>
+            <span class="daily-title">DÉFI DU JOUR</span>
+          </div>
+          <span class="daily-badge" id="daily-card-badge">À JOUER</span>
         </div>
-        <span class="daily-badge" id="daily-card-badge">À JOUER</span>
-      </div>
-      <div class="daily-desc" id="daily-card-desc">10 questions spéciales, le même défi pour tout le monde aujourd'hui. Revient chaque jour à minuit !</div>
-      <div class="daily-bar-wrap"><div class="daily-bar" id="daily-card-bar" style="width:0%"></div></div>
-      <div class="daily-meta">
-        <span id="daily-card-score">Ton meilleur : —</span>
-        <span class="daily-countdown" id="daily-countdown">⏳ —</span>
+        <div class="daily-desc" id="daily-card-desc">10 questions spéciales, le même défi pour tout le monde aujourd'hui. Revient chaque jour à minuit !</div>
+        <div class="daily-bar-wrap"><div class="daily-bar" id="daily-card-bar" style="width:0%"></div></div>
+        <div class="daily-meta">
+          <span id="daily-card-score">Ton meilleur : —</span>
+          <span class="daily-countdown" id="daily-countdown">⏳ —</span>
+        </div>
       </div>
     </div>
     <!-- Message du Jour (fusionné avec Anecdote) -->
@@ -6010,6 +6101,13 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <!-- Overlay glitch -->
         <div class="jk-glitch-overlay" id="jk-glitch-overlay">
           <div class="jk-glitch-noise"></div>
+        </div>
+        <!-- Bandeau de lancement CINÉTEK -->
+        <div class="jk-launch-banner" id="jk-launch-banner">
+          <div class="jk-launch-station">📺 CINÉTEK</div>
+          <div class="jk-launch-title" id="jk-launch-title">CINÉTEK</div>
+          <div class="jk-launch-ch" id="jk-launch-ch">CH 01</div>
+          <div class="jk-launch-bar" id="jk-launch-bar"></div>
         </div>
         <!-- Bouton plein écran -->
         <div class="jk-vid-fs-btn" onclick="jkToggleFullscreen()" title="Plein écran">
@@ -18762,6 +18860,8 @@ function jkSwitchTab(tab){
     jkPlayVid(_jkVidIdx,true);
     if(window._jkSwipeAttach)window._jkSwipeAttach();
     buildJkVidList();
+    // Bandeau de lancement CINÉTEK
+    jkShowLaunchBanner(_jkVidIdx);
   } else {
     videoSec.style.display='none';
     musicSec.style.display='flex';
@@ -18900,6 +19000,25 @@ function jkTriggerGlitch(cb){
 }
 
 let _jkOsdTimer=null;
+function jkShowLaunchBanner(idx){
+  const banner=document.getElementById('jk-launch-banner');
+  const titleEl=document.getElementById('jk-launch-title');
+  const chEl=document.getElementById('jk-launch-ch');
+  const bar=document.getElementById('jk-launch-bar');
+  if(!banner)return;
+  const v=JK_VIDEOS[idx];
+  const ch='CH '+String(idx+1).padStart(2,'0');
+  if(titleEl)titleEl.textContent=v?v.name:'CINÉTEK';
+  if(chEl)chEl.textContent=ch+' — '+String(idx+1)+' / '+JK_VIDEOS.length+' vidéos';
+  // Reset bar
+  if(bar){bar.style.transition='none';bar.style.transform='scaleX(0)';void bar.offsetWidth;bar.style.transition='transform 2.4s linear';}
+  banner.classList.add('show');
+  // Démarrer la barre
+  if(bar)setTimeout(()=>bar.style.transform='scaleX(1)',50);
+  // Masquer après 2.8s
+  setTimeout(()=>banner.classList.remove('show'),2800);
+}
+
 function jkShowOSD(idx){
   const osd=document.getElementById('jk-ch-osd');
   if(!osd)return;
