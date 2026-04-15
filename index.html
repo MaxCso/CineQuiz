@@ -340,18 +340,41 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 /* ─── XP WIDGET ─── */
 .xpw{
   background:linear-gradient(135deg,rgba(245,200,66,.11),rgba(232,168,0,.04));
-  border:1.5px solid rgba(245,200,66,.35);
+  border:none;
   border-radius:20px;padding:14px 16px 12px;margin-bottom:10px;
   position:relative;overflow:hidden;
   box-shadow:0 2px 20px rgba(0,0,0,.25);
 }
-.xpw::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(245,200,66,.55),transparent);}
-.xpw::after{content:'';position:absolute;inset:0;border-radius:20px;
-  background:linear-gradient(90deg,transparent,rgba(245,200,66,.06),transparent);
-  animation:btnglare 4s ease 1.5s infinite;
-  pointer-events:none;}
-.xpw-hero{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+/* Bordure shimmer — fine ligne lumineuse qui tourne */
+.xpw::before{
+  content:'';position:absolute;inset:-1.5px;border-radius:21.5px;z-index:0;
+  background:conic-gradient(
+    from var(--xpw-angle,0deg),
+    rgba(245,200,66,0) 0%,
+    rgba(245,200,66,0) 40%,
+    rgba(255,235,130,.45) 48%,
+    rgba(245,200,66,.32) 50%,
+    rgba(255,235,130,.45) 52%,
+    rgba(245,200,66,0) 60%,
+    rgba(245,200,66,0) 100%
+  );
+  animation:xpwBorderSpin 5s linear infinite;
+  pointer-events:none;
+}
+/* Fond intérieur opaque — bloque le conic-gradient, ne laisse visible que la bordure */
+.xpw::after{
+  content:'';position:absolute;inset:1.5px;border-radius:19px;
+  background:linear-gradient(135deg,#141008,#0e0b04);
+  z-index:0;pointer-events:none;
+}
+@keyframes xpwBorderSpin{
+  from{--xpw-angle:0deg;}
+  to{--xpw-angle:360deg;}
+}
+@property --xpw-angle{
+  syntax:'<angle>';inherits:false;initial-value:0deg;
+}
+.xpw-hero{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative;z-index:1;}
 .xpw-icon{
   font-size:30px;flex-shrink:0;
   width:46px;height:46px;border-radius:14px;
@@ -375,7 +398,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .xpw-right{text-align:right;flex-shrink:0;}
 .xpw-xp{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:1px;}
 .xpw-next{font-size:9px;color:rgba(255,255,255,.28);margin-top:2px;letter-spacing:.5px;}
-.xpb-wrap{display:flex;align-items:center;gap:8px;}
+.xpb-wrap{display:flex;align-items:center;gap:8px;position:relative;z-index:1;}
 .xpb{flex:1;background:rgba(255,255,255,.06);border-radius:6px;height:6px;overflow:visible;position:relative;}
 .xpbf{
   height:100%;border-radius:6px;position:relative;
@@ -401,10 +424,10 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .xpw-nl{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.5px;}
 .xps{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:rgba(255,255,255,.3);}
 /* XP footer + badge next */
-.xpw-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;min-height:14px;}
+.xpw-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;min-height:14px;position:relative;z-index:1;}
 .xpw-motivate{font-size:9.5px;color:rgba(245,200,66,.6);letter-spacing:.3px;flex:1;}
 .xpw-today{font-size:9.5px;font-weight:600;color:rgba(46,204,113,.8);letter-spacing:.3px;flex-shrink:0;margin-left:8px;}
-.xpw-accuracy{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.xpw-accuracy{display:flex;align-items:center;gap:8px;margin-top:10px;position:relative;z-index:1;}
 .xpw-accuracy-label{font-size:7.5px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;flex-shrink:0;}
 .xpw-accuracy-bar-wrap{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
 .xpw-accuracy-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width 1s cubic-bezier(.34,1.56,.64,1);width:0%;}
@@ -550,14 +573,12 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .mci{
   display:flex;align-items:center;justify-content:center;
   margin:0 auto 6px;
-  width:34px;height:34px;border-radius:10px;
-  background:var(--mc-icon-bg,rgba(245,200,66,.12));
-  border:1px solid var(--mc-icon-border,rgba(245,200,66,.2));
+  width:auto;height:auto;border-radius:0;
+  background:none;border:none;
   color:var(--mc-color,var(--gold));
   position:relative;z-index:1;
-  transition:background .22s,border-color .22s;
 }
-.mci svg{width:17px;height:17px;}
+.mci svg{width:22px;height:22px;}
 
 .mc-cat{display:none;}
 .mc-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.75);letter-spacing:.1px;display:block;transition:color .22s;line-height:1.2;position:relative;z-index:1;}
@@ -3808,6 +3829,46 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .hm-vid-now-count{font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.5px;}
+.hm-cesoir-card{
+  background:linear-gradient(150deg,rgba(18,8,32,.97),rgba(10,4,20,.95));
+  border:1px solid rgba(168,85,247,.22);border-radius:20px;
+  padding:18px;position:relative;overflow:hidden;
+  box-shadow:0 2px 20px rgba(0,0,0,.3);
+}
+.hm-cesoir-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(168,85,247,.45),transparent);}
+.hm-cesoir-card::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(168,85,247,.06) 0%,transparent 65%);
+  pointer-events:none;}
+.hm-cesoir-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1;}
+.hm-cesoir-icon{width:42px;height:42px;border-radius:12px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.hm-cesoir-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#c084fc;line-height:1;}
+.hm-cesoir-sub{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:2px;}
+.hm-cesoir-state{font-size:12px;color:rgba(255,255,255,.35);line-height:1.5;margin-bottom:12px;position:relative;z-index:1;}
+.hm-cesoir-result{display:none;margin-bottom:12px;position:relative;z-index:1;}
+.hm-cesoir-result.on{display:block;}
+.hm-cesoir-label{font-size:9px;letter-spacing:3px;color:rgba(192,132,252,.5);margin-bottom:10px;font-family:'Bebas Neue',sans-serif;}
+.hm-cesoir-film-wrap{
+  display:flex;align-items:flex-start;gap:14px;
+  background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);
+  border-radius:14px;padding:14px;transition:background .2s,border-color .2s;
+}
+.hm-cesoir-film-wrap:active{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);}
+.hm-cesoir-poster-wrap{width:60px;height:90px;border-radius:10px;overflow:hidden;flex-shrink:0;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);}
+.hm-cesoir-poster-wrap img{width:100%;height:100%;object-fit:cover;display:block;border-radius:10px;}
+.hm-cesoir-film-info{flex:1;min-width:0;}
+.hm-cesoir-film-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#e9d5ff;line-height:1.1;margin-bottom:6px;}
+.hm-cesoir-film-why{font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.55;margin-bottom:8px;}
+.hm-cesoir-cta{font-size:10px;color:rgba(192,132,252,.6);letter-spacing:1px;font-weight:600;}
+.hm-cesoir-btn{
+  width:100%;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);
+  border-radius:12px;padding:12px;color:#c084fc;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .15s,transform .1s;position:relative;z-index:1;
+}
+.hm-cesoir-btn:active{background:rgba(168,85,247,.22);transform:scale(.97);}
+
 /* Swipe hints HM */
 .hm-swipe-hint{position:absolute;top:50%;transform:translateY(-50%);z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;}
 .hm-swipe-hint.left{left:10px;}
@@ -4615,6 +4676,41 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 @keyframes hmEq1{from{height:4px}to{height:18px}}
 @keyframes hmEq2{from{height:8px}to{height:14px}}
 /* ── HIDDEN MOVIES HOME CARD ── */
+/* Card HM accueil — shimmer de bordure */
+@property --hm-angle{syntax:'<angle>';inherits:false;initial-value:0deg;}
+@keyframes hmBorderSpin{from{--hm-angle:0deg;}to{--hm-angle:360deg;}}
+.hm-home-border-card{
+  position:relative;border-radius:18px;cursor:pointer;
+  transition:transform .16s;margin-bottom:0;
+}
+.hm-home-border-card::before{
+  content:'';position:absolute;inset:-1px;border-radius:19px;z-index:0;
+  background:conic-gradient(
+    from var(--hm-angle,0deg),
+    rgba(168,85,247,0) 0%,
+    rgba(168,85,247,0) 42%,
+    rgba(210,160,255,.38) 49%,
+    rgba(168,85,247,.25) 50%,
+    rgba(210,160,255,.38) 51%,
+    rgba(168,85,247,0) 58%,
+    rgba(168,85,247,0) 100%
+  );
+  animation:hmBorderSpin 3.5s linear infinite;
+  pointer-events:none;
+}
+.hm-home-border-card::after{
+  content:'';position:absolute;inset:1px;border-radius:17px;
+  background:linear-gradient(135deg,#1e0d2e,#140920);
+  z-index:0;pointer-events:none;
+}
+.hm-home-border-card:active{transform:scale(.97);}
+.hm-home-border-inner{
+  position:relative;z-index:1;
+  padding:16px 16px 16px 18px;
+  display:flex;align-items:center;gap:14px;
+  border-radius:17px;
+}
+
 .hm-home-card{
   position:relative;border-radius:20px;overflow:hidden;cursor:pointer;
   height:100px;display:flex;align-items:center;gap:0;
@@ -5238,6 +5334,28 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     <!-- Cards Entraînement + Recommandation -->
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
 
+      <!-- HIDDEN MOVIES CARD avec shimmer de bordure -->
+      <div class="hm-home-border-card" onclick="openHMInfoModal()" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
+        <div class="hm-home-border-inner">
+          <!-- Fond subtil -->
+          <div style="position:absolute;inset:0;border-radius:17px;background:radial-gradient(ellipse 80% 60% at 0% 50%,rgba(168,85,247,.08) 0%,transparent 70%);pointer-events:none;z-index:0;"></div>
+          <!-- Icône / Logo -->
+          <div style="width:54px;height:54px;border-radius:16px;background:rgba(168,85,247,.1);border:1.5px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;z-index:1;">
+            <img src="logohiddenmovies.png" alt="HM"
+                 style="width:38px;height:38px;object-fit:contain;filter:brightness(1.1);"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <span style="display:none;font-size:22px;">🎬</span>
+          </div>
+          <!-- Texte -->
+          <div style="flex:1;min-width:0;position:relative;z-index:1;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#c084fc;line-height:1;margin-bottom:4px;">HIDDEN MOVIES</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.2px;line-height:1.4;">La mise en lumière du cinéma indé</div>
+            <div id="hm-card-stat" style="font-size:10px;color:rgba(192,132,252,.5);margin-top:4px;letter-spacing:.3px;"></div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(168,85,247,.4)" stroke-width="2.2" style="flex-shrink:0;position:relative;z-index:1;"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
       <!-- ENTRAÎNEMENT -->
       <div onclick="openModeInfo('training',this)" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(20,16,6,.96),rgba(14,11,4,.94));border:1px solid rgba(245,200,66,.14);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
         <!-- Fond subtil -->
@@ -5253,29 +5371,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div id="train-card-stat" style="font-size:10px;color:rgba(245,200,66,.5);margin-top:4px;letter-spacing:.3px;"></div>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,200,66,.35)" stroke-width="2.2" style="flex-shrink:0;position:relative;z-index:1;"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-
-
-      <!-- HIDDEN MOVIES CARD -->
-      <div onclick="openHMInfoModal()" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(18,6,40,.96),rgba(10,4,24,.94));border:1px solid rgba(168,85,247,.2);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
-        <!-- Fond subtil -->
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 0% 50%,rgba(168,85,247,.08) 0%,transparent 70%);pointer-events:none;"></div>
-        <!-- Shimmer -->
-        <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(168,85,247,.05),transparent);animation:btnglare 4s ease 2s infinite;pointer-events:none;"></div>
-        <!-- Icône / Logo -->
-        <div style="width:54px;height:54px;border-radius:16px;background:rgba(168,85,247,.1);border:1.5px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;z-index:1;">
-          <img src="logohiddenmovies.png" alt="HM"
-               style="width:38px;height:38px;object-fit:contain;filter:brightness(1.1);"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-          <span style="display:none;font-size:22px;">🎬</span>
-        </div>
-        <!-- Texte -->
-        <div style="flex:1;min-width:0;position:relative;z-index:1;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#c084fc;line-height:1;margin-bottom:4px;">HIDDEN MOVIES</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.2px;line-height:1.4;">La mise en lumière du cinéma indé</div>
-          <div id="hm-card-stat" style="font-size:10px;color:rgba(192,132,252,.5);margin-top:4px;letter-spacing:.3px;"></div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(168,85,247,.4)" stroke-width="2.2" style="flex-shrink:0;position:relative;z-index:1;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
     </div>
@@ -6288,6 +6383,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         Collection
         <span class="hm-tab-count" id="hm-tab-count">0</span>
       </button>
+      <button class="hm-tab" id="hm-tab-cesoir" onclick="hmSwitchTab('cesoir')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        Ce soir
+      </button>
       <button class="hm-tab" id="hm-tab-wishlist" onclick="hmSwitchTab('wishlist')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         Favoris
@@ -6345,6 +6444,36 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       </div>
       <!-- Bouton aléatoire généré dynamiquement par _hmRenderCollection -->
       <div class="hm-collection-grid" id="hm-collection-grid"></div>
+    </div>
+
+    <!-- Ce soir -->
+    <div class="hm-collection-wrap" id="hm-cesoir-wrap" style="display:none;padding:14px 14px 0;">
+      <div class="hm-cesoir-card" id="hm-cesoir-card">
+        <div class="hm-cesoir-header">
+          <div class="hm-cesoir-icon">🌙</div>
+          <div>
+            <div class="hm-cesoir-title">CE SOIR</div>
+            <div class="hm-cesoir-sub">Basé sur ta collection</div>
+          </div>
+        </div>
+        <div id="hm-cesoir-state" class="hm-cesoir-state">Gratte au moins quelques films pour activer cette recommandation.</div>
+        <div class="hm-oracle-loading" id="hm-cesoir-loading"><div class="hm-oracle-spinner"></div>ANALYSE EN COURS…</div>
+        <div class="hm-cesoir-result" id="hm-cesoir-result">
+          <div class="hm-cesoir-label">✦ POUR TOI CE SOIR ✦</div>
+          <div class="hm-cesoir-film-wrap" id="hm-cesoir-film-wrap" onclick="hmCesoirOpenFilm()" style="cursor:pointer;">
+            <div class="hm-cesoir-poster-wrap" id="hm-cesoir-poster-wrap"></div>
+            <div class="hm-cesoir-film-info">
+              <div class="hm-cesoir-film-name" id="hm-cesoir-film-name"></div>
+              <div class="hm-cesoir-film-why" id="hm-cesoir-film-why"></div>
+              <div class="hm-cesoir-cta">Voir la fiche →</div>
+            </div>
+          </div>
+        </div>
+        <button id="hm-cesoir-btn" onclick="hmCesoirRecommend()" class="hm-cesoir-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span id="hm-cesoir-btn-label">RECOMMANDE-MOI UN FILM</span>
+        </button>
+      </div>
     </div>
 
     <!-- Wishlist / Favoris -->
@@ -6764,30 +6893,6 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div style="height:18px;"></div>
         <div class="hm-secret-stitle">L'ORACLE DU CINÉMA</div>
         <div class="hm-secret-oracle-wrap">
-
-          <!-- CARTE RAPIDE "À REGARDER CE SOIR" -->
-          <div class="hm-secret-oracle-card" style="margin-bottom:14px;">
-            <div class="hm-oracle-header">
-              <div class="hm-oracle-icon">🌙</div>
-              <div>
-                <div class="hm-oracle-title">CE SOIR</div>
-                <div class="hm-oracle-sub">Basé sur tes films déjà grattés</div>
-              </div>
-            </div>
-            <div id="hm-tonight-state" style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.5;margin-bottom:10px;">Gratte au moins quelques films pour activer cette recommandation.</div>
-            <div class="hm-oracle-loading" id="hm-tonight-loading"><div class="hm-oracle-spinner"></div>ANALYSE EN COURS…</div>
-            <div class="hm-oracle-result" id="hm-tonight-result">
-              <div id="hm-tonight-poster-wrap" style="display:none;width:55px;height:82px;border-radius:8px;overflow:hidden;float:right;margin:0 0 10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.5);border:1px solid rgba(168,85,247,.2);"></div>
-              <div style="font-size:9px;letter-spacing:3px;color:rgba(192,132,252,.5);margin-bottom:8px;font-family:'Bebas Neue',sans-serif;">✦ POUR TOI CE SOIR ✦</div>
-              <div class="hm-oracle-film-name" id="hm-tonight-film-name" style="font-size:20px;"></div>
-              <div class="hm-oracle-film-why" id="hm-tonight-film-why" style="font-size:13px;"></div>
-              <div style="clear:both;"></div>
-            </div>
-            <button id="hm-tonight-btn" onclick="hmTonightRecommend()" style="margin-top:8px;width:100%;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);border-radius:12px;padding:11px;color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-              <span id="hm-tonight-btn-label">RECOMMANDE-MOI UN FILM</span>
-            </button>
-          </div>
 
           <div class="hm-secret-oracle-card">
             <div class="hm-oracle-header">
@@ -11767,14 +11872,18 @@ function hmSwitchTab(tab) {
   const collectionWrap = document.getElementById('hm-collection-wrap');
   const wishlistWrap = document.getElementById('hm-wishlist-wrap');
   const statsWrap = document.getElementById('hm-stats-wrap');
+  const cesoirWrap = document.getElementById('hm-cesoir-wrap');
 
-  [scratchWrap,collectionWrap,wishlistWrap,statsWrap].forEach(w=>{if(w)w.style.display='none';});
+  [scratchWrap,collectionWrap,wishlistWrap,statsWrap,cesoirWrap].forEach(w=>{if(w)w.style.display='none';});
 
   if(tab==='scratch'){
     if(scratchWrap)scratchWrap.style.display='flex';
   } else if(tab==='collection'){
     if(collectionWrap)collectionWrap.style.display='block';
     _hmRenderCollection();
+  } else if(tab==='cesoir'){
+    if(cesoirWrap)cesoirWrap.style.display='block';
+    hmCesoirInit();
   } else if(tab==='wishlist'){
     if(wishlistWrap)wishlistWrap.style.display='block';
     _hmRenderWishlist();
@@ -11890,17 +11999,7 @@ function _hmRenderCollection() {
     return;
   }
 
-  // Bouton aléatoire si toutes les cartes débloquées sont révélées
-  const randomBtn = allRevealed
-    ? `<div style="grid-column:1/-1;margin-bottom:4px;">
-        <button onclick="hmGoRandom()" style="width:100%;padding:13px;border-radius:14px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
-          FILM ALÉATOIRE
-        </button>
-      </div>`
-    : '';
-
-  grid.innerHTML = randomBtn + revealedFilms.map(({ idx, film }) => {
+  grid.innerHTML = revealedFilms.map(({ idx, film }) => {
     const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
     const imgHtml = posterUrl
       ? `<img class="hm-card-img" src="${posterUrl}" alt="${film.t}" loading="lazy">`
@@ -14143,6 +14242,11 @@ function refHome(){
   // Stats
   document.getElementById('h-str').textContent=s.streak;
   document.getElementById('h-bst').textContent=s.best;
+  // Retirer le label NEW du mode Multijoueur si déjà joué
+  if((s.versusGames||0)>0){
+    const versusCard=document.querySelector('.mc[data-mode="versus"] .mnew');
+    if(versusCard)versusCard.remove();
+  }
   document.getElementById('h-gms').textContent=s.games;
   const ul=s.unlocked.length;
   const bctEl=document.getElementById('h-bct');if(bctEl)bctEl.textContent=ul+' débloqué'+(ul>1?'s':'');
@@ -21004,6 +21108,129 @@ function _hmOracleLoadPoster(title,year){
       wrap.style.animation='oracleReveal .4s cubic-bezier(.34,1.56,.64,1) both';
     }
   }).catch(()=>{});
+}
+
+
+// ── CE SOIR tab ──
+let _hmCesoirFilmTitle = '';
+let _hmCesoirFilmYear = '';
+
+function hmCesoirInit(){
+  const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
+  const stateEl = document.getElementById('hm-cesoir-state');
+  const btn = document.getElementById('hm-cesoir-btn');
+  if(revealed.length < 3){
+    if(stateEl){stateEl.style.display='block';stateEl.textContent="Gratte encore quelques films pour activer cette recommandation.";}
+    if(btn)btn.style.display='none';
+  } else {
+    if(stateEl)stateEl.style.display='none';
+    if(btn)btn.style.display='flex';
+  }
+}
+
+async function hmCesoirRecommend(){
+  const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
+  const btn = document.getElementById('hm-cesoir-btn');
+  const labelEl = document.getElementById('hm-cesoir-btn-label');
+  const loading = document.getElementById('hm-cesoir-loading');
+  const result = document.getElementById('hm-cesoir-result');
+  const nameEl = document.getElementById('hm-cesoir-film-name');
+  const whyEl = document.getElementById('hm-cesoir-film-why');
+  const posterWrap = document.getElementById('hm-cesoir-poster-wrap');
+  const stateEl = document.getElementById('hm-cesoir-state');
+
+  if(revealed.length < 3){
+    if(stateEl){stateEl.style.display='block';stateEl.textContent="Gratte encore quelques films pour activer cette recommandation.";}
+    return;
+  }
+  if(stateEl)stateEl.style.display='none';
+  result.classList.remove('on');result.style.display='none';
+  if(loading)loading.classList.add('on');
+  if(btn)btn.disabled=true;
+  if(labelEl)labelEl.textContent='ANALYSE EN COURS…';
+
+  const grattedList = revealed.slice(-30).map(f => f.t+(f.y?' ('+f.y+')':'')).join(', ');
+  const userLvl = glv((ls().xp)||0);
+  const candidates = (typeof HM_DB!=='undefined'?HM_DB:_hmFilms)
+    .filter(f => !revealed.some(r => r.t===f.t))
+    .slice(0,80)
+    .map(f => f.t+(f.y?' ('+f.y+')':''))
+    .join('\n');
+
+  const prompt = `Tu es l'Oracle Hidden Movies. L'utilisateur a déjà grattés ces films : ${grattedList}.
+
+Choisis LE film parfait pour lui ce soir parmi cette liste :
+${candidates}
+
+Réponds UNIQUEMENT en JSON valide sans markdown : {"titre":"...","annee":2000,"raison":"2 phrases précises et personnelles sur pourquoi ce film en particulier ce soir, en faisant un lien subtil avec ses films précédents."}
+Sois audacieux, évite l'évident.`;
+
+  try{
+    const response = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    });
+    const data = await response.json();
+    const text = data.content?.map(c=>c.text||'').join('')||'';
+    let parsed;
+    try{
+      const clean = text.replace(/```json|```/g,'').trim();
+      parsed = JSON.parse((clean.match(/\{[\s\S]*\}/)||[clean])[0]);
+    }catch{
+      const m=text.match(/"titre"\s*:\s*"([^"]+)"/),w=text.match(/"raison"\s*:\s*"([^"]+)"/),y=text.match(/"annee"\s*:\s*(\d{4})/);
+      parsed={titre:m?.[1]||'',annee:y?.[1]||'',raison:w?.[1]||'Un film taillé pour toi ce soir.'};
+    }
+    if(loading)loading.classList.remove('on');
+    _hmCesoirFilmTitle = parsed.titre||'';
+    _hmCesoirFilmYear = String(parsed.annee||'');
+    if(nameEl)nameEl.textContent = _hmCesoirFilmTitle;
+    if(whyEl)whyEl.textContent = parsed.raison||'';
+    if(posterWrap)_hmCesoirLoadPoster(_hmCesoirFilmTitle, _hmCesoirFilmYear);
+    result.style.display='block';requestAnimationFrame(()=>result.classList.add('on'));
+    if(btn)btn.disabled=false;
+    if(labelEl)labelEl.textContent='↺ AUTRE SUGGESTION';
+  }catch{
+    if(loading)loading.classList.remove('on');
+    const fallback = revealed[Math.floor(Math.random()*revealed.length)];
+    _hmCesoirFilmTitle = fallback?.t||'';
+    _hmCesoirFilmYear = String(fallback?.y||'');
+    if(nameEl)nameEl.textContent = _hmCesoirFilmTitle;
+    if(whyEl)whyEl.textContent = 'Un film de ta collection qui mérite peut-être une seconde chance ce soir.';
+    if(posterWrap)_hmCesoirLoadPoster(_hmCesoirFilmTitle, _hmCesoirFilmYear);
+    result.style.display='block';requestAnimationFrame(()=>result.classList.add('on'));
+    if(btn)btn.disabled=false;
+    if(labelEl)labelEl.textContent='↺ RÉESSAYER';
+  }
+}
+
+function _hmCesoirLoadPoster(title, year){
+  const wrap = document.getElementById('hm-cesoir-poster-wrap');
+  if(!wrap||typeof TK==='undefined'||!TK)return;
+  wrap.innerHTML='';
+  const url='https://api.themoviedb.org/3/search/movie?api_key='+TK+'&language=fr-FR&query='+encodeURIComponent(title)+(year?'&year='+year:'');
+  fetch(url).then(r=>r.json()).then(d=>{
+    const p=d.results?.[0]?.poster_path;
+    if(p){
+      wrap.innerHTML='<img src="https://image.tmdb.org/t/p/w200'+p+'" alt="'+title+'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:10px;">';
+    }
+  }).catch(()=>{});
+}
+
+function hmCesoirOpenFilm(){
+  if(!_hmCesoirFilmTitle)return;
+  // Chercher le film dans la collection révélée
+  const revealed = [..._hmRevealed].map(i=>({idx:i,film:_hmFilms[i]})).filter(f=>f.film);
+  const found = revealed.find(f=>f.film.t===_hmCesoirFilmTitle);
+  if(found){
+    _hmOpenCardDetail(found.idx);
+    return;
+  }
+  // Si pas dans la collection, chercher dans _hmFilms
+  const allIdx = _hmFilms.findIndex(f=>f&&f.t===_hmCesoirFilmTitle);
+  if(allIdx>=0){
+    _hmOpenCardDetail(allIdx);
+  }
 }
 
 async function hmTonightRecommend(){
