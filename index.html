@@ -2963,52 +2963,88 @@ body.theme-rose #home-bg::before{background:
 .jk-tab.active{background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.35);color:var(--gold);}
 .jk-tab:active{transform:scale(.96);}
 
-/* ─── ZONE VIDÉO ─── */
+/* ─── ZONE VIDÉO TV ZAPPING ─── */
 .jk-vid-section{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(20px,env(safe-area-inset-bottom,20px));}
 .jk-vid-player-wrap{
   width:100%;background:#000;border-radius:16px;overflow:hidden;
-  position:relative;margin-bottom:12px;flex-shrink:0;
+  position:relative;margin-bottom:0;flex-shrink:0;
   border:1px solid rgba(255,255,255,.08);
   aspect-ratio:16/9;
   box-shadow:0 8px 32px rgba(0,0,0,.6);
 }
 .jk-vid-player-wrap video{width:100%;height:100%;display:block;object-fit:contain;background:#000;}
 .jk-vid-tap-overlay{position:absolute;inset:0;z-index:2;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.jk-vid-pp-icon{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none;}
+.jk-vid-pp-icon{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none;}
 .jk-vid-pp-icon.show{opacity:1;}
 .jk-vid-pp-icon svg{color:#fff;width:22px;height:22px;}
-.jk-vid-fs-btn{position:absolute;bottom:8px;right:8px;z-index:3;width:34px;height:34px;border-radius:9px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .1s;}
+.jk-vid-fs-btn{position:absolute;bottom:8px;right:8px;z-index:3;width:34px;height:34px;border-radius:9px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,transform .1s;}
 .jk-vid-fs-btn:active{background:rgba(245,200,66,.2);transform:scale(.9);}
 .jk-vid-fs-btn svg{color:rgba(255,255,255,.7);width:15px;height:15px;}
-.jk-vid-now{
-  padding:0 2px 12px;flex-shrink:0;
+/* Indicateurs swipe gauche/droite */
+.jk-swipe-hint{position:absolute;top:50%;transform:translateY(-50%);z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;}
+.jk-swipe-hint.left{left:10px;}
+.jk-swipe-hint.right{right:10px;}
+.jk-swipe-hint svg{color:rgba(255,255,255,.5);width:20px;height:20px;}
+/* Bandeau titre style sous-titre TV */
+.jk-tv-banner{
+  position:absolute;bottom:0;left:0;right:0;z-index:5;
+  padding:20px 14px 10px;
+  background:linear-gradient(to top,rgba(0,0,0,.85) 0%,transparent 100%);
+  opacity:0;transition:opacity .4s;pointer-events:none;
 }
-.jk-vid-now-title{
-  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;
-  color:var(--gold);line-height:1.1;margin-bottom:2px;
+.jk-tv-banner.show{opacity:1;}
+.jk-tv-banner-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:#fff;line-height:1;}
+.jk-tv-banner-ch{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:1.5px;margin-top:2px;}
+/* Numéro de chaîne overlay (style OSD TV) */
+.jk-ch-osd{
+  position:absolute;top:12px;right:12px;z-index:6;
+  background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.18);
+  border-radius:8px;padding:5px 10px;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;
+  color:#fff;opacity:0;transition:opacity .3s;pointer-events:none;
 }
-.jk-vid-now-count{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;}
+.jk-ch-osd.show{opacity:1;}
+/* Overlay glitch TV */
+.jk-glitch-overlay{
+  position:absolute;inset:0;z-index:10;pointer-events:none;
+  opacity:0;overflow:hidden;border-radius:16px;
+}
+.jk-glitch-overlay.active{opacity:1;}
+.jk-glitch-bar{position:absolute;left:0;right:0;height:3px;mix-blend-mode:screen;}
+.jk-glitch-noise{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);}
+@keyframes jkGlitchSlide{0%{transform:translateX(0) scaleY(1);}20%{transform:translateX(-8px) scaleY(1.5);}40%{transform:translateX(12px) scaleY(.5);}60%{transform:translateX(-5px) scaleY(2);}80%{transform:translateX(6px) scaleY(.8);}100%{transform:translateX(0) scaleY(1);}}
+@keyframes jkGlitchBlink{0%,100%{opacity:0;}10%,30%,50%,70%,90%{opacity:1;}20%,40%,60%,80%{opacity:0;}}
+/* Boutons zap + aléatoire */
+.jk-zap-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px;flex-shrink:0;gap:8px;}
+.jk-zap-btn{
+  width:46px;height:46px;border-radius:14px;flex-shrink:0;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .15s,transform .1s,border-color .15s;
+}
+.jk-zap-btn:active{background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.3);transform:scale(.93);}
+.jk-zap-btn svg{color:rgba(255,255,255,.6);width:20px;height:20px;}
+.jk-random-btn{
+  flex:1;height:46px;border-radius:14px;
+  background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  cursor:pointer;transition:background .15s,transform .1s,border-color .15s;
+}
+.jk-random-btn:active{background:rgba(245,200,66,.18);border-color:rgba(245,200,66,.45);transform:scale(.97);}
+.jk-random-btn-label{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--gold);}
+.jk-random-btn svg{color:var(--gold);width:16px;height:16px;}
+/* Compteur sous les boutons */
+.jk-vid-counter{text-align:center;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;padding:6px 0 0;flex-shrink:0;}
+/* Ancien style supprimé */
 .jk-vid-list{display:flex;flex-direction:column;gap:1px;}
-.jk-vid-row{
-  display:flex;align-items:center;gap:11px;
-  padding:10px 8px;border-radius:12px;
-  cursor:pointer;transition:background .15s;
-  border-bottom:1px solid rgba(255,255,255,.04);
-}
+.jk-vid-row{display:flex;align-items:center;gap:11px;padding:10px 8px;border-radius:12px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.04);}
 .jk-vid-row:active{background:rgba(255,255,255,.06);}
 .jk-vid-row.active{background:rgba(245,200,66,.06);}
 .jk-vid-row.active .jk-vid-row-name{color:var(--gold);}
-.jk-vid-thumb{
-  width:54px;height:36px;border-radius:8px;flex-shrink:0;overflow:hidden;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  display:flex;align-items:center;justify-content:center;position:relative;
-}
+.jk-vid-thumb{width:54px;height:36px;border-radius:8px;flex-shrink:0;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;position:relative;}
 .jk-vid-row.active .jk-vid-thumb{border-color:rgba(245,200,66,.35);}
 .jk-vid-thumb-icon{font-size:18px;pointer-events:none;}
-.jk-vid-play-overlay{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.45);opacity:0;transition:opacity .18s;
-}
+.jk-vid-play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:opacity .18s;}
 .jk-vid-row:active .jk-vid-play-overlay{opacity:1;}
 .jk-vid-row.active .jk-vid-play-overlay{opacity:1;background:rgba(245,200,66,.2);}
 .jk-vid-eq{display:flex;align-items:flex-end;gap:2px;height:12px;}
@@ -5774,31 +5810,56 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div style="width:60px;"></div>
       </div>
       <!-- Lecteur vidéo -->
-      <div class="jk-vid-player-wrap">
+      <div class="jk-vid-player-wrap" id="jk-player-wrap">
         <video id="jk-video-player" playsinline preload="metadata"
           style="width:100%;height:100%;display:block;object-fit:contain;background:#000;"
           onended="jkVidEnded()"></video>
-        <div class="jk-vid-tap-overlay" onclick="jkTogglePlayPause()">
+        <!-- Overlay play/pause au tap -->
+        <div class="jk-vid-tap-overlay" id="jk-tap-overlay" onclick="jkTogglePlayPause()">
           <div class="jk-vid-pp-icon" id="jk-pp-icon">
             <svg id="jk-pp-svg-play" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="6 3 20 12 6 21"/></svg>
             <svg id="jk-pp-svg-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           </div>
         </div>
+        <!-- Flèches swipe discrètes -->
+        <div class="jk-swipe-hint left" id="jk-hint-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="jk-swipe-hint right" id="jk-hint-right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <!-- Numéro de chaîne OSD -->
+        <div class="jk-ch-osd" id="jk-ch-osd">CH 01</div>
+        <!-- Bandeau titre style TV -->
+        <div class="jk-tv-banner" id="jk-tv-banner">
+          <div class="jk-tv-banner-title" id="jk-tv-banner-title"></div>
+          <div class="jk-tv-banner-ch" id="jk-tv-banner-ch"></div>
+        </div>
+        <!-- Overlay glitch -->
+        <div class="jk-glitch-overlay" id="jk-glitch-overlay">
+          <div class="jk-glitch-noise"></div>
+        </div>
+        <!-- Bouton plein écran -->
         <div class="jk-vid-fs-btn" onclick="jkToggleFullscreen()" title="Plein écran">
           <svg id="jk-fs-icon-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
           <svg id="jk-fs-icon-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="14" y1="10" x2="21" y2="3"/></svg>
         </div>
       </div>
-      <!-- Titre en lecture -->
-      <div class="jk-vid-now" id="jk-vid-now">
-        <div class="jk-vid-now-title" id="jk-vid-now-title">FLINGO FREESTYLE</div>
-        <div class="jk-vid-now-count" id="jk-vid-now-count">Zone Secrète</div>
+      <!-- Boutons zapping + aléatoire -->
+      <div class="jk-zap-row">
+        <div class="jk-zap-btn" onclick="jkZapPrev()" title="Chaîne précédente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="jk-random-btn" onclick="jkZapRandom()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          <span class="jk-random-btn-label">ALÉATOIRE</span>
+        </div>
+        <div class="jk-zap-btn" onclick="jkZapNext()" title="Chaîne suivante">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       </div>
-      <!-- Liste des autres vidéos -->
-      <div class="jk-vid-section">
-        <div style="font-size:9px;color:rgba(245,200,66,.3);letter-spacing:2px;font-family:'Bebas Neue',sans-serif;padding:8px 0 6px;">TOUTES LES VIDÉOS</div>
-        <div class="jk-vid-list" id="jk-vid-list"></div>
-      </div>
+      <!-- Compteur -->
+      <div class="jk-vid-counter" id="jk-vid-counter">CH 01 — 1 / 44</div>
     </div>
   </div>
 
@@ -18180,19 +18241,19 @@ const JK_VIDEOS=[
   {name:"Hero",                            src:"Hero.mp4",                                    special:true, icon:'🦸'},
   {name:"Heath",                           src:"Heath.mp4"},
   {name:"Space Odyssey",                   src:"Space Odyssey.mp4"},
-  {name:"𝘼 𝙇𝙤𝙫𝙚 𝙇𝙚𝙩𝙩𝙚𝙧 𝙩𝙤 𝘾𝙞𝙣𝙚𝙢𝙖",         src:"𝘼 𝙇𝙤𝙫𝙚 𝙇𝙚𝙩𝙩𝙚𝙧 𝙩𝙤 𝘾𝙞𝙣𝙚𝙢𝙖.mp4"},
+  {name:"𝘼 𝙇𝙤𝙫𝙚 𝙇𝙚𝙩𝙩𝙚𝙧 𝙩𝙤 𝘾𝙞𝙣𝙚𝙢𝙖",         src:"A Love Letter to Cinema.mp4"},
   {name:"After Hours",                     src:"AH.mp4"},
   {name:"Apocalypse Now",                  src:"Apocalypse Now.mp4"},
   {name:"Blade Runner 2049",               src:"Blade Runner 2049.mp4"},
   {name:"Boogie Nights",                   src:"BN.mp4"},
-  {name:"Boxing in Cinema",               src:"𝗕𝗢𝗫𝗜𝗡𝗚 𝗜𝗡 𝗖𝗜𝗡𝗘𝗠𝗔.mp4"},
+  {name:"Boxing in Cinema",               src:"BOXING IN CINEMA.mp4"},
   {name:"Casino",                          src:"Casino.mp4"},
   {name:"Chamber Of Reflection",          src:"Chamber Of Reflection.mp4"},
-  {name:"Christmas",                       src:"𝙲𝙷𝚁𝙸𝚂𝚃𝙼𝙰𝚂.mp4"},
-  {name:"Cinema Matters",                 src:"𝗖𝗜𝗡𝗘𝗠𝗔 𝗠𝗔𝗧𝗧𝗘𝗥𝗦.mp4"},
+  {name:"Christmas",                       src:"CHRISTMAS.mp4"},
+  {name:"Cinema Matters",                 src:"CINEMA MATTERS.mp4"},
   {name:"Collateral",                      src:"Collateral.mp4"},
   {name:"Corleone",                        src:"Corleone.mp4"},
-  {name:"Dance in Cinema",                src:"𝗗𝗔𝗡𝗖𝗘 𝘪𝘯 𝘊𝘪𝘯𝘦𝘮𝘢.mp4"},
+  {name:"Dance in Cinema",                src:"DANCE in Cinema.mp4"},
   {name:"Deadpool",                        src:"Deadpool.mp4"},
   {name:"Every Living Breathing Moment",  src:"Every Living Breathing Moment.mp4"},
   {name:"Fight Club",                      src:"Fight Club.mp4"},
@@ -18201,26 +18262,26 @@ const JK_VIDEOS=[
   {name:"I wanna make movies one day",     src:"I wanna make movies one day.mp4"},
   {name:"La Haine",                        src:"La Haine.mp4"},
   {name:"Let Down",                        src:"Let Down.mp4"},
-  {name:"Life with Passion",              src:"𝗟𝗜𝗙𝗘 𝗪𝗜𝗧𝗛 𝗣𝗔𝗦𝗦𝗜𝗢𝗡.mp4"},
-  {name:"Love in Cinema",                 src:"𝗟𝗢𝗩𝗘 𝒊𝒏 𝑪𝒊𝒏𝒆𝒎𝒂.mp4"},
-  {name:"Love Letter to Cinema",          src:"L𝗼𝘃𝗲 𝗟𝗲𝘁𝘁𝗲𝗿 𝘁𝗼 𝗖𝗶𝗻𝗲𝗺𝗔.mp4"},
+  {name:"Life with Passion",              src:"LIFE WITH PASSION.mp4"},
+  {name:"Love in Cinema",                 src:"LOVE in Cinema.mp4"},
+  {name:"Love Letter to Cinema",          src:"Love Letter to Cinema.mp4"},
   {name:"Mid90s",                          src:"90s.mp4"},
   {name:"Music in Movies",                src:"Music in Movies.mp4"},
   {name:"Nightcrawler",                    src:"Nightcrawler.mp4"},
   {name:"Prisoners",                       src:"Prisoners.mp4"},
-  {name:"Psycho Killer",                  src:"𝗣𝗦𝗬𝗖𝗛𝗢 𝗞𝗜𝗟𝗟𝗘𝗥.mp4"},
+  {name:"Psycho Killer",                  src:"PSYCHO KILLER.mp4"},
   {name:"Pulp Fiction",                    src:"Pulp Fiction.mp4"},
   {name:"Tarantino",                       src:"Tarantino.mp4"},
   {name:"Rise and Fall",                   src:"Rise and Fall.mp4"},
   {name:"Smile",                           src:"Smile.mp4"},
-  {name:"Spring",                          src:"𝑆𝑝𝑟𝑖𝑛𝑔.mp4"},
+  {name:"Spring",                          src:"Spring.mp4"},
   {name:"Superbad",                        src:"Superbad.mp4"},
   {name:"The Dark Knight",                 src:"The Dark Knight.mp4"},
   {name:"The Matrix",                      src:"The Matrix.mp4"},
   {name:"The Usual Suspects",              src:"The Usual Suspects.mp4"},
   {name:"The Wolf of Wall Street",         src:"The Wolf of Wall Street.mp4"},
   {name:"Where did the magic go",          src:"Where did the magic go.mp4"},
-  {name:"Winter",                          src:"𝑾𝑰𝑵𝑻𝑬𝑹.mp4"},
+  {name:"Winter",                          src:"WINTER.mp4"},
 ];
 let _jkVidIdx=-1;
 
@@ -18472,20 +18533,10 @@ function jkSwitchTab(tab){
     if(window._jkAudio&&!window._jkAudio.paused){
       window._jkAudio.pause();_stopProgInterval();updateJukeboxDisplay();
     }
-    buildJkVidList();
-    // Lancer automatiquement FLINGO FREESTYLE à l'entrée dans la zone secrète
-    const mainVid=document.getElementById('jk-video-player');
-    if(mainVid){
-      mainVid.src='Spidey.mp4';
-      mainVid.load();
-      mainVid.play().catch(()=>{});
-      const titleEl=document.getElementById('jk-vid-now-title');
-      const countEl=document.getElementById('jk-vid-now-count');
-      if(titleEl)titleEl.textContent='Spidey';
-      if(countEl)countEl.textContent='Zone Secrète';
-      _jkVidIdx=-1; // aucune vidéo de la liste active
-      buildJkVidList(); // re-render liste sans highlight
-    }
+    // Lancer la première vidéo automatiquement à l'entrée dans la zone secrète
+    if(_jkVidIdx<0)_jkVidIdx=0;
+    jkPlayVid(_jkVidIdx,true);
+    if(window._jkSwipeAttach)window._jkSwipeAttach();
   } else {
     videoSec.style.display='none';
     musicSec.style.display='flex';
@@ -18499,51 +18550,124 @@ function jkSwitchTab(tab){
 }
 
 function buildJkVidList(){
-  const list=document.getElementById('jk-vid-list');if(!list)return;
-  list.innerHTML=JK_VIDEOS.map((v,i)=>{
-    const active=i===_jkVidIdx;
-    const playIcon=`<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="6,3 20,12 6,21"/></svg>`;
-    const eq=active?`<div class="jk-vid-eq"><span></span><span></span><span></span></div>`:
-      `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
-    const specialStyle=v.special?` style="border-bottom:1px solid rgba(245,200,66,.2);margin-bottom:4px;"`:'' ;
-    const nameStyle=v.special?` style="color:rgba(245,200,66,.9);font-weight:600;"`:'' ;
-    const icon=v.icon||(v.special?'🔫':'🎬');
-    return`<div class="jk-vid-row${active?' active':''}${v.special?' jk-vid-special':''}"${specialStyle} onclick="jkPlayVid(${i})">
-      <div class="jk-vid-thumb">
-        <span class="jk-vid-thumb-icon">${icon}</span>
-        <div class="jk-vid-play-overlay">${playIcon}</div>
-      </div>
-      <div class="jk-vid-row-info">
-        <div class="jk-vid-row-name"${nameStyle}>${v.name}</div>
-        <div class="jk-vid-row-num">${v.special?'Zone Secrète':'Vidéo '+(i)+' / '+(JK_VIDEOS.length-1)}</div>
-      </div>
-      ${eq}
-    </div>`;
-  }).join('');
+  // No-op — liste supprimée, interface TV zapping
 }
 
-function jkPlayVid(idx){
-  _jkVidIdx=idx;
+let _jkGlitchTimer=null;
+function jkTriggerGlitch(cb){
+  const ov=document.getElementById('jk-glitch-overlay');
+  if(!ov)return cb&&cb();
+  ov.innerHTML='<div class="jk-glitch-noise"></div>';
+  const colors=['rgba(255,50,50,.55)','rgba(50,255,200,.55)','rgba(255,220,50,.55)','rgba(150,50,255,.55)','rgba(255,255,255,.35)'];
+  for(let i=0;i<8;i++){
+    const bar=document.createElement('div');
+    bar.className='jk-glitch-bar';
+    bar.style.cssText=`top:${Math.random()*100}%;height:${2+Math.random()*12}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation:jkGlitchSlide ${80+Math.random()*120}ms linear ${Math.random()*80}ms both;`;
+    ov.appendChild(bar);
+  }
+  ov.style.background=`rgba(0,0,0,${0.3+Math.random()*.4})`;
+  ov.classList.add('active');
+  clearTimeout(_jkGlitchTimer);
+  _jkGlitchTimer=setTimeout(()=>{
+    ov.classList.remove('active');
+    ov.style.background='';
+    if(cb)cb();
+  },320);
+}
+
+let _jkOsdTimer=null;
+function jkShowOSD(idx){
+  const osd=document.getElementById('jk-ch-osd');
+  if(!osd)return;
+  const ch=String(idx+1).padStart(2,'0');
+  osd.textContent='CH '+ch;
+  osd.classList.add('show');
+  clearTimeout(_jkOsdTimer);
+  _jkOsdTimer=setTimeout(()=>osd.classList.remove('show'),1800);
+}
+
+let _jkBannerTimer=null;
+function jkShowBanner(name,idx){
+  const banner=document.getElementById('jk-tv-banner');
+  const title=document.getElementById('jk-tv-banner-title');
+  const ch=document.getElementById('jk-tv-banner-ch');
+  const counter=document.getElementById('jk-vid-counter');
+  if(!banner||!title)return;
+  title.textContent=name;
+  if(ch)ch.textContent='CH '+String(idx+1).padStart(2,'0')+' — ZONE SECRÈTE';
+  if(counter)counter.textContent='CH '+String(idx+1).padStart(2,'0')+' — '+(idx+1)+' / '+JK_VIDEOS.length+' vidéos';
+  banner.classList.add('show');
+  clearTimeout(_jkBannerTimer);
+  _jkBannerTimer=setTimeout(()=>banner.classList.remove('show'),3000);
+}
+
+function jkPlayVid(idx,skipGlitch){
   const v=JK_VIDEOS[idx];
   const vid=document.getElementById('jk-video-player');
-  const titleEl=document.getElementById('jk-vid-now-title');
-  const countEl=document.getElementById('jk-vid-now-count');
   if(!vid||!v)return;
-  vid.src=v.src;
-  vid.load();
-  vid.play().catch(()=>{});
-  if(titleEl)titleEl.textContent=v.name;
-  if(countEl)countEl.textContent=(idx+1)+' / '+JK_VIDEOS.length+' vidéos';
-  buildJkVidList();
+  const doLoad=()=>{
+    _jkVidIdx=idx;
+    vid.src=v.src;
+    vid.load();
+    vid.play().catch(()=>{});
+    jkShowOSD(idx);
+    jkShowBanner(v.name,idx);
+    const svgPlay=document.getElementById('jk-pp-svg-play');
+    const svgPause=document.getElementById('jk-pp-svg-pause');
+    if(svgPlay)svgPlay.style.display='none';
+    if(svgPause)svgPause.style.display='none';
+  };
+  if(skipGlitch){doLoad();return;}
+  vid.pause();
+  jkTriggerGlitch(doLoad);
+}
+
+function jkZapNext(){
+  const next=(_jkVidIdx+1)%JK_VIDEOS.length;
+  const hint=document.getElementById('jk-hint-right');
+  if(hint){hint.style.opacity='1';setTimeout(()=>hint.style.opacity='',300);}
+  jkPlayVid(next);
+}
+
+function jkZapPrev(){
+  const prev=(_jkVidIdx-1+JK_VIDEOS.length)%JK_VIDEOS.length;
+  const hint=document.getElementById('jk-hint-left');
+  if(hint){hint.style.opacity='1';setTimeout(()=>hint.style.opacity='',300);}
+  jkPlayVid(prev);
+}
+
+function jkZapRandom(){
+  let r;
+  do{r=Math.floor(Math.random()*JK_VIDEOS.length);}while(r===_jkVidIdx&&JK_VIDEOS.length>1);
+  jkPlayVid(r);
 }
 
 function jkVidEnded(){
-  // Passer à la suivante automatiquement (en sautant les vidéos spéciales)
-  const firstNormal=JK_VIDEOS.findIndex(v=>!v.special);
-  let next=(_jkVidIdx+1)%JK_VIDEOS.length;
-  if(JK_VIDEOS[next]&&JK_VIDEOS[next].special) next=firstNormal>=0?firstNormal:next;
-  jkPlayVid(next);
+  jkZapNext();
 }
+
+(function initJkSwipe(){
+  let _sx=null,_sy=null;
+  function onStart(e){const t=e.touches?e.touches[0]:e;_sx=t.clientX;_sy=t.clientY;}
+  function onEnd(e){
+    if(_sx===null)return;
+    const t=e.changedTouches?e.changedTouches[0]:e;
+    const dx=t.clientX-_sx,dy=t.clientY-_sy;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){if(dx<0)jkZapNext();else jkZapPrev();}
+    _sx=null;_sy=null;
+  }
+  function attach(){
+    const wrap=document.getElementById('jk-player-wrap');
+    if(!wrap)return;
+    wrap.removeEventListener('touchstart',onStart);
+    wrap.removeEventListener('touchend',onEnd);
+    wrap.addEventListener('touchstart',onStart,{passive:true});
+    wrap.addEventListener('touchend',onEnd,{passive:true});
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',attach);}
+  else{attach();}
+  window._jkSwipeAttach=attach;
+})();
 
 let _jkPpTimer=null;
 function jkTogglePlayPause(){
