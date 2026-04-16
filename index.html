@@ -21261,6 +21261,9 @@ let _hmCesoirFilmYear = '';
 let _hmCesoirMood = '';
 
 function hmCesoirInit(){
+  // Charger les données si pas encore fait
+  if(_hmRevealed.size===0)_hmLoadRevealed();
+  if(_hmFilms.length===0&&typeof _hmBuildList==='function')_hmBuildList();
   const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
   const stateEl = document.getElementById('hm-cesoir-state');
   const moodWrap = document.getElementById('hm-cesoir-mood-wrap');
@@ -21306,7 +21309,10 @@ function hmCesoirReset(){
 }
 
 function hmCesoirRecommend(){
-  const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
+  // S'assurer que les données sont chargées
+  if(_hmFilms.length===0){_hmLoadRevealed();if(typeof _hmBuildList==='function')_hmBuildList();}
+  const dbFilms = _hmFilms.length>0 ? _hmFilms : (typeof HM_DB!=='undefined'?HM_DB:[]);
+  const revealed = [..._hmRevealed].map(i=>dbFilms[i]||HM_DB?.find(f=>f===dbFilms[i])).filter(Boolean);
   const btn = document.getElementById('hm-cesoir-btn');
   const labelEl = document.getElementById('hm-cesoir-btn-label');
   const result = document.getElementById('hm-cesoir-result');
@@ -21325,7 +21331,7 @@ function hmCesoirRecommend(){
 
   // Construire le catalogue des films non encore découverts
   const userLvl = glv((ls().xp)||0);
-  const db = typeof HM_DB!=='undefined' ? HM_DB : [];
+  const db = typeof HM_DB!=='undefined' ? HM_DB : (dbFilms||[]);
   const candidates = db.filter(f => !revealed.some(r => r.t===f.t));
   if(!candidates.length) return;
 
