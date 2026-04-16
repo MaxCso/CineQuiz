@@ -21353,10 +21353,12 @@ function hmCesoirRecommend(){
   }
   if(stateEl)stateEl.style.display='none';
 
-  // Construire le catalogue des films non encore découverts
+  // Construire le catalogue — non découverts en priorité, sinon toute la collection
   const userLvl = glv((ls().xp)||0);
   const db = typeof HM_DB!=='undefined' ? HM_DB : (dbFilms||[]);
-  const candidates = db.filter(f => !revealed.some(r => r.t===f.t));
+  const notRevealed = db.filter(f => !revealed.some(r => r.t===f.t));
+  // Si tous les films sont grattés, recommander parmi la collection entière
+  const candidates = notRevealed.length > 0 ? notRevealed : db.filter(f=>f);
   if(!candidates.length) return;
 
   // Analyser les goûts : genres et ambiances les plus présents dans la collection
