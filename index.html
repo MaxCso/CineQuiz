@@ -22019,14 +22019,143 @@ if('serviceWorker' in navigator){
 }
 </script>
   <script>
-  // Verrouiller l'orientation portrait si l'API est disponible
-  (function lockPortrait(){
+  // ── Orientation intelligente : plein écran auto quand une vidéo est active ──
+  (function initOrientationHandler(){
+
+    // Détermine si un lecteur vidéo est actuellement visible et actif
+    function getActiveVideo(){
+      // Cinetek (jk-video-section visible)
+      const jkSection = document.getElementById('jk-video-section');
+      if(jkSection && jkSection.style.display !== 'none'){
+        const v = document.getElementById('jk-video-player');
+        if(v) return { video: v, wrap: document.querySelector('.jk-vid-player-wrap'), type:'jk' };
+      }
+      // Hidden Movies secret room
+      const hmRoom = document.getElementById('hm-secret-room');
+      if(hmRoom && hmRoom.classList.contains('on')){
+        const v = document.getElementById('hm-secret-video');
+        if(v) return { video: v, wrap: document.getElementById('hm-vid-player-wrap'), type:'hm' };
+      }
+      return null;
+    }
+
+    function isLandscape(){
+      if(screen.orientation) return screen.orientation.type.startsWith('landscape');
+      return window.innerWidth > window.innerHeight;
+    }
+
+    function isFullscreen(){
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function enterFullscreen(active){
+      if(isFullscreen()) return;
+      const vid = active.video;
+      const wrap = active.wrap;
+      // iOS Safari : plein écran natif sur l'élément <video>
+      if(vid.webkitEnterFullscreen){
+        vid.webkitEnterFullscreen();
+        return;
+      }
+      const el = wrap || vid;
+      if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+      else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+
+    function exitFullscreen(){
+      if(!isFullscreen()) return;
+      if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    function onOrientationChange(){
+      const active = getActiveVideo();
+      if(!active) return; // aucune vidéo active → comportement normal
+
+      if(isLandscape()){
+        // Petit délai pour laisser l'OS finir la rotation
+        setTimeout(()=>{ if(isLandscape()) enterFullscreen(active); }, 150);
+      } else {
+        // Retour portrait → sortir du plein écran
+        exitFullscreen();
+      }
+    }
+
+    // Écoute les deux APIs disponibles selon les navigateurs
+    if(screen.orientation){
+      screen.orientation.addEventListener('change', onOrientationChange);
+    }
+    window.addEventListener('orientationchange', onOrientationChange);
+
+    // Verrouiller portrait uniquement si AUCUNE vidéo n'est active
     try{
-      const so=screen.orientation||screen.mozOrientation||screen.msOrientation;
-      if(screen.orientation&&screen.orientation.lock){
+      if(screen.orientation && screen.orientation.lock){
         screen.orientation.lock('portrait').catch(()=>{});
       }
     }catch(e){}
+
+    // Exposer une fonction pour déverrouiller quand une vidéo démarre
+    window._videoOrientationUnlock = function(){
+      try{
+        if(screen.orientation && screen.orientation.unlock){
+          screen.orientation.unlock();
+        }
+      }catch(e){}
+    };
+
+    // Exposer une fonction pour re-verrouiller portrait quand la vidéo se ferme
+    window._videoOrientationLock = function(){
+      try{
+        if(screen.orientation && screen.orientation.lock){
+          screen.orientation.lock('portrait').catch(()=>{});
+        }
+      }catch(e){}
+      exitFullscreen();
+    };
+
+  })();
+  </script>
+  <script>
+  // ── Hooks sur les lecteurs pour unlock/lock orientation ──
+  (function hookVideoPlayers(){
+
+    // Patch jkSwitchTab pour déverrouiller orientation quand onglet vidéo Cinetek s'ouvre
+    const _origJkSwitch = window.jkSwitchTab;
+    if(typeof _origJkSwitch === 'function'){
+      window.jkSwitchTab = function(tab){
+        _origJkSwitch(tab);
+        if(tab === 'video') window._videoOrientationUnlock && window._videoOrientationUnlock();
+        else window._videoOrientationLock && window._videoOrientationLock();
+      };
+    }
+
+    // Patch hmOpenViewer (Hidden Movies) — déverrouiller quand la salle secrète s'ouvre
+    const _origHmOpen = window.hmOpenViewer;
+    if(typeof _origHmOpen === 'function'){
+      window.hmOpenViewer = function(){
+        _origHmOpen.apply(this, arguments);
+        window._videoOrientationUnlock && window._videoOrientationUnlock();
+      };
+    }
+
+    // Patch closeHMSecret — re-verrouiller à la fermeture
+    const _origCloseHM = window.closeHMSecret;
+    if(typeof _origCloseHM === 'function'){
+      window.closeHMSecret = function(){
+        _origCloseHM.apply(this, arguments);
+        window._videoOrientationLock && window._videoOrientationLock();
+      };
+    }
+
+    // Patch jkBack / fermeture Cinetek
+    const _origJkBack = window.jkBack;
+    if(typeof _origJkBack === 'function'){
+      window.jkBack = function(){
+        _origJkBack.apply(this, arguments);
+        window._videoOrientationLock && window._videoOrientationLock();
+      };
+    }
+
   })();
   </script>
 </body></html>
