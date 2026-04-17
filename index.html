@@ -139,6 +139,45 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .morp-cell.p2-cell{background:rgba(245,200,66,.07);border-color:rgba(245,200,66,.2);}
 .morp-scores{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;}
 .morp-sc{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px 4px;text-align:center;}
+/* ══ PUISSANCE 4 ══ */
+.p4-cell{
+  aspect-ratio:1;border-radius:50%;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  transition:background .18s,transform .1s,box-shadow .18s;
+  cursor:pointer;
+}
+.p4-cell.p1{background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b);border:none;box-shadow:0 2px 10px rgba(245,158,11,.55),inset 0 -2px 4px rgba(0,0,0,.25);}
+.p4-cell.p2{background:radial-gradient(circle at 35% 30%,#fca5a5,#ef4444);border:none;box-shadow:0 2px 10px rgba(239,68,68,.55),inset 0 -2px 4px rgba(0,0,0,.25);}
+.p4-cell.win{animation:p4win .5s ease-in-out infinite alternate;}
+@keyframes p4win{from{transform:scale(1);}to{transform:scale(1.12);filter:brightness(1.3);}}
+.p4-cell.drop{animation:p4drop .22s cubic-bezier(.4,0,.2,1) both;}
+@keyframes p4drop{from{transform:scale(.6);opacity:.4;}to{transform:scale(1);opacity:1;}}
+.p4-arrow{
+  display:flex;align-items:center;justify-content:center;
+  height:26px;border-radius:8px;cursor:pointer;
+  color:rgba(251,191,36,.5);font-size:14px;
+  transition:color .15s,background .15s,transform .1s;
+}
+.p4-arrow:hover,.p4-arrow.hover{color:rgba(251,191,36,.95);background:rgba(251,191,36,.1);}
+.p4-arrow:active{transform:scale(.88);}
+.p4-arrow.disabled{pointer-events:none;opacity:0;}
+.p4-preview{background:rgba(251,191,36,.15) !important;border-color:rgba(251,191,36,.3) !important;}
+.p4-diff-btn{
+  font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;
+  padding:5px 11px;border-radius:20px;cursor:pointer;
+  color:rgba(255,255,255,.35);background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  transition:color .15s,background .15s,border-color .15s,transform .1s;
+  white-space:nowrap;
+}
+.p4-diff-btn:active{transform:scale(.93);}
+.p4-diff-btn.active{
+  color:#fbbf24;background:rgba(251,191,36,.15);
+  border-color:rgba(251,191,36,.4);
+}
+
+
 .morp-sc-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);}
 .morp-sc-lbl{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-top:1px;}
 /* ─── SNAKE layout fixe ─── */
@@ -6306,6 +6345,27 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div class="arc-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
 
+        <!-- PUISSANCE 4 -->
+        <div class="arc-card" style="--arc-color:rgba(251,191,36,.85);--arc-bg:rgba(251,191,36,.1);" onclick="startP4()">
+          <div class="arc-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="2"/>
+              <circle cx="7"  cy="8"  r="2" fill="currentColor" opacity=".9"/>
+              <circle cx="12" cy="8"  r="2" fill="currentColor" opacity=".4"/>
+              <circle cx="17" cy="8"  r="2" fill="currentColor" opacity=".4"/>
+              <circle cx="7"  cy="14" r="2" fill="currentColor" opacity=".4"/>
+              <circle cx="12" cy="14" r="2" fill="currentColor" opacity=".9"/>
+              <circle cx="17" cy="14" r="2" fill="currentColor" opacity=".4"/>
+            </svg>
+          </div>
+          <div class="arc-card-body">
+            <div class="arc-card-name">PUISSANCE 4</div>
+            <div class="arc-card-sub">Aligne 4 contre l'IA</div>
+            <div class="arc-card-hs" id="arc-hs-p4">Victoires : —</div>
+          </div>
+          <div class="arc-card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+
         <!-- PONG -->
         <div class="arc-card" style="--arc-color:rgba(0,180,255,.85);--arc-bg:rgba(0,180,255,.1);" onclick="startPong()">
           <div class="arc-card-icon">
@@ -6324,6 +6384,45 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
     </div><!-- /arc-center -->
     </div><!-- /arc-center -->
   </div><!-- /arcade-menu -->
+
+
+  <!-- PUISSANCE 4 -->
+  <div class="scr" id="arc-p4" style="overflow:hidden;">
+    <div class="arc-bg" style="background:radial-gradient(ellipse 55% 45% at 30% 25%,rgba(251,191,36,.38) 0%,transparent 56%),radial-gradient(ellipse 45% 38% at 72% 65%,rgba(245,158,11,.22) 0%,transparent 56%),radial-gradient(ellipse 80% 70% at 50% 50%,transparent 28%,rgba(0,0,0,.92) 100%);"></div>
+    <div class="arc-head" style="padding:max(54px,env(safe-area-inset-top)) 18px 10px;flex-shrink:0;position:relative;z-index:1;">
+      <div class="ibtn" onclick="go('arcade-menu');stopP4()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="arc-title">🟡 PUISSANCE 4</div>
+      <div class="arc-score-badge" id="p4-score-badge">0 - 0</div>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px max(16px,env(safe-area-inset-bottom));gap:10px;position:relative;z-index:1;">
+      <!-- Difficulté -->
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div id="p4-diff-0" class="p4-diff-btn" onclick="p4SetDiff(0);resetP4()">😊 Facile</div>
+        <div id="p4-diff-1" class="p4-diff-btn active" onclick="p4SetDiff(1);resetP4()">🎬 Normal</div>
+        <div id="p4-diff-2" class="p4-diff-btn" onclick="p4SetDiff(2);resetP4()">💀 Difficile</div>
+      </div>
+      <!-- Status -->
+      <div id="p4-status" style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:rgba(255,255,255,.55);text-align:center;min-height:18px;"></div>
+      <!-- Flèches -->
+      <div id="p4-arrows" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:100%;max-width:340px;"></div>
+      <!-- Grille -->
+      <div id="p4-board" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:100%;max-width:340px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.2);border-radius:16px;padding:10px;"></div>
+      <!-- Scores -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;max-width:340px;">
+        <div class="morp-sc"><div class="morp-sc-val" id="p4-sw">0</div><div class="morp-sc-lbl">VICTOIRES</div></div>
+        <div class="morp-sc"><div class="morp-sc-val" id="p4-sd">0</div><div class="morp-sc-lbl">NULS</div></div>
+        <div class="morp-sc"><div class="morp-sc-val" id="p4-sl">0</div><div class="morp-sc-lbl">IA GAGNE</div></div>
+      </div>
+    </div>
+    <div id="p4-over" class="arc-gameover" style="display:none;">
+      <div class="arc-go-title" id="p4-over-title" style="font-size:26px;margin-bottom:8px;"></div>
+      <div id="p4-over-sub" style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:4px;"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:8px;">
+        <div class="arc-btn-lg" style="flex:1.4;background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(245,158,11,.1));border-color:rgba(251,191,36,.4);color:#fbbf24;" onclick="resetP4()">↺ Rejouer</div>
+        <div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu');stopP4()">← Arcade</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ══ VIDÉOTHÈQUE SECRÈTE ══ -->
 
@@ -12860,21 +12959,11 @@ function _hmvDeactivate() {
 
 // ── Handlers touch/mouse ──
 let _hmvTouchStartX = 0, _hmvTouchStartY = 0, _hmvTouchMoved = false;
-let _hmvSwipeFlipZone = false; // true si le touch a démarré dans le bas de la carte
 
 function _hmvHoloTouchStart(e) {
   _hmvTouchStartX = e.touches[0].clientX;
   _hmvTouchStartY = e.touches[0].clientY;
   _hmvTouchMoved  = false;
-  // Détecter si on est dans les 25% inférieurs de la carte
-  const poster = document.getElementById('hmv-poster');
-  if (poster) {
-    const r = poster.getBoundingClientRect();
-    const relY = (e.touches[0].clientY - r.top) / r.height;
-    _hmvSwipeFlipZone = relY >= 0.75;
-  } else {
-    _hmvSwipeFlipZone = false;
-  }
 }
 function _hmvHoloTouchMove(e) {
   const dx = Math.abs(e.touches[0].clientX - _hmvTouchStartX);
@@ -12886,19 +12975,7 @@ function _hmvHoloTouchMove(e) {
     _hmvUpdate(e.touches[0].clientX, e.touches[0].clientY);
   }
 }
-function _hmvHoloTouchEnd(e) {
-  _hmvTouchMoved = false;
-  _hmvDeactivate();
-  // Swipe horizontal dans la zone basse → flip
-  if (_hmvSwipeFlipZone && e && e.changedTouches) {
-    const dx = e.changedTouches[0].clientX - _hmvTouchStartX;
-    const dy = Math.abs(e.changedTouches[0].clientY - _hmvTouchStartY);
-    if (Math.abs(dx) >= 40 && dy < 50) {
-      hmvFlipPoster();
-    }
-  }
-  _hmvSwipeFlipZone = false;
-}
+function _hmvHoloTouchEnd()  { _hmvTouchMoved = false; _hmvDeactivate(); }
 function _hmvHoloMouse(e)    { _hmvActive = true; _hmvUpdate(e.clientX, e.clientY); }
 function _hmvHoloLeave()     { _hmvDeactivate(); }
 
@@ -12928,7 +13005,7 @@ function _hmvInitHolo() {
   poster.addEventListener('touchstart',  _hmvHoloTouchStart, { passive: true });
   poster.addEventListener('touchmove',   _hmvHoloTouchMove,  { passive: false });
   poster.addEventListener('touchend',    _hmvHoloTouchEnd,   { passive: true });
-  poster.addEventListener('touchcancel', ()=>{ _hmvTouchMoved=false; _hmvSwipeFlipZone=false; _hmvDeactivate(); }, { passive: true });
+  poster.addEventListener('touchcancel', _hmvHoloTouchEnd,   { passive: true });
   poster.addEventListener('mousemove',   _hmvHoloMouse);
   poster.addEventListener('mouseleave',  _hmvHoloLeave);
 }
@@ -20732,6 +20809,242 @@ function _brGameOver(win){
 let _mpBoard,_mpWins=0,_mpDraws=0,_mpLosses=0,_mpLocked=false,_mpAITimer=null;
 const _mpWinLines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
+
+
+
+// PUISSANCE 4
+(function(){
+  var ROWS=6,COLS=7,EMPTY=0,P1=1,P2=2;
+  var board,currentPlayer,gameOver,scoreW,scoreD,scoreL,p4Hovered,p4Difficulty;
+  // difficulty: 0=easy, 1=normal, 2=hard
+
+  function getRow(col){
+    for(var r=ROWS-1;r>=0;r--){ if(board[r][col]===EMPTY) return r; }
+    return -1;
+  }
+  function getRowOnBoard(b,col){
+    for(var r=ROWS-1;r>=0;r--){ if(b[r][col]===EMPTY) return r; }
+    return -1;
+  }
+  function checkWinOnBoard(b,row,col,player){
+    var dirs=[[0,1],[1,0],[1,1],[1,-1]];
+    for(var di=0;di<dirs.length;di++){
+      var dr=dirs[di][0],dc=dirs[di][1];
+      var cells=[[row,col]];
+      for(var d=1;d<4;d++){
+        var nr=row+dr*d,nc=col+dc*d;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS||b[nr][nc]!==player) break;
+        cells.push([nr,nc]);
+      }
+      for(var d=1;d<4;d++){
+        var nr=row-dr*d,nc=col-dc*d;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS||b[nr][nc]!==player) break;
+        cells.push([nr,nc]);
+      }
+      if(cells.length>=4) return cells;
+    }
+    return null;
+  }
+  function checkBoardForWin(b){
+    for(var r=0;r<ROWS;r++) for(var c=0;c<COLS;c++){
+      if(b[r][c]!==EMPTY){
+        var w=checkWinOnBoard(b,r,c,b[r][c]);
+        if(w) return {player:b[r][c],cells:w};
+      }
+    }
+    return null;
+  }
+  function isDraw(b){ return b[0].every(function(v){return v!==EMPTY;}); }
+  function scoreWindow(b,r,c,dr,dc,player){
+    var cnt=0,empty=0;
+    for(var i=0;i<4;i++){
+      var nr=r+dr*i,nc=c+dc*i;
+      if(nr<0||nr>=ROWS||nc<0||nc>=COLS) return 0;
+      if(b[nr][nc]===player) cnt++;
+      else if(b[nr][nc]===EMPTY) empty++;
+      else return 0;
+    }
+    if(cnt===4) return 100;
+    if(cnt===3&&empty===1) return 5;
+    if(cnt===2&&empty===2) return 2;
+    return 0;
+  }
+  function scoreBoard(b){
+    var s=0,dirs=[[0,1],[1,0],[1,1],[1,-1]];
+    for(var r=0;r<ROWS;r++) for(var c=0;c<COLS;c++)
+      for(var di=0;di<dirs.length;di++){
+        s+=scoreWindow(b,r,c,dirs[di][0],dirs[di][1],P2);
+        s-=scoreWindow(b,r,c,dirs[di][0],dirs[di][1],P1);
+      }
+    return s;
+  }
+  function getOrderedMoves(b){
+    return [3,2,4,1,5,0,6].filter(function(c){return getRowOnBoard(b,c)>=0;});
+  }
+  function minimax(b,depth,isMax,alpha,beta){
+    var result=checkBoardForWin(b);
+    if(result) return result.player===P2 ? 100+depth : -(100+depth);
+    var moves=getOrderedMoves(b);
+    if(depth===0||moves.length===0) return scoreBoard(b);
+    if(isMax){
+      var best=-Infinity;
+      for(var i=0;i<moves.length;i++){
+        var c=moves[i],r=getRowOnBoard(b,c);if(r<0)continue;
+        b[r][c]=P2;
+        best=Math.max(best,minimax(b,depth-1,false,alpha,beta));
+        b[r][c]=EMPTY;alpha=Math.max(alpha,best);if(beta<=alpha)break;
+      }
+      return best;
+    } else {
+      var best=Infinity;
+      for(var i=0;i<moves.length;i++){
+        var c=moves[i],r=getRowOnBoard(b,c);if(r<0)continue;
+        b[r][c]=P1;
+        best=Math.min(best,minimax(b,depth-1,true,alpha,beta));
+        b[r][c]=EMPTY;beta=Math.min(beta,best);if(beta<=alpha)break;
+      }
+      return best;
+    }
+  }
+
+  function getBestCol(){
+    var depth = p4Difficulty===0 ? 1 : p4Difficulty===1 ? 3 : 5;
+    var errRate = p4Difficulty===0 ? 0.45 : p4Difficulty===1 ? 0.15 : 0;
+    // Easy/normal: sometimes play randomly
+    if(Math.random() < errRate){
+      var moves=getOrderedMoves(board);
+      return moves[Math.floor(Math.random()*moves.length)];
+    }
+    var bestScore=-Infinity,bestCol=3;
+    var moves=getOrderedMoves(board);
+    for(var i=0;i<moves.length;i++){
+      var c=moves[i],r=getRow(c);if(r<0)continue;
+      board[r][c]=P2;
+      var s=minimax(board,depth,false,-Infinity,Infinity);
+      board[r][c]=EMPTY;
+      if(s>bestScore){bestScore=s;bestCol=c;}
+    }
+    return bestCol;
+  }
+
+  function setStatus(txt){ var el=document.getElementById('p4-status');if(el)el.textContent=txt; }
+
+  function updateScores(){
+    var $=function(id){return document.getElementById(id);};
+    if($('p4-sw'))$('p4-sw').textContent=scoreW;
+    if($('p4-sd'))$('p4-sd').textContent=scoreD;
+    if($('p4-sl'))$('p4-sl').textContent=scoreL;
+    if($('p4-score-badge'))$('p4-score-badge').textContent=scoreW+' - '+scoreL;
+    var hs=$('arc-hs-p4');if(hs)hs.textContent='Victoires : '+scoreW;
+  }
+
+  function setResult(title,sub,color){
+    gameOver=true;
+    var over=document.getElementById('p4-over');
+    var ot=document.getElementById('p4-over-title');
+    var os=document.getElementById('p4-over-sub');
+    if(ot){ot.textContent=title;ot.style.color=color;}
+    if(os)os.textContent=sub;
+    if(over)over.style.display='flex';
+  }
+
+  function renderCells(boardEl){
+    boardEl.innerHTML='';
+    var previewRow=-1;
+    if(p4Hovered>=0&&!gameOver&&currentPlayer===P1){
+      for(var r=ROWS-1;r>=0;r--){if(board[r][p4Hovered]===EMPTY){previewRow=r;break;}}
+    }
+    for(var r=0;r<ROWS;r++) for(var c=0;c<COLS;c++){
+      var cell=document.createElement('div');
+      var v=board[r][c];
+      cell.className='p4-cell'+(v===P1?' p1':v===P2?' p2':'');
+      if(r===previewRow&&c===p4Hovered&&v===EMPTY)cell.classList.add('p4-preview');
+      (function(col){cell.addEventListener('click',function(){if(!gameOver&&currentPlayer===P1)drop(col);});})(c);
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function render(){
+    var boardEl=document.getElementById('p4-board');
+    var arrowEl=document.getElementById('p4-arrows');
+    if(!boardEl||!arrowEl)return;
+    arrowEl.innerHTML='';
+    for(var c=0;c<COLS;c++){
+      var a=document.createElement('div');
+      a.className='p4-arrow'+(gameOver?' disabled':'');
+      a.textContent='\u25BC';
+      (function(col){
+        a.addEventListener('click',function(){if(!gameOver&&currentPlayer===P1)drop(col);});
+        a.addEventListener('mouseenter',function(){if(!gameOver&&currentPlayer===P1){p4Hovered=col;renderCells(boardEl);}});
+        a.addEventListener('mouseleave',function(){p4Hovered=-1;renderCells(boardEl);});
+        a.addEventListener('touchstart',function(){if(!gameOver&&currentPlayer===P1){p4Hovered=col;renderCells(boardEl);}},{passive:true});
+        a.addEventListener('touchend',function(){p4Hovered=-1;},{passive:true});
+      })(c);
+      arrowEl.appendChild(a);
+    }
+    renderCells(boardEl);
+    // Update difficulty buttons highlight
+    [0,1,2].forEach(function(d){
+      var btn=document.getElementById('p4-diff-'+d);
+      if(btn)btn.className='p4-diff-btn'+(p4Difficulty===d?' active':'');
+    });
+  }
+
+  function drop(col){
+    var row=getRow(col);if(row<0)return;
+    board[row][col]=currentPlayer;
+    render();
+    var cells=document.getElementById('p4-board').children;
+    var idx=row*COLS+col;
+    if(cells[idx]){cells[idx].classList.remove('drop');void cells[idx].offsetWidth;cells[idx].classList.add('drop');}
+    var win=checkWinOnBoard(board,row,col,currentPlayer);
+    if(win){
+      gameOver=true;render();
+      var allCells=document.getElementById('p4-board').children;
+      win.forEach(function(rc){var el=allCells[rc[0]*COLS+rc[1]];if(el)el.classList.add('win');});
+      setTimeout(function(){
+        if(currentPlayer===P1){scoreW++;setResult('\uD83C\uDFC6 VICTOIRE !','Tu as aligne 4 !','#fbbf24');}
+        else{scoreL++;setResult('DEFAITE','L\'IA a aligne 4...','var(--red)');}
+        updateScores();
+      },400);
+      return;
+    }
+    if(isDraw(board)){
+      setTimeout(function(){scoreD++;setResult('EGALITE','Aucun alignement possible.','rgba(255,255,255,.6)');updateScores();},400);
+      return;
+    }
+    currentPlayer=currentPlayer===P1?P2:P1;
+    setStatus(currentPlayer===P1?'A toi de jouer !':'L\'IA reflechit...');
+    render();
+    if(currentPlayer===P2)setTimeout(aiMove,p4Difficulty===0?300:500);
+  }
+
+  function aiMove(){if(gameOver)return;drop(getBestCol());}
+
+  function init(){
+    board=[];
+    for(var r=0;r<ROWS;r++){board.push([]);for(var c=0;c<COLS;c++)board[r].push(EMPTY);}
+    currentPlayer=P1;gameOver=false;p4Hovered=-1;
+    var over=document.getElementById('p4-over');if(over)over.style.display='none';
+    render();setStatus('A toi de jouer !');
+  }
+
+  window.p4SetDiff=function(d){
+    p4Difficulty=d;
+    render();
+  };
+
+  window.startP4=function(){
+    if(scoreW===undefined){scoreW=0;scoreD=0;scoreL=0;}
+    if(p4Difficulty===undefined)p4Difficulty=1;
+    go('arc-p4');
+    setTimeout(function(){init();updateScores();},50);
+  };
+  window.resetP4=function(){init();};
+  window.stopP4=function(){gameOver=true;};
+})();
+
+
 function startMorpion(){go('arc-morpion');resetMorpion();}
 function resetMorpion(){
   clearTimeout(_mpAITimer);_mpAITimer=null;
@@ -22340,4 +22653,503 @@ if('serviceWorker' in navigator){
 
   })();
   </script>
+<script>
+// ══════════════════════════════════════════════════════
+// SUPABASE AUTH & SYNC — CinéQuiz
+// ══════════════════════════════════════════════════════
+(function(){
+  var SUPA_URL = 'https://sjkjujkvrjlrmehuxqnx.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqa2p1amt2cmpscm1laHV4cW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTMxMDMsImV4cCI6MjA5MjAyOTEwM30.mZwY72_IKpeE-4qbREHFYLLPDi-RfKH748BR0DWOPAE';
+
+  var _sbSession = null;
+  var _sbSyncing = false;
+  var _sbSaveTimer = null;
+
+  // ── API helpers ──
+  function sbFetch(path, opts) {
+    var headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + ((_sbSession && _sbSession.access_token) || SUPA_KEY)
+    };
+    return fetch(SUPA_URL + path, Object.assign({ headers: headers }, opts || {}));
+  }
+
+  // ── AUTH ──
+  function sbSignUp(email, password) {
+    return sbFetch('/auth/v1/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email: email, password: password })
+    }).then(function(r){ return r.json(); });
+  }
+
+  function sbSignIn(email, password) {
+    return sbFetch('/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      body: JSON.stringify({ email: email, password: password })
+    }).then(function(r){ return r.json(); });
+  }
+
+  function sbSignOut() {
+    return sbFetch('/auth/v1/logout', { method: 'POST' }).then(function(){
+      _sbSession = null;
+      try { localStorage.removeItem('cq_sb_session'); } catch(e){}
+      updateAuthUI();
+    });
+  }
+
+  function sbRefreshToken(refresh_token) {
+    return sbFetch('/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token: refresh_token })
+    }).then(function(r){ return r.json(); });
+  }
+
+  // ── SESSION PERSISTENCE ──
+  function saveSession(session) {
+    _sbSession = session;
+    try { localStorage.setItem('cq_sb_session', JSON.stringify(session)); } catch(e){}
+  }
+
+  function loadSession() {
+    try {
+      var raw = localStorage.getItem('cq_sb_session');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+
+  // ── PROGRESSION SYNC ──
+  function getKeys() {
+    return ['cq11','cq_arc_hs','hm_revealed','hm_wishlist','cq_daily','cq_jk_seen','cq_jk_secret_found'];
+  }
+
+  function collectProgression() {
+    var data = {};
+    getKeys().forEach(function(k) {
+      try {
+        var v = localStorage.getItem(k);
+        if (v !== null) data[k] = v;
+      } catch(e) {}
+    });
+    // Also collect cq_played_ keys
+    try {
+      Object.keys(localStorage).forEach(function(k) {
+        if (k.indexOf('cq_played_') === 0) data[k] = localStorage.getItem(k);
+      });
+    } catch(e) {}
+    return data;
+  }
+
+  function applyProgression(data) {
+    if (!data) return;
+    Object.keys(data).forEach(function(k) {
+      try { localStorage.setItem(k, data[k]); } catch(e) {}
+    });
+    // Refresh UI after applying
+    if (typeof refHome === 'function') refHome();
+  }
+
+  function sbLoadProgression() {
+    if (!_sbSession) return Promise.resolve(null);
+    return sbFetch('/rest/v1/progression?user_id=eq.' + _sbSession.user.id + '&select=data', {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + _sbSession.access_token
+      }
+    }).then(function(r){ return r.json(); })
+      .then(function(rows) {
+        if (rows && rows.length > 0 && rows[0].data) return rows[0].data;
+        return null;
+      });
+  }
+
+  function sbSaveProgression() {
+    if (!_sbSession || _sbSyncing) return;
+    _sbSyncing = true;
+    var data = collectProgression();
+    var userId = _sbSession.user.id;
+    // Upsert
+    sbFetch('/rest/v1/progression', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + _sbSession.access_token,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ user_id: userId, data: data, updated_at: new Date().toISOString() })
+    }).then(function(){ _sbSyncing = false; setSyncBadge('ok'); })
+      .catch(function(){ _sbSyncing = false; setSyncBadge('err'); });
+  }
+
+  // Debounced save — fires 3s after last change
+  function scheduleSave() {
+    if (!_sbSession) return;
+    if (_sbSaveTimer) clearTimeout(_sbSaveTimer);
+    setSyncBadge('pending');
+    _sbSaveTimer = setTimeout(function(){ sbSaveProgression(); }, 3000);
+  }
+
+  // Patch localStorage.setItem to auto-sync relevant keys
+  var _origSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(key, value) {
+    _origSetItem(key, value);
+    var relevant = key === 'cq11' || key === 'cq_arc_hs' || key === 'hm_revealed' ||
+                   key === 'hm_wishlist' || key === 'cq_daily' || key === 'cq_jk_seen' ||
+                   key.indexOf('cq_played_') === 0;
+    if (relevant) scheduleSave();
+  };
+
+  // ── UI ──
+  function setSyncBadge(state) {
+    var badge = document.getElementById('sb-sync-badge');
+    if (!badge) return;
+    if (state === 'ok') {
+      badge.textContent = '☁ Sauvegardé';
+      badge.style.color = 'rgba(46,204,113,.8)';
+      badge.style.opacity = '1';
+      setTimeout(function(){ badge.style.opacity = '0'; }, 2500);
+    } else if (state === 'pending') {
+      badge.textContent = '☁ Sync...';
+      badge.style.color = 'rgba(245,200,66,.7)';
+      badge.style.opacity = '1';
+    } else if (state === 'err') {
+      badge.textContent = '☁ Erreur sync';
+      badge.style.color = 'rgba(232,52,74,.8)';
+      badge.style.opacity = '1';
+    }
+  }
+
+  function updateAuthUI() {
+    var btn = document.getElementById('btn-auth');
+    var badge = document.getElementById('sb-sync-badge');
+    if (!btn) return;
+    if (_sbSession && _sbSession.user) {
+      var email = _sbSession.user.email || '';
+      var short = email.split('@')[0].substring(0, 12);
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-size:9px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + short + '</span>';
+      btn.style.color = 'rgba(46,204,113,.9)';
+      btn.title = email;
+      if (badge) badge.style.display = 'block';
+    } else {
+      btn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      btn.style.color = '';
+      btn.title = 'Connexion / Inscription';
+      if (badge) { badge.style.opacity = '0'; badge.style.display = 'none'; }
+    }
+  }
+
+  function showAuthModal(tab) {
+    var modal = document.getElementById('auth-modal');
+    if (!modal) return;
+    modal.classList.add('on');
+    switchAuthTab(tab || 'login');
+    clearAuthMsg();
+  }
+
+  function hideAuthModal() {
+    var modal = document.getElementById('auth-modal');
+    if (modal) modal.classList.remove('on');
+  }
+
+  function switchAuthTab(tab) {
+    document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('auth-tab-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('auth-form-login').style.display = tab === 'login' ? 'flex' : 'none';
+    document.getElementById('auth-form-signup').style.display = tab === 'signup' ? 'flex' : 'none';
+    clearAuthMsg();
+  }
+
+  function clearAuthMsg() {
+    var msg = document.getElementById('auth-msg');
+    if (msg) { msg.textContent = ''; msg.className = 'auth-msg'; }
+  }
+
+  function setAuthMsg(txt, type) {
+    var msg = document.getElementById('auth-msg');
+    if (!msg) return;
+    msg.textContent = txt;
+    msg.className = 'auth-msg ' + (type || 'error');
+  }
+
+  function setAuthLoading(loading) {
+    var btn = document.getElementById('auth-submit-btn');
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Connexion...' : btn.dataset.label;
+  }
+
+  // ── AUTH ACTIONS ──
+  window.authDoLogin = function() {
+    var email = document.getElementById('auth-email-login').value.trim();
+    var pass = document.getElementById('auth-pass-login').value;
+    if (!email || !pass) { setAuthMsg('Remplis tous les champs.'); return; }
+    var btn = document.getElementById('auth-submit-btn');
+    btn.disabled = true; btn.textContent = 'Connexion...';
+    sbSignIn(email, pass).then(function(data) {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      if (data.error || data.error_description || data.msg) {
+        setAuthMsg(data.error_description || data.msg || 'Identifiants incorrects.'); return;
+      }
+      if (!data.access_token) { setAuthMsg('Identifiants incorrects.'); return; }
+      saveSession(data);
+      hideAuthModal();
+      updateAuthUI();
+      // Load cloud progression and merge (cloud wins if more XP)
+      sbLoadProgression().then(function(cloudData) {
+        if (cloudData) {
+          try {
+            var local = JSON.parse(localStorage.getItem('cq11') || '{}');
+            var cloud = JSON.parse(cloudData['cq11'] || '{}');
+            if ((cloud.xp || 0) >= (local.xp || 0)) {
+              applyProgression(cloudData);
+              setAuthMsg('Progression restauree depuis le cloud !', 'success');
+              setTimeout(clearAuthMsg, 3000);
+            } else {
+              // Local is ahead — push it
+              scheduleSave();
+            }
+          } catch(e) { applyProgression(cloudData); }
+        } else {
+          // First login — push local data
+          scheduleSave();
+        }
+      }).catch(function(){ scheduleSave(); });
+      showToastAuth('Connecte ! Progression synchronisee.');
+    }).catch(function() {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      setAuthMsg('Erreur reseau. Reessaie.');
+    });
+  };
+
+  window.authDoSignup = function() {
+    var email = document.getElementById('auth-email-signup').value.trim();
+    var pass = document.getElementById('auth-pass-signup').value;
+    var pass2 = document.getElementById('auth-pass-signup2').value;
+    if (!email || !pass) { setAuthMsg('Remplis tous les champs.'); return; }
+    if (pass !== pass2) { setAuthMsg('Les mots de passe ne correspondent pas.'); return; }
+    if (pass.length < 6) { setAuthMsg('Mot de passe trop court (6 caracteres min).'); return; }
+    var btn = document.getElementById('auth-submit-btn');
+    btn.disabled = true; btn.textContent = 'Inscription...';
+    sbSignUp(email, pass).then(function(data) {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      if (data.error || data.error_description) {
+        setAuthMsg(data.error_description || 'Erreur inscription.'); return;
+      }
+      if (data.id || (data.user && data.user.id)) {
+        // Auto-login after signup
+        sbSignIn(email, pass).then(function(loginData) {
+          if (loginData.access_token) {
+            saveSession(loginData);
+            hideAuthModal();
+            updateAuthUI();
+            scheduleSave();
+            showToastAuth('Compte cree ! Progression sauvegardee.');
+          } else {
+            setAuthMsg('Compte cree ! Verifie ton email puis connecte-toi.', 'success');
+          }
+        });
+      } else {
+        setAuthMsg('Compte cree ! Verifie ton email si besoin.', 'success');
+      }
+    }).catch(function() {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      setAuthMsg('Erreur reseau. Reessaie.');
+    });
+  };
+
+  window.authDoLogout = function() {
+    sbSignOut().then(function() {
+      hideAuthModal();
+      showToastAuth('Deconnecte.');
+    });
+  };
+
+  window.switchAuthTab = switchAuthTab;
+  window.showAuthModal = showAuthModal;
+  window.hideAuthModal = hideAuthModal;
+
+  function showToastAuth(msg) {
+    var el = document.getElementById('auth-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('on');
+    setTimeout(function(){ el.classList.remove('on'); }, 3000);
+  }
+
+  // ── INIT ──
+  function init() {
+    var session = loadSession();
+    if (!session) { updateAuthUI(); return; }
+    // Try to use existing session, refresh if needed
+    var now = Math.floor(Date.now() / 1000);
+    var exp = session.expires_at || 0;
+    if (now < exp - 300) {
+      // Still valid
+      _sbSession = session;
+      updateAuthUI();
+      sbLoadProgression().then(function(cloudData) {
+        if (cloudData) {
+          try {
+            var local = JSON.parse(localStorage.getItem('cq11') || '{}');
+            var cloud = JSON.parse(cloudData['cq11'] || '{}');
+            if ((cloud.xp || 0) > (local.xp || 0)) applyProgression(cloudData);
+          } catch(e) {}
+        }
+      }).catch(function(){});
+    } else if (session.refresh_token) {
+      sbRefreshToken(session.refresh_token).then(function(data) {
+        if (data.access_token) {
+          saveSession(data);
+          updateAuthUI();
+        } else {
+          _sbSession = null;
+          try { localStorage.removeItem('cq_sb_session'); } catch(e) {}
+          updateAuthUI();
+        }
+      }).catch(function(){ updateAuthUI(); });
+    } else {
+      updateAuthUI();
+    }
+  }
+
+  // Inject UI into DOM when ready
+  function injectUI() {
+    // 1. Auth button in topbar (replace profile btn)
+    var profileBtn = document.getElementById('btn-profile');
+    if (profileBtn) {
+      // Add auth btn before profile btn
+      var authBtn = document.createElement('div');
+      authBtn.className = 'ibtn';
+      authBtn.id = 'btn-auth';
+      authBtn.style.cssText = 'display:flex;align-items:center;gap:4px;position:relative;';
+      authBtn.title = 'Connexion / Inscription';
+      authBtn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      authBtn.onclick = function() {
+        if (_sbSession) showAuthModal('account');
+        else showAuthModal('login');
+      };
+      profileBtn.parentNode.insertBefore(authBtn, profileBtn);
+    }
+
+    // 2. Sync badge under topbar
+    var topbar = document.querySelector('#home .topbar');
+    if (topbar) {
+      var badge = document.createElement('div');
+      badge.id = 'sb-sync-badge';
+      badge.style.cssText = 'position:absolute;top:max(54px,env(safe-area-inset-top));right:16px;font-size:9px;letter-spacing:1px;opacity:0;transition:opacity .4s;z-index:10;display:none;pointer-events:none;';
+      badge.textContent = '';
+      document.getElementById('home').appendChild(badge);
+    }
+
+    // 3. Auth modal
+    var modal = document.createElement('div');
+    modal.id = 'auth-modal';
+    modal.innerHTML = [
+      '<div class="auth-backdrop" onclick="hideAuthModal()"></div>',
+      '<div class="auth-sheet">',
+      '  <div class="auth-header">',
+      '    <div class="auth-logo">&#127909; CineQuiz</div>',
+      '    <div class="auth-close ibtn" onclick="hideAuthModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>',
+      '  </div>',
+      '  <!-- Tabs -->',
+      '  <div class="auth-tabs" id="auth-tabs-bar">',
+      '    <div id="auth-tab-login" class="auth-tab active" onclick="switchAuthTab(\'login\')">Connexion</div>',
+      '    <div id="auth-tab-signup" class="auth-tab" onclick="switchAuthTab(\'signup\')">Inscription</div>',
+      '  </div>',
+      '  <!-- Login form -->',
+      '  <div id="auth-form-login" class="auth-form" style="display:flex;">',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-login" type="email" placeholder="ton@email.com" autocomplete="email"/></div>',
+      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-login" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')authDoLogin()"/></div>',
+      '    <button id="auth-submit-btn" class="auth-btn" data-label="Se connecter" onclick="authDoLogin()">Se connecter</button>',
+      '  </div>',
+      '  <!-- Signup form -->',
+      '  <div id="auth-form-signup" class="auth-form" style="display:none;">',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-signup" type="email" placeholder="ton@email.com" autocomplete="email"/></div>',
+      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-signup" type="password" placeholder="6 caracteres min" autocomplete="new-password"/></div>',
+      '    <div class="auth-field"><label>Confirmer le mot de passe</label><input id="auth-pass-signup2" type="password" placeholder="••••••" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')authDoSignup()"/></div>',
+      '    <button id="auth-submit-btn" class="auth-btn" data-label="Creer mon compte" onclick="authDoSignup()">Creer mon compte</button>',
+      '  </div>',
+      '  <!-- Message -->',
+      '  <div id="auth-msg" class="auth-msg"></div>',
+      '  <!-- Account panel (when logged in) -->',
+      '  <div id="auth-account-panel" style="display:none;flex-direction:column;gap:14px;padding:0 4px;">',
+      '    <div id="auth-account-email" style="font-size:13px;color:rgba(255,255,255,.55);text-align:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:14px;"></div>',
+      '    <div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Ta progression est sauvegardee automatiquement dans le cloud.</div>',
+      '    <button class="auth-btn auth-btn-secondary" onclick="sbManualSync()">&#8645; Synchroniser maintenant</button>',
+      '    <button class="auth-btn auth-btn-danger" onclick="if(confirm(\'Te deconnecter ?\'))authDoLogout()">Se deconnecter</button>',
+      '  </div>',
+      '</div>',
+    ].join('');
+    document.body.appendChild(modal);
+
+    // 4. Toast
+    var toast = document.createElement('div');
+    toast.id = 'auth-toast';
+    document.body.appendChild(toast);
+
+    // Observe tab changes to show account panel
+    var origSwitch = window.switchAuthTab;
+    window.switchAuthTab = function(tab) {
+      if (tab === 'account') {
+        // Show account panel, hide tabs & forms
+        document.getElementById('auth-tabs-bar').style.display = 'none';
+        document.getElementById('auth-form-login').style.display = 'none';
+        document.getElementById('auth-form-signup').style.display = 'none';
+        document.getElementById('auth-account-panel').style.display = 'flex';
+        if (_sbSession) document.getElementById('auth-account-email').textContent = _sbSession.user.email;
+      } else {
+        document.getElementById('auth-tabs-bar').style.display = 'flex';
+        document.getElementById('auth-account-panel').style.display = 'none';
+        origSwitch(tab);
+      }
+    };
+
+    // Inject CSS
+    var style = document.createElement('style');
+    style.textContent = [
+      '#auth-modal{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}',
+      '#auth-modal.on{opacity:1;pointer-events:all;}',
+      '.auth-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);}',
+      '.auth-sheet{position:relative;z-index:1;width:100%;max-width:500px;background:#13131a;border-radius:28px 28px 0 0;padding:24px 20px max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px;border-top:1px solid rgba(255,255,255,.1);transform:translateY(60px);transition:transform .3s cubic-bezier(.2,1,.3,1);}',
+      '#auth-modal.on .auth-sheet{transform:translateY(0);}',
+      '.auth-header{display:flex;align-items:center;justify-content:space-between;}',
+      '.auth-logo{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);}',
+      '.auth-tabs{display:flex;background:rgba(255,255,255,.05);border-radius:12px;padding:3px;gap:3px;}',
+      '.auth-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:600;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.4);transition:all .2s;}',
+      '.auth-tab.active{background:rgba(245,200,66,.15);color:var(--gold);}',
+      '.auth-form{flex-direction:column;gap:12px;}',
+      '.auth-field{display:flex;flex-direction:column;gap:5px;}',
+      '.auth-field label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px;}',
+      '.auth-field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none;font-family:"DM Sans",sans-serif;-webkit-appearance:none;transition:border-color .2s;}',
+      '.auth-field input:focus{border-color:rgba(245,200,66,.4);}',
+      '.auth-btn{background:linear-gradient(135deg,rgba(245,200,66,.2),rgba(245,200,66,.1));border:1px solid rgba(245,200,66,.35);border-radius:14px;padding:14px;font-family:"Bebas Neue",sans-serif;font-size:17px;letter-spacing:1px;color:var(--gold);cursor:pointer;transition:transform .15s,background .2s;-webkit-appearance:none;}',
+      '.auth-btn:active{transform:scale(.97);}',
+      '.auth-btn:disabled{opacity:.5;cursor:default;}',
+      '.auth-btn-secondary{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:14px;padding:12px;}',
+      '.auth-btn-danger{background:rgba(232,52,74,.1);border-color:rgba(232,52,74,.3);color:#e8344a;font-size:14px;padding:12px;}',
+      '.auth-msg{font-size:12px;text-align:center;min-height:16px;transition:color .2s;}',
+      '.auth-msg.error{color:#e8344a;}',
+      '.auth-msg.success{color:#2ecc71;}',
+      '#auth-toast{position:fixed;bottom:max(28px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#1c1c28;border:1px solid rgba(46,204,113,.3);border-radius:20px;padding:10px 20px;font-size:12px;color:#2ecc71;opacity:0;transition:opacity .3s,transform .3s;z-index:9100;pointer-events:none;white-space:nowrap;}',
+      '#auth-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}',
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
+  window.sbManualSync = function() {
+    sbSaveProgression();
+  };
+
+  // Boot
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ injectUI(); init(); });
+  } else {
+    injectUI(); init();
+  }
+})();
+
+</script>
 </body></html>
