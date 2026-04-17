@@ -22022,17 +22022,19 @@ if('serviceWorker' in navigator){
   // ── Orientation intelligente : plein écran auto quand une vidéo est active ──
   (function initOrientationHandler(){
 
-    // Détermine si un lecteur vidéo est actuellement visible et actif
+    // ── État global : zones où la rotation est autorisée ──
+    // 'jk'  = onglet VIDÉO de la Cinetek
+    // 'hm'  = onglet FILM (panel 0) de la Salle Secrète Hidden Movies
+    // null  = partout ailleurs → rotation bloquée
+    window._videoZoneActive = null;
+
+    // Détermine si un lecteur vidéo est actuellement visible ET dans une zone autorisée
     function getActiveVideo(){
-      // Cinetek (jk-video-section visible)
-      const jkSection = document.getElementById('jk-video-section');
-      if(jkSection && jkSection.style.display !== 'none'){
+      if(window._videoZoneActive === 'jk'){
         const v = document.getElementById('jk-video-player');
         if(v) return { video: v, wrap: document.querySelector('.jk-vid-player-wrap'), type:'jk' };
       }
-      // Hidden Movies secret room
-      const hmRoom = document.getElementById('hm-secret-room');
-      if(hmRoom && hmRoom.classList.contains('on')){
+      if(window._videoZoneActive === 'hm'){
         const v = document.getElementById('hm-secret-video');
         if(v) return { video: v, wrap: document.getElementById('hm-vid-player-wrap'), type:'hm' };
       }
@@ -22068,15 +22070,34 @@ if('serviceWorker' in navigator){
       else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
     }
 
+    function lockPortrait(){
+      try{
+        if(screen.orientation && screen.orientation.lock){
+          screen.orientation.lock('portrait').catch(()=>{});
+        }
+      }catch(e){}
+    }
+
+    function unlockOrientation(){
+      try{
+        if(screen.orientation && screen.orientation.unlock){
+          screen.orientation.unlock();
+        }
+      }catch(e){}
+    }
+
     function onOrientationChange(){
       const active = getActiveVideo();
-      if(!active) return; // aucune vidéo active → comportement normal
+
+      if(!active){
+        // Zone non-vidéo : on verrouille et on s'assure qu'on sort du plein écran
+        exitFullscreen();
+        return;
+      }
 
       if(isLandscape()){
-        // Petit délai pour laisser l'OS finir la rotation
         setTimeout(()=>{ if(isLandscape()) enterFullscreen(active); }, 150);
       } else {
-        // Retour portrait → sortir du plein écran
         exitFullscreen();
       }
     }
@@ -22087,30 +22108,22 @@ if('serviceWorker' in navigator){
     }
     window.addEventListener('orientationchange', onOrientationChange);
 
-    // Verrouiller portrait uniquement si AUCUNE vidéo n'est active
-    try{
-      if(screen.orientation && screen.orientation.lock){
-        screen.orientation.lock('portrait').catch(()=>{});
-      }
-    }catch(e){}
+    // Au démarrage : verrouiller portrait + activer le fallback CSS
+    lockPortrait();
 
-    // Exposer une fonction pour déverrouiller quand une vidéo démarre
-    window._videoOrientationUnlock = function(){
-      try{
-        if(screen.orientation && screen.orientation.unlock){
-          screen.orientation.unlock();
-        }
-      }catch(e){}
+    // ── API publique ──
+
+    // Appelé quand on entre dans une zone vidéo (Cinetek vidéo ou HM onglet FILM)
+    window._videoOrientationUnlock = function(zone){
+      window._videoZoneActive = zone || 'jk';
+      unlockOrientation();
     };
 
-    // Exposer une fonction pour re-verrouiller portrait quand la vidéo se ferme
+    // Appelé quand on quitte une zone vidéo
     window._videoOrientationLock = function(){
-      try{
-        if(screen.orientation && screen.orientation.lock){
-          screen.orientation.lock('portrait').catch(()=>{});
-        }
-      }catch(e){}
+      window._videoZoneActive = null;
       exitFullscreen();
+      lockPortrait();
     };
 
   })();
@@ -22119,26 +22132,29 @@ if('serviceWorker' in navigator){
   // ── Hooks sur les lecteurs pour unlock/lock orientation ──
   (function hookVideoPlayers(){
 
-    // Patch jkSwitchTab pour déverrouiller orientation quand onglet vidéo Cinetek s'ouvre
+    // Patch jkSwitchTab — Cinetek : déverrouiller seulement sur l'onglet VIDÉO
     const _origJkSwitch = window.jkSwitchTab;
     if(typeof _origJkSwitch === 'function'){
       window.jkSwitchTab = function(tab){
         _origJkSwitch(tab);
-        if(tab === 'video') window._videoOrientationUnlock && window._videoOrientationUnlock();
+        if(tab === 'video') window._videoOrientationUnlock && window._videoOrientationUnlock('jk');
         else window._videoOrientationLock && window._videoOrientationLock();
       };
     }
 
-    // Patch hmOpenViewer (Hidden Movies) — déverrouiller quand la salle secrète s'ouvre
-    const _origHmOpen = window.hmOpenViewer;
-    if(typeof _origHmOpen === 'function'){
-      window.hmOpenViewer = function(){
-        _origHmOpen.apply(this, arguments);
-        window._videoOrientationUnlock && window._videoOrientationUnlock();
+    // Patch hmSecretTab — Salle Secrète : déverrouiller SEULEMENT sur l'onglet FILM (idx 0)
+    const _origHmSecretTab = window.hmSecretTab;
+    if(typeof _origHmSecretTab === 'function'){
+      window.hmSecretTab = function(idx, btn){
+        _origHmSecretTab(idx, btn);
+        if(idx === 0) window._videoOrientationUnlock && window._videoOrientationUnlock('hm');
+        else window._videoOrientationLock && window._videoOrientationLock();
       };
     }
 
-    // Patch closeHMSecret — re-verrouiller à la fermeture
+    // NE PAS déverrouiller à l'ouverture de la salle secrète :
+    // on attend que l'utilisateur soit sur l'onglet FILM (géré par hmSecretTab ci-dessus)
+    // Mais on re-verrouille bien à la fermeture
     const _origCloseHM = window.closeHMSecret;
     if(typeof _origCloseHM === 'function'){
       window.closeHMSecret = function(){
