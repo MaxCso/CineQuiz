@@ -17601,10 +17601,10 @@ function showVersusRoundHandoff(nextRoundNum, cb){
     const firstColor=VS_COLORS[0];
     overlay.innerHTML=`
       <div style="font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;margin-bottom:4px;">PRÉPARE-TOI !</div>
-      <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:${firstColor};line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">3</div>
+      <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:${firstColor};line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">5</div>
       <div style="font-size:15px;color:rgba(255,255,255,.55);">Manche ${nextRoundNum} — C'est à <strong style="color:${firstColor};">${firstP.name}</strong></div>`;
     game.appendChild(overlay);
-    let count=3;
+    let count=5;
     const tick=setInterval(()=>{
       count--;
       if(count>0){
@@ -17643,10 +17643,10 @@ function showVersusHandoff(playerName,cb){
     overlay.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:20;gap:10px;';
     overlay.innerHTML=`
       <div style="font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;margin-bottom:4px;">PRÉPARE-TOI !</div>
-      <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:${color};line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">3</div>
+      <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:${color};line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">5</div>
       <div style="font-size:14px;color:rgba(255,255,255,.4);">${playerName}</div>`;
     game.appendChild(overlay);
-    let count=3;
+    let count=5;
     const tick=setInterval(()=>{
       count--;
       if(count>0){
@@ -17680,6 +17680,7 @@ function endVersus(){
     return dots.slice(start,end).map(ok=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${ok?'var(--green)':'var(--red)'};margin:1px;"></span>`).join('');
   };
 
+  qa.style.overflow="auto";qa.style.webkitOverflowScrolling="touch";
   qa.innerHTML=`
     <div class="vs-result-wrap" style="padding:8px 0;display:flex;flex-direction:column;align-items:center;width:100%;">
       <span class="vs-winner-icon">${tie?'🤝':'🏆'}</span>
@@ -17719,9 +17720,9 @@ function endVersus(){
   homeBtn.style.cssText='width:100%;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;';
   homeBtn.textContent='← Accueil';homeBtn.onclick=()=>{go('home');refHome();};
   const btnWrap=document.createElement('div');
-  btnWrap.style.cssText='grid-column:1/-1;display:flex;flex-direction:column;gap:8px;';
+  btnWrap.style.cssText='display:flex;flex-direction:column;gap:8px;width:100%;padding:10px 0 max(24px,env(safe-area-inset-bottom));';
   btnWrap.appendChild(reBtn);btnWrap.appendChild(homeBtn);
-  grid.appendChild(btnWrap);
+  const vsResultWrap=qa.querySelector(".vs-result-wrap");if(vsResultWrap){vsResultWrap.appendChild(btnWrap);}else{qa.appendChild(btnWrap);}
 }
 
 // ── AVATAR AMÉLIORÉ ──
@@ -19639,13 +19640,44 @@ function startSpeedQuiz(){
   go('arc-speedquiz');
   document.getElementById('sq-over').style.display='none';
   _sqScore=0;_sqQ=0;_sqAnswered=false;
-  // Mélanger et prendre SQ_COUNT questions
   _sqQuestions=[...SQ_BANK].sort(()=>Math.random()-.5).slice(0,SQ_COUNT);
   document.getElementById('sq-score-badge').textContent='0';
   document.getElementById('sq-feedback').textContent='';
-  _sqNextQuestion();
+  document.getElementById('sq-question-num').textContent='';
+  document.getElementById('sq-question').textContent='';
+  document.getElementById('sq-answers').innerHTML='';
+  document.getElementById('sq-timer-bar').style.transition='none';
+  document.getElementById('sq-timer-bar').style.width='100%';
+  // Compte à rebours
+  const screen=document.getElementById('arc-speedquiz');
+  const overlay=document.createElement('div');
+  overlay.id='sq-countdown-overlay';
+  overlay.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:20;gap:12px;';
+  overlay.innerHTML=`
+    <div style="font-size:11px;letter-spacing:4px;color:rgba(251,146,60,.6);font-family:'Bebas Neue',sans-serif;">PRÉPARE-TOI !</div>
+    <div id="sq-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:110px;color:#fb923c;line-height:1;animation:vsCountPop .5s cubic-bezier(.34,1.56,.64,1) both;">3</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.3);">⚡ Speed Quiz</div>`;
+  screen.appendChild(overlay);
+  let count=3;
+  const tick=setInterval(()=>{
+    count--;
+    if(count>0){
+      const el=document.getElementById('sq-cnum');
+      if(el){el.textContent=count;el.style.animation='none';void el.offsetWidth;el.style.animation='vsCountPop .5s cubic-bezier(.34,1.56,.64,1) both';}
+      haptic('countdown');
+    } else if(count===0){
+      const el=document.getElementById('sq-cnum');
+      if(el){el.textContent='GO !';el.style.fontSize='72px';el.style.color='#2ecc71';el.style.animation='none';void el.offsetWidth;el.style.animation='vsCountPop .4s cubic-bezier(.34,1.56,.64,1) both';}
+      haptic('countdown');
+    } else {
+      clearInterval(tick);
+      const ov=document.getElementById('sq-countdown-overlay');
+      if(ov)ov.remove();
+      _sqNextQuestion();
+    }
+  },750);
 }
-function stopSpeedQuiz(){clearInterval(_sqTimer);}
+function stopSpeedQuiz(){clearInterval(_sqTimer);const ov=document.getElementById('sq-countdown-overlay');if(ov)ov.remove();}
 function _sqNextQuestion(){
   clearInterval(_sqTimer);
   if(_sqQ>=SQ_COUNT){_sqEnd();return;}
@@ -20264,16 +20296,19 @@ function _invGameOver() {
 let _pgAnim=null,_pgState=null;
 
 function startPong(){
-  go('arc-pong');
+  const alreadyOn=document.getElementById('arc-pong').classList.contains('on');
+  if(!alreadyOn)go('arc-pong');
+  cancelAnimationFrame(_pgAnim);_pgAnim=null;
+  if(_pgState){_pgState.running=false;}_pgState=null;
   document.getElementById('pong-over').style.display='none';
   document.getElementById('pong-score-badge').textContent='0 - 0';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  const doInit=()=>{
     const cv=document.getElementById('pong-canvas');
     const wrap=cv.parentElement;
     const aw=wrap.clientWidth-4;
     const ah=wrap.clientHeight-4;
+    if(aw<=0||ah<=0){requestAnimationFrame(doInit);return;}
     cv.width=aw;cv.height=ah;
-    cv.style.width=aw+'px';cv.style.height=ah+'px';
     cv.style.width=aw+'px';cv.style.height=ah+'px';
     const W=cv.width,H=cv.height;
     const PW=10,PH=Math.round(H*0.18);
@@ -20299,9 +20334,9 @@ function startPong(){
       _pgState.player.y=Math.max(0,Math.min(H-PH,my-PH/2));
     };
     cv.onmouseup=()=>{md=false;};
-    cancelAnimationFrame(_pgAnim);
     _pgLoop();
-  }));
+  };
+  if(alreadyOn){doInit();}else{requestAnimationFrame(()=>requestAnimationFrame(doInit));}
 }
 
 function stopPong(){
@@ -20309,7 +20344,7 @@ function stopPong(){
   if(_pgState)_pgState.running=false;
   _pgState=null;
   const cv=document.getElementById('pong-canvas');
-  if(cv){try{cv.getContext('2d').clearRect(0,0,cv.width,cv.height);}catch(e){}cv.width=1;cv.height=1;}
+  if(cv){try{cv.getContext('2d').clearRect(0,0,cv.width,cv.height);}catch(e){}}
 }
 
 function _pgLoop(){
