@@ -1520,6 +1520,20 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .vs-pc-btn.on{background:rgba(245,200,66,.14);border-color:rgba(245,200,66,.45);color:var(--gold);}
 .vs-players-inputs{display:flex;flex-direction:column;gap:7px;width:100%;}
 .vs-divider{font-family:'Bebas Neue',sans-serif;font-size:20px;color:rgba(255,255,255,.25);flex-shrink:0;}
+/* ── MODE VERSUS — masquer le bandeau haut inutile ── */
+#game.vs-mode .ghd{display:none;}
+#game.vs-mode .twrap{display:none;}
+#game.vs-mode .pdots{display:none;}
+#game.vs-mode .survie-lives{display:none!important;}
+/* ── SCOREBOARD VERSUS — horizontal compact ── */
+.vs-scoreboard{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;padding:10px 14px 6px;flex-shrink:0;flex-wrap:wrap;}
+.vs-player{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px 10px;min-width:0;flex:1;}
+.vs-player.active{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.25);}
+.vs-player-name{font-size:11px;font-weight:600;letter-spacing:.3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.vs-player-score{font-family:'Bebas Neue',sans-serif;line-height:1;}
+.vs-scoreboard .vs-divider{font-size:14px;flex-shrink:0;}
+.vs-scoreboard.many{gap:4px;padding:8px 10px 4px;}
+.vs-scoreboard.many .vs-player{padding:5px 8px;border-radius:10px;}
 .vs-turn-badge{
   display:flex;align-items:center;gap:6px;
   background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);
@@ -8135,6 +8149,7 @@ function doQuit(){
     tStart=0;
   }
   const gbg=document.getElementById('game-bg');if(gbg)gbg.className='';
+  document.getElementById('game').classList.remove('vs-mode');
   // Persister le mode pour le retrouver à l'accueil
   try{localStorage.setItem('cq_last_mode',selMode);}catch(e){}
   go('home');refHome();applyNewBadges();
@@ -8441,7 +8456,22 @@ function openProfileStat(type){
       <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">${t} secondes au total</div>
     </div>
     <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;">
-      Temps moyen par partie : ${s.games?Math.round(t/s.games):0}s · Soit ${Math.floor(t/1200)} épisode${Math.floor(t/1200)>1?'s':''} des Simpsons (20 min chacun).
+      ${(()=>{
+        const avg = s.games ? Math.round(t/s.games) : 0;
+        let msg;
+        if(t < 60)          msg = "Même les génériques durent plus longtemps. Reviens vite !";
+        else if(t < 180)    msg = "Stanley Kubrick met plus de temps à cadrer un plan. C'est un début.";
+        else if(t < 600)    msg = "Durée d'une scène de Tarantino. Intense, non ?";
+        else if(t < 1200)   msg = "T'aurais pu regarder la bande-annonce 8 fois. Mais c'était mieux ici.";
+        else if(t < 2700)   msg = `Soit ${Math.floor(t/1200)} épisode${Math.floor(t/1200)>1?'s':''} des Simpsons (20 min chacun). T'es presque là.`;
+        else if(t < 3600)   msg = "Soit le premier acte d'un Scorsese. Et le meilleur reste à venir.";
+        else if(t < 7200)   msg = "Soit un film entier. Mais là, c'est toi le héros.";
+        else if(t < 10800)  msg = "David Lynch aurait déjà changé 3 fois de réalité avec ce temps-là.";
+        else if(t < 18000)  msg = "T'as le niveau pour écrire une critique sur Letterboxd. Chapeau.";
+        else if(t < 36000)  msg = "Durée d'Avengers Endgame × plusieurs fois. Toi t'as pas eu de scène post-générique, mais t'as tout donné.";
+        else                msg = "Ingmar Bergman aurait fait une trilogie avec ce temps-là. Légende.";
+        return `Temps moyen par partie : ${avg}s · ${msg}`;
+      })()}
     </div>`;
   } else if(type==='best'){
     title='⭐ Meilleur score';
@@ -16393,7 +16423,14 @@ function showToast(ok,pts,m,ans){
     tptsEl.textContent='+'+pts;
 
     // Message court et lisible
-    if(m>=3)tmsgEl.textContent='Ultra rapide ×3';
+    const ultraFastMsgs = [
+      'Flash Gordon serait jaloux ⚡',
+      'Même les sous-titres ont pas eu le temps',
+      'Tom Cruise en mode Mission Impossible',
+      'Plus rapide qu\'un jump cut de Godard',
+      'Le montage de Mad Max te remercie',
+    ];
+    if(m>=3)tmsgEl.textContent=ultraFastMsgs[Math.floor(Math.random()*ultraFastMsgs.length)];
     else if(m>=2)tmsgEl.textContent='Rapide ×2';
     else tmsgEl.textContent='Correct';
 
@@ -16883,11 +16920,11 @@ function showResult(s,xp){
   const pct=Math.round((okCnt/TOTAL)*100);
   const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):0;
   const lls=[
-    {min:0,  icon:'😅',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',t:'Débutant',s:"Continue de t'entraîner !"},
-    {min:30, icon:'🎬',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="2" y1="17" x2="7" y2="17"/></svg>',t:'Spectateur',s:'Tu connais quelques classiques'},
-    {min:50, icon:'⭐',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',t:'Cinéphile',s:'Pas mal du tout !'},
-    {min:70, icon:'🏆',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 0 0 5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 1 0 5H18"/><path d="M10 17.5v1.5a2 2 0 0 0 4 0v-1.5"/><line x1="8" y1="21" x2="16" y2="21"/><path d="M6 2h12v7a6 6 0 0 1-12 0V2z"/></svg>',t:'Critique',s:'Tu maîtrises le 7ème art !'},
-    {min:90, icon:'🎭',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-8 10-8 10 8 10 8"/><path d="M12 12a3 3 0 1 0 6 0"/><path d="M6 12a3 3 0 1 0 6 0"/><path d="M12 4v8"/></svg>',t:'Légende',s:'Perfection absolue !'}
+    {min:0,  icon:'😅',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',t:'Débutant',s:"Roger Ebert a mis 1 étoile à certains chefs-d'œuvre. T'es en bonne compagnie."},
+    {min:30, icon:'🎬',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="2" y1="17" x2="7" y2="17"/></svg>',t:'Spectateur',s:'Tu joues comme un film de Luc Besson : des hauts, des bas, mais on revient.'},
+    {min:50, icon:'⭐',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',t:'Cinéphile',s:'Solide. Tarantino aurait validé au moins la moitié de tes réponses.'},
+    {min:70, icon:'🏆',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 0 0 5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 1 0 5H18"/><path d="M10 17.5v1.5a2 2 0 0 0 4 0v-1.5"/><line x1="8" y1="21" x2="16" y2="21"/><path d="M6 2h12v7a6 6 0 0 1-12 0V2z"/></svg>',t:'Critique',s:"T'as le niveau pour écrire une critique sur Letterboxd. Chapeau."},
+    {min:90, icon:'🎭',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-8 10-8 10 8 10 8"/><path d="M12 12a3 3 0 1 0 6 0"/><path d="M6 12a3 3 0 1 0 6 0"/><path d="M12 4v8"/></svg>',t:'Légende',s:'Même les jurés de Cannes auraient applaudi debout.'}
   ];
   const ld=[...lls].reverse().find(l=>pct>=l.min)||lls[0];
   document.getElementById('ricon').innerHTML=ld.svg||ld.icon;
@@ -16916,8 +16953,12 @@ function showResult(s,xp){
   // ── Streak ──
   const streakEl=document.getElementById('r-streak-tip');
   if(streakEl){
-    if(s.streak>1)streakEl.textContent=`🔥 Série de ${s.streak} jours — Reviens demain !`;
-    else streakEl.textContent='📅 Joue chaque jour pour lancer ta série !';
+    if(s.streak>=30)     streakEl.textContent=`🌙 ${s.streak} jours ! Kubrick a mis 400 jours pour The Shining. T'es plus constant que lui.`;
+    else if(s.streak>=14)streakEl.textContent=`📆 ${s.streak} jours d'affilée. Même Scorsese prend des vacances.`;
+    else if(s.streak>=7) streakEl.textContent=`🌟 ${s.streak} jours — C'est le temps de tournage d'un film de Rohmer.`;
+    else if(s.streak>=3) streakEl.textContent=`🔥 Série de ${s.streak} jours — Même Spielberg prend des week-ends.`;
+    else if(s.streak>1)  streakEl.textContent=`🔥 Série de ${s.streak} jours — Continue, le générique n'est pas encore passé !`;
+    else                 streakEl.textContent='📅 Joue chaque jour pour lancer ta série !';
   }
 
   go('result');
@@ -17188,6 +17229,7 @@ function startVersus(){
   document.getElementById('tfil').style.width='0%';
   document.getElementById('tv').textContent='';
   document.getElementById('mbadge').style.display='none';
+  document.getElementById('game').classList.add('vs-mode');
   // Activer le scroll sur la zone de jeu
   qa.style.overflowY='auto';qa.style.justifyContent='flex-start';
 
@@ -17662,6 +17704,7 @@ function showVersusHandoff(playerName,cb){
 
 function endVersus(){
   cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
+  document.getElementById('game').classList.remove('vs-mode');
   const s=ls();s.versusGames=(s.versusGames||0)+1;ss(s);
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
@@ -17894,6 +17937,22 @@ function runSplash(){
   function startSequence(){
     sndClap();
     if(musOn)playMus();
+
+    // ── Message de retour après absence ──
+    try {
+      const _s = ls();
+      if(_s.lastDate){
+        const daysSince = Math.round((new Date() - new Date(_s.lastDate)) / 86400000);
+        if(daysSince >= 30){
+          setTimeout(()=>showBadgeToast({icon:'🎞️', name:'De retour !', sub:"Un mois d'absence — même Kubrick revenait finir ses films."}), 2200);
+        } else if(daysSince >= 7){
+          setTimeout(()=>showBadgeToast({icon:'🎬', name:'Content de te revoir !', sub:`${daysSince} jours sans jouer — comme une sortie Director's Cut : t'arrives au bon moment.`}), 2200);
+        } else if(daysSince >= 3){
+          setTimeout(()=>showBadgeToast({icon:'🍿', name:'Te revoilà !', sub:"Le film continuait sans toi. Reprends ta place."}), 2200);
+        }
+      }
+    } catch(e){}
+
     setTimeout(()=>{logo.classList.add('show');},100);
     setTimeout(()=>{curtain.classList.add('open');},600);
     setTimeout(()=>{
@@ -18268,6 +18327,47 @@ chkBadges=function(s){
 };
 
 function showBadgeToast(badge){
+  // ── Anecdotes ciné selon le badge débloqué ──
+  const badgeAnecdotes = {
+    'first':    'Bienvenue ! Même Spielberg a commencé par un premier film.',
+    'perf':     '10/10 ! Les jurés de Cannes se lèvent.',
+    'perf5':    '5 parties parfaites. Kubrick approuverait — lui qui refaisait 127 prises.',
+    'perf10':   '10 partaites. T\'es le Kubrick du quiz ciné.',
+    'perf20':   '20 parties parfaites. Intouchable. Littéralement.',
+    'fast5':    '5 réponses éclair. Flash Gordon serait jaloux.',
+    'fast50':   '50 réponses éclair. Plus rapide qu\'un jump cut de Godard.',
+    'fast100':  '100 réponses éclair. Le montage de Mad Max te remercie.',
+    'str3':     '3 jours d\'affilée. Même Spielberg prend des week-ends.',
+    'str7':     '7 jours ! C\'est le temps de tournage d\'un film de Rohmer.',
+    'str14':    '14 jours de suite. Scorsese met 3 ans à finir un film. Toi, tu reviens chaque jour.',
+    'str30':    '30 jours ! Kubrick a mis 400 jours pour The Shining. T\'es plus constant que lui.',
+    'str21':    '21 jours ! À ce rythme, t\'aurais pu écrire le script d\'un court-métrage.',
+    'g10':      '10 parties. Le 7ème art te tient. Et ça ne fait que commencer.',
+    'g50':      '50 parties. T\'as vu plus de films que la plupart des critiques.',
+    'g100':     '100 parties. Tarantino t\'embaucherait comme consultant.',
+    'g200':     '200 parties. À ce stade, t\'as un palmarès à Cannes.',
+    'g300':     '300 parties. Salle comble, chaque soir.',
+    'g500':     '500 parties. Légende absolue. Le générique final peut se lancer.',
+    's300':     'Plus de 300 pts ! Le box-office commence à s\'emballer.',
+    's500':     '500+ points. Champion. Harvey Weinstein t\'aurait signé un contrat.',
+    's900':     '900+ points. Maître du jeu. Hitchcock t\'aurait engagé comme script doctor.',
+    'best1000': '1 000 points ! Millionnaire du quiz. Citizen Kane du score.',
+    'best2000': '2 000 points ! T\'as dépassé le budget de Paranormal Activity.',
+    'combo5':   '5 bonnes d\'affilée. La série commence. Ne la brise pas.',
+    'combo10':  '10 en série ! Inarrêtable. Comme Chaplin sur un plateau.',
+    'combo15':  '15 d\'affilée. Supernova. La caméra n\'arrive plus à te suivre.',
+    'combo20':  '20 en série. Tornade. Même les sous-titres ont pris du retard.',
+    'xp1k':     '1 000 XP ! Tu montes en grade. Rôle principal confirmé.',
+    'xp2k':     '2 000 XP ! Étoile montante. Hollywood te surveille.',
+    'xp5k':     '5 000 XP ! Superstar. Ton étoile est sur le Walk of Fame.',
+    'xp10k':    '10 000 XP ! Icône du cinéma. Le 7ème art t\'appartient.',
+    't1h':      '1h de jeu. C\'est un film entier. Mais là, c\'est toi le héros.',
+    't5h':      '5h de jeu. David Lynch aurait déjà changé 3 fois de réalité.',
+    'allModes': 'Tous les modes joués ! Explorateur complet. Comme un réalisateur qui maîtrise chaque genre.',
+    'cineaste': 'Tous les 18 modes ! Cinéaste accompli. Scène post-générique débloquée.',
+    'projectionniste': 'Niveau maximum atteint. La salle t\'appartient, projectionniste.',
+  };
+
   const existing=document.getElementById('badge-toast');
   if(existing){
     existing.style.animation='badgeUnlockOut .35s cubic-bezier(.55,0,.45,1) both';
@@ -18276,7 +18376,8 @@ function showBadgeToast(badge){
 
   const el=document.createElement('div');
   el.id='badge-toast';
-  const sub=badge.sub||'Badge débloqué !';
+  const anecdote = badge.id ? (badgeAnecdotes[badge.id] || null) : null;
+  const sub = badge.sub || (anecdote ? anecdote : 'Badge débloqué !');
   const isBadge=!badge.sub;
 
   // Couleur d'accent selon le type
@@ -20305,8 +20406,8 @@ function startPong(){
   const doInit=()=>{
     const cv=document.getElementById('pong-canvas');
     const wrap=cv.parentElement;
-    const aw=wrap.clientWidth-4;
-    const ah=wrap.clientHeight-4;
+    const aw=Math.round((wrap.clientWidth-4)*0.82);
+    const ah=Math.round((wrap.clientHeight-4)*0.72);
     if(aw<=0||ah<=0){requestAnimationFrame(doInit);return;}
     cv.width=aw;cv.height=ah;
     cv.style.width=aw+'px';cv.style.height=ah+'px';
@@ -20804,6 +20905,22 @@ const HM_SECRET_FILMS = [
     clearTimeout(_lpTimer); _lpTimer=null;
   }
 
+  function _logoGlowPulse(logo, intensity){
+    // intensity : 0..1, croît avec le nombre de taps
+    const glow = Math.round(8 + intensity * 22);
+    const opacity = (0.55 + intensity * 0.45).toFixed(2);
+    const shake = intensity > 0.6 ? `translate(${(Math.random()-0.5)*3}px,${(Math.random()-0.5)*2}px)` : '';
+    logo.style.transition = 'filter 0.05s ease, transform 0.05s ease';
+    logo.style.filter = `drop-shadow(0 0 ${glow}px rgba(192,132,252,${opacity})) drop-shadow(0 0 ${glow*2}px rgba(168,85,247,${(opacity*0.5).toFixed(2)}))`;
+    logo.style.transform = shake;
+    clearTimeout(logo._glowTimer);
+    logo._glowTimer = setTimeout(()=>{
+      logo.style.transition = 'filter 0.4s ease, transform 0.2s ease';
+      logo.style.filter = 'drop-shadow(0 0 10px rgba(192,132,252,.45))';
+      logo.style.transform = '';
+    }, 120);
+  }
+
   function onTap(e){
     if(e.type==='click'&&e.sourceCapabilities?.firesTouchEvents)return;
     if(_waitingLongPress)return;
@@ -20812,6 +20929,9 @@ const HM_SECRET_FILMS = [
     if(_n>0&&now-(_t||0)>2500){_n=0;}
     _t=now;
     _n++;
+    // Feedback visuel : lueur violette + micro-vibration croissante
+    const logo = document.getElementById('hm-logo-trigger');
+    if(logo) _logoGlowPulse(logo, _n / TAPS);
     if(_n>=TAPS){
       _waitingLongPress=true;
     }
