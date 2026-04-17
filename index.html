@@ -1038,7 +1038,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 #jukebox{padding:max(54px,env(safe-area-inset-top)) 18px 0;display:flex;flex-direction:column;height:100%;}
 .jk-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;}
 .jk-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:3px;color:rgba(255,255,255,.6);}
-.jk-hero{display:flex;flex-direction:column;align-items:center;padding:8px 0 16px;gap:8px;flex-shrink:0;position:relative;}
+.jk-hero{display:flex;flex-direction:column;align-items:center;padding:8px 0 16px;gap:8px;flex-shrink:0;position:relative;perspective:600px;}
 /* Icône hero — swipeable */
 .jk-icon{
   width:90px;height:90px;border-radius:24px;
@@ -1048,7 +1048,9 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   user-select:none;-webkit-user-select:none;caret-color:transparent;
   pointer-events:all;touch-action:none;-webkit-appearance:none;line-height:1;overflow:hidden;
   transition:border-color .6s,box-shadow .6s,background .6s;
+  transform-style:preserve-3d;will-change:transform;cursor:grab;
 }
+.jk-icon:active{cursor:grabbing;}
 
 .jk-track{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);text-align:center;line-height:1.1;margin-top:2px;transition:color .5s;}
 .jk-mode{font-size:10px;color:rgba(255,255,255,.32);letter-spacing:1.5px;text-transform:uppercase;text-align:center;}
@@ -4179,6 +4181,11 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
   100%{opacity:0;}
 }
 @keyframes tapRing{from{transform:scale(.5);opacity:.9;}to{transform:scale(2);opacity:0;}}
+/* ─── AMBIANCE SALLE DE CINÉMA ─── */
+@keyframes hmScreenFlicker{
+  0%,100%{opacity:.6;}30%{opacity:1;}60%{opacity:.4;}80%{opacity:.8;}
+}
+
 
 
 #hm-viewer{
@@ -6171,7 +6178,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         </div>
         <div class="jk-random-btn" onclick="jkZapRandom()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
-          <span class="jk-random-btn-label">ALÉATOIRE</span>
+          <span class="jk-random-btn-label">ZAP</span>
         </div>
         <div class="jk-zap-btn" onclick="jkZapNext()" title="Chaîne suivante">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -18731,6 +18738,36 @@ function _jkKonamiInit(){
   icon.style.pointerEvents='all';
   icon.style.touchAction='none'; // empêcher le scroll natif sur cet élément
 
+  // ── Effet joystick ──
+  const JK_MAX_TILT=14;   // px de déplacement max
+  const JK_MAX_ROT=12;    // degrés de rotation max
+  const JK_MAX_DIST=60;   // distance doigt max prise en compte
+
+  function _jkTilt(dx,dy){
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const ratio=Math.min(dist,JK_MAX_DIST)/JK_MAX_DIST;
+    const nx=dx/Math.max(dist,1);
+    const ny=dy/Math.max(dist,1);
+    const tx=nx*ratio*JK_MAX_TILT;
+    const ty=ny*ratio*JK_MAX_TILT;
+    const rx=-ny*ratio*JK_MAX_ROT; // inclinaison avant/arrière
+    const ry= nx*ratio*JK_MAX_ROT; // inclinaison gauche/droite
+    icon.style.animation='none';
+    icon.style.transition='transform 0.05s linear';
+    icon.style.transform=`translate(${tx}px,${ty}px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.08)`;
+  }
+
+  function _jkRelease(){
+    icon.style.transition='transform 0.45s cubic-bezier(.34,1.56,.64,1)';
+    icon.style.transform='translate(0,0) rotateX(0deg) rotateY(0deg) scale(1)';
+    // Réactiver l'animation flottante après le rebond
+    setTimeout(()=>{
+      icon.style.transition='';
+      icon.style.transform='';
+      icon.style.animation='';
+    },480);
+  }
+
   let _tx=0,_ty=0,_active=false;
   const MIN_DIST=30; // pixels minimum pour valider un swipe
 
@@ -18741,6 +18778,14 @@ function _jkKonamiInit(){
     _active=true;
   },{passive:false});
 
+  icon.addEventListener('touchmove',e=>{
+    if(!_active)return;
+    e.preventDefault();e.stopPropagation();
+    const dx=e.touches[0].clientX-_tx;
+    const dy=e.touches[0].clientY-_ty;
+    _jkTilt(dx,dy);
+  },{passive:false});
+
   icon.addEventListener('touchend',e=>{
     if(!_active)return;
     e.preventDefault();e.stopPropagation();
@@ -18748,22 +18793,37 @@ function _jkKonamiInit(){
     const dx=e.changedTouches[0].clientX-_tx;
     const dy=e.changedTouches[0].clientY-_ty;
     const adx=Math.abs(dx), ady=Math.abs(dy);
+    _jkRelease();
     if(adx<MIN_DIST&&ady<MIN_DIST)return; // trop court — ignorer
     // Déterminer direction dominante
     if(adx>ady){_jkSwipe(dx>0?'right':'left');}
     else{_jkSwipe(dy>0?'down':'up');}
   },{passive:false});
 
+  icon.addEventListener('touchcancel',e=>{
+    _active=false;
+    _jkRelease();
+  },{passive:false});
+
   // Support souris (desktop)
   let _mx=0,_my=0,_mdown=false;
   icon.addEventListener('mousedown',e=>{_mx=e.clientX;_my=e.clientY;_mdown=true;});
+  icon.addEventListener('mousemove',e=>{
+    if(!_mdown)return;
+    _jkTilt(e.clientX-_mx,e.clientY-_my);
+  });
   icon.addEventListener('mouseup',e=>{
     if(!_mdown)return;_mdown=false;
     const dx=e.clientX-_mx,dy=e.clientY-_my;
     const adx=Math.abs(dx),ady=Math.abs(dy);
+    _jkRelease();
     if(adx<MIN_DIST&&ady<MIN_DIST)return;
     if(adx>ady){_jkSwipe(dx>0?'right':'left');}
     else{_jkSwipe(dy>0?'down':'up');}
+  });
+  icon.addEventListener('mouseleave',e=>{
+    if(!_mdown)return;_mdown=false;
+    _jkRelease();
   });
 }
 
@@ -19169,7 +19229,7 @@ function jkZapRandom(){
 }
 
 function jkVidEnded(){
-  jkZapNext();
+  jkZapRandom();
 }
 
 (function initJkSwipe(){
@@ -20639,6 +20699,7 @@ const HM_SECRET_FILMS = [
 })();
 let _hmSecretFilmIdx=Math.floor(Math.random()*HM_SECRET_FILMS.length);
 
+
 function openHMSecret(){
   const room=document.getElementById('hm-secret-room');
   if(!room)return;
@@ -20732,9 +20793,7 @@ function openHMSecret(){
     onReady: ()=>{
       room.style.opacity='1';room.style.pointerEvents='all';
       room.style.transition='opacity .3s ease';
-      setTimeout(()=>{
-
-      },80);
+      setTimeout(()=>{},80);
       // Musique secrète
       setTimeout(()=>{
         if(!window._secretAudio){
