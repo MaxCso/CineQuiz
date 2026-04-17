@@ -1520,8 +1520,9 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .vs-pc-btn.on{background:rgba(245,200,66,.14);border-color:rgba(245,200,66,.45);color:var(--gold);}
 .vs-players-inputs{display:flex;flex-direction:column;gap:7px;width:100%;}
 .vs-divider{font-family:'Bebas Neue',sans-serif;font-size:20px;color:rgba(255,255,255,.25);flex-shrink:0;}
-/* ── MODE VERSUS — masquer le bandeau haut inutile ── */
-#game.vs-mode .ghd{display:none;}
+/* ── MODE VERSUS — masquer les éléments inutiles, garder le bouton retour ── */
+#game.vs-mode .ghd{padding:max(14px,env(safe-area-inset-top,14px)) 18px 4px;justify-content:flex-start;}
+#game.vs-mode .ghd>div{display:none;}
 #game.vs-mode .twrap{display:none;}
 #game.vs-mode .pdots{display:none;}
 #game.vs-mode .survie-lives{display:none!important;}
@@ -10567,7 +10568,11 @@ const KNOWN_ACTORS=[
 function _preloadImg(url){
   return new Promise(resolve=>{
     const img=new Image();
-    img.onload=()=>resolve(true);
+    img.onload=()=>{
+      // Rejeter les images trop petites (placeholders TMDB) ou au mauvais format
+      if(img.naturalWidth<50||img.naturalHeight<50){resolve(false);return;}
+      resolve(true);
+    };
     img.onerror=()=>resolve(false);
     setTimeout(()=>resolve(false),5000);
     img.src=url;
@@ -15834,16 +15839,16 @@ function loadQ(){
       setTimeout(()=>{
         const expl=document.getElementById('vf-expl');
         const hint=document.getElementById('vf-tap-hint');
-        if(expl){
-          expl.classList.add('show');
-          // Tap sur l'explication = passer à la question suivante
-          expl.addEventListener('click',()=>{
-            if(!ansed)return;
-            if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
-            advanceQ();
-          },{once:true});
-        }
-        if(hint)hint.classList.add('show');
+        if(expl)expl.classList.add('show');
+        if(hint){hint.textContent='Toucher n\'importe où pour continuer ›';hint.classList.add('show');}
+        const gameEl=document.getElementById('game');
+        const _vfSkip=()=>{
+          if(!ansed)return;
+          gameEl.removeEventListener('click',_vfSkip);
+          if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+          advanceQ();
+        };
+        setTimeout(()=>gameEl.addEventListener('click',_vfSkip,{once:true}),350);
       },300);
     };
     btnV.onclick=()=>{if(!ansed)_vfHandle(0);};
@@ -16564,7 +16569,7 @@ function startTimer(){
     tLeft=Math.max(0,tLeft-dt);
     updateTimerUI();
     beep(Math.ceil(tLeft));
-    if(tLeft<=0){tInt=null;if(!ansed)handleAnswer(-1);return;}
+    if(tLeft<=0){tInt=null;if(!ansed){if(selMode==='versus'){const _ROUND_SIZE=5;const _pBlock=Math.floor(vsTurn/_ROUND_SIZE);const _qInRound=vsTurn%_ROUND_SIZE;const _roundNum=Math.floor(_pBlock/vsPlayers.length);const _qIdx=_roundNum*_ROUND_SIZE+_qInRound;const _q=vsQs[_qIdx];if(_q){if(_q.type==='versusfilms'&&window._vsVFAnswer)window._vsVFAnswer(-1);else handleVersusAnswer(-1,_q);}}else{handleAnswer(-1);}}return;}
     tInt=requestAnimationFrame(_timerLoop);
   }
   tInt=requestAnimationFrame(_timerLoop);
@@ -17286,8 +17291,16 @@ function startVersus(){
         <button class="vs-launch-btn" onclick="window._vsLaunch&&window._vsLaunch()">🎬 LANCER LE DUEL</button>
       </div>`;
   };
-  window._vsSetQType=(t)=>{_vsQType=t;renderSetup();};
-  window._vsSetPlayers=(n)=>{_nbP=n;renderSetup();};
+  window._vsSetQType=(t)=>{_vsQType=t;
+    const saved=Array.from({length:_nbP},(_,i)=>document.getElementById(`vs-p${i}-name`)?.value||'');
+    renderSetup();
+    saved.forEach((v,i)=>{const el=document.getElementById(`vs-p${i}-name`);if(el&&v)el.value=v;});
+  };
+  window._vsSetPlayers=(n)=>{
+    const saved=Array.from({length:Math.max(_nbP,n)},(_,i)=>document.getElementById(`vs-p${i}-name`)?.value||'');
+    _nbP=n;renderSetup();
+    saved.forEach((v,i)=>{const el=document.getElementById(`vs-p${i}-name`);if(el&&v)el.value=v;});
+  };
 
   renderSetup();
   window._vsSetNb=(n,el)=>{
@@ -17453,7 +17466,8 @@ function _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE){
       ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
       const elapsed=MAXT-tLeft;
       const m=elapsed<6?3:elapsed<13?2:1;
-      const ok=idx===q.correct;
+      const timedOut=idx===-1;
+      const ok=!timedOut&&idx===q.correct;
       const pts=ok?100*m:0;
       q.films.forEach((f,i)=>{
         const card=document.getElementById('vs-vf-card-'+i);
@@ -17467,13 +17481,15 @@ function _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE){
       if(scoreEl){scoreEl.textContent=`${curP.score} pts`;scoreEl.classList.remove('bump');void scoreEl.offsetWidth;scoreEl.classList.add('bump');}
       ok?sndOk(m):sndNo();
       const feedback=document.createElement('div');
-      feedback.style.cssText=`margin:10px 18px 0;padding:12px 15px;border-radius:14px;font-size:13px;line-height:1.5;animation:fadeScaleIn .25s ease both;cursor:pointer;user-select:none;flex-shrink:0;background:${ok?'rgba(46,204,113,.12)':'rgba(232,52,74,.1)'};border:1px solid ${ok?'rgba(46,204,113,.35)':'rgba(232,52,74,.3)'};`;
+      feedback.style.cssText=`margin:10px 18px 0;padding:12px 15px;border-radius:14px;font-size:13px;line-height:1.5;animation:fadeScaleIn .25s ease both;cursor:pointer;user-select:none;flex-shrink:0;background:${ok?'rgba(46,204,113,.12)':timedOut?'rgba(255,165,0,.1)':'rgba(232,52,74,.1)'};border:1px solid ${ok?'rgba(46,204,113,.35)':timedOut?'rgba(255,165,0,.35)':'rgba(232,52,74,.3)'};`;
       feedback.innerHTML=ok
         ?`<span style="color:var(--green);font-weight:700;">✓ Bonne réponse !</span><span style="color:rgba(255,255,255,.55);margin-left:6px;">+${pts} pts${m>=3?' ⚡':m>=2?' ✦':''}</span>`
-        :`<span style="color:var(--red);font-weight:700;">✗ Raté</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${q.films[q.correct].title}</strong></span>`;
+        :timedOut
+          ?`<span style="color:orange;font-weight:700;">⏱ Temps écoulé !</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${q.films[q.correct].title}</strong></span>`
+          :`<span style="color:var(--red);font-weight:700;">✗ Raté</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${q.films[q.correct].title}</strong></span>`;
       const hint=document.createElement('div');hint.style.cssText='font-size:10px;color:rgba(255,255,255,.22);margin-top:5px;';hint.textContent='Toucher pour continuer ›';
       feedback.appendChild(hint);qa.appendChild(feedback);
-      let _t=setTimeout(()=>_vsAdv(),ok?1400:2200);
+      let _t=setTimeout(()=>_vsAdv(),ok?1400:2400);
       function _vsAdv(){clearTimeout(_t);feedback.removeEventListener('click',_vsAdv);vsTurn++;loadVersusQ();}
       feedback.addEventListener('click',_vsAdv,{once:true});
     };
@@ -17493,10 +17509,10 @@ function _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE){
       Tour de <strong style="color:${VS_COLORS[vsCurIdx]}">${curP.name}</strong> — Manche ${roundNum}/${totalRounds}
     </div>
     <div class="qtl">${q.category}</div>
-    <img src="${imgSrc}" alt="" style="width:${isPhoto?'120px':'100px'};${isPhoto?'aspect-ratio:.67':'aspect-ratio:1;border-radius:50%'};object-fit:cover;display:block;margin:6px auto;border-radius:${isPhoto?'10px':'50%'};filter:blur(6px) brightness(.85);transition:filter .5s;" id="vs-reveal-img" onerror="this.style.display='none'">
+    <img src="${imgSrc}" alt="" style="width:${isPhoto?'120px':'100px'};${isPhoto?'aspect-ratio:.67':'aspect-ratio:1;border-radius:50%'};object-fit:cover;display:block;margin:6px auto;border-radius:${isPhoto?'10px':'50%'};filter:blur(12px) brightness(.7);transition:filter 18s linear;" id="vs-reveal-img" onerror="this.style.display='none'">
     <div class="qtxt" style="text-align:center;">${questionText}</div>`;
-    // Déflou progressif
-    setTimeout(()=>{const img=document.getElementById('vs-reveal-img');if(img)img.style.filter='blur(0) brightness(1)';},800);
+    // Déflou progressif sur toute la durée du timer
+    setTimeout(()=>{const img=document.getElementById('vs-reveal-img');if(img)img.style.filter='blur(0) brightness(1)';},200);
     q.answers.forEach((a,i)=>{
       const b=mkBtn(a,i);
       b.onclick=()=>{if(!ansed)handleVersusAnswer(i,q);};
@@ -17525,7 +17541,13 @@ function _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE){
     b.onclick=()=>{
       if(!ansed){
         handleVersusAnswer(i,q);
-        if(isVF){setTimeout(()=>{const e=document.getElementById('vf-expl');if(e)e.classList.add('show');},300);}
+        if(isVF){setTimeout(()=>{
+          const e=document.getElementById('vf-expl');
+          if(e)e.classList.add('show');
+          const gameEl=document.getElementById('game');
+          const _vfVsSkip=()=>{gameEl.removeEventListener('click',_vfVsSkip);};
+          // Le tap anywhere est déjà géré par le feedback de handleVersusAnswer
+        },300);}
       }
     };
     grid.appendChild(b);
@@ -17539,8 +17561,13 @@ function handleVersusAnswer(idx,q){
   ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   const elapsed=MAXT-tLeft;
   const m=elapsed<6?3:elapsed<13?2:1;
-  const ok=idx===q.correct;
+  const timedOut=idx===-1;
+  const ok=!timedOut&&idx===q.correct;
   const pts=ok?100*m:0;
+
+  // Déflou immédiat de l'image si applicable
+  const revImg=document.getElementById('vs-reveal-img');
+  if(revImg){revImg.style.transition='filter .4s';revImg.style.filter='blur(0) brightness(1)';}
 
   const btns=Array.from(document.querySelectorAll('#agrid .ab'));
   btns.forEach(b=>b.disabled=true);
@@ -17550,30 +17577,27 @@ function handleVersusAnswer(idx,q){
   const curP=vsPlayers[vsCurIdx];
   curP.score+=pts;if(ok)curP.correct++;curP.dots.push(ok);
 
-  // Afficher le score delta flottant sur le scoreboard
-  const color=VS_COLORS[vsCurIdx];
   const scoreEl=document.getElementById('scorehd');
   if(scoreEl){scoreEl.textContent=`${curP.score} pts`;scoreEl.classList.remove('bump');void scoreEl.offsetWidth;scoreEl.classList.add('bump');}
 
-  // Feedback visuel in-place : bandeau résultat sous la question
   const qa=document.getElementById('qa');
   const feedback=document.createElement('div');
   feedback.style.cssText=`margin:10px 18px 0;padding:12px 15px;border-radius:14px;font-size:13px;line-height:1.5;animation:fadeScaleIn .25s ease both;cursor:pointer;user-select:none;flex-shrink:0;
-    background:${ok?'rgba(46,204,113,.12)':'rgba(232,52,74,.1)'};
-    border:1px solid ${ok?'rgba(46,204,113,.35)':'rgba(232,52,74,.3)'};`;
+    background:${ok?'rgba(46,204,113,.12)':timedOut?'rgba(255,165,0,.1)':'rgba(232,52,74,.1)'};
+    border:1px solid ${ok?'rgba(46,204,113,.35)':timedOut?'rgba(255,165,0,.35)':'rgba(232,52,74,.3)'};`;
   const correctLabel=q.answers[q.correct];
   feedback.innerHTML=ok
     ? `<span style="color:var(--green);font-weight:700;">✓ Bonne réponse !</span><span style="color:rgba(255,255,255,.55);margin-left:6px;">+${pts} pts${m>=3?' ⚡':m>=2?' ✦':''}</span>`
-    : `<span style="color:var(--red);font-weight:700;">✗ Raté</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${correctLabel}</strong></span>`;
-  // Sous-ligne tap pour passer
+    : timedOut
+      ? `<span style="color:orange;font-weight:700;">⏱ Temps écoulé !</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${correctLabel}</strong></span>`
+      : `<span style="color:var(--red);font-weight:700;">✗ Raté</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${correctLabel}</strong></span>`;
   const hint=document.createElement('div');
   hint.style.cssText='font-size:10px;color:rgba(255,255,255,.22);margin-top:5px;letter-spacing:.3px;';
   hint.textContent='Toucher pour continuer ›';
   feedback.appendChild(hint);
   qa.appendChild(feedback);
 
-  // Tap sur le feedback = avancer immédiatement
-  let _vsAdvTimer=setTimeout(()=>{_vsAdvance();},ok?1400:2200);
+  let _vsAdvTimer=setTimeout(()=>{_vsAdvance();},ok?1400:2400);
   function _vsAdvance(){
     clearTimeout(_vsAdvTimer);
     feedback.removeEventListener('click',_vsAdvance);
