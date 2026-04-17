@@ -7281,7 +7281,7 @@ const MUSIC_LABELS={
   quiz:        {icon:'🌊',label:'Trivia Ciné'},
   photo:       {icon:'🎹',label:'Affiche Mystère'},
   year:        {icon:'✨',label:'Quelle Année'},
-  replique:    {icon:'🚕',label:'New York, 1976'},
+  replique:    {icon:'🚕',label:'Accueil'},
   acteur:      {icon:'🤝',label:'Acteur Mystère'},
   boxoffice:   {icon:'🛣️',label:'Box-office'},
   bo:          {icon:'🔺',label:'Indices Mystère'},
@@ -7425,7 +7425,7 @@ function toggleMusic(){
 const MUSIC_MANAGER_KEYS=['replique','quiz','photo','year','home','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','quiadit','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9','jk10','jk11','jk12','jk13','jk14','jk15','jk16'];
 
 function getAmbientKey(){
-  try{return localStorage.getItem('cq_ambient_key')||'home';}catch{return'home';}
+  try{return localStorage.getItem('cq_ambient_key')||'replique';}catch{return'replique';}
 }
 function setAmbientKey(key){
   try{localStorage.setItem('cq_ambient_key',key);}catch{}
@@ -17203,9 +17203,12 @@ function startVersus(){
   ];
 
   const VS_Q_TYPES=[
-    {id:'trivia', label:'❓ Trivia',   desc:'Questions culture ciné'},
-    {id:'vraifaux',label:'✅ Vrai/Faux',desc:'Questions vrai ou faux'},
-    {id:'mixed',  label:'🎲 Mix',      desc:'Mélange de tout'},
+    {id:'trivia',      label:'❓ Trivia',         desc:'Questions culture ciné'},
+    {id:'vraifaux',    label:'✅ Vrai/Faux',       desc:'Questions vrai ou faux'},
+    {id:'photo',       label:'🎬 Affiche',         desc:'Identifie l\'affiche'},
+    {id:'acteur',      label:'👤 Acteur',          desc:'Qui est cet acteur ?'},
+    {id:'versusfilms', label:'📊 Versus Films',    desc:'Lequel gagne ?'},
+    {id:'mixed',       label:'🎲 Mix',             desc:'Mélange de tout'},
   ];
   let _vsQType='trivia';
 
@@ -17228,8 +17231,8 @@ function startVersus(){
         </div>
         <div class="vs-players-inputs" id="vs-inputs">${inputs}</div>
         <div class="vs-nb-label">Type de questions</div>
-        <div style="display:flex;gap:8px;width:100%;">
-          ${VS_Q_TYPES.map(t=>`<div onclick="window._vsSetQType('${t.id}')" style="flex:1;background:${_vsQType===t.id?'rgba(245,200,66,.15)':'rgba(255,255,255,.04)'};border:1px solid ${_vsQType===t.id?'rgba(245,200,66,.5)':'rgba(255,255,255,.1)'};border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;">
+          ${VS_Q_TYPES.map(t=>`<div onclick="window._vsSetQType('${t.id}')" style="background:${_vsQType===t.id?'rgba(245,200,66,.15)':'rgba(255,255,255,.04)'};border:1px solid ${_vsQType===t.id?'rgba(245,200,66,.5)':'rgba(255,255,255,.1)'};border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;">
             <div style="font-size:14px;margin-bottom:3px;">${t.label}</div>
             <div style="font-size:9px;color:rgba(255,255,255,.35);">${t.desc}</div>
           </div>`).join('')}
@@ -17250,7 +17253,7 @@ function startVersus(){
     document.querySelectorAll('.vs-nb-btn').forEach(b=>b.classList.remove('on'));
     el.classList.add('on');
   };
-  window._vsLaunch=()=>{
+  window._vsLaunch=async()=>{
     vsPlayers=Array.from({length:_nbP},(_,i)=>{
       const n=(document.getElementById(`vs-p${i}-name`)?.value||'').trim()||`Joueur ${i+1}`;
       return{name:n,score:0,correct:0,dots:[]};
@@ -17258,6 +17261,17 @@ function startVersus(){
     vsP1=vsPlayers[0];vsP2=vsPlayers[1]||vsPlayers[0];
     vsP1Dots=vsPlayers[0].dots;vsP2Dots=(vsPlayers[1]||vsPlayers[0]).dots;
     vsCurIdx=0;vsTurn=0;vsTotal=_nbQ;
+
+    // Écran de chargement si fetch nécessaire
+    const needsFetch=_vsQType==='photo'||_vsQType==='acteur'||_vsQType==='versusfilms'||_vsQType==='mixed';
+    if(needsFetch){
+      qa.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 24px;">
+        <div style="font-size:32px;">⏳</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);">CHARGEMENT…</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.35);">Récupération des questions</div>
+      </div>`;
+    }
+
     let vsPool=[];
     if(_vsQType==='trivia'||_vsQType==='mixed'){
       const trivPool=shuffle([...TRIVIA_FR]).slice(0,vsTotal);
@@ -17266,6 +17280,25 @@ function startVersus(){
     if(_vsQType==='vraifaux'||_vsQType==='mixed'){
       const vfPool=shuffle([...VRAI_FAUX]).slice(0,vsTotal);
       vsPool=[...vsPool,...vfPool.map(q=>({type:'vraifaux',text:q.q,answers:['VRAI ✓','FAUX ✗'],correct:q.ans?0:1,expl:q.expl,category:'✅ Vrai/Faux'}))];
+    }
+    if(_vsQType==='photo'||_vsQType==='mixed'){
+      try{
+        const movies=await fetchMovies(POOL,vsTotal+5);
+        const photoQs=movies.map((m,i)=>{const others=movies.filter((_,j)=>j!==i);const w=shuffle(others).slice(0,3).map(o=>o.title);const a=shuffle([m.title,...w]);return{type:'photo',title:m.title,poster:m.poster,year:m.year,genre:m.genre,answers:a,correct:a.indexOf(m.title),difficulty:'medium',category:'🎬 Affiche Mystère'};});
+        vsPool=[...vsPool,...photoQs];
+      }catch(e){}
+    }
+    if(_vsQType==='acteur'||_vsQType==='mixed'){
+      try{
+        const acteurQs=await fetchActorQuestions(vsTotal);
+        vsPool=[...vsPool,...acteurQs.map(q=>({...q,category:'👤 Acteur Mystère'}))];
+      }catch(e){}
+    }
+    if(_vsQType==='versusfilms'||_vsQType==='mixed'){
+      try{
+        const vfQs=await fetchVersusQuestions(vsTotal);
+        vsPool=[...vsPool,...vfQs];
+      }catch(e){}
     }
     vsQs=shuffle(vsPool).slice(0,vsTotal);
     dotRes=[];score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];missedArr=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
@@ -17348,6 +17381,90 @@ function _doLoadVersusQ(qIdx, curP, q, questionInRound, ROUND_SIZE){
 
   // Rendu adapté au type de question
   const isVF=q.type==='vraifaux';
+  const isPhoto=q.type==='photo';
+  const isActeur=q.type==='acteur';
+  const isVersusFilms=q.type==='versusfilms';
+
+  if(isVersusFilms){
+    qa.style.overflowY='hidden';
+    qa.innerHTML=`
+    <div class="vs-scoreboard${isManyPlayers?' many':''}">${scoreboard}</div>
+    <div class="vs-turn-badge">
+      <span class="vs-turn-icon">${VS_ICONS[vsCurIdx]}</span>
+      Tour de <strong style="color:${VS_COLORS[vsCurIdx]}">${curP.name}</strong> — Manche ${roundNum}/${totalRounds}
+    </div>
+    <div class="qtl">${q.category||'📊 Versus Films'}</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.45);text-align:center;margin:4px 0 8px;">Lequel a le plus grand <strong style="color:var(--gold)">${q.criterion.emoji} ${q.criterion.label}</strong> ?</div>
+    <div style="display:flex;gap:10px;padding:0 4px;">
+      ${q.films.map((f,i)=>`
+      <div id="vs-vf-card-${i}" onclick="window._vsVFAnswer(${i})" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .2s;active:scale(.97)">
+        <img src="${f.poster}" alt="${f.title}" style="width:100%;aspect-ratio:.67;object-fit:cover;display:block;" onerror="this.style.background='var(--sf2)'">
+        <div style="padding:8px 10px;">
+          <div style="font-size:11px;font-weight:600;color:var(--tx);line-height:1.3;">${f.title}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;">${f.year||''}</div>
+          <div id="vs-vf-rev-${i}" style="font-size:11px;font-weight:700;color:var(--gold);margin-top:4px;min-height:16px;"></div>
+        </div>
+      </div>`).join('<div style="display:flex;align-items:center;font-family:Bebas Neue,sans-serif;font-size:18px;color:rgba(255,255,255,.3);flex-shrink:0;">VS</div>')}
+    </div>`;
+    window._vsVFAnswer=(idx)=>{
+      if(ansed)return;
+      ansed=true;cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
+      const elapsed=MAXT-tLeft;
+      const m=elapsed<6?3:elapsed<13?2:1;
+      const ok=idx===q.correct;
+      const pts=ok?100*m:0;
+      q.films.forEach((f,i)=>{
+        const card=document.getElementById('vs-vf-card-'+i);
+        const rev=document.getElementById('vs-vf-rev-'+i);
+        if(card){card.style.borderColor=i===q.correct?'rgba(46,204,113,.6)':'rgba(232,52,74,.4)';card.style.background=i===q.correct?'rgba(46,204,113,.08)':'rgba(232,52,74,.06)';}
+        if(rev)rev.textContent=q.criterion.format(f.value);
+      });
+      const curP=vsPlayers[vsCurIdx];
+      curP.score+=pts;if(ok)curP.correct++;curP.dots.push(ok);
+      const scoreEl=document.getElementById('scorehd');
+      if(scoreEl){scoreEl.textContent=`${curP.score} pts`;scoreEl.classList.remove('bump');void scoreEl.offsetWidth;scoreEl.classList.add('bump');}
+      ok?sndOk(m):sndNo();
+      const feedback=document.createElement('div');
+      feedback.style.cssText=`margin:10px 18px 0;padding:12px 15px;border-radius:14px;font-size:13px;line-height:1.5;animation:fadeScaleIn .25s ease both;cursor:pointer;user-select:none;flex-shrink:0;background:${ok?'rgba(46,204,113,.12)':'rgba(232,52,74,.1)'};border:1px solid ${ok?'rgba(46,204,113,.35)':'rgba(232,52,74,.3)'};`;
+      feedback.innerHTML=ok
+        ?`<span style="color:var(--green);font-weight:700;">✓ Bonne réponse !</span><span style="color:rgba(255,255,255,.55);margin-left:6px;">+${pts} pts${m>=3?' ⚡':m>=2?' ✦':''}</span>`
+        :`<span style="color:var(--red);font-weight:700;">✗ Raté</span><span style="color:rgba(255,255,255,.45);margin-left:6px;">→ <strong style="color:rgba(255,255,255,.75);">${q.films[q.correct].title}</strong></span>`;
+      const hint=document.createElement('div');hint.style.cssText='font-size:10px;color:rgba(255,255,255,.22);margin-top:5px;';hint.textContent='Toucher pour continuer ›';
+      feedback.appendChild(hint);qa.appendChild(feedback);
+      let _t=setTimeout(()=>_vsAdv(),ok?1400:2200);
+      function _vsAdv(){clearTimeout(_t);feedback.removeEventListener('click',_vsAdv);vsTurn++;loadVersusQ();}
+      feedback.addEventListener('click',_vsAdv,{once:true});
+    };
+    document.getElementById('mbadge').style.display='none';
+    buildDots();startTimer();
+    return;
+  }
+
+  if(isPhoto||isActeur){
+    qa.style.overflowY='auto';
+    const imgSrc=isPhoto?q.poster:q.photo;
+    const questionText=isPhoto?`Quel est ce film ?`:`Qui est cet acteur / cette actrice ?`;
+    qa.innerHTML=`
+    <div class="vs-scoreboard${isManyPlayers?' many':''}">${scoreboard}</div>
+    <div class="vs-turn-badge">
+      <span class="vs-turn-icon">${VS_ICONS[vsCurIdx]}</span>
+      Tour de <strong style="color:${VS_COLORS[vsCurIdx]}">${curP.name}</strong> — Manche ${roundNum}/${totalRounds}
+    </div>
+    <div class="qtl">${q.category}</div>
+    <img src="${imgSrc}" alt="" style="width:${isPhoto?'120px':'100px'};${isPhoto?'aspect-ratio:.67':'aspect-ratio:1;border-radius:50%'};object-fit:cover;display:block;margin:6px auto;border-radius:${isPhoto?'10px':'50%'};filter:blur(6px) brightness(.85);transition:filter .5s;" id="vs-reveal-img" onerror="this.style.display='none'">
+    <div class="qtxt" style="text-align:center;">${questionText}</div>`;
+    // Déflou progressif
+    setTimeout(()=>{const img=document.getElementById('vs-reveal-img');if(img)img.style.filter='blur(0) brightness(1)';},800);
+    q.answers.forEach((a,i)=>{
+      const b=mkBtn(a,i);
+      b.onclick=()=>{if(!ansed)handleVersusAnswer(i,q);};
+      grid.appendChild(b);
+    });
+    document.getElementById('mbadge').style.display='none';
+    buildDots();startTimer();
+    return;
+  }
+
   qa.innerHTML=`
     <div class="vs-scoreboard${isManyPlayers?' many':''}">${scoreboard}</div>
     <div class="vs-turn-badge">
@@ -18323,7 +18440,7 @@ function shareProfileCard(){
 // ══════════════════════════════════════
 // JUKEBOX — mini-player + écran dédié
 // ══════════════════════════════════════
-let _jkIdx=0; // Taxi Driver par défaut
+let _jkIdx=0; // Accueil par défaut
 let _jkProgInt=null;
 let _jkShuffle=false;
 let _jkShuffleQueue=[];
