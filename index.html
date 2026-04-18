@@ -6387,6 +6387,13 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
         <div class="jk-btn" onclick="playerPrev()"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="19,20 9,12 19,4"/><rect x="5" y="4" width="3" height="16" rx="1.5"/></svg></div>
         <div class="jk-btn main" id="jk-play-btn" onclick="playerPlayPause()"><svg id="jk-play-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></div>
         <div class="jk-btn" onclick="playerNext()"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,4 15,12 5,20"/><rect x="16" y="4" width="3" height="16" rx="1.5"/></svg></div>
+        <div class="jk-btn" id="jk-mute-btn" onclick="jkToggleMute()" title="Muet">
+          <svg id="jk-mute-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            <path id="jk-mute-wave2" d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+        </div>
       </div>
     </div>
 
@@ -7589,11 +7596,15 @@ const MUSIC_FILES={
   versusfilms: 'music-jk2.mp3',
   survie:      'music-jk3.mp3',
   reco:        "La femme d'argent.mp3",
+  rebus:       'Everything In Its Right Place.mp3',
+  pendu:       'Svefn-g-englar.mp3',
   // Jeux arcade — pistes dédiées
   speedquiz:   'music-jk5.mp3',
   invaders:    'Shot In The Back Of The Head.mp3',
   pong:        'In The Waiting Line.mp3',
   memory:      'All That We Perceive.mp3',
+  bobine:      'Donkey.mp3',
+  doodle:      'Memory Gospel.mp3',
 };
 
 // Noms réels des musiques
@@ -7720,15 +7731,15 @@ const MUSIC_LABELS={
   jk4:         {icon:'🎬',label:'Recommandation'},
   jk5:         {icon:'💀',label:'Maître Cinéphile'},
   jk6:         {icon:'🌌',label:'All That We Perceive'},
-  jk7:         {icon:'🟡',label:'Everything In Its Right Place'},
+  jk7:         {icon:'🎭',label:'Le Rébus'},
   jk8:         {icon:'⏳',label:'In The Waiting Line'},
   jk9:         {icon:'🇫🇷',label:"La Femme d'Argent"},
-  jk10:        {icon:'🙏',label:'Memory Gospel'},
-  jk11:        {icon:'🫏',label:'Donkey'},
+  jk10:        {icon:'🪀',label:'Doodle Ciné'},
+  jk11:        {icon:'🎞️',label:'Bobine Infinie'},
   jk12:        {icon:'🦕',label:'Jurassic Park'},
   jk13:        {icon:'🎵',label:'Shot In The Back Of The Head'},
   jk14:        {icon:'🎻',label:'Bitter Sweet Symphony'},
-  jk15:        {icon:'❄️',label:'Svefn-g-englar'},
+  jk15:        {icon:'💀',label:'Le Pendu'},
   jk16:        {icon:'🌹',label:'American Beauty'},
 };
 
@@ -8431,136 +8442,29 @@ function loadTheme(){
   }
 }
 
-// ── HAPTIQUE — Hybride iOS Safari (Web Audio) + Android (Vibration API) ──
-// Sur Safari iOS, navigator.vibrate n'existe pas. On utilise des impulsions
-// Web Audio ultra-courtes (sine burst) qui déclenchent le Taptic Engine iOS.
-// Sur Android/Chrome, on garde navigator.vibrate en complément.
-(function(){
-  // Génère un burst audio court qui déclenche le Taptic Engine iOS
-  function _tapticBurst(patterns){
-    // patterns = [{freq, vol, dur, delay}, ...]
-    const ctx = ac(); if(!ctx) return;
-    try{
-      patterns.forEach(({freq=200, vol=0.9, dur=0.012, delay=0})=>{
-        const t = ctx.currentTime + delay;
-        const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate*dur), ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for(let i=0;i<data.length;i++){
-          // Sine wave avec envelope rapide — c'est la forme d'onde qui active le moteur
-          const env = Math.sin(Math.PI * i/data.length);
-          data[i] = Math.sin(2*Math.PI*freq*i/ctx.sampleRate) * env * vol;
-        }
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        // Gain très bas — on ne veut pas entendre le son, juste sentir la vibration
-        // Sur iOS le Taptic Engine se déclenche même à faible volume audio
-        const g = ctx.createGain();
-        g.gain.value = 0.06;
-        src.connect(g); g.connect(ctx.destination);
-        src.start(t);
-      });
-    }catch(e){}
+// ── HAPTIQUE ──
+// Android/Chrome : navigator.vibrate (natif)
+// iOS Safari : le Taptic Engine N'EST PAS accessible depuis le web —
+// aucune API publique ne le permet (Web Audio ne déclenche pas de vibration).
+// On garde uniquement navigator.vibrate pour Android.
+function haptic(type){
+  if(!navigator.vibrate) return;
+  switch(type){
+    case 'ok':        navigator.vibrate([12]); break;
+    case 'no':        navigator.vibrate([40,15,40]); break;
+    case 'combo':     navigator.vibrate([10,40,10,40,18]); break;
+    case 'clap':      navigator.vibrate([6,25,6]); break;
+    case 'levelup':
+    case 'lvlup':     navigator.vibrate([15,25,15,25,15,25,80]); break;
+    case 'select':
+    case 'tap':       navigator.vibrate([6]); break;
+    case 'swipe':     navigator.vibrate([4]); break;
+    case 'win':       navigator.vibrate([15,20,15,20,15,20,80]); break;
+    case 'perfect':   navigator.vibrate([10,20,10,20,10,20,60]); break;
+    case 'tick':      navigator.vibrate([4]); break;
+    case 'countdown': navigator.vibrate([8]); break;
   }
-
-  const _isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
-                 (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-
-  window.haptic = function(type){
-    // Android / Chrome : Vibration API
-    if(navigator.vibrate){
-      switch(type){
-        case 'ok':        navigator.vibrate([12]); break;
-        case 'no':        navigator.vibrate([40,15,40]); break;
-        case 'combo':     navigator.vibrate([10,40,10,40,18]); break;
-        case 'clap':      navigator.vibrate([6,25,6]); break;
-        case 'levelup':   navigator.vibrate([15,25,15,25,15,25,80]); break;
-        case 'lvlup':     navigator.vibrate([15,25,15,25,15,25,80]); break;
-        case 'select':    navigator.vibrate([6]); break;
-        case 'tap':       navigator.vibrate([6]); break;
-        case 'swipe':     navigator.vibrate([4]); break;
-        case 'win':       navigator.vibrate([15,20,15,20,15,20,80]); break;
-        case 'perfect':   navigator.vibrate([10,20,10,20,10,20,60]); break;
-        case 'tick':      navigator.vibrate([4]); break;
-        case 'countdown': navigator.vibrate([8]); break;
-      }
-    }
-
-    // iOS Safari : Web Audio Taptic pulses
-    // Ne se déclenche que si un AudioContext est actif (après un geste utilisateur)
-    if(!_isIOS) return;
-    switch(type){
-      // Bonne réponse — 1 pulse net
-      case 'ok':
-        _tapticBurst([{freq:180, vol:1, dur:0.014, delay:0}]);
-        break;
-      // Mauvaise réponse — 2 pulses lourds
-      case 'no':
-        _tapticBurst([
-          {freq:100, vol:1, dur:0.022, delay:0},
-          {freq:90,  vol:0.9, dur:0.022, delay:0.055},
-        ]);
-        break;
-      // Combo — 3 pulses rapides croissants
-      case 'combo':
-        _tapticBurst([
-          {freq:160, vol:0.8, dur:0.012, delay:0},
-          {freq:180, vol:0.9, dur:0.012, delay:0.045},
-          {freq:220, vol:1,   dur:0.014, delay:0.09},
-        ]);
-        break;
-      // Clap — 2 pulses syncopés
-      case 'clap':
-        _tapticBurst([
-          {freq:200, vol:0.9, dur:0.010, delay:0},
-          {freq:200, vol:0.7, dur:0.010, delay:0.028},
-        ]);
-        break;
-      // Level up — montée en 4 pulses
-      case 'levelup': case 'lvlup':
-        _tapticBurst([
-          {freq:140, vol:0.7, dur:0.014, delay:0},
-          {freq:180, vol:0.8, dur:0.014, delay:0.06},
-          {freq:220, vol:0.9, dur:0.014, delay:0.12},
-          {freq:280, vol:1,   dur:0.022, delay:0.2},
-        ]);
-        break;
-      // Select / tap — 1 pulse léger
-      case 'select': case 'tap':
-        _tapticBurst([{freq:200, vol:0.7, dur:0.010, delay:0}]);
-        break;
-      // Swipe — très court
-      case 'swipe':
-        _tapticBurst([{freq:220, vol:0.6, dur:0.008, delay:0}]);
-        break;
-      // Victoire — 5 pulses festifs
-      case 'win':
-        _tapticBurst([
-          {freq:160, vol:0.8, dur:0.012, delay:0},
-          {freq:180, vol:0.8, dur:0.012, delay:0.05},
-          {freq:200, vol:0.9, dur:0.012, delay:0.10},
-          {freq:240, vol:0.9, dur:0.012, delay:0.16},
-          {freq:300, vol:1,   dur:0.020, delay:0.24},
-        ]);
-        break;
-      // Parfait — comme win mais plus intense
-      case 'perfect':
-        _tapticBurst([
-          {freq:200, vol:1,   dur:0.014, delay:0},
-          {freq:200, vol:1,   dur:0.014, delay:0.04},
-          {freq:280, vol:1,   dur:0.022, delay:0.10},
-        ]);
-        break;
-      // Tick — micro-pulse
-      case 'tick':
-        _tapticBurst([{freq:300, vol:0.5, dur:0.006, delay:0}]);
-        break;
-      // Countdown — pulse moyen
-      case 'countdown':
-        _tapticBurst([{freq:160, vol:0.8, dur:0.012, delay:0}]);
-        break;
-    }
-  };
-})();
+}
 
 // -- SON CLAQUETTE (splash) --
 function sndClap(){
@@ -12389,8 +12293,8 @@ const go=id=>{
     if(id==='game'){switchMusic(selMode,0.22);}
     else if(id==='home'){switchMusic('home',0.3);}
     else if(id==='arcade-menu'){if(musOn)switchMusic('arcade',0.25);}
-    else if(['arc-snake','arc-bricks','arc-morpion','arc-memory','arc-slots','arc-invaders','arc-pong','arc-speedquiz'].includes(id)){
-      const gameKey={'arc-snake':'snake','arc-bricks':'bricks','arc-morpion':'morpion','arc-memory':'memory','arc-slots':'slots','arc-invaders':'invaders','arc-pong':'pong','arc-speedquiz':'speedquiz'}[id];
+    else if(['arc-snake','arc-bricks','arc-morpion','arc-memory','arc-slots','arc-invaders','arc-pong','arc-speedquiz','arc-bobine','arc-doodle'].includes(id)){
+      const gameKey={'arc-snake':'snake','arc-bricks':'bricks','arc-morpion':'morpion','arc-memory':'memory','arc-slots':'slots','arc-invaders':'invaders','arc-pong':'pong','arc-speedquiz':'speedquiz','arc-bobine':'bobine','arc-doodle':'doodle'}[id];
       if(musOn&&gameKey)switchMusic(gameKey,0.22);
     } else if(['result','lvlup'].includes(id)){fadeMus(0.15,600);}
   };
@@ -19596,6 +19500,42 @@ function toggleJkShuffle(){
   const btn=document.getElementById('jk-shuffle-btn');
   if(btn){btn.style.color=_jkShuffle?'var(--gold)':'rgba(255,255,255,.6)';btn.style.borderColor=_jkShuffle?'rgba(245,200,66,.4)':'rgba(255,255,255,.11)';}
 }
+
+function jkToggleMute(){
+  musOn=!musOn;
+  if(musOn){
+    playMus();
+  } else {
+    stopMus();
+  }
+  _jkUpdateMuteBtn();
+  // Sync le bouton musique dans la home
+  const bm=document.getElementById('btn-music');
+  if(bm)bm.style.opacity=musOn?'1':'.38';
+}
+
+function _jkUpdateMuteBtn(){
+  const btn=document.getElementById('jk-mute-btn');
+  const icon=document.getElementById('jk-mute-icon');
+  if(!btn||!icon)return;
+  if(musOn){
+    // Volume actif
+    btn.style.color='rgba(255,255,255,.6)';
+    btn.style.borderColor='rgba(255,255,255,.11)';
+    icon.innerHTML=`
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>`;
+  } else {
+    // Muet — icône avec barre et couleur atténuée
+    btn.style.color='rgba(232,52,74,.7)';
+    btn.style.borderColor='rgba(232,52,74,.3)';
+    icon.innerHTML=`
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <line x1="23" y1="9" x2="17" y2="15"/>
+      <line x1="17" y1="9" x2="23" y2="15"/>`;
+  }
+}
 function playerNext(){
   const startIdx=_jkIdx;
   do {
@@ -19836,7 +19776,8 @@ function openJukebox(){
   // Sync shuffle
   const sb=document.getElementById('jk-shuffle-btn');
   if(sb){sb.style.color=_jkShuffle?'var(--gold)':'rgba(255,255,255,.6)';sb.style.borderColor=_jkShuffle?'rgba(245,200,66,.4)':'rgba(255,255,255,.11)';}
-  // Mettre à jour l'affichage sans lancer de musique — l'utilisateur choisit
+  // Sync mute
+  _jkUpdateMuteBtn();  // Mettre à jour l'affichage sans lancer de musique — l'utilisateur choisit
   updateMiniPlayer();
   updateJukeboxDisplay();
   buildJkPlaylist();
@@ -22127,6 +22068,7 @@ function startBobine(){
   go('arc-bobine');
   document.getElementById('bob-over').style.display='none';
   document.getElementById('bob-hint').style.display='block';
+  if(musOn)switchMusic('bobine',0.22);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     const area=document.getElementById('bob-game-area');
     const cv=document.getElementById('bob-canvas');
@@ -22369,6 +22311,7 @@ function _bobGameOver(s){
   window.startDoodle=function(){
     go('arc-doodle');
     document.getElementById('doodle-over').style.display='none';
+    if(musOn)switchMusic('doodle',0.22);
     if(_ddAnim){cancelAnimationFrame(_ddAnim);_ddAnim=null;}
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const area=document.getElementById('doodle-game-area');
