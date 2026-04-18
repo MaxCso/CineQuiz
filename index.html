@@ -5615,38 +5615,13 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
 .histo-text em{color:rgba(245,200,66,.85);font-style:normal;}
 .histo-tag{display:inline-flex;align-items:center;margin-top:10px;font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:rgba(245,200,66,.55);background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.13);border-radius:8px;padding:3px 9px;position:relative;z-index:1;}
 
-/* ── PELLICULE XP ── */
-.film-strip{display:flex;align-items:center;gap:0;position:relative;z-index:1;margin:2px 0 4px;}
-.film-sprockets{display:flex;flex-direction:column;justify-content:space-between;gap:3px;flex-shrink:0;padding:2px 3px;}
-.film-sprocket{width:5px;height:5px;border-radius:1.5px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);}
-.film-frames{flex:1;display:flex;gap:2px;align-items:center;overflow:hidden;}
-.film-frame{
-  flex:1;height:14px;border-radius:2px;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-  transition:background .6s ease,border-color .6s ease,box-shadow .6s ease;
-  position:relative;overflow:hidden;
-}
-.film-frame.filled{
-  background:linear-gradient(135deg,rgba(200,155,30,.85),rgba(245,200,66,.9));
-  border-color:rgba(245,200,66,.5);
-  box-shadow:0 0 4px rgba(245,200,66,.25);
-}
-.film-frame.filled::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.15) 0%,transparent 60%);
-  pointer-events:none;
-}
-.film-frame.active{
-  background:linear-gradient(135deg,rgba(245,200,66,.5),rgba(255,230,100,.65));
-  border-color:rgba(245,200,66,.6);
-  box-shadow:0 0 6px rgba(245,200,66,.35);
-  animation:framePulse 1.8s ease-in-out infinite;
-}
-@keyframes framePulse{
-  0%,100%{box-shadow:0 0 4px rgba(245,200,66,.25);}
-  50%{box-shadow:0 0 8px rgba(245,200,66,.5);}
-}
-.film-pct{font-family:'Bebas Neue',sans-serif;font-size:13px;color:rgba(245,200,66,.75);letter-spacing:1px;flex-shrink:0;min-width:32px;text-align:right;margin-left:6px;}
+/* ── BARRE XP CLASSIQUE ── */
+.xp-bar-wrap{display:flex;align-items:center;gap:10px;position:relative;z-index:1;margin:4px 0 6px;}
+.xp-bar-track{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.07);overflow:hidden;position:relative;}
+.xp-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#c89a1e,#f5c842,#ffe97a);transition:width .7s cubic-bezier(.34,1.56,.64,1);position:relative;min-width:0;}
+.xp-bar-fill::after{content:'';position:absolute;inset:0;border-radius:99px;background:linear-gradient(180deg,rgba(255,255,255,.22) 0%,transparent 60%);pointer-events:none;}
+.xp-bar-fill.glow{box-shadow:0 0 8px rgba(245,200,66,.45);}
+.xp-bar-pct{font-family:'Bebas Neue',sans-serif;font-size:13px;color:rgba(245,200,66,.75);letter-spacing:1px;flex-shrink:0;min-width:32px;text-align:right;}
 </style>
 </head>
 <body>
@@ -5686,12 +5661,10 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <div class="xpw-next" id="h-nx">→ Spectateur</div>
         </div>
       </div>
-      <!-- Pellicule XP -->
-      <div class="film-strip">
-        <div class="film-sprockets"><div class="film-sprocket"></div><div class="film-sprocket"></div><div class="film-sprocket"></div></div>
-        <div class="film-frames"><div class="film-frame" id="h-frame-0"></div><div class="film-frame" id="h-frame-1"></div><div class="film-frame" id="h-frame-2"></div><div class="film-frame" id="h-frame-3"></div><div class="film-frame" id="h-frame-4"></div><div class="film-frame" id="h-frame-5"></div><div class="film-frame" id="h-frame-6"></div><div class="film-frame" id="h-frame-7"></div><div class="film-frame" id="h-frame-8"></div><div class="film-frame" id="h-frame-9"></div><div class="film-frame" id="h-frame-10"></div><div class="film-frame" id="h-frame-11"></div><div class="film-frame" id="h-frame-12"></div><div class="film-frame" id="h-frame-13"></div><div class="film-frame" id="h-frame-14"></div><div class="film-frame" id="h-frame-15"></div><div class="film-frame" id="h-frame-16"></div><div class="film-frame" id="h-frame-17"></div><div class="film-frame" id="h-frame-18"></div><div class="film-frame" id="h-frame-19"></div></div>
-        <div class="film-sprockets"><div class="film-sprocket"></div><div class="film-sprocket"></div><div class="film-sprocket"></div></div>
-        <div class="film-pct" id="h-pct">0%</div>
+      <!-- Barre XP classique -->
+      <div class="xp-bar-wrap">
+        <div class="xp-bar-track"><div class="xp-bar-fill" id="h-xpb-fill" style="width:0%"></div></div>
+        <div class="xp-bar-pct" id="h-pct">0%</div>
       </div>
       <div id="h-xpb" style="display:none;width:0%"></div>
       <!-- Ligne infos : XP aujourd'hui + message motivant -->
@@ -9660,146 +9633,228 @@ async function fetchGenreMovies(genre,count){
 
 // -- Pool acteurs célèbres (IDs TMDB) pour "Qui est-ce ?" --
 const ACTOR_POOL=[
-  // ── Icônes Hollywood ──
-  {id:31,    name:'Tom Hanks'},
-  {id:287,   name:'Brad Pitt'},
-  {id:6193,  name:'Leonardo DiCaprio'},
-  {id:192,   name:'Morgan Freeman'},
-  {id:1245,  name:'Scarlett Johansson'},
-  {id:500,   name:'Tom Cruise'},
-  {id:2232,  name:'Keanu Reeves'},
-  {id:3223,  name:'Robert Downey Jr.'},
-  {id:64,    name:'Gary Oldman'},
-  {id:8784,  name:'Meryl Streep'},
+  {id:31, name:'Tom Hanks'},
+  {id:287, name:'Brad Pitt'},
+  {id:6193, name:'Leonardo DiCaprio'},
+  {id:192, name:'Morgan Freeman'},
+  {id:1245, name:'Scarlett Johansson'},
+  {id:500, name:'Tom Cruise'},
+  {id:2232, name:'Keanu Reeves'},
+  {id:3223, name:'Robert Downey Jr.'},
+  {id:64, name:'Gary Oldman'},
+  {id:8784, name:'Meryl Streep'},
   {id:73457, name:'Chris Evans'},
-  {id:16828, name:'Chris Hemsworth'},
-  {id:71580, name:'Margot Robbie'},
-  {id:1136406,name:'Timothée Chalamet'},
-  {id:1157957,name:'Zendaya'},
-  {id:6885,  name:'Natalie Portman'},
-  {id:1614,  name:'Cate Blanchett'},
-  {id:2524,  name:'Joaquin Phoenix'},
-  {id:1333,  name:'Russell Crowe'},
-  {id:380,   name:'Johnny Depp'},
-  {id:2888,  name:'Will Smith'},
-  {id:8691,  name:'Julia Roberts'},
-  {id:3910,  name:'Denzel Washington'},
-  {id:1892,  name:'Matt Damon'},
-  {id:819,   name:'Edward Norton'},
-  {id:1136,  name:'Ryan Reynolds'},
   {id:74568, name:'Ryan Gosling'},
-  {id:3902,  name:'Viola Davis'},
+  {id:71580, name:'Margot Robbie'},
+  {id:1136406, name:'Timothée Chalamet'},
+  {id:1157957, name:'Zendaya'},
+  {id:6885, name:'Natalie Portman'},
+  {id:1614, name:'Cate Blanchett'},
+  {id:2524, name:'Joaquin Phoenix'},
+  {id:1333, name:'Russell Crowe'},
+  {id:380, name:'Johnny Depp'},
+  {id:2888, name:'Will Smith'},
+  {id:8691, name:'Julia Roberts'},
+  {id:3910, name:'Denzel Washington'},
+  {id:1892, name:'Matt Damon'},
+  {id:819, name:'Edward Norton'},
+  {id:1136, name:'Ryan Reynolds'},
+  {id:3902, name:'Viola Davis'},
   {id:17467, name:'Florence Pugh'},
   {id:90633, name:'Ana de Armas'},
-  // ── Stars de l'action & blockbusters ──
-  {id:62,    name:'Bruce Willis'},
-  {id:1100,  name:'Dwayne Johnson'},
-  {id:224513,name:'Chris Pratt'},
+  // ── Icônes Hollywood ──
+  {id:62, name:'Bruce Willis'},
+  {id:1100, name:'Dwayne Johnson'},
+  {id:224513, name:'Chris Pratt'},
   {id:10859, name:'Jason Statham'},
   {id:16487, name:'Liam Neeson'},
   {id:28782, name:'Vin Diesel'},
-  {id:1401,  name:'Sylvester Stallone'},
-  {id:1100,  name:'Dwayne Johnson'},
-  {id:2037,  name:'Harrison Ford'},
-  {id:1894,  name:'Arnold Schwarzenegger'},
-  {id:1983,  name:'Mel Gibson'},
-  {id:5064,  name:'Jean-Claude Van Damme'},
-  // ── Génération 2000-2010 ──
-  {id:1283,  name:'Christian Bale'},
+  {id:1401, name:'Sylvester Stallone'},
+  {id:2037, name:'Harrison Ford'},
+  {id:1894, name:'Arnold Schwarzenegger'},
+  {id:1983, name:'Mel Gibson'},
+  {id:5064, name:'Jean-Claude Van Damme'},
+  // ── Action & blockbusters ──
+  {id:1283, name:'Christian Bale'},
   {id:10980, name:'Heath Ledger'},
-  {id:287,   name:'Brad Pitt'},
-  {id:5081,  name:'Halle Berry'},
-  {id:3592,  name:'Charlize Theron'},
-  {id:3489,  name:'Jessica Alba'},
-  {id:105,   name:'Angelina Jolie'},
-  {id:1113,  name:'Nicole Kidman'},
-  {id:6661,  name:'Reese Witherspoon'},
+  {id:5081, name:'Halle Berry'},
+  {id:3592, name:'Charlize Theron'},
+  {id:105, name:'Angelina Jolie'},
+  {id:1113, name:'Nicole Kidman'},
+  {id:6661, name:'Reese Witherspoon'},
   {id:21534, name:'Mila Kunis'},
-  // ── Nouvelle génération ──
-  {id:974169,name:'Jacob Elordi'},
-  {id:1023139,name:'Jenna Ortega'},
+  // ── Génération 2000-2010 ──
+  {id:974169, name:'Jacob Elordi'},
+  {id:1023139, name:'Jenna Ortega'},
   {id:58225, name:'Tom Holland'},
-  {id:1373737,name:'Austin Butler'},
-  {id:2955843,name:'Barry Keoghan'},
-  {id:3498492,name:'Cailee Spaeny'},
+  {id:1373737, name:'Austin Butler'},
+  {id:2955843, name:'Barry Keoghan'},
+  {id:3498492, name:'Cailee Spaeny'},
   {id:547260, name:'Saoirse Ronan'},
-  {id:1245492,name:'Anya Taylor-Joy'},
-  {id:1190668,name:'Daisy Ridley'},
-  {id:1535931,name:'Letitia Wright'},
+  {id:1245492, name:'Anya Taylor-Joy'},
+  // ── Nouvelle génération ──
+  {id:1190668, name:'Daisy Ridley'},
+  {id:1535931, name:'Letitia Wright'},
   {id:971796, name:'Taron Egerton'},
-  {id:1334,   name:'Jeremy Renner'},
-  {id:73968,  name:'Elizabeth Olsen'},
-  {id:1331,   name:'Paul Bettany'},
-  // ── Légendes du cinéma ──
-  {id:1777,  name:'Jack Nicholson'},
-  {id:3061,  name:'Al Pacino'},
-  {id:380,   name:'Robert De Niro'},
-  {id:192,   name:'Dustin Hoffman'},
-  {id:1663,  name:'Gene Hackman'},
+  {id:1334, name:'Jeremy Renner'},
+  {id:73968, name:'Elizabeth Olsen'},
+  {id:1331, name:'Paul Bettany'},
+  {id:1777, name:'Jack Nicholson'},
+  {id:3061, name:'Al Pacino'},
+  {id:182, name:'Robert De Niro'},
+  {id:4825, name:'Dustin Hoffman'},
+  {id:1663, name:'Gene Hackman'},
   {id:13561, name:'Marlon Brando'},
-  {id:8526,  name:'Anthony Hopkins'},
-  {id:8167,  name:'Clint Eastwood'},
-  {id:1253,  name:'Michael Caine'},
-  {id:4724,  name:'Sean Connery'},
-  {id:2309,  name:'Sigourney Weaver'},
-  {id:2976,  name:'Susan Sarandon'},
-  {id:3063,  name:'Jane Fonda'},
-  // ── Acteurs comiques & polyvalents ──
-  {id:4514,  name:'Jim Carrey'},
+  {id:8526, name:'Anthony Hopkins'},
+  {id:19, name:'Clint Eastwood'},
+  // ── Légendes du cinéma ──
+  {id:1253, name:'Michael Caine'},
+  {id:4724, name:'Sean Connery'},
+  {id:2309, name:'Sigourney Weaver'},
+  {id:2976, name:'Susan Sarandon'},
+  {id:3063, name:'Jane Fonda'},
+  {id:4514, name:'Jim Carrey'},
   {id:12835, name:'Adam Sandler'},
-  {id:5652,  name:'Eddie Murphy'},
+  {id:5652, name:'Eddie Murphy'},
   {id:17605, name:'Will Ferrell'},
   {id:64766, name:'Jonah Hill'},
-  {id:138,   name:'Ben Stiller'},
-  {id:5512,  name:'Steve Carell'},
-  {id:1229099,name:'Paul Rudd'},
-  // ── Actrices primées ──
-  {id:1813,  name:'Jennifer Lawrence'},
-  {id:6149,  name:'Kate Winslet'},
-  {id:1813,  name:'Jennifer Lawrence'},
-  {id:3291,  name:'Gwyneth Paltrow'},
-  {id:3295,  name:'Halle Berry'},
+  {id:138, name:'Ben Stiller'},
+  {id:5512, name:'Steve Carell'},
+  {id:15592, name:'Paul Rudd'},
+  // ── Comiques & polyvalents ──
+  {id:6149, name:'Kate Winslet'},
   {id:12052, name:'Sandra Bullock'},
   {id:12277, name:'Amy Adams'},
-  {id:1813,  name:'Jennifer Lawrence'},
-  {id:3063,  name:'Anne Hathaway'},
+  {id:20049, name:'Anne Hathaway'},
   {id:59072, name:'Brie Larson'},
-  {id:1245874,name:'Emma Stone'},
-  {id:3932,  name:'Natalie Dormer'},
-  {id:9827,  name:'Keira Knightley'},
+  {id:54693, name:'Emma Stone'},
+  {id:7624, name:'Keira Knightley'},
   {id:21533, name:'Emma Watson'},
+  // ── Actrices primées ──
   {id:37198, name:'Jennifer Aniston'},
-  // ── Stars du cinéma européen ──
+  {id:72129, name:'Jennifer Lawrence'},
+  {id:3291, name:'Gwyneth Paltrow'},
   {id:13580, name:'Marion Cotillard'},
   {id:13526, name:'Audrey Tautou'},
   {id:11288, name:'Sophie Marceau'},
-  {id:2641,  name:'Gérard Depardieu'},
-  {id:3785,  name:'Daniel Auteuil'},
-  {id:9294,  name:'Vincent Cassel'},
+  {id:2641, name:'Gérard Depardieu'},
+  {id:3785, name:'Daniel Auteuil'},
+  {id:9294, name:'Vincent Cassel'},
   {id:18277, name:'Léa Seydoux'},
-  {id:1938,  name:'Antonio Banderas'},
-  {id:9342,  name:'Penélope Cruz'},
+  {id:1938, name:'Antonio Banderas'},
+  // ── Cinéma européen ──
+  {id:9342, name:'Penélope Cruz'},
   {id:79009, name:'Adèle Exarchopoulos'},
-  {id:1178,  name:'Javier Bardem'},
-  {id:3932,  name:'Monica Bellucci'},
-  // ── Stars asiatiques ──
+  {id:1178, name:'Javier Bardem'},
+  {id:3932, name:'Monica Bellucci'},
   {id:84398, name:'Tony Leung'},
   {id:75532, name:'Donnie Yen'},
-  {id:7447,  name:'Jet Li'},
-  {id:4374,  name:'Jackie Chan'},
+  {id:7447, name:'Jet Li'},
+  {id:4374, name:'Jackie Chan'},
   {id:19492, name:'Zhang Ziyi'},
-  // ── Acteurs de caractère incontournables ──
-  {id:1663,  name:'Christopher Walken'},
+  {id:67048, name:'Christopher Walken'},
   {id:14635, name:'Christoph Waltz'},
-  {id:3895,  name:'Philip Seymour Hoffman'},
-  {id:3036,  name:'Samuel L. Jackson'},
+  {id:3895, name:'Philip Seymour Hoffman'},
+  // ── Stars asiatiques ──
+  {id:2231, name:'Samuel L. Jackson'},
   {id:16869, name:'Mark Wahlberg'},
   {id:17647, name:'Michael Fassbender'},
-  {id:2524,  name:'Benedict Cumberbatch'},
-  {id:1785,  name:'Jake Gyllenhaal'},
-  {id:10886, name:'Michael B. Jordan'},
-  {id:7470,  name:'Chadwick Boseman'},
-  {id:15277, name:'Idris Elba'},
+  {id:37660, name:'Benedict Cumberbatch'},
+  {id:1785, name:'Jake Gyllenhaal'},
+  // ── Acteurs de caractère ──
+  {id:135651, name:'Michael B. Jordan'},
+  {id:172069, name:'Chadwick Boseman'},
+  {id:17289, name:'Idris Elba'},
+  {id:5538, name:'Adrien Brody'},
+  {id:10291, name:'Colin Firth'},
+  {id:1150, name:'Jeff Bridges'},
+  {id:39769, name:'Forest Whitaker'},
+  {id:282, name:'Sean Penn'},
+  {id:30614, name:'Mahershala Ali'},
+  {id:19606, name:'Casey Affleck'},
+  {id:6886, name:'Hilary Swank'},
+  // ── Pack 2 — Nouvelles stars ──
+  {id:23659, name:'Geoffrey Rush'},
+  {id:24045, name:"Lupita Nyong'o"},
+  {id:5767, name:'Octavia Spencer'},
+  {id:19429, name:'Rami Malek'},
+  {id:10515, name:'Eddie Redmayne'},
+  {id:14532, name:'Matthew McConaughey'},
+  {id:10400, name:'Jared Leto'},
+  {id:11147, name:'Harvey Keitel'},
+  {id:5757, name:'Richard Gere'},
+  {id:3712, name:'Paul Newman'},
+  {id:2426, name:'Audrey Hepburn'},
+  {id:2963, name:'Elizabeth Taylor'},
+  {id:3035, name:'Sophia Loren'},
+  {id:8226, name:'Diane Keaton'},
+  {id:2632, name:'Robert Duvall'},
+  {id:47, name:'Gene Wilder'},
+  {id:50411, name:'Daniel Craig'},
+  {id:43977, name:'Andrew Garfield'},
+  {id:5529, name:'James McAvoy'},
+  {id:6837, name:'Ewan McGregor'},
+  {id:1327, name:'Jude Law'},
+  {id:3710, name:'Ralph Fiennes'},
+  {id:1326, name:'Tom Hiddleston'},
+  {id:9289, name:'Colin Farrell'},
+  {id:1241, name:'Cillian Murphy'},
+  {id:2155, name:'Tilda Swinton'},
+  {id:3229, name:'Frances McDormand'},
+  {id:14534, name:'Laura Dern'},
+  {id:11835, name:'Naomi Watts'},
+  {id:6161, name:'Robin Wright'},
+  {id:6265, name:'Juliette Binoche'},
+  {id:4491, name:'Isabelle Huppert'},
+  {id:5401, name:'Julianne Moore'},
+  {id:36576, name:'Michelle Pfeiffer'},
+  {id:17376, name:'Meg Ryan'},
+  {id:1091, name:'Winona Ryder'},
+  {id:3482, name:'Uma Thurman'},
+  {id:1954, name:'Jodie Foster'},
+  {id:6226, name:'Sissy Spacek'},
+  {id:13252, name:'Jamie Foxx'},
+  {id:56323, name:'Taraji P. Henson'},
+  {id:9032, name:'Regina King'},
+  {id:1597, name:'Laurence Fishburne'},
+  {id:30317, name:'Jeffrey Wright'},
+  {id:8701, name:'Angela Bassett'},
+  {id:19498, name:'Anthony Mackie'},
+  {id:80278, name:'John Boyega'},
+  {id:21927, name:'Song Kang-ho'},
+  {id:56158, name:'Youn Yuh-jung'},
+  {id:8537, name:'Salma Hayek'},
+  {id:119722, name:'Gael Garcia Bernal'},
+  {id:1340, name:'Berenice Bejo'},
+  {id:111762, name:'Virginie Efira'},
+  {id:15253, name:'Mathieu Amalric'},
+  {id:33766, name:'Omar Sy'},
+  {id:35850, name:'Tahar Rahim'},
+  {id:114851, name:'Mia Goth'},
+  {id:89714, name:'Shailene Woodley'},
+  {id:37052, name:'Zoe Kravitz'},
+  {id:170785, name:'Hailee Steinfeld'},
+  {id:68780, name:'Elle Fanning'},
+  {id:45791, name:'Joey King'},
+  {id:1893516, name:'Paul Mescal'},
+  {id:72640, name:'Dave Bautista'},
+  {id:12795, name:'Jeff Goldblum'},
+  {id:15831, name:'Mickey Rourke'},
+  {id:4587, name:'Kurt Russell'},
+  {id:11362, name:'Kevin Costner'},
+  {id:5, name:'Demi Moore'},
+  {id:7944, name:'Sharon Stone'},
+  {id:57765, name:'Glenn Close'},
+  {id:9780, name:'Whoopi Goldberg'},
+  {id:10399, name:'Danny Glover'},
+  {id:12799, name:'Danny DeVito'},
+  {id:1532, name:'Bill Murray'},
+  {id:84497, name:'Adam Driver'},
+  {id:16828, name:'Chris Hemsworth'},
+  {id:27578, name:'Jason Momoa'},
+  {id:44578, name:'Pedro Pascal'},
+  {id:36249, name:'Oscar Isaac'},
+  {id:13848, name:'Zach Galifianakis'},
 ];
 
 
@@ -10083,6 +10138,68 @@ const ANECDOTES=[
   {text:"Gena Rowlands dans 'A Woman Under the Influence' (1974) de Cassavetes a refusé tout maquillage et toute chorégraphie des émotions. Son mari-réalisateur lui demandait simplement 'sois malade' pour chaque prise.",tag:"Acteur"},
   {text:"Le budget de 'Paranormal Activity' était de 15 000 dollars. Le film a rapporté 193 millions au box-office — soit un retour sur investissement de 1 289 900%.",tag:"Box-office"},
   {text:"Pour 'Oldboy' (2003), le réalisateur Park Chan-wook a demandé à ses acteurs de manger de vrais poulpes vivants. Min-sik Choi, bouddhiste pratiquant, a prié pour chacun des animaux avant de les manger.",tag:"Tournage"},
+  // ── Pack 4 — 60 nouvelles anecdotes ──
+  {text:"Le nom du robot R2-D2 vient du langage de montage de George Lucas. Lors d'une session de mixage sur 'American Graffiti', il a demandé le 'Reel 2, Dialogue 2' — et le surnom est resté.",tag:"Anecdote"},
+  {text:"Pour 'Le Seigneur des Anneaux', Peter Jackson a demandé à 20 000 néo-zélandais de jouer des figurants. Le pays entier connaissait les dates de tournage — certains apparaissent dans les 3 films.",tag:"Tournage"},
+  {text:"Dans 'Alien', la scène du chest-burster était filmée avec 4 caméras simultanément. Les acteurs n'avaient pas été prévenus du niveau de sang et de viscères — leurs réactions de dégoût sont authentiques.",tag:"Tournage"},
+  {text:"Cary Grant n'a jamais remporté l'Oscar. L'Académie lui a remis un Oscar d'honneur en 1970 — il a refusé de se lever pour l'applaudissement debout, embarrassé par tant d'attention.",tag:"Histoire"},
+  {text:"La phrase 'Houston, we have a problem' dans 'Apollo 13' est en réalité une légère modification. La vraie communication était 'Houston, we've had a problem' — au passé composé.",tag:"Histoire"},
+  {text:"Joaquin Phoenix a failli mourir dans un accident de voiture le lendemain de sa première audition pour 'Gladiator'. C'est Heath Ledger qui l'a sorti du véhicule en feu sur le bord de la route.",tag:"Anecdote"},
+  {text:"Le film 'Cloverfield' (2008) a été tourné entièrement caméra portée. J.J. Abrams a imposé que l'objectif ne soit jamais stabilisé — 35% de l'équipe technique a souffert du mal des transports.",tag:"Tournage"},
+  {text:"Stanley Kubrick souffrait d'aérophobie — il n'a jamais pris l'avion de toute sa vie. Tous ses films après 1968 ont été tournés en Angleterre pour éviter tout voyage transatlantique.",tag:"Réalisateur"},
+  {text:"Dans 'Pulp Fiction', la valise de Marcellus Wallace ne contient rien de précis. La lumière à l'intérieur était produite par une ampoule et une pile cachées. Tarantino laisse délibérément la question ouverte.",tag:"Anecdote"},
+  {text:"Le rôle de Forrest Gump avait été écrit pour Gary Sinise — qui a finalement joué le lieutenant Dan. Tom Hanks a reçu le scénario par erreur et a tout de suite appelé pour demander le rôle.",tag:"Casting"},
+  {text:"Dans 'Interstellar', la planète des vagues a été filmée dans des dunes de sable en Islande recouvertes d'eau artificielle. Les acteurs avaient de l'eau salée jusqu'aux genoux pendant 10 heures.",tag:"Tournage"},
+  {text:"Le compositeur Bernard Herrmann — qui a signé les musiques d'Hitchcock dont 'Psycho' — est décédé la nuit même où il a terminé la partition de 'Taxi Driver'. C'était son dernier travail.",tag:"Musique"},
+  {text:"Pour 'Le Loup de Wall Street', Matthew McConaughey a improvisé la scène du restaurant où il se frappe le torse et fredonne. DiCaprio a adoré et a demandé à Scorsese de garder la prise.",tag:"Tournage"},
+  {text:"L'actrice Lupita Nyong'o a appris le swahili pour 'Black Panther' — bien qu'elle soit kenyane, elle ne parlait pas la langue. Elle a suivi des cours intensifs pendant 3 mois.",tag:"Acteur"},
+  {text:"Le film 'Boyhood' de Richard Linklater a été tourné sur 12 ans avec les mêmes acteurs. Ellar Coltrane avait 6 ans au premier jour de tournage et 18 ans au dernier.",tag:"Tournage"},
+  {text:"Dans '2001 : L'Odyssée de l'espace', la scène de la salle rouge n'a jamais été expliquée par Kubrick. À sa mort, ses archives révèlent qu'il avait 17 versions différentes de cette scène écrite.",tag:"Histoire"},
+  {text:"Gene Hackman a refusé de voir le montage final de 'The French Connection' avant la cérémonie des Oscars — il n'aimait pas regarder ses propres films. Il a remporté l'Oscar le soir même.",tag:"Acteur"},
+  {text:"Le réalisateur David Fincher est connu pour ses marathons de prises. Dans 'The Social Network', il a tourné la scène d'ouverture au bar 99 fois avant d'être satisfait.",tag:"Réalisateur"},
+  {text:"Pour 'Mad Max: Fury Road', l'équipe a planté 50 000 fleurs dans le désert pour recréer la scène des champs fleuris — toutes ont été arrachées et replantées ailleurs après le tournage.",tag:"Décors"},
+  {text:"Le film 'Memento' de Christopher Nolan a été entièrement storyboardé à la main par Nolan lui-même. Il a refusé tout logiciel de prévisualisation, estimant que le dessin à la main le forçait à réfléchir.",tag:"Réalisateur"},
+  {text:"Dans 'Rocky' (1976), Sylvester Stallone a écrit le scénario en 3 jours et a refusé de le vendre à moins qu'il puisse jouer le rôle principal. Les studios lui ont proposé 250 000 dollars sans le casting — il a refusé.",tag:"Histoire"},
+  {text:"La scène de danse de John Travolta et Uma Thurman dans 'Pulp Fiction' a été tournée à rebours : les acteurs marchaient en arrière et l'image a été inversée pour créer l'illusion de glissades.",tag:"Technique"},
+  {text:"Peter Sellers jouait 3 rôles différents dans 'Docteur Folamour' de Kubrick. Il devait en jouer un quatrième — le pilote texan — mais s'est foulé la cheville. Slim Pickens l'a remplacé.",tag:"Casting"},
+  {text:"Le film 'Princess Mononoke' (1997) de Miyazaki a coûté 23 millions de dollars — le film d'animation japonais le plus cher de son époque. Il est resté le film le plus rentable du Japon pendant 2 ans.",tag:"Animation"},
+  {text:"L'acteur Morgan Freeman a obtenu son permis de piloter à 65 ans après avoir joué des pilotes à l'écran. Il possède aujourd'hui plusieurs avions et vole régulièrement.",tag:"Acteur"},
+  {text:"Dans 'E.T.', les jambes visibles dans les scènes où E.T. marche appartiennent à un acrobate sans jambes — Matthew De Meritt — qui marchait sur ses mains dans un costume.",tag:"Technique"},
+  {text:"Le film 'La Grande Illusion' (1937) de Jean Renoir a été jugé 'le film le plus dangereux jamais réalisé' par Joseph Goebbels. Il a personnellement ordonné la destruction de toutes les copies en territoire nazi.",tag:"Histoire"},
+  {text:"Pour 'Blade Runner 2049', Denis Villeneuve a passé 6 mois à ne regarder que des peintures du XIXe siècle pour développer la palette visuelle du film. Il voulait une lumière 'pré-industrielle dans un monde post-apocalyptique'.",tag:"Réalisateur"},
+  {text:"L'actrice Hedy Lamarr — star d'Hollywood des années 40 — a co-inventé une technologie de communications militaires qui est à la base du WiFi et du Bluetooth modernes.",tag:"Histoire"},
+  {text:"Dans 'The Shining', le chiffre 42 apparaît partout dans le film — dans les numéros de chambre, les plaques de voiture, les maillots de football. Kubrick a toujours refusé de l'expliquer.",tag:"Technique"},
+  {text:"Marlon Brando était tellement connu pour ne pas apprendre ses répliques que sur 'Superman' (1978), ses textes étaient inscrits sur les couches du bébé Superman tenu par ses partenaires.",tag:"Anecdote"},
+  {text:"Le film 'Apocalypto' de Mel Gibson (2006) est entièrement tourné en langue maya yucatèque — une langue parlée par moins de 800 000 personnes dans le monde. Aucun des acteurs principaux n'était professionnel.",tag:"Tournage"},
+  {text:"Dans 'Eternal Sunshine of the Spotless Mind', Jim Carrey n'a eu aucune indication sur le sens symbolique de ses scènes. Michel Gondry lui disait simplement quelle émotion jouer — jamais pourquoi.",tag:"Tournage"},
+  {text:"Le célèbre sifflement dans 'Il était une fois dans l'Ouest' d'Ennio Morricone a été enregistré par Alessandro Alessandroni — qui sifflait également les génériques de westerns spaghetti pour 5 dollars la session.",tag:"Musique"},
+  {text:"Pour 'Brokeback Mountain', Heath Ledger a demandé à Ang Lee de lui interdire de voir les rushes. Il ne voulait pas que son jeu d'acteur soit influencé par ce qu'il avait déjà fait.",tag:"Acteur"},
+  {text:"La salle de conférence dans 'Dr. Strangelove' était si réaliste que les militaires américains ont cru que Kubrick avait eu accès à des installations secrètes. Une enquête a été ouverte.",tag:"Histoire"},
+  {text:"Dans 'The Artist' (2011), le chien Jack Russell Terrier (Uggie) avait son propre agent, son propre compte Twitter et a reçu le prix Palm Dog à Cannes. Il mangeait 8 repas par jour sur le plateau.",tag:"Anecdote"},
+  {text:"Akira Kurosawa était daltonien. Il demandait à ses collaborateurs de peindre des poteaux et arbres en rouge avant le tournage pour s'assurer que les tons de couleur seraient corrects sur pellicule.",tag:"Réalisateur"},
+  {text:"Le film 'Caché' (2005) de Michael Haneke ne donne jamais d'explication sur qui filme les personnages. Haneke a déclaré que c'était délibéré — 'la caméra, c'est toujours le cinéaste'.",tag:"Anecdote"},
+  {text:"Pour tourner la scène du couloir dans 'Inception', l'équipe a construit un décor de couloir rotatif de 30 mètres de long. Joseph Gordon-Levitt s'est entraîné 3 semaines pour courir et se battre en état de rotation.",tag:"Technique"},
+  {text:"Le film 'Moonlight' a été accepté au festival de Telluride par une projection privée devant 5 personnes. Barry Jenkins attendait dans le couloir. Il est entré après la fin — tout le monde pleurait.",tag:"Histoire"},
+  {text:"Jean-Luc Godard tournait 'À bout de souffle' sans scénario complet. Il écrivait les dialogues le matin sur des post-its qu'il collait dans sa poche et soufflait aux acteurs sur le moment.",tag:"Réalisateur"},
+  {text:"Dans 'Jurassic Park' (1993), le rugissement du T-Rex est un mélange de rugissements de bébé éléphant, d'alligator et de tigre. Le son a été créé par le légendaire ingénieur Gary Rydstrom.",tag:"Son"},
+  {text:"Ingmar Bergman et Akira Kurosawa — considérés les deux plus grands réalisateurs de l'histoire — s'admiraient mutuellement mais ne se sont jamais rencontrés. Chacun disait de l'autre qu'il était 'le seul qui comprend le cinéma'.",tag:"Histoire"},
+  {text:"Dans 'No Country for Old Men', Javier Bardem a refusé de conduire jusqu'à la fin du tournage. Il estimait que son personnage Anton Chigurh n'aurait 'aucun permis de conduire légal'.",tag:"Acteur"},
+  {text:"Le film 'Fish Tank' d'Andrea Arnold (2009) a été entièrement tourné en format 4:3 — presque carré — pour recréer la sensation d'enfermement de son personnage principal. C'était une décision artistique controversée.",tag:"Technique"},
+  {text:"Jeff Bridges a joué dans 'The Big Lebowski' sans jamais lire le scénario en entier. Il demandait aux Coen Brothers chaque matin ce que son personnage vivait — il estimait que le Dude ne planifiait rien à l'avance.",tag:"Acteur"},
+  {text:"La scène de 'Scarface' (1983) où Al Pacino dit 'Say hello to my little friend' a nécessité 17 heures de tournage continue. L'arme était tellement lourde que Pacino a développé une tendinite à l'épaule.",tag:"Tournage"},
+  {text:"Pour 'Into the Wild' (2007), Sean Penn a retrouvé le vrai bus scolaire où Christopher McCandless a vécu et est mort en Alaska. Il a tourné directement dans le bus original, sans aucune reconstruction.",tag:"Décors"},
+  {text:"Isabelle Huppert est l'actrice la plus nommée aux César de l'histoire avec 16 nominations. Elle est aussi la seule française à avoir remporté le prix d'interprétation à Cannes deux fois.",tag:"Histoire"},
+  {text:"Dans 'Mulholland Drive', le rôle principal avait été offert à Reese Witherspoon, Meg Ryan et Cate Blanchett — toutes ont refusé. David Lynch a trouvé Naomi Watts via une cassette VHS envoyée par son agent.",tag:"Casting"},
+  {text:"La bande originale de 'Requiem for a Dream' de Clint Mansell a été réutilisée dans plus de 200 bandes-annonces de films sans accord préalable — devenant la musique de trailer la plus 'volée' de l'histoire.",tag:"Musique"},
+  {text:"Charlie Chaplin a participé anonymement à un concours de sosies de Charlie Chaplin. Il est arrivé troisième.",tag:"Anecdote"},
+  {text:"Dans 'Portrait de la jeune fille en feu' (2019), Céline Sciamma a tourné sans musique extradiegétique — toute la musique entendue dans le film est jouée ou chantée par des personnages à l'écran.",tag:"Musique"},
+  {text:"Pour 'A Beautiful Mind' (2001), Russell Crowe a rencontré John Nash en personne à plusieurs reprises. Nash lui a appris à observer les choses 'en cherchant les motifs cachés' — une habitude que Crowe a gardée.",tag:"Acteur"},
+  {text:"Dans 'Vertigo' d'Hitchcock, le fameux effet de zoom-travelling (dolly zoom) a été utilisé pour la première fois. Depuis, cet effet porte le nom 'Vertigo effect' dans tous les manuels de cinéma.",tag:"Technique"},
+  {text:"Le tournage de 'Fitzcarraldo' de Werner Herzog a duré 4 ans. Les acteurs originaux ont quitté le projet, des avions se sont crashés et une tribu locale a offert de tuer le protagoniste principal pour arrêter le film.",tag:"Tournage"},
+  {text:"Dans 'The Favourite' (2018), Yorgos Lanthimos a utilisé exclusivement des objectifs grand-angle fisheye pour les scènes de palais — déformant légèrement les bords pour que le spectateur se sente toujours 'légèrement hors d'équilibre'.",tag:"Technique"},
+  {text:"L'acteur Ben Kingsley exige qu'on l'appelle 'Sir Ben' sur tous ses plateaux depuis sa nomination par la reine en 2002. Il a quitté des tournages pour cette raison.",tag:"Anecdote"},
+  {text:"Dans 'Spirited Away' (2001), Miyazaki n'avait pas de scénario final au début du tournage. L'histoire était développée au fur et à mesure — une méthode qu'il appelle 'trouver le film en le faisant'.",tag:"Animation"},
+  {text:"La couleur rouge dans les films de Dario Argento n'est jamais du vrai sang — il utilise du sirop de grenadine mélangé à de la peinture acrylique qui rend mieux à la lumière cinématographique.",tag:"Technique"},
 ];
 
 const DECENNIE_FILMS=[
@@ -15168,18 +15285,13 @@ function refHome(){
   document.getElementById('h-ln').textContent='Niveau '+(l+1);
   document.getElementById('h-nl').textContent=(s.xp||0)+' XP';
   document.getElementById('h-nx').textContent=l<LEVELS.length-1?'→ '+nlv.name:'★ Max';
-  // Pellicule XP
+  // Barre XP classique
   const pctEl=document.getElementById('h-pct');
   if(pctEl)pctEl.textContent=pct+'%';
-  var TOTAL_FRAMES=20;
-  var filledCount=Math.floor(pct/100*TOTAL_FRAMES);
-  var hasPartial=(pct%Math.ceil(100/TOTAL_FRAMES))>0&&filledCount<TOTAL_FRAMES;
-  for(var fi=0;fi<TOTAL_FRAMES;fi++){
-    var fEl=document.getElementById('h-frame-'+fi);
-    if(!fEl)continue;
-    fEl.classList.remove('filled','active');
-    if(fi<filledCount)fEl.classList.add('filled');
-    else if(fi===filledCount&&pct>0&&pct<100)fEl.classList.add('active');
+  var fillEl=document.getElementById('h-xpb-fill');
+  if(fillEl){
+    fillEl.style.width=pct+'%';
+    if(pct>0)fillEl.classList.add('glow'); else fillEl.classList.remove('glow');
   }
   // Stats
   document.getElementById('h-str').textContent=s.streak;
