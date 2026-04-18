@@ -596,6 +596,15 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .daily-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .8s cubic-bezier(.34,1.56,.64,1);}
 .daily-meta{display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);}
 .daily-countdown{color:rgba(245,200,66,.7);font-weight:600;}
+/* Historique 7 jours */
+.daily-history{display:flex;gap:4px;margin-top:9px;align-items:center;}
+.daily-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.daily-day-dot{width:100%;max-width:28px;height:6px;border-radius:3px;background:rgba(255,255,255,.08);}
+.daily-day-dot.done{background:linear-gradient(90deg,var(--gold2),var(--gold));}
+.daily-day-dot.failed{background:rgba(232,52,74,.35);}
+.daily-day-dot.today{background:rgba(245,200,66,.25);border:1px solid rgba(245,200,66,.4);}
+.daily-day-dot.today.done{background:linear-gradient(90deg,var(--gold2),var(--gold));border:none;}
+.daily-day-lbl{font-size:8px;color:rgba(255,255,255,.2);letter-spacing:.3px;}
 
 /* ─── SECTION HEADERS ─── */
 .shd{
@@ -1630,6 +1639,14 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .daily-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .8s cubic-bezier(.34,1.56,.64,1);}
 .daily-meta{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:rgba(255,255,255,.35);}
 .daily-countdown{color:var(--gold);font-weight:600;}
+.daily-history{display:flex;gap:4px;margin-top:8px;align-items:center;}
+.daily-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.daily-day-dot{width:100%;max-width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,.07);}
+.daily-day-dot.done{background:linear-gradient(90deg,var(--gold2),var(--gold));}
+.daily-day-dot.failed{background:rgba(232,52,74,.3);}
+.daily-day-dot.today{background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.35);}
+.daily-day-dot.today.done{background:linear-gradient(90deg,var(--gold2),var(--gold));border:none;}
+.daily-day-lbl{font-size:8px;color:rgba(255,255,255,.18);letter-spacing:.2px;}
 /* Score count-up résultats */
 @keyframes scoreCountUp{0%{opacity:0;transform:translateY(16px) scale(.7);}60%{opacity:1;transform:translateY(-4px) scale(1.09);}80%{transform:translateY(2px) scale(.97);}100%{transform:translateY(0) scale(1);}}
 /* Carte mode jouée — pas d'animation parasite */
@@ -1639,6 +1656,12 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 @keyframes badgeGlowPulse{
   0%,100%{box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 20px rgba(245,200,66,.12);}
   50%{box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 32px rgba(245,200,66,.28);}
+}
+@keyframes hmvFlipHintFade{
+  0%{opacity:0;transform:translateX(-50%) translateY(6px);}
+  15%{opacity:1;transform:translateX(-50%) translateY(0);}
+  70%{opacity:1;}
+  100%{opacity:0;transform:translateX(-50%) translateY(-4px);}
 }
 
 .trow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;scrollbar-width:none;}
@@ -5657,6 +5680,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
           <span id="daily-card-score">Ton meilleur : —</span>
           <span class="daily-countdown" id="daily-countdown">⏳ —</span>
         </div>
+        <div class="daily-history" id="daily-history"></div>
       </div>
     </div>
     <!-- Message du Jour (fusionné avec Anecdote) -->
@@ -8407,25 +8431,136 @@ function loadTheme(){
   }
 }
 
-// -- HAPTIQUE iOS (Web Vibration API + iOS Taptic via AudioContext trick) --
-function haptic(type){
-  if(!navigator.vibrate)return;
-  switch(type){
-    case 'ok':        navigator.vibrate([12]); break;
-    case 'no':        navigator.vibrate([40,15,40]); break;
-    case 'combo':     navigator.vibrate([10,40,10,40,18]); break;
-    case 'clap':      navigator.vibrate([6,25,6]); break;
-    case 'levelup':   navigator.vibrate([15,25,15,25,15,25,80]); break;
-    case 'lvlup':     navigator.vibrate([15,25,15,25,15,25,80]); break;
-    case 'select':    navigator.vibrate([6]); break;
-    case 'tap':       navigator.vibrate([6]); break;
-    case 'swipe':     navigator.vibrate([4]); break;
-    case 'win':       navigator.vibrate([15,20,15,20,15,20,80]); break;
-    case 'perfect':   navigator.vibrate([10,20,10,20,10,20,60]); break;
-    case 'tick':      navigator.vibrate([4]); break;
-    case 'countdown': navigator.vibrate([8]); break;
+// ── HAPTIQUE — Hybride iOS Safari (Web Audio) + Android (Vibration API) ──
+// Sur Safari iOS, navigator.vibrate n'existe pas. On utilise des impulsions
+// Web Audio ultra-courtes (sine burst) qui déclenchent le Taptic Engine iOS.
+// Sur Android/Chrome, on garde navigator.vibrate en complément.
+(function(){
+  // Génère un burst audio court qui déclenche le Taptic Engine iOS
+  function _tapticBurst(patterns){
+    // patterns = [{freq, vol, dur, delay}, ...]
+    const ctx = ac(); if(!ctx) return;
+    try{
+      patterns.forEach(({freq=200, vol=0.9, dur=0.012, delay=0})=>{
+        const t = ctx.currentTime + delay;
+        const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate*dur), ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for(let i=0;i<data.length;i++){
+          // Sine wave avec envelope rapide — c'est la forme d'onde qui active le moteur
+          const env = Math.sin(Math.PI * i/data.length);
+          data[i] = Math.sin(2*Math.PI*freq*i/ctx.sampleRate) * env * vol;
+        }
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        // Gain très bas — on ne veut pas entendre le son, juste sentir la vibration
+        // Sur iOS le Taptic Engine se déclenche même à faible volume audio
+        const g = ctx.createGain();
+        g.gain.value = 0.06;
+        src.connect(g); g.connect(ctx.destination);
+        src.start(t);
+      });
+    }catch(e){}
   }
-}
+
+  const _isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+                 (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+
+  window.haptic = function(type){
+    // Android / Chrome : Vibration API
+    if(navigator.vibrate){
+      switch(type){
+        case 'ok':        navigator.vibrate([12]); break;
+        case 'no':        navigator.vibrate([40,15,40]); break;
+        case 'combo':     navigator.vibrate([10,40,10,40,18]); break;
+        case 'clap':      navigator.vibrate([6,25,6]); break;
+        case 'levelup':   navigator.vibrate([15,25,15,25,15,25,80]); break;
+        case 'lvlup':     navigator.vibrate([15,25,15,25,15,25,80]); break;
+        case 'select':    navigator.vibrate([6]); break;
+        case 'tap':       navigator.vibrate([6]); break;
+        case 'swipe':     navigator.vibrate([4]); break;
+        case 'win':       navigator.vibrate([15,20,15,20,15,20,80]); break;
+        case 'perfect':   navigator.vibrate([10,20,10,20,10,20,60]); break;
+        case 'tick':      navigator.vibrate([4]); break;
+        case 'countdown': navigator.vibrate([8]); break;
+      }
+    }
+
+    // iOS Safari : Web Audio Taptic pulses
+    // Ne se déclenche que si un AudioContext est actif (après un geste utilisateur)
+    if(!_isIOS) return;
+    switch(type){
+      // Bonne réponse — 1 pulse net
+      case 'ok':
+        _tapticBurst([{freq:180, vol:1, dur:0.014, delay:0}]);
+        break;
+      // Mauvaise réponse — 2 pulses lourds
+      case 'no':
+        _tapticBurst([
+          {freq:100, vol:1, dur:0.022, delay:0},
+          {freq:90,  vol:0.9, dur:0.022, delay:0.055},
+        ]);
+        break;
+      // Combo — 3 pulses rapides croissants
+      case 'combo':
+        _tapticBurst([
+          {freq:160, vol:0.8, dur:0.012, delay:0},
+          {freq:180, vol:0.9, dur:0.012, delay:0.045},
+          {freq:220, vol:1,   dur:0.014, delay:0.09},
+        ]);
+        break;
+      // Clap — 2 pulses syncopés
+      case 'clap':
+        _tapticBurst([
+          {freq:200, vol:0.9, dur:0.010, delay:0},
+          {freq:200, vol:0.7, dur:0.010, delay:0.028},
+        ]);
+        break;
+      // Level up — montée en 4 pulses
+      case 'levelup': case 'lvlup':
+        _tapticBurst([
+          {freq:140, vol:0.7, dur:0.014, delay:0},
+          {freq:180, vol:0.8, dur:0.014, delay:0.06},
+          {freq:220, vol:0.9, dur:0.014, delay:0.12},
+          {freq:280, vol:1,   dur:0.022, delay:0.2},
+        ]);
+        break;
+      // Select / tap — 1 pulse léger
+      case 'select': case 'tap':
+        _tapticBurst([{freq:200, vol:0.7, dur:0.010, delay:0}]);
+        break;
+      // Swipe — très court
+      case 'swipe':
+        _tapticBurst([{freq:220, vol:0.6, dur:0.008, delay:0}]);
+        break;
+      // Victoire — 5 pulses festifs
+      case 'win':
+        _tapticBurst([
+          {freq:160, vol:0.8, dur:0.012, delay:0},
+          {freq:180, vol:0.8, dur:0.012, delay:0.05},
+          {freq:200, vol:0.9, dur:0.012, delay:0.10},
+          {freq:240, vol:0.9, dur:0.012, delay:0.16},
+          {freq:300, vol:1,   dur:0.020, delay:0.24},
+        ]);
+        break;
+      // Parfait — comme win mais plus intense
+      case 'perfect':
+        _tapticBurst([
+          {freq:200, vol:1,   dur:0.014, delay:0},
+          {freq:200, vol:1,   dur:0.014, delay:0.04},
+          {freq:280, vol:1,   dur:0.022, delay:0.10},
+        ]);
+        break;
+      // Tick — micro-pulse
+      case 'tick':
+        _tapticBurst([{freq:300, vol:0.5, dur:0.006, delay:0}]);
+        break;
+      // Countdown — pulse moyen
+      case 'countdown':
+        _tapticBurst([{freq:160, vol:0.8, dur:0.012, delay:0}]);
+        break;
+    }
+  };
+})();
 
 // -- SON CLAQUETTE (splash) --
 function sndClap(){
@@ -12639,6 +12774,8 @@ function hmSwitchTab(tab) {
     if(statsWrap)statsWrap.style.display='block';
     _hmRenderStats();
   }
+  // Sauvegarder l'onglet actif
+  try{localStorage.setItem('hm_last_tab', tab);}catch(e){}
 }
 
 function _hmUpdateTabCount() {
@@ -13105,6 +13242,25 @@ function _hmvRender() {
 
   // Fermer le panneau si on change de carte
   _hmvCloseInfo(false);
+
+  // Hint swipe-to-flip — affiché uniquement les 3 premières ouvertures
+  const wrap = document.getElementById('hmv-poster-wrap');
+  if(wrap){
+    const existing = document.getElementById('hmv-flip-swipe-hint');
+    if(existing) existing.remove();
+    try{
+      const seen = parseInt(localStorage.getItem('hm_flip_hint_seen')||'0',10);
+      if(seen < 3){
+        localStorage.setItem('hm_flip_hint_seen', seen+1);
+        const h = document.createElement('div');
+        h.id = 'hmv-flip-swipe-hint';
+        h.style.cssText = 'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.55);letter-spacing:2px;pointer-events:none;white-space:nowrap;z-index:10;text-shadow:0 1px 6px rgba(0,0,0,.8);animation:hmvFlipHintFade 3s ease both;';
+        h.innerHTML = '&#8592;&nbsp; SWIPE POUR RETOURNER &nbsp;&#8594;';
+        wrap.appendChild(h);
+        setTimeout(()=>{ if(h.parentNode) h.remove(); }, 3200);
+      }
+    }catch(e){}
+  }
 }
 
 function _hmvOpenInfo() {
@@ -13209,12 +13365,17 @@ function _hmvTouchStart(e) {
   _hmvSX = e.touches[0].clientX;
   _hmvSY = e.touches[0].clientY;
   _hmvSwipeInFlipZone = false;
+
   const flipBtn = document.getElementById('hmv-flip-text-btn');
+  const poster  = document.getElementById('hmv-poster');
+
   if (flipBtn) {
-    const r = flipBtn.getBoundingClientRect();
-    _hmvSwipeEnabled = _hmvSY > r.bottom + 8;
-    // Zone flip = entre le bas du bouton flip et le bas de l'écran
-    _hmvSwipeInFlipZone = _hmvSwipeEnabled;
+    const rb = flipBtn.getBoundingClientRect();
+    // Activer le swipe uniquement sous le bouton flip
+    _hmvSwipeEnabled = _hmvSY > rb.bottom + 8;
+    // Zone flip = sur le poster lui-même (le flip est géré par _hmvHoloTouchEnd)
+    // Zone navigation = SOUS le poster/bouton, pas sur l'affiche
+    _hmvSwipeInFlipZone = false; // navigation par défaut sous le bouton
   } else {
     _hmvSwipeEnabled = true;
     _hmvSwipeInFlipZone = false;
@@ -13232,10 +13393,8 @@ function _hmvTouchEnd(e) {
     if (dy < -50 && !_hmvInfoOpen) _hmvOpenInfo();
     if (dy >  50 &&  _hmvInfoOpen) _hmvCloseInfo();
   } else if (adx > 40) {
-    // Swipe latéral depuis la zone basse (sous le bouton flip) → retourner la carte
-    if (_hmvSwipeInFlipZone) {
-      hmvFlipPoster();
-    } else if (_hmvList.length > 1) {
+    // Zone sous le bouton flip → navigation entre films
+    if (_hmvList.length > 1) {
       hmvNavigate(dx < 0 ? 1 : -1);
     } else if (dx < -40) {
       _hmvSlideOut('left', closeHMViewer);
@@ -13509,15 +13668,22 @@ function openHM(){
   const s=ls();const userLvl=glv(s.xp);
   const firstUnrevealed=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&!_hmRevealed.has(i));
 
+  // Tenter de restaurer l'onglet précédent
+  let savedTab='scratch';
+  try{savedTab=localStorage.getItem('hm_last_tab')||'scratch';}catch(e){}
+
   if(firstUnrevealed>=0){
-    // Il reste des cartes à gratter → onglet Découvrir
-    _hmIdx=firstUnrevealed;
+    // Il reste des cartes à gratter
+    // Restaurer la position dans le scratch si on était sur cet onglet
+    let savedIdx=-1;
+    try{savedIdx=parseInt(localStorage.getItem('hm_last_idx')||'-1',10);}catch(e){}
+    const validSaved=savedIdx>=0&&savedIdx<_hmFilms.length&&_hmFilms[savedIdx]?.lvl<=userLvl&&!_hmRevealed.has(savedIdx);
+    _hmIdx=validSaved?savedIdx:firstUnrevealed;
     _hmRenderCard(_hmIdx);
+    if(savedTab!=='scratch') hmSwitchTab(savedTab);
   } else {
-    // Toutes les cartes débloquées ont été grattées → Collection directement
-    // + afficher hiddenmovies.mp4 sur l'onglet Découvrir
-    hmSwitchTab('collection');
-    // Préparer l'onglet Découvrir avec la vidéo exclusive
+    // Toutes grattées → collection
+    hmSwitchTab(savedTab==='scratch'?'collection':savedTab);
     const scratchWrap=document.getElementById('hm-scratch-wrap');
     if(scratchWrap){
       scratchWrap.innerHTML=`
@@ -13575,6 +13741,7 @@ function _hmBuildList(){
 function _hmRenderCard(idx){
   const film=_hmFilms[idx];
   if(!film)return;
+  try{localStorage.setItem('hm_last_idx',idx);}catch(e){}
   const s=ls();
   const userLvl=glv(s.xp);
   const isUnlocked=film.lvl<=userLvl;
@@ -14167,8 +14334,8 @@ function _hmReveal(film, idx, canvas){
   const card=document.getElementById('hm-scratch-card');
   const scratchUnder=document.getElementById('hm-scratch-under');
 
-  // 1. Vibration mobile
-  if(navigator.vibrate) navigator.vibrate([20,10,40]);
+  // 1. Vibration mobile (fonctionne sur Android + iOS Safari via Web Audio)
+  haptic('clap');
 
   // 2. Fondu du canvas masque
   canvas.style.transition='opacity .35s ease';
@@ -19020,23 +19187,53 @@ function updateDailyCard(){
     if(bar)setTimeout(()=>{if(bar)bar.style.width='0%';},50);
     if(scoreEl)scoreEl.textContent='Pas encore joué aujourd\'hui';
   }
+  renderDailyHistory();
   updateDailyCountdown();
+}
+
+function renderDailyHistory(){
+  const el=document.getElementById('daily-history');if(!el)return;
+  const data=getDailyData();
+  const days=['L','M','M','J','V','S','D'];
+  const today=new Date();
+  const todayKey=getDailyKey();
+  let html='';
+  for(let i=6;i>=0;i--){
+    const d=new Date(today);
+    d.setDate(today.getDate()-i);
+    const key=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const isToday=key===todayKey;
+    const entry=data[key];
+    const lbl=days[d.getDay()];
+    let dotClass='daily-day-dot'+(isToday?' today':'');
+    if(entry) dotClass+=' done';
+    // Jour passé sans jouer (pas aujourd'hui)
+    // On ne marque "failed" que si c'était un jour débloqué (streak existait) — on le laisse vide sinon
+    html+=`<div class="daily-day"><div class="${dotClass}"></div><div class="daily-day-lbl">${isToday?'Auj':lbl}</div></div>`;
+  }
+  el.innerHTML=html;
 }
 
 function updateDailyCountdown(){
   const el=document.getElementById('daily-countdown');if(!el)return;
   const now=new Date();const midnight=new Date(now);midnight.setHours(24,0,0,0);
-  const diff=midnight-now;const h=Math.floor(diff/3600000);const m=Math.floor((diff%3600000)/60000);
+  const diff=midnight-now;
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
   const key=getDailyKey();const data=getDailyData();const done=!!(data[key]);
   if(done){
-    el.innerHTML=`🎉 Prochain défi dans <strong>${h}h${String(m).padStart(2,'0')}m</strong>`;
+    el.innerHTML=`🎉 Prochain dans <strong>${h}h${String(m).padStart(2,'0')}m</strong>`;
     el.style.color='rgba(46,204,113,.8)';el.style.fontWeight='600';
   } else {
     const urgent=h<3;
-    el.innerHTML=urgent
-      ?`⚠️ Plus que <strong>${h}h${String(m).padStart(2,'0')}m</strong> !`
-      :`⏳ ${h}h${String(m).padStart(2,'0')}m restantes`;
-    el.style.color=urgent?'rgba(255,120,40,.85)':'';el.style.fontWeight=urgent?'700':'';
+    if(urgent){
+      el.innerHTML=`⚠️ <strong>${h}h${String(m).padStart(2,'0')}m${String(s).padStart(2,'0')}s</strong>`;
+      el.style.color='rgba(255,120,40,.85)';el.style.fontWeight='700';
+    } else {
+      el.innerHTML=`⏳ ${h}h${String(m).padStart(2,'0')}m`;
+      el.style.color='';el.style.fontWeight='';
+    }
   }
 }
 
@@ -20400,6 +20597,91 @@ function _saveArcadeHS(game,val){
   try{const hs=JSON.parse(localStorage.getItem('cq_arc_hs')||'{}');if(!hs[game]||val>hs[game]){hs[game]=val;localStorage.setItem('cq_arc_hs',JSON.stringify(hs));}}catch(e){}
   setTimeout(updateJkDot,300);
 }
+// ── Sons mini-jeux Doodle Ciné ──
+function sndDoodleJump(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    const g=ctx.createGain();g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+    const o=ctx.createOscillator();o.type='sine';
+    o.frequency.setValueAtTime(320,t);o.frequency.exponentialRampToValueAtTime(640,t+.12);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.18);
+  }catch(e){}
+}
+function sndDoodleSuperJump(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    [[220,.14,0],[330,.11,.04],[440,.09,.09],[660,.08,.14]].forEach(([f,v,d])=>{
+      const g=ctx.createGain();g.gain.setValueAtTime(v,t+d);g.gain.exponentialRampToValueAtTime(.0001,t+d+.22);
+      const o=ctx.createOscillator();o.type='triangle';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);o.start(t+d);o.stop(t+d+.22);
+    });
+  }catch(e){}
+}
+function sndDoodleBonus(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    [[523,.15,0],[659,.12,.06],[784,.1,.12],[1047,.08,.18]].forEach(([f,v,d])=>{
+      const g=ctx.createGain();g.gain.setValueAtTime(v,t+d);g.gain.exponentialRampToValueAtTime(.0001,t+d+.18);
+      const o=ctx.createOscillator();o.type='triangle';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);o.start(t+d);o.stop(t+d+.18);
+    });
+  }catch(e){}
+}
+function sndDoodleGameOver(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    [[440,.2,0],[330,.18,.12],[220,.15,.26],[165,.12,.42]].forEach(([f,v,d])=>{
+      const g=ctx.createGain();g.gain.setValueAtTime(v,t+d);g.gain.exponentialRampToValueAtTime(.0001,t+d+.28);
+      const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);o.start(t+d);o.stop(t+d+.28);
+    });
+  }catch(e){}
+}
+// ── Sons mini-jeux Bobine Infinie ──
+function sndBobineCollect(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    const g=ctx.createGain();g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.0001,t+.15);
+    const o=ctx.createOscillator();o.type='sine';
+    o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(1320,t+.1);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.15);
+  }catch(e){}
+}
+function sndBobineCombo(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    [[660,.16,0],[880,.13,.05],[1100,.1,.1]].forEach(([f,v,d])=>{
+      const g=ctx.createGain();g.gain.setValueAtTime(v,t+d);g.gain.exponentialRampToValueAtTime(.0001,t+d+.12);
+      const o=ctx.createOscillator();o.type='sine';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);o.start(t+d);o.stop(t+d+.12);
+    });
+  }catch(e){}
+}
+function sndBobineGameOver(){
+  if(!sndOn)return;const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    const nLen=Math.ceil(ctx.sampleRate*.25);const nBuf=ctx.createBuffer(1,nLen,ctx.sampleRate);
+    const nd=nBuf.getChannelData(0);
+    for(let i=0;i<nLen;i++){nd[i]=(Math.random()*2-1)*Math.pow(1-i/nLen,2)*.6;}
+    const ns=ctx.createBufferSource();ns.buffer=nBuf;
+    const nf=ctx.createBiquadFilter();nf.type='bandpass';nf.frequency.value=400;nf.Q.value=1.5;
+    const ng=ctx.createGain();ng.gain.setValueAtTime(.4,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.25);
+    ns.connect(nf);nf.connect(ng);ng.connect(ctx.destination);ns.start(t);
+    [[220,.15,.05],[175,.12,.18]].forEach(([f,v,d])=>{
+      const g=ctx.createGain();g.gain.setValueAtTime(v,t+d);g.gain.exponentialRampToValueAtTime(.0001,t+d+.35);
+      const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f;
+      o.connect(g);g.connect(ctx.destination);o.start(t+d);o.stop(t+d+.35);
+    });
+  }catch(e){}
+}
+
 function sndArcadeOpen(){
   if(!sndOn)return;
   const ctx=ac();if(!ctx)return;
@@ -21921,6 +22203,7 @@ function _bobTick(s){
     if(!c.alive)continue;
     if(Math.abs(c.x-px)<hw+c.r && Math.abs(c.y-py)<hh+c.r){
       c.alive=false;s.score+=10;s.combo++;s.comboTimer=60;s.flash=8;
+      if(s.combo>=3)sndBobineCombo();else sndBobineCollect();
       for(let p=0;p<7;p++) s.particles.push({x:c.x,y:c.y,vx:(Math.random()-.5)*4,vy:-Math.random()*4-1,life:30,maxLife:30});
       s.collectibles.splice(i,1);
     } else if(c.y>s.H+40) s.collectibles.splice(i,1);
@@ -22024,6 +22307,7 @@ function _bobDraw(s){
 
 function _bobGameOver(s){
   cancelAnimationFrame(_bobAnim);_bobAnim=null;
+  sndBobineGameOver();
   const score=s.score;
   document.getElementById('bob-final').textContent=score;
   const prev=_getArcadeHS('bobine');
@@ -22164,6 +22448,7 @@ function _bobGameOver(s){
             s.pvy=JUMP_V;
             s.wobble=8;
             _ddBurst(s.px,p.y,'130,220,100',5);
+            sndDoodleJump();
             // Spawn bonus sur cette plateforme si elle en a un
             if(p.hasBonus){
               p.hasBonus=false;
@@ -22232,6 +22517,7 @@ function _bobGameOver(s){
       const dx=Math.abs(s.px-h.x-h.w/2), dy=Math.abs((s.py-s.camY)-(hSY+h.h/2));
       if(dx<h.w/2+8 && dy<h.h/2+10){
         _ddBurst(s.px,s.py-s.camY+s.camY,'255,80,80',14);
+        sndDoodleGameOver();
         s.dead=true; s.running=false; _ddGameOver(); return;
       }
     }
@@ -22252,7 +22538,8 @@ function _bobGameOver(s){
         s.popups.push({x:b.x, y:b.y, label:b.label, col:b.col, life:40, maxLife:40});
         if(b.effect==='pts'){s.score+=b.pts;}
         else if(b.effect==='x2'){s.x2active=b.dur;}
-        else if(b.effect==='superjump'){s.pvy=JUMP_V*1.7;s.wobble=14;}
+        else if(b.effect==='superjump'){s.pvy=JUMP_V*1.7;s.wobble=14;sndDoodleSuperJump();}
+        sndDoodleBonus();
       }
     }
 
@@ -22267,7 +22554,7 @@ function _bobGameOver(s){
     }
     if(s.wobble>0)s.wobble--;
 
-    if(s.py-s.camY>H+60&&!s.dead){s.dead=true;s.running=false;_ddGameOver();}
+    if(s.py-s.camY>H+60&&!s.dead){s.dead=true;s.running=false;sndDoodleGameOver();_ddGameOver();}
   }
 
   function _ddBurst(x,y,c,n){
@@ -23713,7 +24000,7 @@ loadTheme();
 updateProfileDot();
 updateDailyCard();
 initMiniPlayer();
-setInterval(updateDailyCountdown,60000);
+setInterval(updateDailyCountdown,1000);
 
 // ══ NEURO NOISE — Splash Screen WebGL Shader (v2) ══
 (function(){
