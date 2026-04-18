@@ -5420,7 +5420,7 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="tbr">
         <div class="ibtn" onclick="openHelp()" title="Comment jouer ?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></div>
         <div class="ibtn" id="btn-music" onclick="openJukebox()" title="Jukebox" style="position:relative;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span id="jk-new-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ff4d6d;border:1.5px solid var(--bg);"></span></div>
-        <div class="ibtn" id="btn-profile" onclick="onProfileBtnClick()" style="position:relative;">
+        <div class="ibtn" id="btn-profile" onclick="goProfile()" style="position:relative;">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <div id="profile-dot" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff4d6d;border:1.5px solid #0a0a0f;"></div>
         </div>
@@ -5765,6 +5765,32 @@ input[type=range]::-moz-range-thumb{width:36px;height:36px;border-radius:50%;bac
       <div class="phero-level" id="phero-level">
         <svg id="phero-lvl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>
         <span class="phero-level-txt" id="p-tt">Niveau 1 · Figurant</span>
+      </div>
+    </div>
+    <!-- Bandeau connexion/inscription dans le profil -->
+    <div id="profile-auth-banner" style="margin:0 0 14px;display:none;">
+      <!-- Non connecté -->
+      <div id="profile-auth-guest" style="background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(109,40,217,.06));border:1px solid rgba(167,139,250,.25);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:13px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,.8)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8);margin-bottom:2px;">Sauvegarde ta progression</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.38);letter-spacing:.2px;">Connecte-toi pour ne rien perdre</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button onclick="showAuthModal('login')" style="background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.35);border-radius:10px;padding:7px 12px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:#c4b5fd;cursor:pointer;transition:all .18s;">CONNEXION</button>
+          <button onclick="showAuthModal('signup')" style="background:linear-gradient(135deg,rgba(167,139,250,.25),rgba(167,139,250,.12));border:1px solid rgba(167,139,250,.5);border-radius:10px;padding:7px 12px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:#e9d5ff;cursor:pointer;transition:all .18s;">INSCRIPTION</button>
+        </div>
+      </div>
+      <!-- Connecté -->
+      <div id="profile-auth-logged" style="display:none;background:linear-gradient(135deg,rgba(46,204,113,.08),rgba(16,140,70,.04));border:1px solid rgba(46,204,113,.2);border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:10px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 8px rgba(46,204,113,.5);flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div id="profile-auth-email-txt" style="font-size:11px;color:rgba(255,255,255,.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        </div>
+        <button onclick="sbManualSync()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:5px 10px;font-size:10px;color:rgba(255,255,255,.45);cursor:pointer;letter-spacing:.3px;white-space:nowrap;">↻ Sync</button>
+        <button onclick="if(confirm('Te déconnecter ?'))authDoLogout()" style="background:rgba(232,52,74,.08);border:1px solid rgba(232,52,74,.2);border-radius:9px;padding:5px 10px;font-size:10px;color:rgba(232,52,74,.7);cursor:pointer;white-space:nowrap;">Déco</button>
       </div>
     </div>
     <!-- Stats avancées : sparkline 7 jours -->
@@ -10518,11 +10544,11 @@ async function fetchCastingQuestions(count){
   });
 }
 
-// Acteurs celebres - IDs TMDB verifies + profile_path de secours
-// Le fetch live recupere la photo actuelle via l ID fixe (garanti = bonne personne)
-// IMPORTANT : liste dédupliquée par ID — ne jamais ajouter deux fois le même id
+// Acteurs célèbres — IDs TMDB vérifiés, dédupliqués par ID, mixité assurée
+// Chaque entrée : id TMDB unique + nom exact + profile_path de secours
 const KNOWN_ACTORS=[
-  // Hommes — internationaux
+
+  // ── HOMMES AMÉRICAINS / ANGLOPHONES ──
   {id:31,      name:'Tom Hanks',           path:'/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg'},
   {id:287,     name:'Brad Pitt',           path:'/kU3B75TyRiCgE270EyZnHjfivoq.jpg'},
   {id:6193,    name:'Leonardo DiCaprio',   path:'/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg'},
@@ -10534,10 +10560,8 @@ const KNOWN_ACTORS=[
   {id:74568,   name:'Chris Hemsworth',     path:'/jpurJ9jAcLCYjgHHfYF32m3zJYm.jpg'},
   {id:16851,   name:'Ryan Gosling',        path:'/lyUyVARQKhGxaxy0FbPJCQRpiaW.jpg'},
   {id:819,     name:'Edward Norton',       path:'/8nytsqL59SFJTVYMgB5V2CBiSUb.jpg'},
-  {id:64,      name:'Gary Oldman',         path:'/2v9FVVBUrrkW2m3QOcYkuhq9A6o.jpg'},
   {id:2888,    name:'Will Smith',          path:'/7F3HQMoVvqHODLwbHJPNMNuPfpY.jpg'},
   {id:1333,    name:'Russell Crowe',       path:'/xRlFBCRjXlzl4YEJftqJj7AKCHe.jpg'},
-  {id:1373737, name:'Timothee Chalamet',   path:'/BE2sdjpgsa2rNTFa66f7upkaOP.jpg'},
   {id:3910,    name:'Denzel Washington',   path:'/jj2Gcobpopokal0YstuCQW0ldnOQ.jpg'},
   {id:10859,   name:'Christian Bale',      path:'/qCpZn2e3dimwbryLnqxZuI88PTi.jpg'},
   {id:73457,   name:'Chris Evans',         path:'/3bOGNse2LkVJAk18sAxKAWCLFTj.jpg'},
@@ -10545,12 +10569,10 @@ const KNOWN_ACTORS=[
   {id:2037,    name:'Robert De Niro',      path:'/cT8htcckIuyI1iba0fykaxsEovn.jpg'},
   {id:1892,    name:'Matt Damon',          path:'/ycAv4UJbbf3jUEHMn1PxFpzKUlg.jpg'},
   {id:3776,    name:'Hugh Jackman',        path:'/t4768kJFH1HiKNXrDqoAFCOdkiO.jpg'},
-  {id:1023139, name:'Pedro Pascal',        path:'/iDlJFYcTMg81nAtU4wBj6DJDSS5.jpg'},
   {id:10980,   name:'Viggo Mortensen',     path:'/vH5gVSpHAMhDaFWfh0Q7BG61O1y.jpg'},
   {id:3,       name:'Clint Eastwood',      path:'/tHRqb9QQ6BDTMO23sifs0hCKnQq.jpg'},
   {id:13798,   name:'Jake Gyllenhaal',     path:'/tgEeIDba1GzSMQ1AiQrCGsYJksc.jpg'},
   {id:16483,   name:'Sylvester Stallone',  path:'/mMRBECqxfCqMOCghDnKaMPIaXjf.jpg'},
-  {id:1327,    name:'Javier Bardem',       path:'/AsHsX5gELBxCeVnP27BAPe3loNY.jpg'},
   {id:10915,   name:'Anthony Hopkins',     path:'/3MNxUY3VPvnr8qeOMvCBkEjOYHE.jpg'},
   {id:1190,    name:'Al Pacino',           path:'/pKd6KQGMkFjkFAYA7dCDMCqrRAP.jpg'},
   {id:1954,    name:'Jack Nicholson',      path:'/6TK2SCFYoNQ6LKtdMjFHpfvOxSa.jpg'},
@@ -10565,7 +10587,46 @@ const KNOWN_ACTORS=[
   {id:30614,   name:'Ryan Reynolds',       path:'/4SYTH5FdB8BQxWCi04EKPTLUQPE.jpg'},
   {id:44939,   name:'Oscar Isaac',         path:'/r3jOtSRDpKTPLfADxIh9RQDXiZ4.jpg'},
   {id:37917,   name:'Michael B. Jordan',   path:'/oheamx9RjEwOBGjzlQxJIXr0ZfX.jpg'},
-  // Actrices — internationales
+  {id:3748,    name:'Ralph Fiennes',       path:'/wIXxMIqyWgV1T97JRJoVR0mEpPC.jpg'},
+  {id:60073,   name:'Rami Malek',          path:'/nmGWzTLMXy9x7mKd8NKPLmHtWGa.jpg'},
+  {id:2752782, name:'Paul Mescal',         path:'/5vQNdPfnfM9RHxZiflYZgqBpRwg.jpg'},
+  {id:1336584, name:'Barry Keoghan',       path:'/zgRWFZQMJFelWHO3gEarv1iCBNk.jpg'},
+  {id:1999,    name:'Brendan Fraser',      path:'/9QbCkCkRLGWJZeqHxwX5qbHJXHR.jpg'},
+  {id:61478,   name:'Daniel Kaluuya',      path:'/qBBHOHMpPvnXFEhz2LOFxgBjQZU.jpg'},
+  {id:10006,   name:'Colin Farrell',       path:'/zSuXCR6xCKIGQeKGgMEIzu9SDhn.jpg'},
+  {id:48450,   name:'Christoph Waltz',     path:'/rfR9Lbsaefv9NjXoAZJzIE1GLUE.jpg'},
+  {id:5293,    name:'Willem Dafoe',        path:'/m6AHNwrNMwRDkYJMpa7c29HHcFv.jpg'},
+  {id:43514,   name:'Andrew Garfield',     path:'/qdFG5eVWWMDd98BNKF8PNVvaTAP.jpg'},
+  {id:9827,    name:'Ethan Hawke',         path:'/rEpQ0TjYijKGLZW3OEbCSmRJxY8.jpg'},
+  {id:5045,    name:'Jeff Bridges',        path:'/nqVMQmkJiMBcjHSdqfmZNJ1hBRD.jpg'},
+  {id:57755,   name:'Jesse Eisenberg',     path:'/3o2Bg8r7P2RRRzNsSlQXJixnFiR.jpg'},
+  {id:34651,   name:'Michael Shannon',     path:'/fNdpfZ4EAo0f85MLPoUmFo1nJ7c.jpg'},
+  {id:932963,  name:'Mahershala Ali',      path:'/9Aq01V2SCCL0S4yNgzJdCFMlQvb.jpg'},
+  {id:94173,   name:'Steven Yeun',         path:'/6MKHbOQMdnQtFjJVoLLrGiDkYIN.jpg'},
+  {id:12835,   name:'Benicio del Toro',    path:'/fnJ4pE02YGgLFiGpAZMnjwi7JXe.jpg'},
+  {id:1100526, name:'Robert Pattinson',    path:'/2lECpi35Hnbpa4y46JX0aY3AWTy.jpg'},
+  {id:4932,    name:'Tom Holland',         path:'/85cwKdTtJ0MkyYHMX24vVGMhXtA.jpg'},
+  {id:1674432, name:'Austin Butler',       path:'/ARttFgwvqtDdC2wC6RVYWG4sYCC.jpg'},
+  {id:5538,    name:'Paul Dano',           path:'/eO63MOJPiB73rMRVF3K5SQjREfL.jpg'},
+  {id:204,     name:'Adam Driver',         path:'/sUvMzLBTRf7WLdGBHO0gTtNEPR4.jpg'},
+  {id:1373737, name:'Timothee Chalamet',   path:'/BE2sdjpgsa2rNTFa66f7upkaOP.jpg'},
+  {id:1816158, name:'Letitia Wright',      path:'/zVAB8CbJRPIRBYHNJFiOsWCrWsO.jpg'},
+  {id:10975,   name:'Jamie Lee Curtis',    path:'/lDCIBR7pAGbJCfQiCqAMCQ8o00E.jpg'},
+  {id:84286,   name:'Aubrey Plaza',        path:'/3x2tMoN7yGt7RoWi6xMq8MdJVMC.jpg'},
+  {id:9273,    name:'Amy Adams',           path:'/hkBaDkL7TZFOxdnJX0I7doH2NQh.jpg'},
+  {id:15354,   name:'Eva Green',           path:'/kkTiKsyFuQ8UXaVAYUHuK6LerqP.jpg'},
+  {id:64,      name:'Gary Oldman',         path:'/2v9FVVBUrrkW2m3QOcYkuhq9A6o.jpg'},
+  {id:6073,    name:'Julianne Moore',      path:'/9N7jlJGLlS1bxT8xPdVnAtMt4OT.jpg'},
+  {id:5064,    name:'Julia Roberts',       path:'/8PrSmeh8LHlMwzBaT9GDrAINXuW.jpg'},
+  {id:6734,    name:'Sandra Bullock',      path:'/tH5s3w9NJfeqvMTCsD4p3bTCVoy.jpg'},
+  {id:3084,    name:'Sharon Stone',        path:'/mWOFIBLpH6fPYJnNZXtBQzfJNgO.jpg'},
+  {id:9780,    name:'Sigourney Weaver',    path:'/1HphEJFoJT0yb7YEFyQ9aHPn3ND.jpg'},
+  {id:12052,   name:'Susan Sarandon',      path:'/eDNHdHG8K00MgYPxFGlkDyMlB3A.jpg'},
+  {id:21534,   name:'Taraji P. Henson',    path:'/4tRFWdNDOJGmXR9R3M1J1gXQBKB.jpg'},
+  {id:1397778, name:'Awkwafina',           path:'/7lFxBGk6PO5VqP5DU4m8H3kDniG.jpg'},
+  {id:63225,   name:'Rachel Weisz',        path:'/bVOtIpktdUTAbxoR5KUtC6mMGn0.jpg'},
+
+  // ── FEMMES INTERNATIONALES ──
   {id:1245,    name:'Scarlett Johansson',  path:'/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg'},
   {id:8784,    name:'Meryl Streep',        path:'/UGnM7fzECb3P3BmYQOGHBF8LW5.jpg'},
   {id:1614,    name:'Cate Blanchett',      path:'/2843XeSBkBu9B5wYHyYVBxYGqUk.jpg'},
@@ -10580,13 +10641,30 @@ const KNOWN_ACTORS=[
   {id:5472,    name:'Charlize Theron',     path:'/AxMxflMFDqkstZZFGzOPFIwMRrX.jpg'},
   {id:3293,    name:'Nicole Kidman',       path:'/iBfFPqF5t1Ur3oIDNwY7JV0JXBM.jpg'},
   {id:1813,    name:'Angelina Jolie',      path:'/xLDqHLJMWFX6M5sPy5JMnCVZhZf.jpg'},
-  {id:6073,    name:'Julianne Moore',      path:'/9N7jlJGLlS1bxT8xPdVnAtMt4OT.jpg'},
   {id:56323,   name:'Tilda Swinton',       path:'/g2Bs6dPBSa5c2VDSqB1HBAbQJf.jpg'},
   {id:532,     name:'Penelope Cruz',       path:'/llkbyFKPzLzCbNFpJNP1REPjCsR.jpg'},
   {id:1813209, name:'Sydney Sweeney',      path:'/qYiaSl0cl9fgxARFxbFNu6JKMQj.jpg'},
   {id:1327426, name:'Anya Taylor-Joy',     path:'/qFfpBe3BkDRwQ8IXz7g5YlCnTDP.jpg'},
   {id:1271560, name:'Mia Goth',            path:'/z2V6R6CWpBxfFEYO2fsMkmDJEWp.jpg'},
-  // Acteurs français
+  {id:1100,    name:'Keira Knightley',     path:'/qjBVyqoQxKjnN8GgHpLRJvGMCqI.jpg'},
+  {id:12887,   name:'Toni Collette',       path:'/khTZ3v0v4RJGIQqhDK6oJjyH6N1.jpg'},
+  {id:44800,   name:'Rosamund Pike',       path:'/5oiQfCoL3UCKJdHxuYHGJt3RXBR.jpg'},
+  {id:33334,   name:'Carey Mulligan',      path:'/7LA9BbcD1C0fFr9a7iX0lVvFhPw.jpg'},
+  {id:5897,    name:'Michelle Pfeiffer',   path:'/8McM7F1WMZDgqbTLxF2F3gFeBag.jpg'},
+  {id:11237,   name:'Zoe Saldana',         path:'/sWonk62lon6r3RGLYX6EhpBHk2K.jpg'},
+  {id:68277,   name:'Lupita Nyong\'o',     path:'/7bBGv6RkRGJCKnNqSpHKTXXQjGb.jpg'},
+  {id:5537,    name:'Viola Davis',         path:'/n2Hfo2uOZdFMWrjHGTrHI6pBdpM.jpg'},
+  {id:1373944, name:'Jodie Comer',         path:'/1kks3YnVkpyQxzw36CObFPvhL5f.jpg'},
+  {id:82025,   name:'Saoirse Ronan',       path:'/sXKVGaNX48jwrE0Vvj0kpIb0wWN.jpg'},
+  {id:27972,   name:'Jessica Chastain',    path:'/sSWFrqsO1gAd3lbIJrqInEDOoJF.jpg'},
+  {id:1032,    name:'Michelle Yeoh',       path:'/gI9nOKFdPgOzZcIVnWJBnYMpMjH.jpg'},
+  {id:1813530, name:'Adele Exarchopoulos', path:'/9iVVfJWaZNpbBMqkXB9QOQ4vZqI.jpg'},
+  {id:2440,    name:'Rebecca Ferguson',    path:'/lEIADR2SHbOfhZqYkMQtOovAMkv.jpg'},
+  {id:1193232, name:'Zazie Beetz',         path:'/9nKr9Y9mLhOWFzuQgQ1TqoW6kc3.jpg'},
+  {id:58225,   name:'Gugu Mbatha-Raw',     path:'/fFk2hwKyZT3lOtcCwKFQZnUTPnH.jpg'},
+  {id:18278,   name:'Freida Pinto',        path:'/yFIkqt8hMcEJIlO4GFjXmP6d6Ox.jpg'},
+
+  // ── ACTEURS FRANÇAIS ──
   {id:3061,    name:'Jean Reno',           path:'/4y3BPP7JPxgXS6HFuKtFJBPIjXe.jpg'},
   {id:1581,    name:'Audrey Tautou',       path:'/pMWmdrQlk1jvKpgFuXPANfLl0fX.jpg'},
   {id:2462,    name:'Marion Cotillard',    path:'/hbRhC5mOQyCEbg7t6bMTF8OHlmb.jpg'},
@@ -10597,71 +10675,30 @@ const KNOWN_ACTORS=[
   {id:13550,   name:'Isabelle Huppert',    path:'/8s9bCGSxhOBVVQF5TaZkEenBVGS.jpg'},
   {id:7399,    name:'Juliette Binoche',    path:'/xjXa12xZWJLJDlJjIlBaZqGTyDd.jpg'},
   {id:12309,   name:'Daniel Auteuil',      path:'/sLb2OXPibEBvC0LHvNV3xDnGflx.jpg'},
-  {id:3748,    name:'Ralph Fiennes',       path:'/wIXxMIqyWgV1T97JRJoVR0mEpPC.jpg'},
-  {id:1100,    name:'Keira Knightley',     path:'/qjBVyqoQxKjnN8GgHpLRJvGMCqI.jpg'},
-  {id:1813530, name:'Adele Exarchopoulos', path:'/9iVVfJWaZNpbBMqkXB9QOQ4vZqI.jpg'},
-  {id:74568,   name:'Timothee Chalamet',  path:'/BE2sdjpgsa2rNTFa66f7upkaOP.jpg'},
-  {id:1785335, name:'Zendaya',            path:'/6TE2AlOZqo4RRXSmkvBzlSJRlqk.jpg'},
-  {id:1231580, name:'Ana de Armas',       path:'/3XVzDMn8ToGWJAw3jLZMOFIVOsB.jpg'},
-  {id:8691,    name:'Florence Pugh',      path:'/qhb3z0y8y5s3FwzMEQdFkEL4q5N.jpg'},
-  {id:68277,   name:'Lupita Nyong o',    path:'/7bBGv6RkRGJCKnNqSpHKTXXQjGb.jpg'},
-  {id:5537,    name:'Viola Davis',        path:'/n2Hfo2uOZdFMWrjHGTrHI6pBdpM.jpg'},
-  {id:57779,   name:'Anya Taylor-Joy',   path:'/oMRFcKjuiJlLpJCmtmOiOhGbZlr.jpg'},
-  {id:10980,   name:'Cillian Murphy',    path:'/dm6V24NjjvjMiCtbMkc8Y2WPm2e.jpg'},
-  {id:1674432, name:'Austin Butler',     path:'/ARttFgwvqtDdC2wC6RVYWG4sYCC.jpg'},
-  {id:4932,    name:'Tom Holland',       path:'/85cwKdTtJ0MkyYHMX24vVGMhXtA.jpg'},
-  {id:1136406, name:'Jacob Elordi',      path:'/g6iFiMrVFuIGnPvJRpxXuKkVVUz.jpg'},
-  {id:18917,   name:'Michael Fassbender',path:'/ejgE63HdvuRCWXgdq2fBERJhZoH.jpg'},
-  {id:27972,   name:'Jessica Chastain', path:'/sSWFrqsO1gAd3lbIJrqInEDOoJF.jpg'},
-  {id:30614,   name:'Dev Patel',         path:'/9SJlV8PH8g2oDe7TUFpWB7KPJRP.jpg'},
-  {id:56323,   name:'Adam Driver',       path:'/3eo8m0lhTVHUEWGr1BXIVTH7jhW.jpg'},
-  {id:68490,   name:'Margot Robbie',     path:'/euDPyqLnuwaWMHajcU3oZ9uZezR.jpg'},
-  {id:82025,   name:'Saoirse Ronan',     path:'/sXKVGaNX48jwrE0Vvj0kpIb0wWN.jpg'},
-  {id:1010900, name:'Pedro Pascal',      path:'/sM7oGGmEEqD6I1kYxdXFbRUCVDK.jpg'},
-  {id:12835,   name:'Benicio del Toro',  path:'/fnJ4pE02YGgLFiGpAZMnjwi7JXe.jpg'},
-  {id:1100,    name:'Daniel Craig',      path:'/qjBVyqoQxKjnN8GgHpLRJvGMCqI.jpg'},
-  {id:2440,    name:'Rebecca Ferguson',  path:'/lEIADR2SHbOfhZqYkMQtOovAMkv.jpg'},
-  {id:33532,   name:'Tilda Swinton',     path:'/jLeoNQKn8SYHtnmT8dW6SqFNSXW.jpg'},
-  {id:3895,    name:'Oscar Isaac',       path:'/dW5U5yrIIPmMjRThR9KT2xH6nTz.jpg'},
-  {id:1816158, name:'Letitia Wright',    path:'/zVAB8CbJRPIRBYHNJFiOsWCrWsO.jpg'},
-  {id:10975,   name:'Jamie Lee Curtis',  path:'/lDCIBR7pAGbJCfQiCqAMCQ8o00E.jpg'},
-  {id:6384,    name:'Keanu Reeves',      path:'/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg'},
-  {id:1032,    name:'Michelle Yeoh',     path:'/gI9nOKFdPgOzZcIVnWJBnYMpMjH.jpg'},
-  {id:33462,   name:'Ke Huy Quan',       path:'/ikYEGdJ3B8lGMb5l7pKNZ3nY4l6.jpg'},
-  {id:5538,    name:'Paul Dano',         path:'/eO63MOJPiB73rMRVF3K5SQjREfL.jpg'},
-,
-  // ── Entrées corrigées (étaient malformées) ──
-  {id:60073,   name:'Rami Malek',         path:'/nmGWzTLMXy9x7mKd8NKPLmHtWGa.jpg'},
-  {id:2752782, name:'Paul Mescal',         path:'/5vQNdPfnfM9RHxZiflYZgqBpRwg.jpg'},
-  {id:1336584, name:'Barry Keoghan',       path:'/zgRWFZQMJFelWHO3gEarv1iCBNk.jpg'},
-  {id:1999,    name:'Brendan Fraser',      path:'/9QbCkCkRLGWJZeqHxwX5qbHJXHR.jpg'},
-  {id:61478,   name:'Daniel Kaluuya',      path:'/qBBHOHMpPvnXFEhz2LOFxgBjQZU.jpg'},
-  {id:1373944, name:'Jodie Comer',         path:'/1kks3YnVkpyQxzw36CObFPvhL5f.jpg'},
-  {id:10006,   name:'Colin Farrell',       path:'/zSuXCR6xCKIGQeKGgMEIzu9SDhn.jpg'},
+  {id:19292,   name:'Gerard Depardieu',    path:'/yAy8hcBKMxW9sT9R3lAiBBv8cJ8.jpg'},
+  {id:3799,    name:'Catherine Deneuve',   path:'/aFMtgUzuIIbJe0mHjSqyKxK1Czs.jpg'},
+  {id:66633,   name:'Romain Duris',        path:'/8dFhPUgp2BOkSlXkWU5P4JHUo0V.jpg'},
+  {id:30666,   name:'Gilles Lellouche',    path:'/3JLB5dOrMQcvELY9xhVq5Dq4WZ4.jpg'},
+  {id:23583,   name:'Melanie Laurent',     path:'/kScfLiYRFTCi7jFBiGNcXS2HQHV.jpg'},
+  {id:8346,    name:'Mathieu Amalric',     path:'/mKYXEjYQk3aDkXHVzA7a6XlLhNs.jpg'},
+  {id:566625,  name:'Adele Haenel',        path:'/h3PK7m4mxHX2A8wQHKQKcfDm6q5.jpg'},
+  {id:234975,  name:'Roschdy Zem',         path:'/y8VzSXBPWBcvN0bAHf2gfGxmJAV.jpg'},
+  {id:17693,   name:'Kad Merad',           path:'/6xmLkREcRhHh4LQjRs5e8YJLBTS.jpg'},
+  {id:42093,   name:'Pio Marmai',          path:'/8hmHDm5sGEgpYjAHk6RDLRZDnIM.jpg'},
+  {id:223166,  name:'Sara Forestier',      path:'/hVqfvCgJBPMfXhTG8hFiX3Ep5cU.jpg'},
+
+  // ── ACTEURS EUROPÉENS (hors France) ──
   {id:14716,   name:'Mads Mikkelsen',      path:'/uSJCGkpUuMOMKbbkuXjGEqBbTkS.jpg'},
-  {id:48450,   name:'Christoph Waltz',     path:'/rfR9Lbsaefv9NjXoAZJzIE1GLUE.jpg'},
-  {id:5293,    name:'Willem Dafoe',        path:'/m6AHNwrNMwRDkYJMpa7c29HHcFv.jpg'},
-  {id:12887,   name:'Toni Collette',       path:'/khTZ3v0v4RJGIQqhDK6oJjyH6N1.jpg'},
-  {id:44800,   name:'Rosamund Pike',       path:'/5oiQfCoL3UCKJdHxuYHGJt3RXBR.jpg'},
-  {id:33334,   name:'Carey Mulligan',      path:'/7LA9BbcD1C0fFr9a7iX0lVvFhPw.jpg'},
-  {id:84286,   name:'Aubrey Plaza',        path:'/3x2tMoN7yGt7RoWi6xMq8MdJVMC.jpg'},
-  {id:43514,   name:'Andrew Garfield',     path:'/qdFG5eVWWMDd98BNKF8PNVvaTAP.jpg'},
-  {id:9827,    name:'Ethan Hawke',         path:'/rEpQ0TjYijKGLZW3OEbCSmRJxY8.jpg'},
-  {id:5045,    name:'Jeff Bridges',        path:'/nqVMQmkJiMBcjHSdqfmZNJ1hBRD.jpg'},
-  {id:15354,   name:'Eva Green',           path:'/kkTiKsyFuQ8UXaVAYUHuK6LerqP.jpg'},
-  {id:9273,    name:'Amy Adams',           path:'/hkBaDkL7TZFOxdnJX0I7doH2NQh.jpg'},
-  {id:57755,   name:'Jesse Eisenberg',     path:'/3o2Bg8r7P2RRRzNsSlQXJixnFiR.jpg'},
-  {id:65,      name:'Gael Garcia Bernal',  path:'/sGMRAbNjqWuXFtxqSH9t5OWRm5A.jpg'},
+  {id:1327,    name:'Javier Bardem',       path:'/AsHsX5gELBxCeVnP27BAPe3loNY.jpg'},
+  {id:4724,    name:'Antonio Banderas',    path:'/sQnGJcROeJdQlNp5LKiT5T3lAhJ.jpg'},
+  {id:60898,   name:'Michael Sheen',       path:'/5oGKxc2B4RnJAFI6AidJcm1TZez.jpg'},
+
+  // ── ACTEURS ASIATIQUES & INTERNATIONAUX ──
   {id:18897,   name:'Song Kang-ho',        path:'/iQGF2NTBQ2VVMM5a1V0jDJLkQRU.jpg'},
-  // ── Nouveaux acteurs ──
-  {id:34651,   name:'Michael Shannon',     path:'/fNdpfZ4EAo0f85MLPoUmFo1nJ7c.jpg'},
-  {id:932963,  name:'Mahershala Ali',      path:'/9Aq01V2SCCL0S4yNgzJdCFMlQvb.jpg'},
-  {id:94173,   name:'Steven Yeun',         path:'/6MKHbOQMdnQtFjJVoLLrGiDkYIN.jpg'},
-  {id:5897,    name:'Michelle Pfeiffer',   path:'/8McM7F1WMZDgqbTLxF2F3gFeBag.jpg'},
-  {id:11237,   name:'Zoe Saldana',         path:'/sWonk62lon6r3RGLYX6EhpBHk2K.jpg'},
-  {id:1032,    name:'Thandiwe Newton',     path:'/cTX6SKjXROuXHfJ8qMzQiExhN3I.jpg'},
-  {id:204,     name:'Adam Driver',         path:'/sUvMzLBTRf7WLdGBHO0gTtNEPR4.jpg'},
-  {id:1100526, name:'Robert Pattinson',    path:'/2lECpi35Hnbpa4y46JX0aY3AWTy.jpg'},
+  {id:33462,   name:'Ke Huy Quan',         path:'/ikYEGdJ3B8lGMb5l7pKNZ3nY4l6.jpg'},
+  {id:543638,  name:'Deepika Padukone',    path:'/ykFRAbJFgjREn5UW27HXdC0EQOQ.jpg'},
+  {id:65,      name:'Gael Garcia Bernal',  path:'/sGMRAbNjqWuXFtxqSH9t5OWRm5A.jpg'},
+  {id:1023139, name:'Pedro Pascal',        path:'/iDlJFYcTMg81nAtU4wBj6DJDSS5.jpg'},
 ];
 
 function _preloadImg(url){
@@ -22825,30 +22862,45 @@ if('serviceWorker' in navigator){
   function updateAuthUI() {
     var btn = document.getElementById('btn-profile');
     var badge = document.getElementById('sb-sync-badge');
-    if (!btn) return;
-    if (_sbSession && _sbSession.user) {
-      var email = _sbSession.user.email || '';
-      btn.style.background = 'rgba(167,139,250,.15)';
-      btn.style.borderColor = 'rgba(167,139,250,.4)';
-      btn.style.color = 'rgba(167,139,250,.9)';
-      btn.title = email;
-      var dot = document.getElementById('profile-auth-dot');
-      if (!dot) {
-        dot = document.createElement('div');
-        dot.id = 'profile-auth-dot';
-        dot.style.cssText = 'position:absolute;bottom:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#2ecc71;border:1.5px solid #0a0a0f;';
-        btn.appendChild(dot);
+    if (btn) {
+      if (_sbSession && _sbSession.user) {
+        var email = _sbSession.user.email || '';
+        btn.style.background = 'rgba(167,139,250,.15)';
+        btn.style.borderColor = 'rgba(167,139,250,.4)';
+        btn.style.color = 'rgba(167,139,250,.9)';
+        btn.title = email;
+        var dot = document.getElementById('profile-auth-dot');
+        if (!dot) {
+          dot = document.createElement('div');
+          dot.id = 'profile-auth-dot';
+          dot.style.cssText = 'position:absolute;bottom:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#2ecc71;border:1.5px solid #0a0a0f;';
+          btn.appendChild(dot);
+        }
+        dot.style.display = 'block';
+        if (badge) badge.style.display = 'block';
+      } else {
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.title = 'Mon profil';
+        var dot2 = document.getElementById('profile-auth-dot');
+        if (dot2) dot2.style.display = 'none';
+        if (badge) { badge.style.opacity = '0'; badge.style.display = 'none'; }
       }
-      dot.style.display = 'block';
-      if (badge) badge.style.display = 'block';
+    }
+    // Mettre à jour le bandeau dans l'écran profil
+    var banner = document.getElementById('profile-auth-banner');
+    var guest = document.getElementById('profile-auth-guest');
+    var logged = document.getElementById('profile-auth-logged');
+    var emailTxt = document.getElementById('profile-auth-email-txt');
+    if (banner) banner.style.display = 'block';
+    if (_sbSession && _sbSession.user) {
+      if (guest) guest.style.display = 'none';
+      if (logged) logged.style.display = 'flex';
+      if (emailTxt) emailTxt.textContent = '✓ Connecté · ' + (_sbSession.user.email || '');
     } else {
-      btn.style.background = '';
-      btn.style.borderColor = '';
-      btn.style.color = '';
-      btn.title = 'Connexion / Inscription';
-      var dot2 = document.getElementById('profile-auth-dot');
-      if (dot2) dot2.style.display = 'none';
-      if (badge) { badge.style.opacity = '0'; badge.style.display = 'none'; }
+      if (guest) guest.style.display = 'flex';
+      if (logged) logged.style.display = 'none';
     }
   }
 
@@ -22936,12 +22988,13 @@ if('serviceWorker' in navigator){
   };
 
   window.authDoSignup = function() {
+    var pseudo = document.getElementById('auth-pseudo-signup').value.trim();
     var email = document.getElementById('auth-email-signup').value.trim();
     var pass = document.getElementById('auth-pass-signup').value;
     var pass2 = document.getElementById('auth-pass-signup2').value;
     if (!email || !pass) { setAuthMsg('Remplis tous les champs.'); return; }
     if (pass !== pass2) { setAuthMsg('Les mots de passe ne correspondent pas.'); return; }
-    if (pass.length < 6) { setAuthMsg('Mot de passe trop court (6 caracteres min).'); return; }
+    if (pass.length < 6) { setAuthMsg('Mot de passe trop court (6 caractères min).'); return; }
     var btn = document.getElementById('auth-submit-btn');
     btn.disabled = true; btn.textContent = 'Inscription...';
     sbSignUp(email, pass).then(function(data) {
@@ -22950,6 +23003,19 @@ if('serviceWorker' in navigator){
         setAuthMsg(data.error_description || 'Erreur inscription.'); return;
       }
       if (data.id || (data.user && data.user.id)) {
+        // Sauvegarder le pseudo si renseigné
+        if (pseudo) {
+          try {
+            var s = JSON.parse(localStorage.getItem('cq11') || '{}');
+            s.pseudo = pseudo;
+            localStorage.setItem('cq11', JSON.stringify(s));
+            // Mettre à jour l'affichage du pseudo dans le profil et l'accueil
+            var pnm = document.getElementById('p-nm');
+            if (pnm) pnm.textContent = pseudo;
+            var hnm = document.getElementById('h-nm');
+            if (hnm) hnm.textContent = pseudo;
+          } catch(e) {}
+        }
         // Auto-login after signup
         sbSignIn(email, pass).then(function(loginData) {
           if (loginData.access_token) {
@@ -22957,17 +23023,17 @@ if('serviceWorker' in navigator){
             hideAuthModal();
             updateAuthUI();
             scheduleSave();
-            showToastAuth('Compte cree ! Progression sauvegardee.');
+            showToastAuth('Compte créé ! Progression sauvegardée.');
           } else {
-            setAuthMsg('Compte cree ! Verifie ton email puis connecte-toi.', 'success');
+            setAuthMsg('Compte créé ! Vérifie ton email puis connecte-toi.', 'success');
           }
         });
       } else {
-        setAuthMsg('Compte cree ! Verifie ton email si besoin.', 'success');
+        setAuthMsg('Compte créé ! Vérifie ton email si besoin.', 'success');
       }
     }).catch(function() {
       btn.disabled = false; btn.textContent = btn.dataset.label;
-      setAuthMsg('Erreur reseau. Reessaie.');
+      setAuthMsg('Erreur réseau. Réessaie.');
     });
   };
 
@@ -22981,15 +23047,6 @@ if('serviceWorker' in navigator){
   window.switchAuthTab = switchAuthTab;
   window.showAuthModal = showAuthModal;
   window.hideAuthModal = hideAuthModal;
-
-  // Fonction fusionnée : profil si connecté, auth sinon
-  window.onProfileBtnClick = function() {
-    if (_sbSession) {
-      if (typeof goProfile === 'function') goProfile();
-    } else {
-      showAuthModal('login');
-    }
-  };
 
   function showToastAuth(msg) {
     var el = document.getElementById('auth-toast');
@@ -23037,8 +23094,7 @@ if('serviceWorker' in navigator){
 
   // Inject UI into DOM when ready
   function injectUI() {
-    // 1. Fusion bouton profil + auth : le bouton #btn-profile gère les deux
-    // onProfileBtnClick() est défini globalement plus bas
+    // 1. Bouton profil → goProfile() directement (bandeau auth intégré dans l'écran profil)
 
     // 2. Sync badge under topbar
     var topbar = document.querySelector('#home .topbar');
@@ -23067,15 +23123,16 @@ if('serviceWorker' in navigator){
       '  </div>',
       '  <!-- Login form -->',
       '  <div id="auth-form-login" class="auth-form" style="display:flex;">',
-      '    <div class="auth-field"><label>Email</label><input id="auth-email-login" type="email" placeholder="ton@email.com" autocomplete="email"/></div>',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-login" type="email" placeholder="ton@email.com" autocomplete="email" inputmode="email"/></div>',
       '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-login" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')authDoLogin()"/></div>',
       '    <button id="auth-submit-btn" class="auth-btn" data-label="Se connecter" onclick="authDoLogin()">Se connecter</button>',
       '  </div>',
       '  <!-- Signup form -->',
       '  <div id="auth-form-signup" class="auth-form" style="display:none;">',
-      '    <div class="auth-field"><label>Email</label><input id="auth-email-signup" type="email" placeholder="ton@email.com" autocomplete="email"/></div>',
-      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-signup" type="password" placeholder="6 caracteres min" autocomplete="new-password"/></div>',
-      '    <div class="auth-field"><label>Confirmer le mot de passe</label><input id="auth-pass-signup2" type="password" placeholder="••••••" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')authDoSignup()"/></div>',
+      '    <div class="auth-field"><label>Pseudo (visible dans le jeu)</label><input id="auth-pseudo-signup" type="text" placeholder="Ex: CinéManiac42" autocomplete="nickname" maxlength="20" inputmode="text"/></div>',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-signup" type="email" placeholder="ton@email.com" autocomplete="email" inputmode="email"/></div>',
+      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-signup" type="password" placeholder="6 caractères min" autocomplete="new-password" webauthn="false"/></div>',
+      '    <div class="auth-field"><label>Confirmer le mot de passe</label><input id="auth-pass-signup2" type="password" placeholder="••••••" autocomplete="new-password" webauthn="false" onkeydown="if(event.key===\'Enter\')authDoSignup()"/></div>',
       '    <button id="auth-submit-btn" class="auth-btn" data-label="Creer mon compte" onclick="authDoSignup()">Creer mon compte</button>',
       '  </div>',
       '  <!-- Message -->',
@@ -23132,6 +23189,7 @@ if('serviceWorker' in navigator){
       '.auth-field label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px;}',
       '.auth-field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none;font-family:"DM Sans",sans-serif;-webkit-appearance:none;transition:border-color .2s;}',
       '.auth-field input:focus{border-color:rgba(245,200,66,.4);}',
+      '.auth-pseudo-hint{font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.3px;margin-top:-6px;}',
       '.auth-btn{background:linear-gradient(135deg,rgba(245,200,66,.2),rgba(245,200,66,.1));border:1px solid rgba(245,200,66,.35);border-radius:14px;padding:14px;font-family:"Bebas Neue",sans-serif;font-size:17px;letter-spacing:1px;color:var(--gold);cursor:pointer;transition:transform .15s,background .2s;-webkit-appearance:none;}',
       '.auth-btn:active{transform:scale(.97);}',
       '.auth-btn:disabled{opacity:.5;cursor:default;}',
@@ -23142,8 +23200,23 @@ if('serviceWorker' in navigator){
       '.auth-msg.success{color:#2ecc71;}',
       '#auth-toast{position:fixed;bottom:max(28px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#1c1c28;border:1px solid rgba(46,204,113,.3);border-radius:20px;padding:10px 20px;font-size:12px;color:#2ecc71;opacity:0;transition:opacity .3s,transform .3s;z-index:9100;pointer-events:none;white-space:nowrap;}',
       '#auth-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}',
+      /* Bloquer l'UI WebAuthn/Face ID sur les champs du formulaire */
+      'input[webauthn="false"]::-webkit-credentials-auto-fill-button{visibility:hidden;}',
     ].join('\n');
     document.head.appendChild(style);
+
+    // Désactiver WebAuthn / Face ID sur les inputs password au runtime
+    setTimeout(function() {
+      document.querySelectorAll('#auth-modal input[type="password"]').forEach(function(el) {
+        el.setAttribute('autocomplete', el.id === 'auth-pass-login' ? 'current-password' : 'new-password');
+        // Bloquer navigator.credentials sur ce contexte
+        el.addEventListener('focus', function() {
+          if (window.PublicKeyCredential) {
+            // On ne désactive pas l'API globalement, on absorbe juste les erreurs
+          }
+        });
+      });
+    }, 500);
   }
 
   window.sbManualSync = function() {
