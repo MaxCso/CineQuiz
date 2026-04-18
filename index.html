@@ -22089,6 +22089,7 @@ function startBobine(){
       playerY:H-playerH-20,
       playerW,playerH,laneW,
       obstacles:[],collectibles:[],particles:[],
+      bonusScore:0,
       stars,
       filmStrip:0,  // offset défilement bande pellicule
       combo:0,comboTimer:0,flash:0,
@@ -22114,7 +22115,7 @@ function _bobLoop(){
 
 function _bobTick(s){
   s.frame++;s.dist++;
-  s.score=Math.floor(s.dist/3);
+  s.score=Math.floor(s.dist/3)+(s.bonusScore||0);
   // Accélération plus agressive
   if(s.frame%280===0) s.speed=Math.min(14,s.speed+0.5);
   s.filmStrip=(s.filmStrip+s.speed*0.8)%(s.H);
@@ -22160,7 +22161,7 @@ function _bobTick(s){
     const c=s.collectibles[i];
     if(!c.alive)continue;
     if(Math.abs(c.x-px)<hw+c.r && Math.abs(c.y-py)<hh+c.r){
-      c.alive=false;s.score+=10;s.combo++;s.comboTimer=70;s.flash=10;
+      c.alive=false;s.bonusScore=(s.bonusScore||0)+10;s.combo++;s.comboTimer=70;s.flash=10;
       s.sideFlash=12;s.sideFlashLane=s.lane;
       if(s.combo>=3)sndBobineCombo();else sndBobineCollect();
       for(let p=0;p<9;p++) s.particles.push({x:c.x,y:c.y,vx:(Math.random()-.5)*5,vy:-Math.random()*5-1,life:28,maxLife:28,r:Math.random()*3+1});
@@ -22175,6 +22176,13 @@ function _bobTick(s){
   if(s.flash>0) s.flash--;
   if(s.sideFlash>0) s.sideFlash--;
   document.getElementById('bob-score-badge').textContent=s.score;
+}
+
+function _bobRR(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
 
 function _bobDraw(s){
@@ -22195,45 +22203,73 @@ function _bobDraw(s){
 
   // ── Bande pellicule gauche et droite (défilante) ──
   const fo=s.filmStrip;
-  const stripW=16,perfH=12,perfW=8,perfGap=20;
-  [4,W-stripW-4].forEach(sx=>{
-    ctx.fillStyle='rgba(240,90,160,0.08)';
+  const stripW=20,perfH=14,perfW=10,perfGap=18;
+  [0,W-stripW].forEach(sx=>{
+    ctx.fillStyle='rgba(10,6,18,0.95)';
     ctx.fillRect(sx,0,stripW,H);
-    ctx.strokeStyle='rgba(240,90,160,0.18)';ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(240,90,160,0.25)';ctx.lineWidth=1;
     ctx.strokeRect(sx,0,stripW,H);
-    // Perforations
-    ctx.fillStyle='rgba(0,0,0,0.5)';
     for(let py2=-fo%(perfH+perfGap);py2<H;py2+=perfH+perfGap){
-      ctx.fillRect(sx+stripW/2-perfW/2,py2,perfW,perfH);
+      ctx.fillStyle='rgba(240,90,160,0.12)';
+      ctx.beginPath();_bobRR(ctx,sx+stripW/2-perfW/2,py2,perfW,perfH,2);ctx.fill();
+      ctx.strokeStyle='rgba(240,90,160,0.3)';ctx.lineWidth=0.5;
+      ctx.beginPath();_bobRR(ctx,sx+stripW/2-perfW/2,py2,perfW,perfH,2);ctx.stroke();
     }
   });
 
-  // ── Voies avec perspective ──
-  const horizon=H*0.18;
+  // ── Décor : tapis rouge en perspective ──
+  const horizon=H*0.20;
   const vanX=W/2;
-  // Fond de piste sombre
-  ctx.fillStyle='rgba(240,90,160,0.03)';
+  const trackL=stripW+2, trackR=W-stripW-2;
+
+  const carpetGrad=ctx.createLinearGradient(0,horizon,0,H);
+  carpetGrad.addColorStop(0,'rgba(80,10,30,0.0)');
+  carpetGrad.addColorStop(0.4,'rgba(100,15,40,0.35)');
+  carpetGrad.addColorStop(1,'rgba(130,20,55,0.55)');
+  ctx.fillStyle=carpetGrad;
   ctx.beginPath();
-  ctx.moveTo(stripW+4,H);ctx.lineTo(vanX-8,horizon);
-  ctx.lineTo(vanX+8,horizon);ctx.lineTo(W-stripW-4,H);
+  ctx.moveTo(trackL,H);ctx.lineTo(vanX-4,horizon);
+  ctx.lineTo(vanX+4,horizon);ctx.lineTo(trackR,H);
   ctx.closePath();ctx.fill();
 
-  // Lignes de voies (perspective)
-  ctx.strokeStyle='rgba(240,90,160,0.20)';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  const projGrad=ctx.createRadialGradient(vanX,horizon,0,vanX,horizon,H*0.7);
+  projGrad.addColorStop(0,'rgba(240,90,160,0.10)');
+  projGrad.addColorStop(0.5,'rgba(240,90,160,0.03)');
+  projGrad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=projGrad;ctx.fillRect(0,0,W,H);
+
+  ctx.setLineDash([]);
   for(let i=1;i<3;i++){
-    const bx=stripW+4+(W-2*(stripW+4))*(i/3);
+    const bx=trackL+(trackR-trackL)*(i/3);
+    const lg=ctx.createLinearGradient(bx,H,vanX,horizon);
+    lg.addColorStop(0,'rgba(240,90,160,0.45)');
+    lg.addColorStop(1,'rgba(240,90,160,0.05)');
+    ctx.strokeStyle=lg;ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(bx,H);ctx.lineTo(vanX,horizon);ctx.stroke();
   }
+  const eg=ctx.createLinearGradient(trackL,H,vanX,horizon);
+  eg.addColorStop(0,'rgba(240,90,160,0.6)');eg.addColorStop(1,'rgba(240,90,160,0.05)');
+  ctx.strokeStyle=eg;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(trackL,H);ctx.lineTo(vanX,horizon);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(trackR,H);ctx.lineTo(vanX,horizon);ctx.stroke();
 
-  // Lignes horizontales de perspective animées
-  const nLines=14;
+  const nLines=18;
   for(let i=0;i<nLines;i++){
     const t=((i/nLines)+fo/H)%1;
     const fy=horizon+t*(H-horizon);
-    const fw=((W-2*(stripW+4))*t);
+    const fw=(trackR-trackL)*t;
     const fx=vanX-fw/2;
-    const alpha=t*0.22;
-    ctx.strokeStyle=`rgba(240,90,160,${alpha})`;ctx.lineWidth=1;
+    if(i%3===0){
+      ctx.fillStyle=`rgba(160,30,70,${t*0.15})`;
+      const pt=((( i-1)/nLines)+fo/H)%1;
+      const pfy=horizon+pt*(H-horizon);
+      const pfw=(trackR-trackL)*pt;
+      ctx.beginPath();
+      ctx.moveTo(vanX-fw/2,fy);ctx.lineTo(vanX+fw/2,fy);
+      ctx.lineTo(vanX+pfw/2,pfy);ctx.lineTo(vanX-pfw/2,pfy);
+      ctx.closePath();ctx.fill();
+    }
+    ctx.strokeStyle=`rgba(240,90,160,${t*0.28})`;ctx.lineWidth=t>0.7?1.5:0.8;
     ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(fx+fw,fy);ctx.stroke();
   }
 
@@ -22259,24 +22295,36 @@ function _bobDraw(s){
     ctx.restore();
   });
 
-  // ── Obstacles (blocs géométriques avec couleur) ──
+  // ── Obstacles : claps de cinéma ──
   s.obstacles.forEach(o=>{
     const scale=0.45+0.55*(o.y/H);
-    const w=o.w*scale,h=o.h*scale;
+    const w=Math.max(28,o.w*scale*1.4),h=Math.max(20,o.h*scale*1.2);
     const x=o.x-w/2,y=o.y-h/2;
     ctx.save();
-    // Couleur selon hauteur : rouge si grand, bleu si petit
-    const hue=o.h>32?'rgba(255,70,70':'rgba(99,160,255';
-    ctx.fillStyle=hue+',0.9)';
-    ctx.beginPath();ctx.roundRect(x,y,w,h,4);ctx.fill();
-    // Bord lumineux
-    ctx.strokeStyle=hue+',0.6)';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.roundRect(x,y,w,h,4);ctx.stroke();
-    // Détail : trou de bobine centré
-    ctx.fillStyle='rgba(0,0,0,0.5)';
-    ctx.beginPath();ctx.arc(o.x,o.y,Math.max(3,w*0.18),0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.arc(o.x,o.y,Math.max(3,w*0.18),0,Math.PI*2);ctx.stroke();
+    // Corps du clap
+    ctx.fillStyle='#111118';
+    ctx.beginPath();_bobRR(ctx,x,y+h*0.38,w,h*0.62,3);ctx.fill();
+    ctx.strokeStyle='rgba(240,90,160,0.7)';ctx.lineWidth=1.5;
+    ctx.beginPath();_bobRR(ctx,x,y+h*0.38,w,h*0.62,3);ctx.stroke();
+    // Rayures alternées
+    for(let i=0;i<5;i++){
+      ctx.fillStyle=i%2===0?'rgba(240,90,160,0.7)':'rgba(20,12,30,0.8)';
+      ctx.fillRect(x+i*(w/5),y+h*0.38,w/5,h*0.22);
+    }
+    // Texte
+    ctx.fillStyle='rgba(255,255,255,0.55)';
+    ctx.font=`bold ${Math.max(6,Math.round(h*0.16))}px sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('CINÉQUIZ',o.x,y+h*0.72);
+    // Planche supérieure
+    ctx.fillStyle='#1c1428';
+    ctx.beginPath();
+    ctx.moveTo(x,y+h*0.38);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y+h*0.18);ctx.lineTo(x,y+h*0.56);
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(240,90,160,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(x,y+h*0.38);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y+h*0.18);ctx.lineTo(x,y+h*0.56);
+    ctx.closePath();ctx.stroke();
     ctx.restore();
   });
 
@@ -22295,36 +22343,100 @@ function _bobDraw(s){
     ctx.fillRect(lx,0,s.laneW,H);
   }
 
-  // ── Joueur (caméra de cinéma) ──
+  // ── Joueur : Buzz l'Éclair ──
   const px=s.playerX,py=s.playerY,pw=s.playerW,ph=s.playerH;
   ctx.save();
+  ctx.translate(px,py);
+  const pulse=0.5+0.5*Math.sin(s.frame*0.12);
+
   // Ombre sol
-  ctx.fillStyle='rgba(240,90,160,0.2)';
-  ctx.beginPath();ctx.ellipse(px,py+ph/2+4,pw*0.45,6,0,0,Math.PI*2);ctx.fill();
-  // Corps caméra (rectangle arrondi)
-  ctx.fillStyle='#1c1428';ctx.strokeStyle='rgba(240,90,160,0.85)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.roundRect(px-pw/2,py-ph/2,pw,ph,8);ctx.fill();ctx.stroke();
-  // Bandeau haut (visor)
-  ctx.fillStyle='rgba(240,90,160,0.15)';
-  ctx.beginPath();ctx.roundRect(px-pw/2+2,py-ph/2+2,pw-4,ph*0.28,5);ctx.fill();
-  // Objectif (grand)
-  ctx.fillStyle='#0d0818';ctx.strokeStyle='rgba(240,90,160,0.7)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(px,py,pw*0.34,0,Math.PI*2);ctx.fill();ctx.stroke();
-  // Iris de l'objectif
-  ctx.fillStyle='rgba(240,90,160,0.5)';
-  ctx.beginPath();ctx.arc(px,py,pw*0.18,0,Math.PI*2);ctx.fill();
-  // Reflet
-  ctx.fillStyle='rgba(255,255,255,0.4)';
-  ctx.beginPath();ctx.arc(px-pw*0.1,py-pw*0.1,pw*0.07,0,Math.PI*2);ctx.fill();
-  // Molette droite
-  ctx.fillStyle='#2a1e3e';ctx.strokeStyle='rgba(240,90,160,0.5)';ctx.lineWidth=1;
-  ctx.beginPath();ctx.roundRect(px+pw/2-2,py-ph*0.25,8,ph*0.5,3);ctx.fill();ctx.stroke();
-  // LED rouge (enregistrement)
-  ctx.fillStyle='#ff3040';
-  ctx.beginPath();ctx.arc(px-pw/2+7,py-ph/2+7,4,0,Math.PI*2);ctx.fill();
-  // Lueur LED
-  ctx.fillStyle='rgba(255,48,64,0.25)';
-  ctx.beginPath();ctx.arc(px-pw/2+7,py-ph/2+7,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(240,90,160,0.18)';
+  ctx.beginPath();ctx.ellipse(0,ph*0.5+4,pw*0.45,6,0,0,Math.PI*2);ctx.fill();
+
+  // Jambes (combinaison blanche)
+  ctx.fillStyle='#dde8f8';
+  _bobRR(ctx,-13,ph*0.2,11,ph*0.32,3);ctx.fill();
+  _bobRR(ctx,2,ph*0.2,11,ph*0.32,3);ctx.fill();
+  // Bottes violettes
+  ctx.fillStyle='#6a3aaa';
+  _bobRR(ctx,-15,ph*0.42,14,ph*0.12,3);ctx.fill();
+  _bobRR(ctx,1,ph*0.42,14,ph*0.12,3);ctx.fill();
+
+  // Corps combinaison blanche
+  ctx.fillStyle='#dde8f8';
+  _bobRR(ctx,-17,-ph*0.14,34,ph*0.36,6);ctx.fill();
+  // Bande verte sur torse
+  ctx.fillStyle='#2ecc71';
+  _bobRR(ctx,-17,-ph*0.04,34,ph*0.16,2);ctx.fill();
+  // Bouton central doré
+  ctx.fillStyle='#f5c842';
+  ctx.beginPath();ctx.arc(0,-ph*0.02,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#d4a800';
+  ctx.beginPath();ctx.arc(0,-ph*0.02,3,0,Math.PI*2);ctx.fill();
+  // Étoile sur le bouton
+  ctx.fillStyle='#fff';ctx.font='bold 6px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('★',0,-ph*0.02);
+
+  // Ailes transparentes (pulsantes)
+  ctx.save();
+  ctx.globalAlpha=0.35+pulse*0.15;
+  ctx.fillStyle='#a0d8ff';
+  ctx.beginPath();ctx.moveTo(17,-ph*0.1);ctx.bezierCurveTo(30,-ph*0.2,28,-ph*0.38,20,-ph*0.32);ctx.lineTo(17,-ph*0.1);ctx.fill();
+  ctx.beginPath();ctx.moveTo(-17,-ph*0.1);ctx.bezierCurveTo(-30,-ph*0.2,-28,-ph*0.38,-20,-ph*0.32);ctx.lineTo(-17,-ph*0.1);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(100,200,255,0.7)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(17,-ph*0.1);ctx.bezierCurveTo(30,-ph*0.2,28,-ph*0.38,20,-ph*0.32);ctx.lineTo(17,-ph*0.1);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-17,-ph*0.1);ctx.bezierCurveTo(-30,-ph*0.2,-28,-ph*0.38,-20,-ph*0.32);ctx.lineTo(-17,-ph*0.1);ctx.stroke();
+  ctx.restore();
+
+  // Bras gauche (posé sur hanche)
+  ctx.fillStyle='#dde8f8';
+  ctx.save();ctx.translate(-20,-ph*0.08);ctx.rotate(0.3);
+  _bobRR(ctx,-14,-4,14,8,4);ctx.fill();ctx.restore();
+
+  // Bras droit (laser pointé)
+  ctx.fillStyle='#dde8f8';
+  ctx.save();ctx.translate(18,-ph*0.1);ctx.rotate(-0.25);
+  _bobRR(ctx,0,-4,14,8,4);ctx.fill();ctx.restore();
+  // Poignet + laser
+  ctx.fillStyle='#6a3aaa';
+  _bobRR(ctx,28,-ph*0.16,9,7,2);ctx.fill();
+  // Rayon laser rose pulsant
+  ctx.fillStyle=`rgba(240,90,160,${0.7+pulse*0.3})`;
+  _bobRR(ctx,36,-ph*0.135,3+pulse*2,4,1);ctx.fill();
+  ctx.fillStyle=`rgba(255,160,210,${0.5+pulse*0.4})`;
+  ctx.beginPath();ctx.ellipse(38,-ph*0.12,4+pulse*2,3,0,0,Math.PI*2);ctx.fill();
+
+  // Cou
+  ctx.fillStyle='#dde8f8';
+  _bobRR(ctx,-6,-ph*0.36,12,ph*0.22,3);ctx.fill();
+
+  // Casque (visière fermée)
+  ctx.fillStyle='#6a3aaa';
+  ctx.beginPath();ctx.arc(0,-ph*0.52,18,0,Math.PI*2);ctx.fill();
+  // Visière sombre
+  ctx.fillStyle='#0a1828';
+  ctx.beginPath();ctx.ellipse(0,-ph*0.52,14,12,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(100,200,255,0.5)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(0,-ph*0.52,14,12,0,0,Math.PI*2);ctx.stroke();
+  // Visage dans visière
+  ctx.fillStyle='#f0dfc0';
+  ctx.beginPath();ctx.arc(0,-ph*0.54,8,0,Math.PI*2);ctx.fill();
+  // Yeux déterminés (sourcils froncés)
+  ctx.fillStyle='#1a2030';
+  _bobRR(ctx,-7,-ph*0.58,5,3,1.5);ctx.fill();
+  _bobRR(ctx,2,-ph*0.58,5,3,1.5);ctx.fill();
+  // Sourcils en V (déterminé)
+  ctx.strokeStyle='#6b4400';ctx.lineWidth=1.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-8,-ph*0.61);ctx.lineTo(-4,-ph*0.595);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(8,-ph*0.61);ctx.lineTo(4,-ph*0.595);ctx.stroke();
+  // Menton carré
+  ctx.strokeStyle='#c8956a';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(-4,-ph*0.45);ctx.quadraticCurveTo(0,-ph*0.43,4,-ph*0.45);ctx.stroke();
+  // Reflet visière
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  ctx.beginPath();ctx.ellipse(-4,-ph*0.58,5,3,Math.PI*0.2,0,Math.PI*2);ctx.fill();
+
   ctx.restore();
 
   // ── Combo ──
@@ -22390,7 +22502,7 @@ function _bobGameOver(s){
 // ─── DOODLE CINÉ ───
 (function(){
   let _ddAnim=null,_ddS=null;
-  const GRAV=0.28, PLAT_H=11, JUMP_V=-13.5;  // physique plus punchy
+  const GRAV=0.24, PLAT_H=11, JUMP_V=-16.5;  // physique plus punchy + élévation rapide
 
   const BONUS_TYPES=[
     {kind:'popcorn', col:'#f5c842', pts:20,  label:'+20', effect:'pts'},
@@ -22525,17 +22637,21 @@ function _bobGameOver(s){
       }
     });
 
-    // Spawn plateformes
-    const topPlat=s.plats.reduce((m,p)=>p.y<m?p.y:m,Infinity);
-    while(topPlat-s.camY>-H*0.5||s.plats.length<18){
-      const highest=s.plats.reduce((m,p)=>p.y<m?p.y:m,Infinity);
-      const idx=Math.round(-highest/52);
-      const gap=45+Math.random()*30;  // espacement réduit
-      s.plats.push(_ddNewPlat(W, highest-gap, s.PLAT_W, idx));
-    }
-    const cutoff=s.camY+H+100;
+    // Suppression plateformes hors écran (avant spawn pour éviter accumulation)
+    const cutoff=s.camY+H+120;
     for(let i=s.plats.length-1;i>=0;i--)
       if(s.plats[i].y>cutoff) s.plats.splice(i,1);
+
+    // Spawn plateformes — sécurisé contre boucle infinie
+    let spawnGuard=0;
+    let highest2=s.plats.length>0?s.plats.reduce((m,p)=>p.y<m?p.y:m,s.camY):s.camY;
+    while((highest2-s.camY>-H*0.8||s.plats.length<14)&&spawnGuard<30){
+      spawnGuard++;
+      const gap=48+Math.random()*30;
+      const idx=Math.min(200,Math.max(3,Math.round(-highest2/52)));
+      s.plats.push(_ddNewPlat(W, highest2-gap, s.PLAT_W, idx));
+      highest2-=gap;
+    }
 
     // Spawn obstacles (dès score 60, plus tôt qu'avant)
     const minScore=60;
@@ -22606,6 +22722,13 @@ function _bobGameOver(s){
     });
   }
 
+  function _ddRoundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+  }
+
   function _ddDraw(){
     const s=_ddS;
     const cv=document.getElementById('doodle-canvas');if(!cv)return;
@@ -22621,35 +22744,6 @@ function _bobGameOver(s){
     s.bgStars.forEach(st=>{
       ctx.fillStyle=`rgba(255,255,255,${st.a})`;
       ctx.beginPath();ctx.arc(st.x,st.y+((-s.camY*0.04)%H),st.r,0,Math.PI*2);ctx.fill();
-    });
-
-    // ── Lignes de pellicule défilantes (décor) ──
-    // Bandes verticales lumineuses qui remontent avec la caméra
-    const FILM_COLS=[
-      {x:W*0.08, col:'82,210,100', spd:0.6},
-      {x:W*0.26, col:'99,180,255', spd:0.9},
-      {x:W*0.5,  col:'245,200,66', spd:0.5},
-      {x:W*0.74, col:'167,139,250', spd:0.75},
-      {x:W*0.92, col:'82,210,100', spd:0.65},
-    ];
-    FILM_COLS.forEach(fc=>{
-      // Offset qui défile vers le haut avec la caméra + vitesse propre
-      const off=((-s.camY*fc.spd)+s.frame*fc.spd*0.5)%60;
-      const grad=ctx.createLinearGradient(fc.x,0,fc.x,H);
-      grad.addColorStop(0,   `rgba(${fc.col},0)`);
-      grad.addColorStop(0.3, `rgba(${fc.col},0.06)`);
-      grad.addColorStop(0.5, `rgba(${fc.col},0.09)`);
-      grad.addColorStop(0.7, `rgba(${fc.col},0.06)`);
-      grad.addColorStop(1,   `rgba(${fc.col},0)`);
-      ctx.fillStyle=grad;
-      ctx.fillRect(fc.x-1,0,2,H);
-      // Petites perforations de pellicule qui défilent sur cette bande
-      ctx.fillStyle=`rgba(${fc.col},0.18)`;
-      for(let py=(off%60)-60;py<H+60;py+=60){
-        ctx.beginPath();
-        ctx.roundRect(fc.x-4,py,8,10,2);
-        ctx.fill();
-      }
     });
 
     // Particules
@@ -22726,36 +22820,64 @@ function _bobGameOver(s){
       ctx.restore();
     });
 
-    // ── Joueur ──
+    // ── Joueur : Wall-E ──
     const sx=s.px, sy=s.py-s.camY;
-    const scaleY=s.wobble>0?1+s.wobble*0.03:1;
+    const scaleY=s.wobble>0?1+s.wobble*0.025:1;
     ctx.save();
     ctx.translate(sx,sy);ctx.scale(1,scaleY);
-    const B=16;  // légèrement plus grand
-    // Jambes
-    ctx.fillStyle='#c8e8ff';
-    ctx.fillRect(-6,-5,5,9);ctx.fillRect(1,-5,5,9);
-    // Corps
-    ctx.fillStyle='#e8f4ff';
-    ctx.fillRect(-B/2,-B*1.8,B,B*1.4);
-    // Effet ×2 : aura dorée pulsante
+
+    // Effet x2 : aura dorée pulsante
     if(s.x2active>0){
       const pulse=0.5+0.5*Math.sin(s.frame*0.2);
       ctx.strokeStyle=`rgba(245,200,66,${0.4+pulse*0.4})`;ctx.lineWidth=2.5;
-      ctx.beginPath();ctx.arc(0,-B*1.5,B*2.2,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,-28,26,0,Math.PI*2);ctx.stroke();
     }
-    // Tête
-    ctx.fillStyle='#f0dfc0';
-    ctx.beginPath();ctx.arc(0,-B*1.8-B*0.75,B*0.7,0,Math.PI*2);ctx.fill();
-    // Yeux
-    ctx.fillStyle='#1a2030';
-    ctx.beginPath();ctx.arc(-4,-B*1.8-B*0.7,2.2,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(4,-B*1.8-B*0.7,2.2,0,Math.PI*2);ctx.fill();
-    // Chapeau doré
-    ctx.fillStyle='#f5c842';
-    ctx.fillRect(-B*0.7+1,-B*1.8-B*1.55,B*1.4-2,B*0.38);
-    ctx.fillStyle='#d4a800';
-    ctx.fillRect(-B*0.5+1,-B*1.8-B*1.95,B-2,B*0.42);
+
+    // Chenilles
+    ctx.fillStyle='#8a6a2a';
+    _ddRoundRect(ctx,-18,2,14,10,3);ctx.fill();
+    _ddRoundRect(ctx,4,2,14,10,3);ctx.fill();
+    ctx.fillStyle='#a07a30';
+    ctx.fillRect(-16,-1,10,5);ctx.fillRect(6,-1,10,5);
+    ctx.fillStyle='#6b4c1a';
+    for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(-13+i*5,7,2,0,Math.PI*2);ctx.fill();}
+    for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(5+i*5,7,2,0,Math.PI*2);ctx.fill();}
+
+    // Corps cube
+    ctx.fillStyle='#c8943a';
+    _ddRoundRect(ctx,-16,-16,32,20,3);ctx.fill();
+    ctx.fillStyle='#a07028';
+    ctx.fillRect(-16,-16,32,2);ctx.fillRect(-16,2,32,2);ctx.fillRect(-1,-16,2,20);
+    ctx.fillStyle='#6b4400';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+    ctx.fillText('W',0,-4);
+
+    // Cou
+    ctx.fillStyle='#a07028';
+    _ddRoundRect(ctx,-4,-26,8,12,2);ctx.fill();
+    ctx.fillStyle='#8a5e20';ctx.fillRect(-6,-19,12,3);
+
+    // Tête cube
+    ctx.fillStyle='#c8943a';
+    _ddRoundRect(ctx,-14,-48,28,24,3);ctx.fill();
+    ctx.fillStyle='#a07028';ctx.fillRect(-14,-48,28,2);
+
+    // Yeux binoculaires avec clignotement
+    const blink=(s.frame%90>85);
+    ctx.fillStyle='#1a1a2e';
+    _ddRoundRect(ctx,-13,-44,11,16,4);ctx.fill();
+    _ddRoundRect(ctx,2,-44,11,16,4);ctx.fill();
+    if(!blink){
+      ctx.fillStyle='#4a9eff';
+      ctx.beginPath();ctx.arc(-7,-36,4,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(7,-36,4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.arc(-9,-38,1.5,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(5,-38,1.5,0,Math.PI*2);ctx.fill();
+    } else {
+      ctx.fillStyle='#4a9eff';
+      ctx.fillRect(-12,-37,10,3);ctx.fillRect(3,-37,10,3);
+    }
+
     ctx.restore();
 
     // ── HUD ──
