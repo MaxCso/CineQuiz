@@ -10295,8 +10295,8 @@ const DECENNIE_FILMS=[
   {title:"Indiana Jones",year:1981,id:85},{title:"Scarface",year:1983,id:111},
   {title:"Ghostbusters",year:1984,id:620},{title:"Terminator",year:1984,id:218},
   {title:"Back to the Future",year:1985,id:105},{title:"Ferris Bueller",year:1986,id:9377},
-  {title:"Predator",year:1987,id:28178},{title:"Full Metal Jacket",year:1987,id:600},
-  {title:"Die Hard",year:1988,id:562},{title:"Beetlejuice",year:1988,id:6977},
+  {title:"Predator",year:1987,id:2080},{title:"Full Metal Jacket",year:1987,id:600},
+  {title:"Die Hard",year:1988,id:562},{title:"Beetlejuice",year:1988,id:2309},
   {title:"Batman",year:1989,id:268},{title:"Do the Right Thing",year:1989,id:917,_hmPoster:'Do the Right Thing.jpg'},
   {title:"Goodfellas",year:1990,id:769},{title:"Silence des agneaux",year:1991,id:274},
   {title:"Terminator 2",year:1991,id:280},{title:"Reservoir Dogs",year:1992,id:500},
@@ -10371,29 +10371,48 @@ function getDecennie(year){
 
 async function fetchDecennieQuestions(count){
   const pool=shuffle([...DECENNIE_FILMS]).slice(0,count+10);
+
+  // Séparer films HM (poster local immédiat) et films TMDB (fetch parallèle)
+  const hmFilms=pool.filter(f=>f._hmPoster);
+  const tmdbFilms=pool.filter(f=>!f._hmPoster);
+
+  // Résoudre les posters TMDB en parallèle
+  const tmdbPosters=await Promise.allSettled(
+    tmdbFilms.map(film=>
+      fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`)
+        .then(r=>r.json())
+        .then(d=>d.poster_path?{film,poster:TI+d.poster_path}:null)
+        .catch(()=>null)
+    )
+  );
+
   const result=[];
-  for(const film of pool){
+
+  // Films HM en premier (pas de latence)
+  for(const film of hmFilms){
     if(result.length>=count)break;
-    try{
-      let poster=null;
-      // Film HM : poster local direct
-      if(film._hmPoster){
-        poster=_hmPosterUrl({p:film._hmPoster});
-      } else {
-        const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
-        const d=await r.json();
-        if(!d.poster_path)continue;
-        poster=TI+d.poster_path;
-      }
-      if(!poster)continue;
-      const correct=getDecennie(film.year);
-      const others=shuffle(DECENNIES.filter(d=>d!==correct)).slice(0,3);
-      const answers=shuffle([correct,...others]);
-      result.push({type:'decennie',title:film.title,year:film.year,poster,
-        answers,correct:answers.indexOf(correct),difficulty:'medium',category:'📅 Décennie'});
-    }catch(e){}
+    const poster=_hmPosterUrl({p:film._hmPoster});
+    if(!poster)continue;
+    const correct=getDecennie(film.year);
+    const others=shuffle(DECENNIES.filter(d=>d!==correct)).slice(0,3);
+    const answers=shuffle([correct,...others]);
+    result.push({type:'decennie',title:film.title,year:film.year,poster,
+      answers,correct:answers.indexOf(correct),difficulty:'medium',category:'📅 Décennie'});
   }
-  return result;
+
+  // Films TMDB
+  for(const settled of tmdbPosters){
+    if(result.length>=count)break;
+    if(settled.status!=='fulfilled'||!settled.value)continue;
+    const {film,poster}=settled.value;
+    const correct=getDecennie(film.year);
+    const others=shuffle(DECENNIES.filter(d=>d!==correct)).slice(0,3);
+    const answers=shuffle([correct,...others]);
+    result.push({type:'decennie',title:film.title,year:film.year,poster,
+      answers,correct:answers.indexOf(correct),difficulty:'medium',category:'📅 Décennie'});
+  }
+
+  return shuffle(result).slice(0,count);
 }
 
 // ==============================
@@ -11711,38 +11730,52 @@ const ALL_COMPOSITEURS=[
 
 async function fetchCompositeurQuestions(count){
   const pool=shuffle([...COMPOSITEUR_FILMS]).slice(0,count+8);
+
+  // Résoudre les posters locaux immédiatement
+  const resolveLocal=film=>{
+    if(film.poster)return film.poster;
+    if(film._hmPoster)return _hmPosterUrl({p:film._hmPoster});
+    if(!film.id||film.id===0){
+      const hmMatch=HM_DB.find(f=>f.t===film.title&&f.y===film.year);
+      if(hmMatch)return _hmPosterUrl(hmMatch);
+    }
+    return null;
+  };
+
+  const tmdbPosters=await Promise.allSettled(
+    pool.filter(f=>!resolveLocal(f)&&f.id&&f.id>0).map(film=>
+      fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`)
+        .then(r=>r.json())
+        .then(d=>d.poster_path?{film,poster:TI+d.poster_path}:null)
+        .catch(()=>null)
+    )
+  );
+
   const result=[];
+
   for(const film of pool){
     if(result.length>=count)break;
-    let poster=film.poster;
-    // Film HM avec _hmPoster explicite : utiliser le poster local directement
-    if(!poster&&film._hmPoster){
-      poster=_hmPosterUrl({p:film._hmPoster});
-    }
-    // Film HM sans ID TMDB : chercher le poster local via le titre
-    if(!poster&&(!film.id||film.id===0)){
-      const hmMatch=HM_DB.find(f=>f.t===film.title&&f.y===film.year);
-      if(hmMatch)poster=_hmPosterUrl(hmMatch);
-    }
-    if(!poster){
-      try{
-        const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
-        const d=await r.json();
-        if(d.poster_path)poster=TI+d.poster_path;
-      }catch(e){}
-    }
+    const poster=resolveLocal(film);
     if(!poster)continue;
     const wrongs=shuffle(ALL_COMPOSITEURS.filter(c=>c!==film.compositeur)).slice(0,3);
     const answers=shuffle([film.compositeur,...wrongs]);
-    result.push({
-      type:'compositeur',
-      title:film.title,year:film.year,poster,
+    result.push({type:'compositeur',title:film.title,year:film.year,poster,
       compositeur:film.compositeur,hint:film.hint,
-      answers,correct:answers.indexOf(film.compositeur),
-      difficulty:'medium',category:'Compositeur'
-    });
+      answers,correct:answers.indexOf(film.compositeur),difficulty:'medium',category:'Compositeur'});
   }
-  return result;
+
+  for(const settled of tmdbPosters){
+    if(result.length>=count)break;
+    if(settled.status!=='fulfilled'||!settled.value)continue;
+    const {film,poster}=settled.value;
+    const wrongs=shuffle(ALL_COMPOSITEURS.filter(c=>c!==film.compositeur)).slice(0,3);
+    const answers=shuffle([film.compositeur,...wrongs]);
+    result.push({type:'compositeur',title:film.title,year:film.year,poster,
+      compositeur:film.compositeur,hint:film.hint,
+      answers,correct:answers.indexOf(film.compositeur),difficulty:'medium',category:'Compositeur'});
+  }
+
+  return shuffle(result).slice(0,count);
 }
 
 
@@ -11953,31 +11986,42 @@ const REALISATEUR_FILMS=[
 
 async function fetchRealisateurQuestions(count){
   const pool=shuffle([...REALISATEUR_FILMS]).slice(0,count+8);
+
+  const hmFilms=pool.filter(f=>f._hmPoster);
+  const tmdbFilms=pool.filter(f=>!f._hmPoster&&f.id);
+
+  const tmdbPosters=await Promise.allSettled(
+    tmdbFilms.map(film=>
+      fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`)
+        .then(r=>r.json())
+        .then(d=>d.poster_path?{film,poster:TI+d.poster_path}:null)
+        .catch(()=>null)
+    )
+  );
+
   const result=[];
-  for(const film of pool){
+
+  for(const film of hmFilms){
     if(result.length>=count)break;
-    let poster=null;
-    // Film HM_DB : utiliser le poster local directement
-    if(film._hmPoster){
-      poster=_hmPosterUrl({p:film._hmPoster});
-    } else {
-      try{
-        const r=await fetch(`https://api.themoviedb.org/3/movie/${film.id}?api_key=${TK}&language=fr-FR`);
-        const d=await r.json();
-        if(d.poster_path)poster=TI+d.poster_path;
-      }catch(e){}
-    }
+    const poster=_hmPosterUrl({p:film._hmPoster});
     if(!poster)continue;
     const answers=shuffle([film.real,...film.faux]);
-    result.push({
-      type:'realisateur',
-      title:film.title,year:film.year,poster,
+    result.push({type:'realisateur',title:film.title,year:film.year,poster,
       realisateur:film.real,hint:film.hint,
-      answers,correct:answers.indexOf(film.real),
-      difficulty:'medium',category:'Realisateur'
-    });
+      answers,correct:answers.indexOf(film.real),difficulty:'medium',category:'Realisateur'});
   }
-  return result;
+
+  for(const settled of tmdbPosters){
+    if(result.length>=count)break;
+    if(settled.status!=='fulfilled'||!settled.value)continue;
+    const {film,poster}=settled.value;
+    const answers=shuffle([film.real,...film.faux]);
+    result.push({type:'realisateur',title:film.title,year:film.year,poster,
+      realisateur:film.real,hint:film.hint,
+      answers,correct:answers.indexOf(film.real),difficulty:'medium',category:'Realisateur'});
+  }
+
+  return shuffle(result).slice(0,count);
 }
 
 // ==============================
