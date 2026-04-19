@@ -7646,6 +7646,7 @@ const MUSIC_FILES={
   jk10:        'Memory Gospel.mp3',
   jk11:        'Donkey.mp3',
   jk12:        'Jurassic Park.mp3',
+  puissance4:  'Jurassic Park.mp3',
   jk13:        'Shot In The Back Of The Head.mp3',
   jk14:        'Bitter Sweet Symphony.mp3',
   jk15:        'Svefn-g-englar.mp3',
@@ -7655,13 +7656,13 @@ const MUSIC_FILES={
   versusfilms: 'music-jk2.mp3',
   survie:      'music-jk3.mp3',
   reco:        "La femme d'argent.mp3",
-  rebus:       'Everything In Its Right Place.mp3',
+  rebus:       'Bitter Sweet Symphony.mp3',
   pendu:       'Svefn-g-englar.mp3',
   // Jeux arcade — pistes dédiées
   speedquiz:   'music-jk5.mp3',
   invaders:    'Shot In The Back Of The Head.mp3',
   pong:        'In The Waiting Line.mp3',
-  memory:      'All That We Perceive.mp3',
+  memory:      'music-jk4.mp3',
   bobine:      'Donkey.mp3',
   doodle:      'Memory Gospel.mp3',
 };
@@ -7779,27 +7780,27 @@ const MUSIC_LABELS={
   versus:      {icon:'🌌',label:'Multijoueur'},
   training:    {icon:'🌹',label:'Entraînement'},
   bonus:       {icon:'🎺',label:'Bonus'},
-  arcade:      {icon:'🌡️',label:'Arcade'},
-  snake:       {icon:'✂️',label:'Snake'},
-  bricks:      {icon:'❤️',label:'Casse-Briques'},
-  morpion:     {icon:'🕊️',label:'Morpion'},
-  slots:       {icon:'🃏',label:'Memory'},
-  jk1:         {icon:'📝',label:'Le Pitch'},
-  jk2:         {icon:'📊',label:'Versus Films'},
-  jk3:         {icon:'❤️',label:'Survie'},
-  jk4:         {icon:'🎬',label:'Recommandation'},
-  jk5:         {icon:'💀',label:'Maître Cinéphile'},
-  jk6:         {icon:'🌌',label:'All That We Perceive'},
-  jk7:         {icon:'🎭',label:'Le Rébus'},
-  jk8:         {icon:'⏳',label:'In The Waiting Line'},
-  jk9:         {icon:'🇫🇷',label:"La Femme d'Argent"},
-  jk10:        {icon:'🪀',label:'Doodle Ciné'},
-  jk11:        {icon:'🎞️',label:'Bobine Infinie'},
-  jk12:        {icon:'🦕',label:'Jurassic Park'},
-  jk13:        {icon:'🎵',label:'Shot In The Back Of The Head'},
-  jk14:        {icon:'🎻',label:'Bitter Sweet Symphony'},
-  jk15:        {icon:'💀',label:'Le Pendu'},
-  jk16:        {icon:'🌹',label:'American Beauty'},
+  arcade:      {icon:'🌡️',label:'Arcade Secrète'},
+  snake:       {icon:'✂️',label:'Arcade Secrète'},
+  bricks:      {icon:'❤️',label:'Arcade Secrète'},
+  morpion:     {icon:'🕊️',label:'Arcade Secrète'},
+  slots:       {icon:'🃏',label:'Arcade Secrète'},
+  jk1:         {icon:'👼',label:'Le Pitch'},
+  jk2:         {icon:'🌙',label:'Versus Films'},
+  jk3:         {icon:'⛏️',label:'Survie'},
+  jk4:         {icon:'🚀',label:'Arcade Secrète'},
+  jk5:         {icon:'🎸',label:'Arcade Secrète'},
+  jk6:         {icon:'🌌',label:'Multijoueur'},
+  jk7:         {icon:'🎹',label:'Hidden Movies'},
+  jk8:         {icon:'⏳',label:'Arcade Secrète'},
+  jk9:         {icon:'🇫🇷',label:'Hidden Movies'},
+  jk10:        {icon:'🙏',label:'Arcade Secrète'},
+  jk11:        {icon:'🦍',label:'Arcade Secrète'},
+  jk12:        {icon:'🦕',label:'Arcade Secrète'},
+  jk13:        {icon:'🔫',label:'Arcade Secrète'},
+  jk14:        {icon:'🎻',label:'Le Rébus'},
+  jk15:        {icon:'❄️',label:'Le Pendu'},
+  jk16:        {icon:'🌹',label:'Entraînement'},
 };
 
 function _getSrc(key){
@@ -7845,6 +7846,30 @@ function fadeTrack(track,toVol,dur=800,onDone){
   },dur/steps);
 }
 
+// File d'attente de transition : {key, vol}
+if(!window._musicPending) window._musicPending=null;
+
+function _doSwitchMusic(key,vol){
+  const FADE_IN_DUR=2500;
+  const next=getTrack(key);
+  if(!next) return;
+  _curMode=key;
+  window._musicPending=null;
+  // Stopper toutes les autres pistes proprement
+  Object.entries(window._musicCache).forEach(([k,t])=>{
+    if(t!==next && !t.paused){ t.pause(); }
+  });
+  // Reprendre à la dernière position mémorisée
+  if(_trackPositions[key]!==undefined && next.paused){
+    next.currentTime=_trackPositions[key];
+  }
+  next.loop=true;
+  next.volume=0;
+  next.play().catch(()=>{});
+  fadeTrack(next,vol,FADE_IN_DUR);
+  setTimeout(()=>{updateMiniPlayer();updateJukeboxDisplay();},120);
+}
+
 function switchMusic(key,vol=0.28){
   if(!musOn)return;
   const src=_getSrc(key);
@@ -7859,44 +7884,85 @@ function switchMusic(key,vol=0.28){
     return;
   }
 
-  const FADE_OUT_DUR = 2000; // durée du fade out (ms)
-  const FADE_IN_DUR  = 2500; // durée du fade in (ms)
-  const OVERLAP      = 200;  // la nouvelle piste commence à monter avant la fin du fade out
-
-  // Sauvegarder la position et fader out toutes les pistes en cours
-  const all=Object.entries(window._musicCache);
-  let hasCurrent=false;
-  all.forEach(([k,t])=>{
-    if(t!==next && !t.paused){
-      hasCurrent=true;
-      _trackPositions[k]=t.currentTime;
-      fadeTrack(t,0,FADE_OUT_DUR,()=>{t.pause();});
-    }
+  // Chercher s'il y a une piste en cours de lecture
+  const allTracks=Object.entries(window._musicCache);
+  let currentTrack=null, currentKey=null;
+  allTracks.forEach(([k,t])=>{
+    if(t!==next && !t.paused){ currentTrack=t; currentKey=k; }
   });
 
-  // Délai avant de lancer le fade in :
-  // - s'il y a une piste en cours : on attend que le fade out soit bien engagé
-  // - sinon : démarrage immédiat
-  const delay = hasCurrent ? Math.max(0, FADE_OUT_DUR - OVERLAP) : 0;
+  // Mémoriser la transition souhaitée
+  window._musicPending={key,vol};
 
-  _curMode=key;
+  if(!currentTrack){
+    // Aucune piste en cours → démarrer directement
+    _doSwitchMusic(key,vol);
+    return;
+  }
 
-  setTimeout(()=>{
-    // Reprendre à la dernière position mémorisée
-    if(_trackPositions[key]!==undefined && next.paused){
-      next.currentTime=_trackPositions[key];
+  // Sauvegarder la position de la piste actuelle
+  _trackPositions[currentKey]=currentTrack.currentTime;
+
+  // Désactiver le loop pour laisser la piste finir naturellement
+  currentTrack.loop=false;
+
+  // Surveiller la fin de boucle via timeupdate (seuil 0.3s avant la fin)
+  // Supprimer tout listener précédent
+  if(currentTrack._pendingEndListener){
+    currentTrack.removeEventListener('timeupdate',currentTrack._pendingEndListener);
+    currentTrack._pendingEndListener=null;
+  }
+  if(currentTrack._pendingEndedListener){
+    currentTrack.removeEventListener('ended',currentTrack._pendingEndedListener);
+    currentTrack._pendingEndedListener=null;
+  }
+
+  const THRESHOLD=0.3; // secondes avant la fin
+  const onTimeUpdate=()=>{
+    if(!currentTrack.duration) return;
+    const remaining=currentTrack.duration - currentTrack.currentTime;
+    if(remaining<=THRESHOLD){
+      currentTrack.removeEventListener('timeupdate',onTimeUpdate);
+      currentTrack.removeEventListener('ended',onEnded);
+      currentTrack._pendingEndListener=null;
+      currentTrack._pendingEndedListener=null;
+      // Vérifier que la transition est toujours d'actualité
+      if(window._musicPending && window._musicPending.key===key){
+        _doSwitchMusic(key,vol);
+      }
     }
-    next.volume=0;
-    next.play().catch(()=>{});
-    fadeTrack(next,vol,FADE_IN_DUR);
-    setTimeout(()=>{updateMiniPlayer();updateJukeboxDisplay();},120);
-  }, delay);
+  };
+  const onEnded=()=>{
+    currentTrack.removeEventListener('timeupdate',onTimeUpdate);
+    currentTrack.removeEventListener('ended',onEnded);
+    currentTrack._pendingEndListener=null;
+    currentTrack._pendingEndedListener=null;
+    if(window._musicPending && window._musicPending.key===key){
+      _doSwitchMusic(key,vol);
+    }
+  };
+
+  currentTrack._pendingEndListener=onTimeUpdate;
+  currentTrack._pendingEndedListener=onEnded;
+  currentTrack.addEventListener('timeupdate',onTimeUpdate);
+  currentTrack.addEventListener('ended',onEnded);
 }
 
 function playMus(){switchMusic('home',0.3);}
 
 function stopMus(){
+  window._musicPending=null;
   Object.entries(window._musicCache).forEach(([k,t])=>{
+    // Annuler tout listener de fin de boucle en attente
+    if(t._pendingEndListener){
+      t.removeEventListener('timeupdate',t._pendingEndListener);
+      t._pendingEndListener=null;
+    }
+    if(t._pendingEndedListener){
+      t.removeEventListener('ended',t._pendingEndedListener);
+      t._pendingEndedListener=null;
+    }
+    t.loop=true; // Réactiver le loop pour la prochaine fois
     if(!t.paused){
       _trackPositions[k]=t.currentTime;
       fadeTrack(t,0,400,()=>{t.pause();});
@@ -7978,6 +8044,7 @@ function buildMusicManager(){
       <div class="music-track-icon-box">${info.icon}</div>
       <div class="music-track-info">
         <div class="music-track-label">${trackName}</div>
+        <div class="music-track-file">${info.label}</div>
       </div>
       <div class="music-btns">
         <button class="mbtn${isPlay?' playing':''}" id="mpb-${k}" onclick="previewMusicTrack('${k}')">${isPlay?svgPause:svgPlay}</button>
@@ -12670,10 +12737,7 @@ const go=id=>{
     if(id==='game'){switchMusic(selMode,0.22);}
     else if(id==='home'){switchMusic('home',0.3);}
     else if(id==='arcade-menu'){if(musOn)switchMusic('arcade',0.25);}
-    else if(['arc-snake','arc-bricks','arc-morpion','arc-memory','arc-slots','arc-invaders','arc-pong','arc-speedquiz','arc-bobine','arc-doodle'].includes(id)){
-      const gameKey={'arc-snake':'snake','arc-bricks':'bricks','arc-morpion':'morpion','arc-memory':'memory','arc-slots':'slots','arc-invaders':'invaders','arc-pong':'pong','arc-speedquiz':'speedquiz','arc-bobine':'bobine','arc-doodle':'doodle'}[id];
-      if(musOn&&gameKey)switchMusic(gameKey,0.22);
-    } else if(['result','lvlup'].includes(id)){fadeMus(0.15,600);}
+    else if(['result','lvlup'].includes(id)){fadeMus(0.15,600);}
   };
 
   if(useFade && current){
@@ -17473,7 +17537,7 @@ function renderBOList(q){
     li.dataset.pos=pos;
     li.innerHTML=`
       <div class="bo-rank">${pos+1}</div>
-      <img class="bo-poster" src="${m.poster}" crossorigin="anonymous" loading="lazy">
+      <img class="bo-poster" src="${m.poster}" crossorigin="anonymous" loading="lazy" onerror="this.onerror=null;this.style.display='none';var d=document.createElement('div');d.style.cssText='width:42px;height:60px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0';d.textContent='?';this.parentNode.insertBefore(d,this);">
       <div class="bo-info">
         <div class="bo-title">${m.title}</div>
         <div class="bo-year">${m.year}</div>
@@ -17594,7 +17658,8 @@ function handleBOAnswer(q){
   const correct=q.correctOrder;
   let ok=0;
   userOrder.forEach((id,i)=>{if(id===correct[i])ok++;});
-  const pts=ok*25;
+  const perfectBonus=ok===correct.length?100:0;
+  const pts=ok*100+perfectBonus;
   dotRes[curQ]=ok>=3;
   score+=pts;
   if(ok>=3)okCnt++;
@@ -17612,17 +17677,18 @@ function handleBOAnswer(q){
   const boList=`<div class="ws-bo-list">${correctMovies.map((m,i)=>`
     <div class="ws-bo-item">
       <div class="ws-bo-num">${i+1}</div>
-      <img class="ws-bo-img" src="${m.poster}" crossorigin="anonymous">
+      <img class="ws-bo-img" src="${m.poster}" crossorigin="anonymous" onerror="this.onerror=null;this.style.display='none';var d=document.createElement('div');d.style.cssText='width:36px;height:52px;border-radius:7px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0';d.textContent='?';this.parentNode.insertBefore(d,this);">
       <div><div class="ws-bo-name">${m.title}</div><div class="ws-bo-rev">${m.year}</div></div>
     </div>`).join('')}</div>`;
   if(selMode!=='training')document.getElementById('scorehd').textContent=score+' pts';
   buildDots();
   if(isOk){
     // Correct: auto-advance after short delay
-    showToast(true,pts,2,null);
+    const mult=ok===correct.length?3:2;
+    showToast(true,pts,mult,null);
   } else {
     // Wrong: show full correct order in bottom sheet
-    document.getElementById('ws-title').textContent=ok===0?'✗ Raté !':`${ok}/4 correct`;
+    document.getElementById('ws-title').textContent=ok===0?'✗ Raté !':`${ok}/${correct.length} correct — ${pts} pts`;
     // Replace ws-ans with full BO list
     const wsAns=document.getElementById('ws-ans');
     wsAns.style.display='none';
@@ -20203,16 +20269,16 @@ const TRACK_UNLOCK={
   jk1:         {cond:s=>isModeUnlocked('pitch'),       hint:'Débloquer Le Pitch'},
   jk2:         {cond:s=>isModeUnlocked('versusfilms'),  hint:'Débloquer Versus Films'},
   jk3:         {cond:s=>isModeUnlocked('survie'),       hint:'Débloquer Survie'},
-  jk4:         {cond:s=>isModeUnlocked('versusfilms')&&(s.xp||0)>=500, hint:'500 XP + Versus Films'},
-  jk5:         {cond:s=>(s.xp||0)>=1000,               hint:'1 000 XP requis'},
+  jk4:         {cond:s=>isModeUnlocked('versusfilms')&&(s.xp||0)>=500, hint:'500 XP + Versus Films — Arcade Secrète'},
+  jk5:         {cond:s=>(s.xp||0)>=1000,               hint:'1 000 XP requis — Arcade Secrète'},
   jk6:         {cond:s=>(s.xp||0)>=500,                   hint:'500 XP requis'},
-  jk7:         {cond:s=>(s.xp||0)>=800,                   hint:'800 XP requis'},
-  jk8:         {cond:s=>(s.xp||0)>=1200,                  hint:'1 200 XP requis'},
-  jk9:         {cond:s=>(s.xp||0)>=1600,                  hint:'1 600 XP requis'},
-  jk10:        {cond:s=>(s.games||0)>=20,                  hint:'20 parties jouées'},
-  jk11:        {cond:s=>(s.games||0)>=30,                  hint:'30 parties jouées'},
-  jk12:        {cond:s=>(s.games||0)>=40,                  hint:'40 parties jouées'},
-  jk13:        {cond:s=>(s.best||0)>=1500,                 hint:'1 500 pts en une partie'},
+  jk7:         {cond:s=>(s.xp||0)>=800,                   hint:'800 XP requis — Salle Secrète Hidden Movies'},
+  jk8:         {cond:s=>(s.xp||0)>=1200,                  hint:'1 200 XP requis — Arcade Secrète'},
+  jk9:         {cond:s=>(s.xp||0)>=1600,                  hint:'1 600 XP requis — Salle Secrète Hidden Movies'},
+  jk10:        {cond:s=>(s.games||0)>=20,                  hint:'20 parties jouées — Arcade Secrète'},
+  jk11:        {cond:s=>(s.games||0)>=30,                  hint:'30 parties jouées — Arcade Secrète'},
+  jk12:        {cond:s=>(s.games||0)>=40,                  hint:'40 parties jouées — Arcade Secrète'},
+  jk13:        {cond:s=>(s.best||0)>=1500,                 hint:'1 500 pts en une partie — Arcade Secrète'},
   jk14:        {cond:s=>(s.best||0)>=2000,                 hint:'2 000 pts en une partie'},
   jk15:        {cond:s=>(s.perfects||0)>=1,                hint:'1 partie parfaite (10/10)'},
   jk16:        {cond:s=>isModeUnlocked('versus'),           hint:'Débloquer Multijoueur'},
@@ -21337,6 +21403,7 @@ const SQ_BANK=[
 
 function startSpeedQuiz(){
   go('arc-speedquiz');
+  if(musOn)switchMusic('speedquiz',0.22);
   document.getElementById('sq-over').style.display='none';
   _sqScore=0;_sqQ=0;_sqAnswered=false;
   _sqQuestions=[...SQ_BANK].sort(()=>Math.random()-.5).slice(0,SQ_COUNT);
@@ -21454,6 +21521,7 @@ let SN_SIZE=20,SN_COLS=16,SN_ROWS=16;
 
 function startSnake(){
   go('arc-snake');
+  if(musOn)switchMusic('snake',0.22);
   document.getElementById('snake-over').style.display='none';
   // Double rAF pour laisser le layout se calculer après go()
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -21617,6 +21685,7 @@ function _invMakeGrid(W, H, wave) {
 
 function startInvaders() {
   go('arc-invaders');
+  if(musOn)switchMusic('invaders',0.22);
   document.getElementById('inv-over').style.display = 'none';
   document.getElementById('inv-score').textContent = '0';
   cancelAnimationFrame(_invAnim); _invAnim = null;
@@ -22122,6 +22191,7 @@ function _pgUpdateSetsBadge(){
 function startPong(){
   const alreadyOn=document.getElementById('arc-pong').classList.contains('on');
   if(!alreadyOn)go('arc-pong');
+  if(musOn)switchMusic('pong',0.22);
   cancelAnimationFrame(_pgAnim);_pgAnim=null;
   if(_pgState){_pgState.running=false;}_pgState=null;
   _pgSets={player:0,ai:0};_pgRound=1;
@@ -22323,6 +22393,7 @@ function _brMakeBricks(level){
 
 function startBricks(){
   go('arc-bricks');
+  if(musOn)switchMusic('bricks',0.22);
   document.getElementById('bricks-over').style.display='none';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     const c=document.getElementById('bricks-canvas');
@@ -22873,6 +22944,7 @@ const _mpWinLines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,
     if(scoreW===undefined){scoreW=0;scoreD=0;scoreL=0;}
     if(p4Difficulty===undefined)p4Difficulty=1;
     go('arc-p4');
+    if(musOn)switchMusic('puissance4',0.22);
     setTimeout(function(){init();updateScores();},50);
   };
   window.resetP4=function(){init();};
@@ -22880,7 +22952,7 @@ const _mpWinLines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,
 })();
 
 
-function startMorpion(){go('arc-morpion');resetMorpion();}
+function startMorpion(){go('arc-morpion');if(musOn)switchMusic('morpion',0.22);resetMorpion();}
 function resetMorpion(){
   clearTimeout(_mpAITimer);_mpAITimer=null;
   _mpBoard=Array(9).fill(null);_mpLocked=false;
@@ -22952,6 +23024,7 @@ let _memFlipped=[],_memMatched=[],_memMoves=0,_memTimer=null,_memSeconds=0,_memL
 
 function startMemory(){
   go('arc-memory');
+  if(musOn)switchMusic('memory',0.22);
   document.getElementById('mem-over').style.display='none';
   _memFlipped=[];_memMatched=[];_memMoves=0;_memSeconds=0;_memLocked=false;
   clearInterval(_memTimer);
@@ -24233,12 +24306,8 @@ function openHMSecret(){
   if(titleEl)titleEl.textContent='Sélectionne un film';
   if(countEl)countEl.textContent='— / '+HM_TRAILERS.length+' bandes-annonces';
 
-  // ── Fade out musique en cours ──
-  if(typeof fadeTrack==='function' && typeof window._musicCache!=='undefined'){
-    Object.values(window._musicCache).forEach(t=>{
-      if(t&&!t.paused) fadeTrack(t,0,600,()=>t.pause());
-    });
-  }
+  // ── Transition musicale via le système standard ──
+  // (switchMusic gèrera la fin de boucle avant de passer à jk7)
 
   // ══ SÉQUENCE D'ENTRÉE — Neural Noise violet ══
   room.style.display='flex';room.style.opacity='0';
@@ -24252,14 +24321,11 @@ function openHMSecret(){
       room.style.opacity='1';room.style.pointerEvents='all';
       room.style.transition='opacity .3s ease';
       setTimeout(()=>{},80);
-      // Musique secrète
+      // Musique secrète via le système standard (transition douce)
       setTimeout(()=>{
-        if(!window._secretAudio){
-          window._secretAudio=new Audio('Everything In Its Right Place.mp3');
-          window._secretAudio.loop=true;window._secretAudio.volume=0;
+        if(typeof switchMusic==='function' && typeof musOn!=='undefined' && musOn){
+          switchMusic('jk7',0.28);
         }
-        window._secretAudio.currentTime=0;window._secretAudio.play().catch(()=>{});
-        if(typeof fadeTrack==='function')fadeTrack(window._secretAudio,0.28,2000);
       },300);
     },
   });
@@ -24366,20 +24432,9 @@ function closeHMSecret(){
 
   const vid=document.getElementById('hm-secret-video');
   if(vid)vid.pause();
-  // Stopper la musique secrète
-  if(window._secretAudio){
-    if(typeof fadeTrack==='function'){
-      fadeTrack(window._secretAudio,0,400,()=>{
-        window._secretAudio.pause();
-        window._secretAudio.currentTime=0;
-      });
-    } else {
-      window._secretAudio.pause();
-    }
-  }
-  // Reprendre la musique HM
+  // Transition musicale retour via le système standard (attend la fin de boucle)
   if(typeof switchMusic==='function' && typeof musOn!=='undefined' && musOn){
-    setTimeout(()=>switchMusic('reco',0.22),500);
+    switchMusic('reco',0.22);
   }
   // Retirer le swipe handler
   if(room._swipeHandler){
@@ -24518,10 +24573,8 @@ function hmTrailerPlay(idx){
   if(!vid||!v)return;
   _hmVidIdx=idx;
   _hmFadeOutAudio();
-  if(window._secretAudio&&!window._secretAudio.paused){
-    if(typeof fadeTrack==='function') fadeTrack(window._secretAudio,0,600,()=>{window._secretAudio.pause();});
-    else window._secretAudio.pause();
-  }
+  // Baisser la musique du jukebox pendant la vidéo
+  if(typeof fadeMus==='function') fadeMus(0,600);
   if(placeholder)placeholder.style.display='none';
   vid.src=encodeURIComponent(v.src).replace(/%2F/g,'/');
   vid.load();
@@ -24544,11 +24597,8 @@ function hmVidEnded(){
 }
 
 function _hmResumeSecretAmbient(){
-  if(window._secretAudio){
-    window._secretAudio.play().catch(()=>{});
-    if(typeof fadeTrack==='function') fadeTrack(window._secretAudio,0.28,1200);
-    else window._secretAudio.volume=0.28;
-  }
+  // Remonter le volume de la musique jukebox après la vidéo
+  if(typeof fadeMus==='function') fadeMus(0.28,1200);
 }
 
 function hmTrailerRender(){
