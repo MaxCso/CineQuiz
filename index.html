@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CinéQuiz">
 <meta name="theme-color" content="#0a0a0f">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
 <meta name="description" content="Le quiz du 7ème art — 14 modes, 100% cinéma">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -28753,6 +28754,7 @@ if('serviceWorker' in navigator){
 
   // ── AUTH ACTIONS ──
   window.authDoLogin = function() {
+    window._allowCredentials = true;
     var email = document.getElementById('auth-email-login').value.trim();
     var pass = document.getElementById('auth-pass-login').value;
     if (!email || !pass) { setAuthMsg('Remplis tous les champs.'); return; }
@@ -28934,8 +28936,8 @@ if('serviceWorker' in navigator){
       '  </div>',
       '  <!-- Login form -->',
       '  <div id="auth-form-login" class="auth-form" style="display:flex;">',
-      '    <div class="auth-field"><label>Email</label><input id="auth-email-login" type="email" placeholder="ton@email.com" autocomplete="email" inputmode="email"/></div>',
-      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-login" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')authDoLogin()"/></div>',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-login" type="email" placeholder="ton@email.com" autocomplete="off" inputmode="email"/></div>',
+      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-login" type="password" placeholder="••••••" autocomplete="off" onkeydown="if(event.key===\'Enter\')authDoLogin()"/></div>',
       '    <button id="auth-submit-btn" class="auth-btn" data-label="Se connecter" onclick="authDoLogin()">Se connecter</button>',
       '  </div>',
       '  <!-- Signup form -->',
@@ -29049,6 +29051,8 @@ if('serviceWorker' in navigator){
     var modal = document.createElement('div');
     modal.id = 'account-modal';
     modal.className = 'mover';
+    modal.style.alignItems = 'center';
+    modal.style.padding = '20px';
     modal.onclick = function(e){ if(e.target === modal) closeAccountModal(); };
 
     var _s = {}; try { _s = JSON.parse(localStorage.getItem('cq11') || '{}'); } catch(e) {}
@@ -29056,7 +29060,8 @@ if('serviceWorker' in navigator){
     var email = (_sbSession && _sbSession.user) ? (_sbSession.user.email || '') : '';
 
     modal.innerHTML = [
-      '<div class="mover-box" style="max-width:380px;width:calc(100% - 32px);">',
+      '<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);" onclick="closeAccountModal()"></div>',
+      '<div class="mover-box" style="position:relative;z-index:1;max-width:380px;width:calc(100% - 32px);background:#13131a;border-radius:24px;padding:22px 18px;border:1px solid rgba(255,255,255,.08);">',
       '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">',
       '    <span style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;color:#2ecc71;">MON COMPTE</span>',
       '    <button onclick="closeAccountModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;width:32px;height:32px;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>',
@@ -29107,6 +29112,18 @@ if('serviceWorker' in navigator){
       window._syncFbTimer = setTimeout(function(){ cardFb.style.display = 'none'; }, 3000);
     }
   };
+
+  // Bloquer Face ID / WebAuthn automatique au démarrage
+  try {
+    if (navigator.credentials && navigator.credentials.get) {
+      var _origCredGet = navigator.credentials.get.bind(navigator.credentials);
+      navigator.credentials.get = function(opts) {
+        // N'autoriser que si l'utilisateur a explicitement cliqué sur "Se connecter"
+        if (window._allowCredentials) return _origCredGet(opts);
+        return Promise.reject(new Error('Credentials blocked'));
+      };
+    }
+  } catch(e) {}
 
   // Boot
   if (document.readyState === 'loading') {
