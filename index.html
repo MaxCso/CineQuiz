@@ -386,37 +386,73 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   box-shadow:0 2px 20px rgba(0,0,0,.25);
 }
 /* Bordure shimmer — fine ligne lumineuse qui tourne */
+/* ── Card XP — Shimmer rotatif + grain pellicule ── */
 .xpw::before{
   content:'';position:absolute;inset:-1.5px;border-radius:21.5px;z-index:0;
   background:conic-gradient(
     from var(--xpw-angle,0deg),
-    rgba(245,200,66,0) 0%,
-    rgba(245,200,66,.08) 8%,
-    rgba(245,200,66,.18) 20%,
-    rgba(245,200,66,.35) 32%,
-    rgba(255,235,130,.65) 46%,
-    rgba(255,255,200,.95) 50%,
-    rgba(255,235,130,.65) 54%,
-    rgba(245,200,66,.12) 64%,
-    rgba(245,200,66,0) 72%,
-    rgba(245,200,66,0) 100%
+    rgba(245,200,66,0)     0%,
+    rgba(245,200,66,.04)  10%,
+    rgba(245,200,66,.14)  24%,
+    rgba(255,235,130,.45)  36%,
+    rgba(255,255,210,.85)  46%,
+    rgba(255,255,240,1)    50%,
+    rgba(255,255,210,.85)  54%,
+    rgba(245,200,66,.14)   64%,
+    rgba(245,200,66,.04)   76%,
+    rgba(245,200,66,0)     84%,
+    rgba(245,200,66,0)    100%
   );
-  animation:xpwBorderSpin 4s linear infinite;
+  /* Masque en anneau : seule la bordure reste visible, le centre est transparent */
+  -webkit-mask:
+    radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  mask:
+    radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  animation:xpwBorderSpin 7s linear infinite;
   will-change:--xpw-angle;
   pointer-events:none;
 }
-/* Fond intérieur opaque — bloque le conic-gradient, ne laisse visible que la bordure */
-.xpw::after{
-  content:'';position:absolute;inset:1.5px;border-radius:19px;
-  background:linear-gradient(135deg,#141008,#0e0b04);
-  z-index:0;pointer-events:none;
-}
 @property --xpw-angle{syntax:'<angle>';inherits:false;initial-value:0deg;}
 @keyframes xpwBorderSpin{from{--xpw-angle:0deg;}to{--xpw-angle:360deg;}}
+/* Fond intérieur */
+.xpw::after{
+  content:'';position:absolute;inset:1.5px;border-radius:19px;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 0%,rgba(245,200,66,.13) 0%,transparent 65%),
+    radial-gradient(ellipse 45% 35% at 88% 100%,rgba(232,168,0,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,transparent 40%,rgba(0,0,0,.45) 100%),
+    linear-gradient(135deg,#141008,#0e0b04);
+  z-index:0;pointer-events:none;
+  animation:vignettePulse 3.5s ease-in-out infinite;
+}
+/* Grain pellicule par-dessus tout */
+.xpw-grain{
+  position:absolute;inset:0;border-radius:20px;z-index:3;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  mix-blend-mode:overlay;
+  animation:grainShift 0.09s steps(1) infinite;
+}
+/* Contenu au-dessus du masque ::after */
+.xpw>*:not(.xpw-grain){position:relative;z-index:2;}
+@keyframes grainShift{
+  0%  {opacity:.07;background-position:0 0;}
+  25% {opacity:.05;background-position:43px 17px;}
+  50% {opacity:.09;background-position:-18px 38px;}
+  75% {opacity:.06;background-position:27px -28px;}
+  100%{opacity:.07;background-position:0 0;}
+}
+@keyframes vignettePulse{
+  0%,100%{opacity:.6;}
+  50%    {opacity:1;}
+}
+@keyframes cardGlowBreath{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%    {opacity:.55;transform:scale(1.08);}
+}
 @property --hm-angle{syntax:'<angle>';inherits:false;initial-value:0deg;}
-@keyframes hmBorderSpin{from{--hm-angle:0deg;}to{--hm-angle:360deg;}}
 @property --ph-angle{syntax:'<angle>';inherits:false;initial-value:0deg;}
-@keyframes phBorderSpin{from{--ph-angle:0deg;}to{--ph-angle:360deg;}}
 
 
 
@@ -529,12 +565,18 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .sm-gold{--sm-accent:rgba(245,200,66,.5);}
 .sm-green{--sm-accent:rgba(46,204,113,.5);}
 .sm::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 100% 60% at 50% 0%,var(--sm-glow,rgba(255,255,255,.04)) 0%,transparent 70%);
+  content:'';position:absolute;inset:-15%;pointer-events:none;
+  background:
+    radial-gradient(ellipse 100% 70% at 50% 0%,var(--sm-glow,rgba(255,255,255,.04)) 0%,transparent 65%),
+    radial-gradient(ellipse 60% 45% at 0% 100%,var(--sm-glow,rgba(255,255,255,.02)) 0%,transparent 70%);
+  animation:cardGlowBreath 3.5s ease-in-out infinite;
 }
-.sm-fire{--sm-glow:rgba(255,80,20,.1);}
-.sm-gold{--sm-glow:rgba(245,200,66,.08);}
-.sm-green{--sm-glow:rgba(46,204,113,.08);}
+.sm-fire{--sm-glow:rgba(255,80,20,.14);}
+.sm-gold{--sm-glow:rgba(245,200,66,.11);}
+.sm-green{--sm-glow:rgba(46,204,113,.11);}
+.sm-fire::after{animation-delay:0s;}
+.sm-gold::after{animation-delay:-2.3s;}
+.sm-green::after{animation-delay:-4.6s;}
 .sm-icon{
   width:32px;height:32px;border-radius:10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
@@ -578,7 +620,11 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .daily-card-inner{
   position:relative;z-index:1;
   padding:16px;border-radius:19px;
-  background:radial-gradient(ellipse 80% 55% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 70%);
+  background:
+    radial-gradient(ellipse 75% 50% at 5% 0%,rgba(245,200,66,.10) 0%,transparent 65%),
+    radial-gradient(ellipse 50% 40% at 95% 100%,rgba(232,168,0,.06) 0%,transparent 60%);
+  animation:cardGlowBreath 4.5s ease-in-out infinite;
+  animation-delay:-3s;
 }
 .daily-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .daily-label{display:flex;align-items:center;gap:8px;}
@@ -1238,7 +1284,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 .mode-info-over.on{display:flex;opacity:1;pointer-events:all;}
 .mode-info-sh{
-  background:linear-gradient(180deg,rgba(18,14,8,.99),rgba(10,8,4,.99));
+  background:linear-gradient(180deg,rgba(12,10,6,.99),rgba(8,6,3,.99));
   border-radius:28px 28px 0 0;
   border:1px solid rgba(255,255,255,.08);border-bottom:none;
   padding:0 22px max(32px,env(safe-area-inset-bottom,32px));
@@ -1247,7 +1293,27 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   transform:translateY(60px);
   transition:transform .32s cubic-bezier(.34,1.56,.64,1);
   position:relative;
+  isolation:isolate;
 }
+.mode-info-sh::after{
+  content:'';
+  position:absolute;inset:-20%;
+  border-radius:28px 28px 0 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 10% 0%, color-mix(in srgb,var(--mi-color,#f5c842) 35%,transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 40% at 90% 20%, color-mix(in srgb,var(--mi-color,#f5c842) 20%,transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, color-mix(in srgb,var(--mi-color,#f5c842) 10%,transparent) 0%, transparent 70%);
+  pointer-events:none;
+  z-index:0;
+  transition:background .35s;
+  animation:modalGlowBreath2 4.5s ease-in-out infinite;
+}
+@keyframes modalGlowBreath2{
+  0%,100%{transform:scale(1) translate(0%,0%);opacity:1;}
+  40%    {transform:scale(1.18) translate(-5%,4%);opacity:.5;}
+  70%    {transform:scale(.88) translate(5%,-4%);opacity:.95;}
+}
+.mode-info-sh>*{position:relative;z-index:1;}
 .mode-info-over.on .mode-info-sh{transform:translateY(0);}
 .mode-info-accent{
   position:absolute;top:0;left:0;right:0;height:2px;
@@ -2266,7 +2332,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   position:relative;
   overflow:hidden;
   background:rgba(8,7,15,.9);
-  transition:transform 1.1s cubic-bezier(.77,0,.175,1);
+  transition:transform 1.8s cubic-bezier(.77,0,.175,1);
 }
 
 /* Plis subtils via dégradé — quasi transparent */
@@ -2312,7 +2378,7 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 }
 .splash-curtain.open .splash-curtain-r{
   transform:translateX(100%);
-  transition-delay:.04s;
+  transition-delay:.12s;
 }
 .splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);will-change:transform,opacity;}
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
@@ -2322,6 +2388,19 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(0 0 28px rgba(245,200,66,.6));
 }
+
+/* ── Splash logo adapté au thème ── */
+body.theme-neon    .splash-logo{background:linear-gradient(135deg,#ff00cc,#c466ff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(196,102,255,.7));}
+body.theme-crimson .splash-logo{background:linear-gradient(135deg,#ff8fab,#ff3a5c,#c0002a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(255,58,92,.7));}
+body.theme-ocean   .splash-logo{background:linear-gradient(135deg,#80f0ff,#00d4ff,#0098cc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(0,212,255,.7));}
+body.theme-sunset  .splash-logo{background:linear-gradient(135deg,#ffc87a,#ff8c38,#ff4e6a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(255,140,56,.7));}
+body.theme-ice     .splash-logo{background:linear-gradient(135deg,#e8f6ff,#8ed8f8,#45a8e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(142,216,248,.7));}
+body.theme-aurora  .splash-logo{background:linear-gradient(135deg,#4ade80,#c084fc,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(192,132,252,.7));}
+body.theme-galaxy  .splash-logo{background:linear-gradient(135deg,#f0e8ff,#a78bfa,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(167,139,250,.7));}
+body.theme-emerald .splash-logo{background:linear-gradient(135deg,#80ffc0,#10f07c,#00b85a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(16,240,124,.7));}
+body.theme-inferno .splash-logo{background:linear-gradient(135deg,#ffdd00,#ff9500,#ff3000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(255,149,0,.7));}
+body.theme-matrix  .splash-logo{background:linear-gradient(135deg,#88ff00,#00ff41,#00bb30);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(0,255,65,.7));}
+body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb4,#d4006c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(255,110,180,.7));}
 .splash-tagline{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:4px;text-transform:uppercase;margin-top:4px;}
 .splash-tap{
   margin-top:32px;font-size:11px;color:rgba(255,255,255,.3);
@@ -2612,7 +2691,7 @@ body.theme-neon .anecdote-card,.theme-neon .dmc-card{box-shadow:0 0 0 1px rgba(1
 /* ── Adaptation Hero Card shimmer + fond + Anecdote par thème ── */
 
 /* Néon */
-body.theme-neon .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(196,102,255,0) 0%,rgba(196,102,255,0) 40%,rgba(220,160,255,.45) 48%,rgba(196,102,255,.32) 50%,rgba(220,160,255,.45) 52%,rgba(196,102,255,0) 60%,rgba(196,102,255,0) 100%);}
+body.theme-neon .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(196,102,255,0) 0%,rgba(196,102,255,.04) 10%,rgba(196,102,255,.14) 24%,rgba(220,160,255,.45) 36%,rgba(240,200,255,.85) 46%,rgba(245,220,255,1) 50%,rgba(240,200,255,.85) 54%,rgba(196,102,255,.14) 64%,rgba(196,102,255,.04) 76%,rgba(196,102,255,0) 84%,rgba(196,102,255,0) 100%);}
 body.theme-neon .xpw::after{background:linear-gradient(135deg,#0a0020,#060012);}
 body.theme-neon .anecdote-card{background:linear-gradient(150deg,rgba(14,0,38,.95),rgba(6,0,20,.9));border-color:rgba(196,102,255,.2);}
 body.theme-neon .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(196,102,255,.07) 0%,transparent 65%);}
@@ -2623,7 +2702,7 @@ body.theme-neon .phero-av-ring{background:linear-gradient(135deg,rgba(196,102,25
 body.theme-neon .phero-level{background:rgba(196,102,255,.1);border-color:rgba(196,102,255,.2);}
 
 /* Crimson */
-body.theme-crimson .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,58,92,0) 0%,rgba(255,58,92,0) 40%,rgba(255,140,160,.45) 48%,rgba(255,58,92,.32) 50%,rgba(255,140,160,.45) 52%,rgba(255,58,92,0) 60%,rgba(255,58,92,0) 100%);}
+body.theme-crimson .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,58,92,0) 0%,rgba(255,58,92,.04) 10%,rgba(255,58,92,.14) 24%,rgba(255,140,160,.45) 36%,rgba(255,200,210,.85) 46%,rgba(255,220,225,1) 50%,rgba(255,200,210,.85) 54%,rgba(255,58,92,.14) 64%,rgba(255,58,92,.04) 76%,rgba(255,58,92,0) 84%,rgba(255,58,92,0) 100%);}
 body.theme-crimson .xpw::after{background:linear-gradient(135deg,#1a0008,#0e0004);}
 body.theme-crimson .anecdote-card{background:linear-gradient(150deg,rgba(26,0,10,.95),rgba(14,0,5,.9));border-color:rgba(255,58,92,.2);}
 body.theme-crimson .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(255,58,92,.07) 0%,transparent 65%);}
@@ -2634,7 +2713,7 @@ body.theme-crimson .phero-av-ring{background:linear-gradient(135deg,rgba(255,58,
 body.theme-crimson .phero-level{background:rgba(255,58,92,.1);border-color:rgba(255,58,92,.2);}
 
 /* Océan */
-body.theme-ocean .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(0,212,255,0) 0%,rgba(0,212,255,0) 40%,rgba(120,235,255,.45) 48%,rgba(0,212,255,.32) 50%,rgba(120,235,255,.45) 52%,rgba(0,212,255,0) 60%,rgba(0,212,255,0) 100%);}
+body.theme-ocean .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(0,212,255,0) 0%,rgba(0,212,255,.04) 10%,rgba(0,212,255,.14) 24%,rgba(120,235,255,.45) 36%,rgba(200,248,255,.85) 46%,rgba(220,252,255,1) 50%,rgba(200,248,255,.85) 54%,rgba(0,212,255,.14) 64%,rgba(0,212,255,.04) 76%,rgba(0,212,255,0) 84%,rgba(0,212,255,0) 100%);}
 body.theme-ocean .xpw::after{background:linear-gradient(135deg,#001828,#000e14);}
 body.theme-ocean .anecdote-card{background:linear-gradient(150deg,rgba(0,20,36,.95),rgba(0,10,18,.9));border-color:rgba(0,212,255,.2);}
 body.theme-ocean .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(0,212,255,.07) 0%,transparent 65%);}
@@ -2645,7 +2724,7 @@ body.theme-ocean .phero-av-ring{background:linear-gradient(135deg,rgba(0,212,255
 body.theme-ocean .phero-level{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.2);}
 
 /* Sunset */
-body.theme-sunset .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,140,56,0) 0%,rgba(255,140,56,0) 40%,rgba(255,200,120,.45) 48%,rgba(255,140,56,.32) 50%,rgba(255,200,120,.45) 52%,rgba(255,140,56,0) 60%,rgba(255,140,56,0) 100%);}
+body.theme-sunset .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,140,56,0) 0%,rgba(255,140,56,.04) 10%,rgba(255,140,56,.14) 24%,rgba(255,200,120,.45) 36%,rgba(255,230,180,.85) 46%,rgba(255,245,220,1) 50%,rgba(255,230,180,.85) 54%,rgba(255,140,56,.14) 64%,rgba(255,140,56,.04) 76%,rgba(255,140,56,0) 84%,rgba(255,140,56,0) 100%);}
 body.theme-sunset .xpw::after{background:linear-gradient(135deg,#1e0800,#100400);}
 body.theme-sunset .anecdote-card{background:linear-gradient(150deg,rgba(30,8,0,.95),rgba(16,4,0,.9));border-color:rgba(255,140,56,.2);}
 body.theme-sunset .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(255,140,56,.07) 0%,transparent 65%);}
@@ -2656,7 +2735,7 @@ body.theme-sunset .phero-av-ring{background:linear-gradient(135deg,rgba(255,140,
 body.theme-sunset .phero-level{background:rgba(255,140,56,.1);border-color:rgba(255,140,56,.2);}
 
 /* Glace */
-body.theme-ice .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(142,216,248,0) 0%,rgba(142,216,248,0) 40%,rgba(200,240,255,.45) 48%,rgba(142,216,248,.32) 50%,rgba(200,240,255,.45) 52%,rgba(142,216,248,0) 60%,rgba(142,216,248,0) 100%);}
+body.theme-ice .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(142,216,248,0) 0%,rgba(142,216,248,.04) 10%,rgba(142,216,248,.14) 24%,rgba(200,240,255,.45) 36%,rgba(230,250,255,.85) 46%,rgba(245,253,255,1) 50%,rgba(230,250,255,.85) 54%,rgba(142,216,248,.14) 64%,rgba(142,216,248,.04) 76%,rgba(142,216,248,0) 84%,rgba(142,216,248,0) 100%);}
 body.theme-ice .xpw::after{background:linear-gradient(135deg,#020e1e,#00060e);}
 body.theme-ice .anecdote-card{background:linear-gradient(150deg,rgba(2,14,28,.95),rgba(0,6,14,.9));border-color:rgba(142,216,248,.2);}
 body.theme-ice .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(142,216,248,.07) 0%,transparent 65%);}
@@ -2667,7 +2746,7 @@ body.theme-ice .phero-av-ring{background:linear-gradient(135deg,rgba(142,216,248
 body.theme-ice .phero-level{background:rgba(142,216,248,.1);border-color:rgba(142,216,248,.2);}
 
 /* Aurora */
-body.theme-aurora .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(192,132,252,0) 0%,rgba(192,132,252,0) 40%,rgba(224,180,255,.45) 48%,rgba(192,132,252,.32) 50%,rgba(224,180,255,.45) 52%,rgba(192,132,252,0) 60%,rgba(192,132,252,0) 100%);}
+body.theme-aurora .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(192,132,252,0) 0%,rgba(192,132,252,.04) 10%,rgba(192,132,252,.14) 24%,rgba(224,180,255,.45) 36%,rgba(240,215,255,.85) 46%,rgba(248,235,255,1) 50%,rgba(240,215,255,.85) 54%,rgba(192,132,252,.14) 64%,rgba(192,132,252,.04) 76%,rgba(192,132,252,0) 84%,rgba(192,132,252,0) 100%);}
 body.theme-aurora .xpw::after{background:linear-gradient(135deg,#0a0022,#04001a);}
 body.theme-aurora .anecdote-card{background:linear-gradient(150deg,rgba(10,0,34,.95),rgba(4,0,18,.9));border-color:rgba(192,132,252,.2);}
 body.theme-aurora .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(192,132,252,.07) 0%,transparent 65%);}
@@ -2678,7 +2757,7 @@ body.theme-aurora .phero-av-ring{background:linear-gradient(135deg,rgba(192,132,
 body.theme-aurora .phero-level{background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.2);}
 
 /* Galaxie */
-body.theme-galaxy .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(167,139,250,0) 0%,rgba(167,139,250,0) 40%,rgba(200,185,255,.45) 48%,rgba(167,139,250,.32) 50%,rgba(200,185,255,.45) 52%,rgba(167,139,250,0) 60%,rgba(167,139,250,0) 100%);}
+body.theme-galaxy .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(167,139,250,0) 0%,rgba(167,139,250,.04) 10%,rgba(167,139,250,.14) 24%,rgba(200,185,255,.45) 36%,rgba(225,218,255,.85) 46%,rgba(238,232,255,1) 50%,rgba(225,218,255,.85) 54%,rgba(167,139,250,.14) 64%,rgba(167,139,250,.04) 76%,rgba(167,139,250,0) 84%,rgba(167,139,250,0) 100%);}
 body.theme-galaxy .xpw::after{background:linear-gradient(135deg,#0c0028,#04001a);}
 body.theme-galaxy .anecdote-card{background:linear-gradient(150deg,rgba(12,0,40,.95),rgba(4,0,18,.9));border-color:rgba(167,139,250,.2);}
 body.theme-galaxy .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(167,139,250,.07) 0%,transparent 65%);}
@@ -2689,7 +2768,7 @@ body.theme-galaxy .phero-av-ring{background:linear-gradient(135deg,rgba(167,139,
 body.theme-galaxy .phero-level{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.2);}
 
 /* Émeraude */
-body.theme-emerald .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(16,240,124,0) 0%,rgba(16,240,124,0) 40%,rgba(120,255,190,.45) 48%,rgba(16,240,124,.32) 50%,rgba(120,255,190,.45) 52%,rgba(16,240,124,0) 60%,rgba(16,240,124,0) 100%);}
+body.theme-emerald .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(16,240,124,0) 0%,rgba(16,240,124,.04) 10%,rgba(16,240,124,.14) 24%,rgba(120,255,190,.45) 36%,rgba(180,255,220,.85) 46%,rgba(210,255,235,1) 50%,rgba(180,255,220,.85) 54%,rgba(16,240,124,.14) 64%,rgba(16,240,124,.04) 76%,rgba(16,240,124,0) 84%,rgba(16,240,124,0) 100%);}
 body.theme-emerald .xpw::after{background:linear-gradient(135deg,#001608,#000a04);}
 body.theme-emerald .anecdote-card{background:linear-gradient(150deg,rgba(0,22,10,.95),rgba(0,10,5,.9));border-color:rgba(16,240,124,.2);}
 body.theme-emerald .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(16,240,124,.07) 0%,transparent 65%);}
@@ -2700,7 +2779,7 @@ body.theme-emerald .phero-av-ring{background:linear-gradient(135deg,rgba(16,240,
 body.theme-emerald .phero-level{background:rgba(16,240,124,.1);border-color:rgba(16,240,124,.2);}
 
 /* Inferno */
-body.theme-inferno .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,149,0,0) 0%,rgba(255,149,0,0) 40%,rgba(255,210,80,.45) 48%,rgba(255,149,0,.32) 50%,rgba(255,210,80,.45) 52%,rgba(255,149,0,0) 60%,rgba(255,149,0,0) 100%);}
+body.theme-inferno .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,149,0,0) 0%,rgba(255,149,0,.04) 10%,rgba(255,149,0,.14) 24%,rgba(255,210,80,.45) 36%,rgba(255,235,160,.85) 46%,rgba(255,248,210,1) 50%,rgba(255,235,160,.85) 54%,rgba(255,149,0,.14) 64%,rgba(255,149,0,.04) 76%,rgba(255,149,0,0) 84%,rgba(255,149,0,0) 100%);}
 body.theme-inferno .xpw::after{background:linear-gradient(135deg,#220600,#120300);}
 body.theme-inferno .anecdote-card{background:linear-gradient(150deg,rgba(34,8,0,.95),rgba(18,4,0,.9));border-color:rgba(255,149,0,.2);}
 body.theme-inferno .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(255,149,0,.07) 0%,transparent 65%);}
@@ -2711,7 +2790,7 @@ body.theme-inferno .phero-av-ring{background:linear-gradient(135deg,rgba(255,149
 body.theme-inferno .phero-level{background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.2);}
 
 /* Matrix */
-body.theme-matrix .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(0,255,65,0) 0%,rgba(0,255,65,0) 40%,rgba(120,255,140,.45) 48%,rgba(0,255,65,.32) 50%,rgba(120,255,140,.45) 52%,rgba(0,255,65,0) 60%,rgba(0,255,65,0) 100%);}
+body.theme-matrix .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(0,255,65,0) 0%,rgba(0,255,65,.04) 10%,rgba(0,255,65,.14) 24%,rgba(120,255,140,.45) 36%,rgba(180,255,195,.85) 46%,rgba(210,255,220,1) 50%,rgba(180,255,195,.85) 54%,rgba(0,255,65,.14) 64%,rgba(0,255,65,.04) 76%,rgba(0,255,65,0) 84%,rgba(0,255,65,0) 100%);}
 body.theme-matrix .xpw::after{background:linear-gradient(135deg,#001400,#000800);}
 body.theme-matrix .anecdote-card{background:linear-gradient(150deg,rgba(0,20,0,.95),rgba(0,8,0,.9));border-color:rgba(0,255,65,.2);}
 body.theme-matrix .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(0,255,65,.07) 0%,transparent 65%);}
@@ -2722,7 +2801,7 @@ body.theme-matrix .phero-av-ring{background:linear-gradient(135deg,rgba(0,255,65
 body.theme-matrix .phero-level{background:rgba(0,255,65,.1);border-color:rgba(0,255,65,.2);}
 
 /* Rose */
-body.theme-rose .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,110,180,0) 0%,rgba(255,110,180,0) 40%,rgba(255,185,225,.45) 48%,rgba(255,110,180,.32) 50%,rgba(255,185,225,.45) 52%,rgba(255,110,180,0) 60%,rgba(255,110,180,0) 100%);}
+body.theme-rose .xpw::before{background:conic-gradient(from var(--xpw-angle,0deg),rgba(255,110,180,0) 0%,rgba(255,110,180,.04) 10%,rgba(255,110,180,.14) 24%,rgba(255,185,225,.45) 36%,rgba(255,220,240,.85) 46%,rgba(255,235,248,1) 50%,rgba(255,220,240,.85) 54%,rgba(255,110,180,.14) 64%,rgba(255,110,180,.04) 76%,rgba(255,110,180,0) 84%,rgba(255,110,180,0) 100%);}
 body.theme-rose .xpw::after{background:linear-gradient(135deg,#1a0014,#0e0008);}
 body.theme-rose .anecdote-card{background:linear-gradient(150deg,rgba(26,0,20,.95),rgba(14,0,10,.9));border-color:rgba(255,110,180,.2);}
 body.theme-rose .anecdote-card::before{background:radial-gradient(ellipse 90% 50% at 50% 0%,rgba(255,110,180,.07) 0%,transparent 65%);}
@@ -3161,14 +3240,29 @@ body.theme-rose #home-bg::before{background:
     rgba(245,200,66,0) 58%,
     rgba(245,200,66,0) 100%
   );
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
   animation:phBorderSpin 4s linear infinite;
   pointer-events:none;
 }
+@keyframes phBorderSpin{from{--ph-angle:0deg;}to{--ph-angle:360deg;}}
 .phero::after{
   content:'';position:absolute;inset:1px;border-radius:19px;
   background:linear-gradient(150deg,#1a1406 0%,#100d04 50%,#0e0b04 100%);
-  z-index:0;pointer-events:none;
+  z-index:1;pointer-events:none;
 }
+/* Grain pellicule profil */
+.phero-grain{
+  position:absolute;inset:0;border-radius:20px;z-index:3;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  mix-blend-mode:overlay;
+  animation:grainShift 0.09s steps(1) infinite;
+  animation-delay:-0.02s;
+}
+/* Contenu profil au-dessus du masque */
+.phero>*:not(.phero-grain){position:relative;z-index:2;}
 .phero-bg{
   content:'';position:absolute;inset:0;border-radius:19px;z-index:1;pointer-events:none;
   background:
@@ -4012,7 +4106,14 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 /* BADGE MODAL */
 .mover{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
 .mover.on{display:flex;opacity:1;pointer-events:all;}
-.msh{background:var(--sf);border-radius:22px 22px 0 0;padding:22px 22px max(26px,env(safe-area-inset-bottom,26px));width:100%;max-width:500px;transform:translateY(40px);transition:transform .3s cubic-bezier(.25,.46,.45,.94);will-change:transform;}
+.msh{background:var(--sf);border-radius:22px 22px 0 0;padding:22px 22px max(26px,env(safe-area-inset-bottom,26px));width:100%;max-width:500px;transform:translateY(40px);transition:transform .3s cubic-bezier(.25,.46,.45,.94);will-change:transform;position:relative;isolation:isolate;overflow:hidden;}
+.msh::before{content:'';position:absolute;inset:-20%;border-radius:22px 22px 0 0;background:radial-gradient(ellipse 80% 55% at 8% 0%,color-mix(in srgb,var(--msh-color,transparent) 38%,transparent) 0%,transparent 60%),radial-gradient(ellipse 55% 40% at 92% 15%,color-mix(in srgb,var(--msh-color,transparent) 22%,transparent) 0%,transparent 55%),radial-gradient(ellipse 40% 30% at 50% 100%,color-mix(in srgb,var(--msh-color,transparent) 12%,transparent) 0%,transparent 70%);pointer-events:none;z-index:0;transition:background .3s;animation:modalGlowBreath 3.5s ease-in-out infinite;}
+.msh>*{position:relative;z-index:1;}
+@keyframes modalGlowBreath{
+  0%,100%{transform:scale(1) translate(0%,0%);opacity:1;}
+  33%    {transform:scale(1.15) translate(4%,-4%);opacity:.55;}
+  66%    {transform:scale(.9) translate(-4%,5%);opacity:.9;}
+}
 .mover.on .msh{transform:translateY(0);}
 .mhdl{width:34px;height:4px;border-radius:2px;background:var(--sf2);margin:0 auto 16px;}
 .mbi{font-size:50px;text-align:center;margin-bottom:8px;}
@@ -5228,29 +5329,54 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   content:'';position:absolute;inset:-1px;border-radius:19px;z-index:0;
   background:conic-gradient(
     from var(--hm-angle,0deg),
-    rgba(168,85,247,0) 0%,
-    rgba(168,85,247,.08) 8%,
-    rgba(168,85,247,.18) 20%,
-    rgba(168,85,247,.35) 32%,
-    rgba(210,160,255,.65) 46%,
-    rgba(235,210,255,.95) 50%,
-    rgba(210,160,255,.65) 54%,
-    rgba(168,85,247,.12) 64%,
-    rgba(168,85,247,0) 72%,
-    rgba(168,85,247,0) 100%
+    rgba(168,85,247,0)     0%,
+    rgba(168,85,247,.04)  10%,
+    rgba(168,85,247,.14)  24%,
+    rgba(210,160,255,.45)  36%,
+    rgba(230,200,255,.80)  46%,
+    rgba(245,225,255,.95)  50%,
+    rgba(230,200,255,.80)  54%,
+    rgba(168,85,247,.14)   64%,
+    rgba(168,85,247,.04)   76%,
+    rgba(168,85,247,0)     84%,
+    rgba(168,85,247,0)    100%
   );
-  animation:hmBorderSpin 4s linear infinite;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  animation:hmBorderSpin 9s linear infinite;
+  animation-delay:-3.5s;
   will-change:--hm-angle;
   pointer-events:none;
 }
+@keyframes hmBorderSpin{from{--hm-angle:0deg;}to{--hm-angle:360deg;}}
+/* Grain pellicule sur HM */
+.hm-grain{
+  position:absolute;inset:0;border-radius:18px;z-index:3;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  mix-blend-mode:overlay;
+  animation:grainShift 0.09s steps(1) infinite;
+  animation-delay:-0.04s;
+}
 .hm-home-border-card::after{
   content:'';position:absolute;inset:1px;border-radius:17px;
-  background:linear-gradient(135deg,#1e0d2e,#140920);
-  z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 55% at 5% 0%,rgba(168,85,247,.18) 0%,transparent 65%),
+    radial-gradient(ellipse 45% 40% at 95% 100%,rgba(139,60,200,.10) 0%,transparent 60%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,transparent 40%,rgba(0,0,0,.4) 100%),
+    linear-gradient(135deg,#1e0d2e,#140920);
+  z-index:1;pointer-events:none;
+  animation:vignettePulseHM 4s ease-in-out infinite;
+  animation-delay:-1.8s;
+}
+@keyframes vignettePulseHM{
+  0%,100%{opacity:.65;}
+  50%    {opacity:1;}
 }
 .hm-home-border-card:active{transform:scale(.97);}
 .hm-home-border-inner{
-  position:relative;z-index:1;
+  position:relative;z-index:2;
   padding:16px 16px 16px 18px;
   display:flex;align-items:center;gap:14px;
   border-radius:17px;
@@ -5789,6 +5915,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
     </div>
     <!-- XP Widget -->
     <div class="xpw home-tilt-card" onclick="openXpDetail()" style="cursor:pointer;" title="Voir la progression">
+      <div class="xpw-grain"></div>
       <div class="xpw-hero">
         <div class="xpw-icon home-tilt-icon" id="h-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></div>
         <div class="xpw-center">
@@ -5913,9 +6040,10 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 
       <!-- HIDDEN MOVIES CARD avec shimmer de bordure -->
       <div class="hm-home-border-card home-tilt-card" onclick="openHMInfoModal()" ontouchstart="this.style.transform=''" ontouchend="this.style.transform=''">
+        <div class="hm-grain"></div>
         <div class="hm-home-border-inner">
           <!-- Fond subtil -->
-          <div style="position:absolute;inset:0;border-radius:17px;background:radial-gradient(ellipse 80% 60% at 0% 50%,rgba(168,85,247,.08) 0%,transparent 70%);pointer-events:none;z-index:0;"></div>
+          <div style="position:absolute;inset:0;border-radius:17px;background:radial-gradient(ellipse 75% 55% at 5% 0%,rgba(168,85,247,.13) 0%,transparent 65%),radial-gradient(ellipse 45% 35% at 95% 100%,rgba(139,60,200,.07) 0%,transparent 60%);pointer-events:none;z-index:0;"></div>
           <!-- Icône / Logo -->
           <div class="home-tilt-icon" style="width:54px;height:54px;border-radius:16px;background:rgba(168,85,247,.1);border:1.5px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;z-index:1;animation:xpIconFloat 4s ease-in-out infinite;animation-delay:.5s;">
             <img src="logohiddenmovies.png" alt="HM"
@@ -5936,7 +6064,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
       <!-- ENTRAÎNEMENT -->
       <div onclick="openModeInfo('training',this)" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(20,16,6,.96),rgba(14,11,4,.94));border:1px solid rgba(245,200,66,.14);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
         <!-- Fond subtil -->
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 0% 50%,rgba(245,200,66,.06) 0%,transparent 70%);pointer-events:none;"></div>
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 5% 0%,rgba(245,200,66,.12) 0%,transparent 65%),radial-gradient(ellipse 45% 35% at 95% 100%,rgba(232,168,0,.06) 0%,transparent 60%);pointer-events:none;"></div>
         <!-- Shimmer -->
         <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);animation:btnglare 4s ease 2s infinite;pointer-events:none;"></div>
         <!-- Icône grande -->
@@ -6128,7 +6256,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 
   <!-- PROFILE -->
   <div class="scr" id="profile">    <button class="bkbtn" onclick="onLeaveProfile();go('home')">← Retour</button>
-    <div class="phero"><div class="phero-bg"></div>
+    <div class="phero"><div class="phero-grain"></div><div class="phero-bg"></div>
       <div class="phero-av-wrap" onclick="openAvModal()">
         <div class="phero-av-ring"></div>
         <div class="pav" id="p-av" style="cursor:pointer;border-radius:18px;width:86px;height:86px;display:flex;align-items:center;justify-content:center;font-size:48px;transition:all .3s;" title="Changer d'avatar">🎭</div>
@@ -6243,6 +6371,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
       Partager ma carte CinéQuiz
     </button>
     <canvas id="profile-share-canvas" width="800" height="500"></canvas>
+    <div style="text-align:center;padding:28px 0 12px;font-size:8px;color:rgba(255,255,255,.07);letter-spacing:2px;font-style:italic;">"Le cinéma, c'est l'écriture moderne dont l'encre est la lumière." — Jean Cocteau</div>
   </div>
 
   <!-- LOADING -->
@@ -6266,6 +6395,17 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
       <div class="splash-tagline">Le quiz du 7ème art</div>
       <div class="splash-tap">Appuie pour commencer</div>
     </div>
+    <div id="splash-quote" style="position:absolute;bottom:52px;left:0;right:0;text-align:center;font-size:10px;color:rgba(255,255,255,0);letter-spacing:1.5px;font-style:italic;padding:0 32px;pointer-events:none;transition:color 1.6s ease 0.2s;"></div>
+    <script>
+    (function(){
+      var q=["« Un film est un rêve qu'on partage. »","« Every frame a painting. »","« I'll make him an offer he can't refuse. »","« You talkin' to me? »","« Frankly, my dear, I don't give a damn. »","« Here's looking at you, kid. »","« To infinity and beyond. »","« May the Force be with you. »","« E.T. phone home. »","« I see dead people. »","« There's no place like home. »","« Life is like a box of chocolates. »","« Just keep swimming. »","« Why so serious? »","« I am your father. »","« You can't handle the truth! »","« I'll be back. »","« Hasta la vista, baby. »","« Elementary, my dear Watson. »","« Le cinéma substitue à notre regard un monde qui s'accorde à nos désirs. »"];
+      var el=document.getElementById('splash-quote');
+      if(el){
+        el.textContent=q[Math.floor(Math.random()*q.length)];
+        requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.color='rgba(255,255,255,.32)';});});
+      }
+    })();
+    </script>
     <div class="splash-credit">Créé par Max</div>
   </div>
 
@@ -6404,6 +6544,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
         <button class="rbs" onclick="go('home');refHome();applyNewBadges()">← Accueil</button>
       </div>
       <!-- Partage -->
+      <div id="r-easter" style="text-align:center;font-size:10px;color:rgba(255,255,255,.28);letter-spacing:.8px;font-style:italic;margin-bottom:10px;padding:0 24px;line-height:1.6;"></div>
       <button id="r-share" onclick="shareScore()" class="r-share-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Partager mon score
@@ -6488,9 +6629,31 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
         <div class="help-tip" style="background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.25);"><div class="help-tip-icon">❤️</div><div class="help-tip-text" style="color:#fff;"><strong style="color:#c084fc;">Favoris</strong> — Épingle tes films préférés depuis la fiche pour les retrouver dans l'onglet dédié.</div></div>
 
         <div class="help-sep" style="color:#f5c842;">Zones secrètes 🤫</div>
-        <div class="help-tip" style="background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.2);"><div class="help-tip-icon">🕹️</div><div class="help-tip-text" style="color:#fff;"><strong style="color:#f5c842;">Indice #1</strong> — Certaines choses méritent d'être regardées longuement. La patience est une vertu.</div></div>
-        <div class="help-tip" style="background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.2);"><div class="help-tip-icon">🎵</div><div class="help-tip-text" style="color:#fff;"><strong style="color:#f5c842;">Indice #2</strong> — La musique peut mener quelque part, si tu sais comment l'écouter.</div></div>
-        <div class="help-tip" style="background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.2);"><div class="help-tip-icon">🔮</div><div class="help-tip-text" style="color:#fff;"><strong style="color:#f5c842;">Indice #3</strong> — Dans Hidden Movies, certains titres méritent d'être regardés de plus près. L'insistance finit par payer.</div></div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-bottom:10px;line-height:1.6;">3 zones cachées attendent d'être découvertes. À toi de jouer.</div>
+
+        <div class="help-tip" style="background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.2);margin-bottom:8px;">
+          <div class="help-tip-icon">🕹️</div>
+          <div class="help-tip-text" style="color:#fff;">
+            <strong style="color:#f5c842;">Zone #1</strong>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.5;">Ce qui se passe sur l'écran d'accueil ne se voit pas du premier coup d'œil. Le nom du jeu est là depuis le début — peut-être qu'il mérite un peu plus d'attention.</div>
+          </div>
+        </div>
+
+        <div class="help-tip" style="background:rgba(245,200,66,.06);border-color:rgba(245,200,66,.2);margin-bottom:8px;">
+          <div class="help-tip-icon">🎵</div>
+          <div class="help-tip-text" style="color:#fff;">
+            <strong style="color:#f5c842;">Zone #2</strong>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.5;">La musique mène quelque part, si tu sais l'écouter dans le bon sens. Les grands joueurs des années 90 reconnaîtront peut-être quelque chose de familier.</div>
+          </div>
+        </div>
+
+        <div class="help-tip" style="background:rgba(192,132,252,.06);border-color:rgba(192,132,252,.2);margin-bottom:8px;">
+          <div class="help-tip-icon">🎬</div>
+          <div class="help-tip-text" style="color:#fff;">
+            <strong style="color:#c084fc;">Zone #3</strong>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.5;">Dans Hidden Movies, il y a un signe. Certains logos ont une âme — parfois, il faut juste leur montrer qu'on est vraiment là.</div>
+          </div>
+        </div>
       </div>
       <button class="help-close" onclick="closeHelp()">C'EST PARTI !</button>
     </div>
@@ -6555,6 +6718,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
         <div style="font-size:40px;margin-bottom:10px;">🎬</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--tx);margin-bottom:6px;">Quitter la partie ?</div>
         <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;" id="quit-info">Ta progression sera perdue.</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.1);letter-spacing:1px;font-style:italic;margin-top:8px;" id="quit-easter"></div>
       </div>
       <div style="display:flex;gap:10px;">
         <button onclick="closeQuit()" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Continuer ▶</button>
@@ -8679,11 +8843,15 @@ function openModeStatsDetail(type){
 
   modal.classList.add('on');
   const sh=document.getElementById('mode-stats-sh');
+  if(sh)sh.style.setProperty('--msh-color',type==='games'?'#4a9eff':'#ec4899');
   if(sh)setupSwipeDown(sh,closeModeStatsDetail);
 }
 
 function closeModeStatsDetail(){
-  document.getElementById('mode-stats-modal')?.classList.remove('on');
+  const m=document.getElementById('mode-stats-modal');
+  if(m)m.classList.remove('on');
+  const sh=document.getElementById('mode-stats-sh');
+  if(sh)sh.style.setProperty('--msh-color','transparent');
 }
 
 function loadTheme(){
@@ -8796,6 +8964,29 @@ function confirmQuit(){
     if(curQ>0)infoEl.textContent=`${curQ} question${curQ>1?'s':''} répondue${curQ>1?'s':''} · ${score} pts. Tout sera perdu.`;
     else infoEl.textContent='La partie n\'a pas encore commencé.';
   }
+  // Nouvelle réplique à chaque ouverture
+  const quitLines=[
+    "« I'll be back. » — The Terminator",
+    "« Just keep swimming. » — Dory",
+    "« Do or do not, there is no try. » — Yoda",
+    "« Why so serious? » — Le Joker",
+    "« You shall not pass! » — Gandalf",
+    "« Get away from her, you bitch! » — Ripley",
+    "« Nobody puts Baby in a corner. » — Johnny",
+    "« Run, Forrest, run! » — Jenny",
+    "« I am your father. » — Dark Vador",
+    "« With great power comes great responsibility. » — Oncle Ben",
+    "« I'll never let go. » — Rose (qui lâche quand même)",
+    "« You can't handle the truth! » — Col. Jessep",
+    "« To infinity and beyond! » — Buzz l'Éclair",
+    "« Hasta la vista, baby. » — T-800",
+    "« Why do we fall? So we can learn to pick ourselves up. » — Alfred",
+    "« Just one more thing… » — Columbo",
+    "« I'm the king of the world! » — Jack (avant de couler)",
+    "« It's alive! It's alive! » — Dr. Frankenstein",
+  ];
+  const qel=document.getElementById('quit-easter');
+  if(qel)qel.textContent=quitLines[Math.floor(Math.random()*quitLines.length)];
   document.getElementById('quit-modal').classList.add('on');
 }
 function closeQuit(){
@@ -8928,12 +9119,17 @@ function openXpDetail(){
     <div style="font-size:10px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Tous les niveaux</div>
     ${rows}`;
   const xpModal=document.getElementById('xp-detail-modal');
-  xpModal.classList.add('on');
-  // Swipe down pour fermer
   const xpSh=xpModal.querySelector('.msh');
+  if(xpSh)xpSh.style.setProperty('--msh-color','#f5c842');
+  xpModal.classList.add('on');
   if(xpSh)setupSwipeDown(xpSh,closeXpDetail);
 }
-function closeXpDetail(){document.getElementById('xp-detail-modal').classList.remove('on');}
+function closeXpDetail(){
+  const m=document.getElementById('xp-detail-modal');
+  m.classList.remove('on');
+  const sh=m.querySelector('.msh');
+  if(sh)sh.style.setProperty('--msh-color','transparent');
+}
 
 function openStatDetail(type){
   const s=ls();
@@ -9015,14 +9211,25 @@ function openStatDetail(type){
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:16px;">${icon} ${title.toUpperCase()}</div>
     ${content}`;
   const statModal=document.getElementById('stat-detail-modal');
-  statModal.classList.add('on');
-  // Swipe down pour fermer
   const statSh=statModal.querySelector('.msh');
+  const statColors={streak:'#ff7040',record:'#f5c842',games:'#4a9eff'};
+  if(statSh)statSh.style.setProperty('--msh-color',statColors[type]||'transparent');
+  statModal.classList.add('on');
   if(statSh)setupSwipeDown(statSh,closeStatDetail);
 }
-function closeStatDetail(){document.getElementById('stat-detail-modal').classList.remove('on');}
+function closeStatDetail(){
+  const m=document.getElementById('stat-detail-modal');
+  m.classList.remove('on');
+  const sh=m.querySelector('.msh');
+  if(sh)sh.style.setProperty('--msh-color','transparent');
+}
 
-function closePstatModal(){document.getElementById('pstat-modal').classList.remove('on');}
+function closePstatModal(){
+  const m=document.getElementById('pstat-modal');
+  m.classList.remove('on');
+  const sh=m.querySelector('.msh');
+  if(sh)sh.style.setProperty('--msh-color','transparent');
+}
 
 function openProfileStat(type){
   const s=ls();
@@ -9118,6 +9325,7 @@ function openProfileStat(type){
     html=`<div style="text-align:center;margin-bottom:16px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--gold);">${h>0?h+'h ':''} ${m}min</div>
       <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;">${t} secondes au total</div>
+      ${s.games ? `<div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;">Temps moyen par partie : <span style="color:rgba(255,255,255,.65);font-weight:600;">${Math.round(t/s.games)}s</span></div>` : ''}
     </div>
     <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;">
       ${(()=>{
@@ -9134,7 +9342,7 @@ function openProfileStat(type){
         else if(t < 18000)  msg = "T'as le niveau pour écrire une critique sur Letterboxd. Chapeau.";
         else if(t < 36000)  msg = "Durée d'Avengers Endgame × plusieurs fois. Toi t'as pas eu de scène post-générique, mais t'as tout donné.";
         else                msg = "Ingmar Bergman aurait fait une trilogie avec ce temps-là. Légende.";
-        return `Temps moyen par partie : ${avg}s · ${msg}`;
+        return msg;
       })()}
     </div>`;
   } else if(type==='best'){
@@ -9222,8 +9430,10 @@ function openProfileStat(type){
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:16px;">${title}</div>
     ${html}`;
   const modal=document.getElementById('pstat-modal');
-  modal.classList.add('on');
   const sh=modal.querySelector('.msh');
+  const pstatColors={xp:'#f5c842',games:'#4a9eff',accuracy:'#2ecc71',streak:'#ff7040',time:'#a78bfa',best:'#f5c842',bestscores:'#ec4899',scores7:'#38bdf8'};
+  if(sh)sh.style.setProperty('--msh-color',pstatColors[type]||'transparent');
+  modal.classList.add('on');
   if(sh)setupSwipeDown(sh,closePstatModal);
 }
 
@@ -15548,7 +15758,7 @@ const MODE_INFO={
   compositeur:{icon:'🎼',label:'Compositeur',sub:'Qui a signé cette bande originale ?',color:'#38bdf8',bg:'rgba(56,189,248,.12)',
     desc:'Une affiche avec un indice sur le style musical — retrouve le compositeur.',
     tips:[{i:'🎵',t:"Le style musical décrit dans l'indice est la clé"},{i:'🎼',t:'Hans Zimmer, John Williams et les grands noms du cinéma'}]},
-  training:{icon:'📚',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',label:'Entraînement',sub:'Sans chrono, sans pression',color:'#a78bfa',bg:'rgba(167,139,250,.12)',
+  training:{icon:'📚',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',label:'Entraînement',sub:'Sans chrono, sans pression',color:'#f5c842',bg:'rgba(245,200,66,.12)',
     desc:"Pas de minuterie. La bonne réponse s'affiche après chaque question.",
     tips:[{i:'😌',t:'Aucune limite de temps pour réfléchir'},{i:'✅',t:"La bonne réponse est toujours révélée après ta réponse"},{i:'📈',t:"Le mode idéal pour apprendre et progresser à son rythme"}]},
   vraifaux:{icon:'🎯',label:'Vrai ou Faux',sub:'Anecdotes et faits cinéma',color:'#10b981',bg:'rgba(16,185,129,.12)',
@@ -21339,6 +21549,8 @@ function showResult(s,xp){
     else                 streakEl.textContent='📅 Joue chaque jour pour lancer ta série !';
   }
 
+  if(window._injectResultEasterFull) window._injectResultEasterFull(score, okCnt);
+  else if(window._injectResultEaster) window._injectResultEaster(score, okCnt);
   go('result');
   const _rs2=document.querySelector('.r-scroll');if(_rs2)_rs2.scrollTop=0;
   setTimeout(buildResultChart,400);
@@ -22351,11 +22563,11 @@ function runSplash(){
     } catch(e){}
 
     setTimeout(()=>{logo.classList.add('show');},100);
-    setTimeout(()=>{curtain.classList.add('open');},600);
+    setTimeout(()=>{curtain.classList.add('open');},1500);
     setTimeout(()=>{
       splash.classList.add('out');
       setTimeout(()=>{splash.style.display='none';if(window._stopNeuroSplash)window._stopNeuroSplash();},700);
-    },1600);
+    },3600);
   }
 
   // Afficher le logo immédiatement, attendre le 1er tap
@@ -29112,6 +29324,216 @@ if('serviceWorker' in navigator){
       window._syncFbTimer = setTimeout(function(){ cardFb.style.display = 'none'; }, 3000);
     }
   };
+
+
+  // ══ EASTER EGGS CINÉMA ══
+
+  // 1. Splash — citation injectée inline directement sous l'élément (voir HTML du splash)
+
+  // 2. Quit modal — nouvelle réplique à chaque ouverture (géré dans confirmQuit())
+
+  // 3. Écran résultat — message enrichi selon le score
+  window._injectResultEaster = function(score, correct) {
+    var el = document.getElementById('r-easter');
+    if (!el) return;
+    var msgs;
+    if (correct >= 10) {
+      msgs = [
+        "« You're a wizard, Harry. » — Parfait, comme toi.",
+        "« There is no spoon. » — Et pour toi, aucun obstacle.",
+        "« With great power comes great responsibility. » — Tu l'as, la puissance.",
+        "Scorsese aurait applaudi. Debout.",
+        "10/10. Même les Academy Awards sont moins sélectifs.",
+        "Hitchcock aurait fait un film sur toi. Le héros, cette fois.",
+        "Nolan t'aurait mis dans le générique. Consultant technique.",
+      ];
+    } else if (correct >= 7) {
+      msgs = [
+        "« Not all those who wander are lost. » — T'es sur la bonne voie.",
+        "« To infinity and beyond. » — Presque.",
+        "Roger Ebert t'aurait donné 3,5 étoiles.",
+        "« Life is like a box of chocolates. » — Pas toutes bonnes, mais presque.",
+        "Tarantino aurait gardé ta scène au montage.",
+        "Solid. Spielberg aurait dit 'On retourne ?'",
+        "Pas mal, cinéphile. Lynch aurait dit que c'est une bonne chose.",
+      ];
+    } else if (correct >= 4) {
+      msgs = [
+        "« Houston, we have a problem. » — Mais rien d'insurmontable.",
+        "Même Spielberg a eu des flops.",
+        "« It's not who I am underneath, but what I do that defines me. » — Rejoue.",
+        "Kubrick aurait refait la prise. Toi aussi tu peux.",
+        "Tarantino aurait coupé à la moitié. Toi t'arrives à la fin.",
+        "Mi-figue, mi-raisin. Fassbender aurait renégocié son contrat.",
+      ];
+    } else {
+      msgs = [
+        "« I am Groot. » — On comprend.",
+        "« You can't handle the truth! » — La vérité : rejoue.",
+        "« I'm gonna make him an offer he can't refuse. » — Une revanche ?",
+        "Kubrick a mis 400 jours pour filmer The Shining. Prends ton temps.",
+        "Ed Wood aussi avait des débuts difficiles. Il est devenu culte.",
+        "« Just keep swimming. » — Dory savait de quoi elle parlait.",
+        "Même Jar Jar Binks a eu droit à une deuxième chance.",
+      ];
+    }
+    el.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  };
+
+  // 4. Logo accueil ×5 taps → toast cinéma secret (distinct du ×7 qui ouvre l'Arcade)
+  (function() {
+    var logoEl = document.querySelector('.logo');
+    if (!logoEl) return;
+    var taps = 0, tapTimer = null;
+    var secrets = [
+      { icon: '🎬', name: 'Mode réalisateur activé', sub: 'Action ! Tu diriges maintenant.' },
+      { icon: '🎞️', name: 'Pellicule dévoilée', sub: 'Le format 35mm ne ment jamais.' },
+      { icon: '🍿', name: 'Rang VIP accordé', sub: 'Première rangée, siège central. Comme il se doit.' },
+      { icon: '🏆', name: 'Oscar de la curiosité', sub: 'Décerné pour services rendus au 7ème art.' },
+      { icon: '🌟', name: 'Étoile sur Hollywood Blvd', sub: 'Ton nom en lettres dorées, cinéphile.' },
+      { icon: '🎭', name: 'Masque levé', sub: 'Tu connais les coulisses maintenant.' },
+    ];
+    logoEl.addEventListener('click', function(e) {
+      // Éviter d'interférer avec le ×7 de l'arcade (on garde les 2 listeners indépendants)
+      taps++;
+      clearTimeout(tapTimer);
+      if (taps === 5) {
+        taps = 0;
+        var s = secrets[Math.floor(Math.random() * secrets.length)];
+        if (typeof showBadgeToast === 'function') showBadgeToast(s);
+      }
+      tapTimer = setTimeout(function() { taps = 0; }, 1500);
+    });
+  })();
+
+  // 5. Heure de jeu — message au lancement selon l'heure
+  (function() {
+    var _origStart = window.startGame;
+    if (typeof _origStart !== 'function') return;
+    window.startGame = function() {
+      var h = new Date().getHours();
+      var toast = null;
+      if (h >= 2 && h < 5)        toast = { icon: '🌙', name: 'Cinéphile nocturne', sub: 'Lynch, Kubrick et toi — les seuls encore éveillés à cette heure.' };
+      else if (h >= 5 && h < 7)   toast = { icon: '🌅', name: 'Première séance', sub: 'Avant le café. Respect.' };
+      else if (h >= 7 && h < 9)   toast = { icon: '☕', name: 'Matinée ciné', sub: 'Truffaut commençait ses tournages à l\'aube. Tu es en bonne compagnie.' };
+      else if (h >= 12 && h < 14) toast = { icon: '🌞', name: 'Séance de midi', sub: 'Popcorn + sandwich + quiz. Le combo parfait.' };
+      else if (h >= 22 && h < 24) toast = { icon: '🎬', name: 'Séance de nuit', sub: 'Les meilleures projections commencent après 22h.' };
+      if (toast) setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(toast); }, 800);
+      return _origStart.apply(this, arguments);
+    };
+  })();
+
+  // 6. Konami code clavier → toast légendaire
+  (function() {
+    var seq = [38,38,40,40,37,39,37,39,66,65];
+    var pos = 0;
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === seq[pos]) { pos++; if (pos === seq.length) { pos = 0; if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '👾', name: 'KONAMI CODE', sub: '↑↑↓↓←→←→BA — Tu es un vrai joueur. Et un cinéphile.' }); } }
+      else pos = 0;
+    });
+  })();
+
+  // 7. Dates spéciales — Noël, Halloween, Nouvel An, Saint-Valentin, Fête du Cinéma
+  (function() {
+    var now = new Date(), m = now.getMonth()+1, d = now.getDate();
+    var seasonal = null;
+    if      (m===12 && d===25) seasonal = { icon:'🎄', name:'Joyeux Noël !',       sub:"Même aujourd'hui, tu penses cinéma. Santa approuve." };
+    else if (m===10 && d===31) seasonal = { icon:'🎃', name:'Bonne Halloween !',    sub:'Soirée horreur ou quiz ciné ? Pourquoi pas les deux.' };
+    else if (m===1  && d===1)  seasonal = { icon:'🎆', name:'Bonne année !',        sub:'365 films à découvrir. Commence maintenant.' };
+    else if (m===2  && d===14) seasonal = { icon:'❤️', name:'Saint-Valentin',       sub:"Le plus beau film d'amour ? Celui que tu regardes avec quelqu'un." };
+    else if (m===6  && d===26) seasonal = { icon:'🎟️', name:'Fête du Cinéma !',    sub:"Aujourd'hui, le 7ème art se fête. T'es au bon endroit." };
+    else if (m===12 && d===28) seasonal = { icon:'🎬', name:'Naissance du cinéma', sub:"Le 28 décembre 1895, les frères Lumière changeaient le monde." };
+    if (seasonal) setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(seasonal); }, 3500);
+  })();
+
+  // 8. Score parfait — vibration spéciale + toast bonus
+  (function() {
+    var _orig = window._injectResultEaster;
+    window._injectResultEasterFull = function(score, correct) {
+      if (typeof _orig === 'function') _orig(score, correct);
+      if (correct >= 10) {
+        setTimeout(function() {
+          if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🏆', name: 'PERFECT — 10/10 !', sub: 'Score parfait. Tu rejoins le panthéon des cinéphiles.' });
+          if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 200]);
+        }, 1200);
+      }
+    };
+  })();
+
+  // 9. Première partie du jour → encouragement matinal
+  (function() {
+    try {
+      var today = new Date().toDateString();
+      var lastPlay = localStorage.getItem('cq_last_play_date');
+      if (lastPlay !== today) {
+        localStorage.setItem('cq_last_play_date', today);
+        var h = new Date().getHours();
+        var msgs = [
+          { icon:'🌟', name:'Bonne session !', sub:'Une partie par jour garde le ciné en éveil.' },
+          { icon:'🎬', name:'Nouvelle journée, nouveau quiz !', sub:'Chaque jour un peu plus cinéphile.' },
+          { icon:'⚡', name:'C\'est parti !', sub:'La caméra tourne. Le quiz commence.' },
+        ];
+        var msg = msgs[Math.floor(Math.random() * msgs.length)];
+        setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(msg); }, 4000);
+      }
+    } catch(e) {}
+  })();
+
+  // 10. Milestone de parties — 10, 50, 100, 500 parties jouées
+  (function() {
+    try {
+      var s = typeof ls === 'function' ? ls() : null;
+      if (!s) return;
+      var games = s.games || 0;
+      var milestones = {
+        10:  { icon:'🎬', name:'10 parties jouées',   sub:'Tu commences à connaître le chemin. Continue.' },
+        50:  { icon:'⭐', name:'50 parties jouées',   sub:'La moitié d\'un marathon Kubrick. Respect.' },
+        100: { icon:'🏆', name:'100 parties jouées', sub:'Centenaire ! Chaplin aurait souri.' },
+        500: { icon:'🌟', name:'500 parties jouées', sub:'Légende vivante du quiz ciné.' },
+      };
+      if (milestones[games]) {
+        setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(milestones[games]); }, 2500);
+      }
+    } catch(e) {}
+  })();
+
+  // 11. Swipe rapide entre écrans (home → profil → home) 3x → toast Easter egg
+  (function() {
+    var navCount = 0, navTimer = null;
+    var _origGo = window.go;
+    if (typeof _origGo !== 'function') return;
+    window.go = function(screen) {
+      navCount++;
+      clearTimeout(navTimer);
+      navTimer = setTimeout(function() { navCount = 0; }, 4000);
+      if (navCount >= 6) {
+        navCount = 0;
+        if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🎠', name: 'Tournis cinéma', sub: "T'as fait plus d'allers-retours que Forrest Gump sur son banc." });
+      }
+      return _origGo.apply(this, arguments);
+    };
+  })();
+
+  // 12. Inactivité longue (5 min sans interaction) → clin d'œil
+  (function() {
+    var _lastActivity = Date.now();
+    var _inactiveToastShown = false;
+    ['touchstart','click','keydown'].forEach(function(ev) {
+      document.addEventListener(ev, function() { _lastActivity = Date.now(); _inactiveToastShown = false; }, { passive: true });
+    });
+    setInterval(function() {
+      if (!_inactiveToastShown && Date.now() - _lastActivity > 300000) { // 5 min
+        _inactiveToastShown = true;
+        var msgs = [
+          { icon:'😴', name:'Tu es encore là ?', sub:'HAL 9000 te surveille. Ou pas.' },
+          { icon:'🎬', name:'Lumières, caméra…', sub:"T'attends quoi ? La bobine se rembobine pas toute seule." },
+          { icon:'🍿', name:'Les popcorns refroidissent', sub:'Et le quiz t\'attend.' },
+        ];
+        var m = msgs[Math.floor(Math.random() * msgs.length)];
+        if (typeof showBadgeToast === 'function') showBadgeToast(m);
+      }
+    }, 30000);
+  })();
 
   // Bloquer Face ID / WebAuthn automatique au démarrage
   try {
