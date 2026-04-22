@@ -5317,7 +5317,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   transition:transform .16s;margin-bottom:0;
 }
 .hm-home-border-card::before{
-  content:'';position:absolute;inset:-1px;border-radius:19px;z-index:0;
+  content:'';position:absolute;inset:-1.5px;border-radius:19.5px;z-index:0;
   background:conic-gradient(
     from var(--hm-angle,0deg),
     rgba(168,85,247,0)     0%,
@@ -5336,7 +5336,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   -webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask-composite:exclude;
-  padding:2px;
+  padding:1.5px;
   animation:hmBorderSpin 9s linear infinite;
   animation-delay:-3.5s;
   will-change:--hm-angle;
@@ -7527,6 +7527,8 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
     <div class="hmv-bg" id="hmv-bg"></div>
     <div class="hmv-bg2" id="hmv-bg2"></div>
     <div class="hmv-grain"></div>
+    <!-- Hint swipe retourner — sur le viewer, hors de tout transform-style:preserve-3d -->
+    <div id="hmv-flip-swipe-hint" style="display:none;position:fixed;bottom:calc(max(env(safe-area-inset-bottom),32px) + 130px);left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.6);letter-spacing:2px;pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,1);z-index:9999;white-space:nowrap;">← SWIPE POUR RETOURNER →</div>
 
     <!-- Barre top -->
     <div class="hmv-topbar">
@@ -7551,7 +7553,6 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
           <div class="hmv-face">
             <img id="hmv-img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
             <div id="hmv-placeholder" style="display:none;position:absolute;inset:0;background:linear-gradient(160deg,#1a0832,#08031a);align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:rgba(168,85,247,.2);"></div>
-
           </div>
           <!-- VERSO : infos -->
           <div class="hmv-face hmv-face-back" id="hmv-face-back">
@@ -7562,9 +7563,9 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
             <div class="hmvb-divider"></div>
             <div id="hmvb-rows"></div>
             <div class="hmvb-moods" id="hmvb-moods"></div>
-
           </div>
         </div>
+        <!-- Hint swipe retourner — retiré du poster, voir #hm-viewer -->
         <!-- Couches effet argenté -->
         <div class="hmv-holo-clip">
           <!-- Base argentée toujours présente -->
@@ -16626,22 +16627,11 @@ function _hmvRender() {
   _hmvCloseInfo(false);
 
   // Hint swipe-to-flip — affiché uniquement les 3 premières ouvertures
-  const wrap = document.getElementById('hmv-poster-wrap');
-  if(wrap){
-    const existing = document.getElementById('hmv-flip-swipe-hint');
-    if(existing) existing.remove();
-    try{
-      const seen = parseInt(localStorage.getItem('hm_flip_hint_seen')||'0',10);
-      if(seen < 3){
-        localStorage.setItem('hm_flip_hint_seen', seen+1);
-        const h = document.createElement('div');
-        h.id = 'hmv-flip-swipe-hint';
-        h.style.cssText = 'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.55);letter-spacing:2px;pointer-events:none;white-space:nowrap;z-index:10;text-shadow:0 1px 6px rgba(0,0,0,.8);animation:hmvFlipHintFade 3s ease both;';
-        h.innerHTML = '&#8592;&nbsp; SWIPE POUR RETOURNER &nbsp;&#8594;';
-        wrap.appendChild(h);
-        setTimeout(()=>{ if(h.parentNode) h.remove(); }, 3200);
-      }
-    }catch(e){}
+  const hintEl = document.getElementById('hmv-flip-swipe-hint');
+  if(hintEl){
+    hintEl.style.display='block';
+    hintEl.style.animation='hmvFlipHintFade 3s ease both';
+    setTimeout(()=>{ hintEl.style.display='none'; }, 3200);
   }
 }
 
@@ -16726,7 +16716,8 @@ function closeHMViewer() {
   // Si on est en onglet scratch, naviguer vers la prochaine non révélée
   if(document.getElementById('hm-tab-scratch').classList.contains('active')){
     const s=ls();const userLvl=glv(s.xp);
-    const next=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&!_hmRevealed.has(i));
+    const daily = window._hmDailyAvailable || new Set();
+    const next=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&daily.has(i)&&!_hmRevealed.has(i));
     if(next>=0){_hmIdx=next;_hmRenderCard(_hmIdx);}
     else{ hmSwitchTab('collection'); }
   }
@@ -17048,7 +17039,8 @@ function openHM(){
   if(musOn)switchMusic('reco',0.22);
 
   const s=ls();const userLvl=glv(s.xp);
-  const firstUnrevealed=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&!_hmRevealed.has(i));
+  const daily = window._hmDailyAvailable || new Set();
+  const firstUnrevealed=_hmFilms.findIndex((f,i)=>daily.has(i)&&f.lvl<=userLvl&&!_hmRevealed.has(i));
 
   // Tenter de restaurer l'onglet précédent
   let savedTab='scratch';
@@ -17056,26 +17048,42 @@ function openHM(){
 
   if(firstUnrevealed>=0){
     // Il reste des cartes à gratter
-    // Restaurer la position dans le scratch si on était sur cet onglet
     let savedIdx=-1;
     try{savedIdx=parseInt(localStorage.getItem('hm_last_idx')||'-1',10);}catch(e){}
-    const validSaved=savedIdx>=0&&savedIdx<_hmFilms.length&&_hmFilms[savedIdx]?.lvl<=userLvl&&!_hmRevealed.has(savedIdx);
+    const validSaved=savedIdx>=0&&savedIdx<_hmFilms.length&&_hmFilms[savedIdx]?.lvl<=userLvl&&daily.has(savedIdx)&&!_hmRevealed.has(savedIdx);
     _hmIdx=validSaved?savedIdx:firstUnrevealed;
     _hmRenderCard(_hmIdx);
     if(savedTab!=='scratch') hmSwitchTab(savedTab);
   } else {
-    // Toutes grattées → collection
-    hmSwitchTab(savedTab==='scratch'?'collection':savedTab);
     const scratchWrap=document.getElementById('hm-scratch-wrap');
-    if(scratchWrap){
-      scratchWrap.innerHTML=`
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;">
-          <div style="font-size:9px;letter-spacing:3px;color:rgba(168,85,247,.5);font-family:'Bebas Neue',sans-serif;">✦ TOUTES LES CARTES GRATTÉES ✦</div>
-          <video src="hiddenmovies.mp4" controls playsinline
-            style="width:100%;border-radius:16px;border:1px solid rgba(168,85,247,.2);box-shadow:0 8px 32px rgba(0,0,0,.6);background:#000;">
-          </video>
-          <div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;line-height:1.6;">Tu as découvert tous les films.<br>Ce contenu exclusif t'est réservé.</div>
-        </div>`;
+    // Vérifier si TOUTES les 181 cartes sont grattées
+    const allScratched = _hmRevealed.size >= HM_DB.length;
+
+    if(allScratched){
+      // Toutes les 181 grattées → vidéo exclusive
+      hmSwitchTab(savedTab==='scratch'?'collection':savedTab);
+      if(scratchWrap){
+        scratchWrap.innerHTML=`
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;">
+            <div style="font-size:9px;letter-spacing:3px;color:rgba(168,85,247,.5);font-family:'Bebas Neue',sans-serif;">✦ TOUTES LES CARTES GRATTÉES ✦</div>
+            <video src="hiddenmovies.mp4" controls playsinline
+              style="width:100%;border-radius:16px;border:1px solid rgba(168,85,247,.2);box-shadow:0 8px 32px rgba(0,0,0,.6);background:#000;">
+            </video>
+            <div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;line-height:1.6;">Tu as découvert tous les films.<br>Ce contenu exclusif t'est réservé.</div>
+          </div>`;
+      }
+    } else {
+      // Cartes du jour toutes grattées → message reviens demain
+      if(scratchWrap){
+        scratchWrap.innerHTML=`
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:14px;text-align:center;">
+            <div style="font-size:40px;">🎴</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Cartes du jour épuisées</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Tu as gratté tes 7 cartes du jour.<br>Reviens demain pour de nouveaux films.</div>
+            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ 7 nouvelles cartes demain ✦</div>
+            <button onclick="hmSwitchTab('collection')" style="margin-top:12px;padding:12px 24px;border-radius:20px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;">VOIR MA COLLECTION →</button>
+          </div>`;
+      }
     }
   }
 }
@@ -17100,6 +17108,35 @@ function closeHM(){
   go('home');refHome();
 }
 
+function _hmGetDailyUnlocked(allUnlocked, revealed){
+  const MAX_PER_DAY = 7;
+  const today = new Date().toDateString();
+  const storageKey = 'hm_daily_unlocked';
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    if(saved && saved.date === today){
+      // Même jour : on retourne exactement la sélection du jour (grattées ou pas)
+      // Ne jamais redistribuer le même jour
+      return new Set([...revealed, ...saved.indices]);
+    }
+    // Nouveau jour : piocher 7 cartes aléatoires parmi non grattées
+    const pending = allUnlocked.filter(i => !revealed.has(i));
+    if(pending.length === 0) return new Set([...revealed]); // tout gratté
+    // Mélange Fisher-Yates vraiment aléatoire
+    const shuffled = [...pending];
+    for(let i = shuffled.length-1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const todayBatch = shuffled.slice(0, MAX_PER_DAY);
+    localStorage.setItem(storageKey, JSON.stringify({date: today, indices: todayBatch}));
+    return new Set([...revealed, ...todayBatch]);
+  } catch(e) {
+    return new Set([...revealed, ...allUnlocked.slice(0, MAX_PER_DAY)]);
+  }
+}
+
 function _hmBuildList(){
   const s=ls();
   const userLvl=glv(s.xp);
@@ -17117,6 +17154,12 @@ function _hmBuildList(){
   let hash=0;for(let i=0;i<seed.length;i++){hash=((hash<<5)-hash)+seed.charCodeAt(i);hash|=0;}
   const rng=()=>{hash=Math.imul(hash^hash>>>16,0x45d9f3b);hash=Math.imul(hash^hash>>>15,0x119de1f3);hash=hash^hash>>>16;return(hash>>>0)/0xffffffff;};
   _hmFilms=[...HM_DB].sort(()=>rng()-.5);
+
+  // ── Limite quotidienne : max 7 nouvelles cartes par jour ──
+  _hmLoadRevealed();
+  const allUnlockedIndices = _hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl).map(({i})=>i);
+  window._hmDailyAvailable = _hmGetDailyUnlocked(allUnlockedIndices, _hmRevealed);
+
   _hmUpdateTabCount();
 }
 
@@ -17126,10 +17169,11 @@ function _hmRenderCard(idx){
   try{localStorage.setItem('hm_last_idx',idx);}catch(e){}
   const s=ls();
   const userLvl=glv(s.xp);
-  const isUnlocked=film.lvl<=userLvl;
+  const daily = window._hmDailyAvailable || new Set();
+  const isUnlocked=film.lvl<=userLvl && daily.has(idx);
   const isRevealed=_hmRevealed.has(idx);
-  const unlockedCount=_hmFilms.filter((f,i)=>f.lvl<=userLvl).length;
-  const remainingCount=_hmFilms.filter((f,i)=>f.lvl<=userLvl&&!_hmRevealed.has(i)).length;
+  const unlockedCount=_hmFilms.filter((f,i)=>f.lvl<=userLvl&&daily.has(i)).length;
+  const remainingCount=_hmFilms.filter((f,i)=>f.lvl<=userLvl&&daily.has(i)&&!_hmRevealed.has(i)).length;
 
   // Compteur : cartes restantes à gratter parmi les débloquées
   const ctr=document.getElementById('hm-scratch-counter');
