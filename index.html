@@ -9263,7 +9263,7 @@ function openStatDetail(type){
     ${content}`;
   const statModal=document.getElementById('stat-detail-modal');
   const statSh=statModal.querySelector('.msh');
-  const statColors={streak:'#ff7040',record:'#f5c842',games:'#4a9eff'};
+  const statColors={streak:'#ff7040',record:'#f5c842',games:'#2ecc71'};
   if(statSh)statSh.style.setProperty('--msh-color',statColors[type]||'transparent');
   statModal.classList.add('on');
   if(statSh)setupSwipeDown(statSh,closeStatDetail);
@@ -9491,7 +9491,7 @@ function openProfileStat(type){
     ${html}`;
   const modal=document.getElementById('pstat-modal');
   const sh=modal.querySelector('.msh');
-  const pstatColors={xp:'#f5c842',games:'#4a9eff',accuracy:'#2ecc71',streak:'#ff7040',time:'#a78bfa',best:'#f5c842',bestscores:'#ec4899',scores7:'#38bdf8'};
+  const pstatColors={xp:'#f5c842',games:'#2ecc71',accuracy:'#2ecc71',streak:'#ff7040',time:'#a78bfa',best:'#f5c842',bestscores:'#ec4899',scores7:'#38bdf8'};
   if(sh)sh.style.setProperty('--msh-color',pstatColors[type]||'transparent');
   modal.classList.add('on');
   if(sh)setupSwipeDown(sh,closePstatModal);
@@ -21056,7 +21056,24 @@ function hideToast(){
   // ── Afficher une notification ──
   window._notifShow=function(channel,{icon,iconBg,title,sub,variant,duration}){
     const st=_state[channel];
-    // Annuler timer précédent
+
+    // ── File d'attente : si une notif est déjà visible, on empile ──
+    if(!st._queue) st._queue=[];
+    if(wrap_isVisible(channel)){
+      st._queue.push({icon,iconBg,title,sub,variant,duration});
+      return;
+    }
+
+    _notifDisplay(channel,{icon,iconBg,title,sub,variant,duration});
+  };
+
+  function wrap_isVisible(channel){
+    const w=_getWrap(channel);
+    return w&&w.classList.contains('notif-in');
+  }
+
+  function _notifDisplay(channel,{icon,iconBg,title,sub,variant,duration}){
+    const st=_state[channel];
     if(st.timer){clearTimeout(st.timer);st.timer=null;}
     if(st.progAnim){st.progAnim.cancel();st.progAnim=null;}
     st.dismissed=false;
@@ -21121,6 +21138,12 @@ function hideToast(){
       wrap.classList.remove('notif-out');
       wrap.style.transform='';
       wrap.innerHTML='';
+      // ── Afficher la prochaine notif en attente ──
+      if(!st._queue) st._queue=[];
+      if(st._queue.length>0){
+        const next=st._queue.shift();
+        setTimeout(()=>_notifDisplay(channel,next),120);
+      }
     },{once:true});
   };
 
