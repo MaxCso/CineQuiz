@@ -15727,6 +15727,12 @@ async function txQuestions(raw){
 // UI
 // ==============================
 const go=id=>{
+  // ── EE Ping-Pong ──
+  if(typeof eeIsFound==='function'&&!eeIsFound('ee_backback')){
+    if(!go._n)go._n=0;if(!go._t)go._t=0;
+    const _now=Date.now();if(_now-go._t>15000)go._n=0;go._t=_now;go._n++;
+    if(go._n>=10){go._n=0;if(typeof eeTrigger==='function')eeTrigger('ee_backback');}
+  }
   const target=document.getElementById(id);
   if(!target)return;
 
@@ -23329,7 +23335,7 @@ function showBadgeToast(badge){
 // ── EASTER EGG ENGINE ──
 // ══════════════════════════════════════════════════════
 const EE_DEFS = [
-  { id:'ee_logo',       icon:'🎬', name:'Clap de cinéma',       hint:'4 taps rapides sur le logo CinéQuiz' },
+  { id:'ee_logo',       icon:'🎬', name:'Clap de cinéma',       hint:'5 taps rapides sur le logo CinéQuiz' },
   { id:'ee_xpbar',      icon:'💥', name:'Barre brisée',          hint:'Appui long 3s sur la barre de progression XP' },
   { id:'ee_logo_sub',   icon:'🎭', name:'Le sous-titre',         hint:'5 taps rapides sur "Le quiz du 7ème art"' },
   { id:'ee_streak',     icon:'🔥', name:'Flamme secrète',        hint:'Triple tap sur l\'icône de série' },
@@ -23339,47 +23345,36 @@ const EE_DEFS = [
   { id:'ee_daily',      icon:'📅', name:'Défi de l\'ombre',     hint:'Triple tap sur la carte Défi du Jour' },
   { id:'ee_score',      icon:'🃏', name:'Les Chiffres',          hint:'7 taps sur ton score XP affiché' },
   { id:'ee_avatar',     icon:'🎪', name:'Masque et Plumes',      hint:'10 taps sur ton avatar dans la modale de progression' },
-  { id:'ee_result',     icon:'🎞️', name:'Générique Final',       hint:'Appui long 4s sur le score résultat' },
+  { id:'ee_result',     icon:'🎞️', name:'Générique Final',       hint:'Appui long 3s sur le score résultat' },
   { id:'ee_maestro',    icon:'🎵', name:'Le Chef d\'orchestre',   hint:'Reste dans le Jukebox pendant au moins 2 heures' },
   { id:'ee_arcade',     icon:'🕹️', name:'Salle Arcade',          hint:'7 taps secrets sur le logo de l\'accueil', badge:true, badgeLabel:'ARCADE DÉBLOQUÉE' },
   { id:'ee_cinetek',    icon:'📺', name:'Cinétek Secrète',        hint:'Accède à la zone secrète Cinétek', badge:true, badgeLabel:'CINÉTEK DÉCOUVERTE' },
   { id:'ee_hm_secret',  icon:'🎴', name:'Zone Secrète Hidden Movies', hint:'Accède à la salle de projection Hidden Movies', badge:true, badgeLabel:'HIDDEN MOVIES DÉCOUVERT' },
   { id:'ee_night',      icon:'🌙', name:'Oiseau de nuit',            hint:'Lance une partie après minuit' },
   { id:'ee_speed',      icon:'⚡', name:'Flash Cinéma',              hint:'Réponds à 10 questions consécutives en moins de 3s chacune' },
-  { id:'ee_backback',   icon:'🔄', name:'Ping-Pong',                 hint:'Va-et-vient 10 fois entre deux écrans' },
-  { id:'ee_title',      icon:'🎩', name:'Générique de tête',         hint:'Lis le titre de l\'app 3 fois de suite dans la splash' },
-  { id:'ee_completionist', icon:'🌟', name:'Le Cinéphile Absolu',    hint:'Découvre les 49 autres secrets cachés de CinéQuiz' },
-  // ── 30 nouveaux ──
+  { id:'ee_backback',   icon:'🔄', name:'Ping-Pong',                 hint:'Va-et-vient 5 fois entre deux écrans' },
+  { id:'ee_title',      icon:'🎩', name:'Générique de tête',         hint:'3 taps sur le titre au lancement' },
   { id:'ee_xpfill',     icon:'✨', name:'Plein les poches',      hint:'7 taps sur le chiffre XP dans la card progression' },
   { id:'ee_modename',   icon:'🎞️', name:'Dans les coulisses',    hint:'Appui long 3s sur le nom d\'un mode dans la grille' },
   { id:'ee_anecdote',   icon:'🎭', name:'L\'anecdotier',         hint:'5 taps sur l\'emoji de la card anecdote' },
-  { id:'ee_hmscore',    icon:'🎴', name:'Collectionneur fou',    hint:'3 taps sur le compteur de films débloqués' },
   { id:'ee_streak_home',icon:'🔥', name:'Série de feu',          hint:'Appui long 3s sur la card streak' },
   { id:'ee_level',      icon:'🏅', name:'Le Grade',              hint:'Appui long 3s sur ton badge de niveau dans le profil' },
   { id:'ee_games',      icon:'🎲', name:'Compteur secret',       hint:'Appui long 3s sur le nombre de parties dans le profil' },
   { id:'ee_history',    icon:'📊', name:'L\'archiviste',         hint:'Appui long 3s sur l\'en-tête Scores 7 jours' },
   { id:'ee_avatar_tap', icon:'🎭', name:'Le Comédien',           hint:'7 taps sur ta photo de profil' },
-  { id:'ee_bc',         icon:'🏆', name:'Le Chasseur',           hint:'5 taps sur le compteur de badges X/120' },
   { id:'ee_help',       icon:'💡', name:'Le Souffleur',          hint:'Appui long 3s sur le logo 🎬 dans Comment jouer' },
   { id:'ee_helpscroll', icon:'📜', name:'Jusqu\'au générique',   hint:'Fais défiler l\'aide jusqu\'en bas' },
   { id:'ee_secretcount',icon:'🤫', name:'Chasseur de zones',     hint:'5 taps sur le texte "zones cachées attendent"' },
   { id:'ee_helpmode',   icon:'🎬', name:'Le Critique',           hint:'3 taps sur le titre d\'un mode dans l\'aide' },
   { id:'ee_cesoir',     icon:'🌙', name:'Noctambule',            hint:'5 taps sur la card "Ce soir" dans Hidden Movies' },
-  { id:'ee_hm_collection', icon:'🃏', name:'Le Conservateur',   hint:'Appui long 3s sur le titre Collection dans HM' },
+  { id:'ee_hm_collection', icon:'🃏', name:'Le Conservateur',   hint:'Appui long 3s sur l\'onglet Collection dans HM' },
   { id:'ee_jk_cover',   icon:'🎵', name:'Le Mélomane secret',    hint:'5 taps sur la pochette de la piste en cours' },
   { id:'ee_jk_progress',icon:'🎼', name:'L\'Oreille absolue',    hint:'Appui long 3s sur la barre de progression du Jukebox' },
   { id:'ee_arcade_score',icon:'🕹️',name:'High Score',            hint:'5 taps sur le score dans un jeu arcade' },
-  { id:'ee_splash_sub', icon:'🎬', name:'Avant-première',        hint:'Appui long 3s sur "LE QUIZ DU 7ÈME ART" au lancement' },
-  { id:'ee_timer',      icon:'⏱️', name:'Contre la montre',      hint:'4 taps sur le timer pendant une question' },
-  { id:'ee_combo',      icon:'🔥', name:'Multiplicateur fou',    hint:'5 taps sur le multiplicateur ×2 ou ×3 pendant une partie' },
-  { id:'ee_gamebadge',  icon:'🎬', name:'Dans le film',          hint:'3 taps sur l\'icône de mode pendant une partie' },
   { id:'ee_perfect_tap',icon:'🏆', name:'La Palme',              hint:'5 taps sur le 10/10 en fin de partie parfaite' },
-  { id:'ee_xp_result',  icon:'⭐', name:'Cachet d\'acteur',      hint:'Appui long 3s sur le +XP affiché en résultat' },
   { id:'ee_best_score', icon:'💰', name:'Le Record',             hint:'Appui long 3s sur le meilleur score dans le profil' },
-  { id:'ee_themes',     icon:'🎨', name:'Le Costumier',          hint:'5 taps sur le titre THÈMES dans le profil' },
-  { id:'ee_hm_stats',   icon:'📈', name:'Le Statisticien',       hint:'Appui long 3s sur les stats dans Hidden Movies' },
-  { id:'ee_notif',      icon:'🔔', name:'L\'Impatient',          hint:'5 taps rapides sur une notification' },
-  { id:'ee_back_btn',   icon:'↩️', name:'Sans retour',           hint:'7 taps sur le bouton retour pendant une partie' },
+  { id:'ee_hm_stats',   icon:'📈', name:'Le Statisticien',       hint:'Appui long 3s sur l\'onglet Stats dans Hidden Movies' },
+  { id:'ee_completionist', icon:'🌟', name:'Le Cinéphile Absolu', hint:'Découvre les 39 autres secrets cachés de CinéQuiz' },
 ];
 const EE_TOTAL = EE_DEFS.length;
 
@@ -23403,17 +23398,14 @@ const EE_TEASERS = [
   "Les plus grands cinéphiles répondent 10 fois de suite avant même de lire la question.",
   "Aller. Revenir. Aller. Revenir. La caméra suit chaque mouvement.",
   "Le titre était là depuis le début, dès la première image.",
-  "Qui a tout vu, tout trouvé, tout vécu — mérite d'être reconnu.",
   "Les XP ont des secrets que seuls les plus curieux découvrent.",
   "Chaque mode a une âme. Certains la révèlent après une longue pression.",
   "L'anecdote du jour ne se contente pas d'être lue.",
-  "181 films. Chaque compteur a une histoire à raconter.",
   "Certaines séries de victoires méritent une reconnaissance particulière.",
   "Un grade de cinéma ne s'affiche pas pour rien.",
   "Le nombre de parties joué pèse lourd dans les coulisses.",
   "Les courbes du passé parlent à qui sait les fixer assez longtemps.",
   "L'identité se révèle parfois en sept touches.",
-  "120 badges. Certains compteurs méritent plus d'attention.",
   "Dans l'aide, une icône sait plus qu'elle ne laisse paraître.",
   "Le bas de la page d'aide cache ce que peu ont vu.",
   "3 zones secrètes. Certains textes en savent plus qu'ils n'en disent.",
@@ -23422,18 +23414,11 @@ const EE_TEASERS = [
   "La collection Hidden Movies a une âme. Touche-la assez longtemps.",
   "La pochette tourne. Certains la font tourner encore.",
   "La progression musicale parle à l'oreille qui sait écouter.",
-  "Les scores d'arcade ne sont pas que des chiffres.",
-  "Le slogan du splash attend en silence. Longtemps.",
-  "Le temps presse. Ou peut-être pas.",
-  "×2, ×3... et ensuite ?",
-  "L'icône de mode te regarde jouer. Regarde-la à ton tour.",
+  "Les scores d'arcade ne sont que des chiffres. Ou pas.",
   "10/10. Certains scores méritent d'être fêtés plus longuement.",
-  "Le +XP du résultat a une valeur cachée.",
   "Ton meilleur score mérite une attention particulière.",
-  "Les thèmes ont un gardien. Il attend qu'on frappe à sa porte.",
   "Les stats Hidden Movies recèlent un secret pour les patients.",
-  "Une notification qui arrive... et qu'on frappe 5 fois.",
-  "Le retour arrière, encore et encore. La caméra ne lâche pas.",
+  "Qui a tout vu, tout trouvé, tout vécu — mérite d'être reconnu.",
 ];
 
 function eeIsFound(id){ const s=ls(); return (s.ee||[]).includes(id); }
@@ -23450,7 +23435,7 @@ function eeTrigger(id){
   if(nb.length){ ss(s2); nb.forEach((b,i)=>setTimeout(()=>showBadgeToast(b),i*700+1200)); }
   eeShowToast(def, s.ee.length);
   setTimeout(eeRenderProfile, 400);
-  // Auto-unlock ee_completionist quand tous les 49 autres sont trouvés
+  // Auto-unlock ee_completionist quand tous les 39 autres sont trouvés
   if(id !== 'ee_completionist'){
     const others = EE_DEFS.filter(e=>e.id!=='ee_completionist').map(e=>e.id);
     const s3=ls();
@@ -23603,7 +23588,7 @@ function eeRenderProfile(){
       logo.addEventListener('click',()=>{
         if(eeIsFound('ee_logo'))return;
         const now=Date.now(); if(now-_t>4000)_n=0; _t=now; _n++;
-        if(_n===4){ logo.style.animation='eeShake .5s ease both'; setTimeout(()=>logo.style.animation='',600); eeTrigger('ee_logo'); _n=0; }
+        if(_n===5){ logo.style.animation='eeShake .5s ease both'; setTimeout(()=>logo.style.animation='',600); eeTrigger('ee_logo'); _n=0; }
       });
     }
     // 2. Sous-titre — 5 taps
@@ -23694,17 +23679,7 @@ function eeRenderProfile(){
       if(h >= 0 && h < 5){ setTimeout(function(){ eeTrigger('ee_night'); }, 2000); }
     })();
 
-    // 14. Ping-Pong — 10 navigations rapides (extension de l'easter egg #11 existant)
-    (function(){
-      var _origGo2 = window.go;
-      if(typeof _origGo2 !== 'function') return;
-      var _n=0, _t=0;
-      window.go = function(screen){
-        var now=Date.now(); if(now-_t>10000)_n=0; _t=now; _n++;
-        if(_n>=10 && !eeIsFound('ee_backback')){ _n=0; eeTrigger('ee_backback'); }
-        return _origGo2.apply(this,arguments);
-      };
-    })();
+    // 14. Ping-Pong — géré dans le wrapper go ci-dessous (ligne ~30470)
 
     // ── 30 NOUVEAUX TRIGGERS ──
 
@@ -23732,13 +23707,9 @@ function eeRenderProfile(){
       if(el._n>=5){eeTrigger('ee_anecdote');el._n=0;}
     });
 
-    // 24. Compteur films HM — 3 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#hm-unlocked-count,.hm-unlocked');if(!el)return;
-      if(eeIsFound('ee_hmscore'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>2000)el._n=0; el._t=now; el._n++;
-      if(el._n>=3){eeTrigger('ee_hmscore');el._n=0;}
-    });
+    // 24. Compteur films HM — SUPPRIMÉ
+
+    // 30. Compteur badges — SUPPRIMÉ
 
     // 25. Card streak accueil — appui long 3s
     (function(){
@@ -23780,13 +23751,7 @@ function eeRenderProfile(){
       if(el._n>=7){el.style.animation='eeShake .5s ease both';setTimeout(()=>el.style.animation='',600);eeTrigger('ee_avatar_tap');el._n=0;}
     });
 
-    // 30. Compteur badges X/120 — 5 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#p-bc');if(!el)return;
-      if(eeIsFound('ee_bc'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>3000)el._n=0; el._t=now; el._n++;
-      if(el._n>=5){eeTrigger('ee_bc');el._n=0;}
-    });
+    // 30. Compteur badges — SUPPRIMÉ
 
     // 31. Logo dans Comment jouer — appui long 3s
     (function(){
@@ -23873,40 +23838,6 @@ function eeRenderProfile(){
       if(el._n>=5){eeTrigger('ee_arcade_score');el._n=0;}
     });
 
-    // 40. "LE QUIZ DU 7ÈME ART" splash — appui long 3s
-    (function(){
-      let _t=null;
-      const sub=document.querySelector('.splash-sub,.splash-tagline,[class*="splash-sub"]');
-      if(!sub)return;
-      sub.addEventListener('mousedown',e=>{if(eeIsFound('ee_splash_sub'))return;_t=setTimeout(()=>eeTrigger('ee_splash_sub'),3000);});
-      sub.addEventListener('touchstart',e=>{if(eeIsFound('ee_splash_sub'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_splash_sub'),3000);},{passive:false});
-      sub.addEventListener('mouseup',()=>clearTimeout(_t));sub.addEventListener('touchend',()=>clearTimeout(_t));sub.addEventListener('touchcancel',()=>clearTimeout(_t));
-    })();
-
-    // 41. Timer pendant une question — 4 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#timer-wrap,#timebar,.timer-wrap,.timerd');if(!el)return;
-      if(eeIsFound('ee_timer'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>2000)el._n=0; el._t=now; el._n++;
-      if(el._n>=4){eeTrigger('ee_timer');el._n=0;}
-    });
-
-    // 42. Multiplicateur ×2/×3 — 5 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#combo-badge,#mbadge,.combo-badge,[id*="combo"]');if(!el)return;
-      if(eeIsFound('ee_combo'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>3000)el._n=0; el._t=now; el._n++;
-      if(el._n>=5){eeTrigger('ee_combo');el._n=0;}
-    });
-
-    // 43. Icône de mode pendant une partie — 3 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#dbadge,.dbd');if(!el)return;
-      if(eeIsFound('ee_gamebadge'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>2000)el._n=0; el._t=now; el._n++;
-      if(el._n>=3){eeTrigger('ee_gamebadge');el._n=0;}
-    });
-
     // 44. 10/10 en fin de partie — 5 taps
     document.addEventListener('click',e=>{
       const el=e.target.closest('#r-correct,.r-correct,[id*="rcorrect"]');if(!el)return;
@@ -23914,14 +23845,6 @@ function eeRenderProfile(){
       if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>3000)el._n=0; el._t=now; el._n++;
       if(el._n>=5){eeTrigger('ee_perfect_tap');el._n=0;}
     });
-
-    // 45. +XP en résultat — appui long 3s
-    (function(){
-      let _t=null;
-      document.addEventListener('mousedown',e=>{const el=e.target.closest('#r-xp,.rxp,[id*="rxp"]');if(!el)return;if(eeIsFound('ee_xp_result'))return;_t=setTimeout(()=>eeTrigger('ee_xp_result'),3000);});
-      document.addEventListener('touchstart',e=>{const el=e.target.closest('#r-xp,.rxp,[id*="rxp"]');if(!el)return;if(eeIsFound('ee_xp_result'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_xp_result'),3000);},{passive:false});
-      document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
-    })();
 
     // 46. Meilleur score dans le profil — appui long 3s
     (function(){
@@ -23931,16 +23854,6 @@ function eeRenderProfile(){
       document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
     })();
 
-    // 47. Titre THÈMES dans le profil — 5 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#themes-shd,.themes-shd,[id*="theme"]');if(!el)return;
-      const txt=e.target.closest('.shd')?.textContent||'';
-      if(!txt.toUpperCase().includes('THÈME')&&!el.id?.includes('theme'))return;
-      if(eeIsFound('ee_themes'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>3000)el._n=0; el._t=now; el._n++;
-      if(el._n>=5){eeTrigger('ee_themes');el._n=0;}
-    });
-
     // 48. Stats Hidden Movies — appui long 3s
     (function(){
       let _t=null;
@@ -23948,22 +23861,6 @@ function eeRenderProfile(){
       document.addEventListener('touchstart',e=>{const el=e.target.closest('#hm-tab-stats,.hm-stats');if(!el)return;if(eeIsFound('ee_hm_stats'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_hm_stats'),3000);},{passive:false});
       document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
     })();
-
-    // 49. Notification — 5 taps rapides
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('.notif-card');if(!el)return;
-      if(eeIsFound('ee_notif'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>2000)el._n=0; el._t=now; el._n++;
-      if(el._n>=5){eeTrigger('ee_notif');el._n=0;}
-    });
-
-    // 50. Bouton retour pendant une partie — 7 taps
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('#btn-back,.btn-back,[onclick*="go(\'home\')"]');if(!el)return;
-      if(eeIsFound('ee_back_btn'))return;
-      if(!el._n){el._n=0;el._t=0;} const now=Date.now(); if(now-el._t>3000)el._n=0; el._t=now; el._n++;
-      if(el._n>=7){eeTrigger('ee_back_btn');el._n=0;}
-    });
 
     // 16. Flash Cinéma — 5 réponses en < 3s chacune
     (function(){
@@ -30564,15 +30461,25 @@ if('serviceWorker' in navigator){
   // 11. Swipe rapide entre écrans (home → profil → home) 3x → toast Easter egg
   (function() {
     var navCount = 0, navTimer = null;
+    var _bbN = 0, _bbT = 0; // Ping-Pong EE
     var _origGo = window.go;
     if (typeof _origGo !== 'function') return;
     window.go = function(screen) {
+      // Toast Tournis
       navCount++;
       clearTimeout(navTimer);
       navTimer = setTimeout(function() { navCount = 0; }, 4000);
       if (navCount >= 6) {
         navCount = 0;
         if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🎠', name: 'Tournis cinéma', sub: "T'as fait plus d'allers-retours que Forrest Gump sur son banc." });
+      }
+      // EE Ping-Pong — 3 navigations en 15s
+      var now = Date.now();
+      if (now - _bbT > 15000) _bbN = 0;
+      _bbT = now; _bbN++;
+      if (_bbN >= 3 && typeof eeIsFound === 'function' && !eeIsFound('ee_backback')) {
+        _bbN = 0;
+        if (typeof eeTrigger === 'function') eeTrigger('ee_backback');
       }
       return _origGo.apply(this, arguments);
     };
