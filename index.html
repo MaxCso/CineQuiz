@@ -6,6 +6,7 @@
   <meta name="screen-orientation" content="portrait">
 <title>CinéQuiz</title>
 <link rel="icon" type="image/png" href="icon.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%230a0814'/%3E%3Cimage href='icon.png' x='5' y='5' width='90' height='90' clip-path='url(%23c)'/%3E%3CclipPath id='c'%3E%3Ccircle cx='50' cy='50' r='45'/%3E%3C/clipPath%3E%3C/svg%3E">
 <!-- iOS home screen icon — toutes les tailles pour couvrir tous les appareils -->
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <link rel="apple-touch-icon" sizes="152x152" href="icon.png">
@@ -18,7 +19,7 @@
 <meta name="apple-mobile-web-app-title" content="CinéQuiz">
 <meta name="theme-color" content="#0a0a0f">
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
-<meta name="description" content="Le quiz du 7ème art — 14 modes, 100% cinéma">
+<meta name="description" content="Le quiz cinéma ultime — 20 modes, Hidden Movies, Jukebox, easter eggs et bien plus. Teste ta culture ciné chaque jour.">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -6435,7 +6436,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
       Partager ma carte CinéQuiz
     </button>
     <canvas id="profile-share-canvas" width="800" height="500"></canvas>
-    <div style="text-align:center;padding:28px 0 12px;font-size:8px;color:rgba(255,255,255,.07);letter-spacing:2px;font-style:italic;">"Le cinéma, c'est l'écriture moderne dont l'encre est la lumière." — Jean Cocteau</div>
+    <div id="profile-cocteau-quote" style="text-align:center;padding:28px 0 12px;font-size:8px;color:rgba(255,255,255,.07);letter-spacing:2px;font-style:italic;user-select:none;-webkit-user-select:none;">"Le cinéma, c'est l'écriture moderne dont l'encre est la lumière." — Jean Cocteau</div>
   </div>
 
   <!-- LOADING -->
@@ -7642,7 +7643,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2.5px;color:#c084fc;line-height:1;">HIDDEN MOVIES</div>
           <div style="font-size:11px;color:rgba(192,132,252,.45);letter-spacing:1px;margin-top:2px;">Comment ça marche ?</div>
         </div>
-        <div style="font-size:28px;filter:drop-shadow(0 0 12px rgba(168,85,247,.4));">🎬</div>
+        <div id="hm-help-clap" style="font-size:28px;filter:drop-shadow(0 0 12px rgba(168,85,247,.4));cursor:default;user-select:none;-webkit-user-select:none;">🎬</div>
       </div>
 
       <!-- Intro -->
@@ -19488,14 +19489,49 @@ function closeHMHelp(e){
     document.getElementById('hm-help-modal').classList.remove('on');
 }
 function _hmHelpSwipeInit(){
-  const sh=document.getElementById('hm-help-modal')?.querySelector('.hm-help-sh');
+  const over=document.getElementById('hm-help-modal');
+  const sh=over?.querySelector('.hm-help-sh');
   if(!sh||sh._swipeHelpAttached)return;
   sh._swipeHelpAttached=true;
-  let startY=0,startScroll=0;
-  sh.addEventListener('touchstart',e=>{startY=e.touches[0].clientY;startScroll=sh.scrollTop;},{passive:true});
+  let startY=0,startScroll=0,dragging=false;
+
+  sh.addEventListener('touchstart',e=>{
+    startY=e.touches[0].clientY;
+    startScroll=sh.scrollTop;
+    dragging=false;
+    sh.style.transition='none';
+  },{passive:true});
+
+  sh.addEventListener('touchmove',e=>{
+    const dy=e.touches[0].clientY-startY;
+    if(startScroll>0)return;
+    if(dy>0){
+      dragging=true;
+      sh.style.transform='translateY('+dy+'px)';
+      const ratio=Math.max(0,1-dy/300);
+      over.style.background='rgba(0,0,0,'+(.82*ratio)+')';
+    }
+  },{passive:true});
+
   sh.addEventListener('touchend',e=>{
     const dy=e.changedTouches[0].clientY-startY;
-    if(dy>80&&startScroll<=0)document.getElementById('hm-help-modal').classList.remove('on');
+    sh.style.transition='transform .3s cubic-bezier(.25,.46,.45,.94)';
+    if(dragging&&dy>90&&startScroll<=0){
+      sh.style.transform='translateY(110%)';
+      over.style.transition='opacity .28s';
+      over.style.opacity='0';
+      setTimeout(()=>{
+        over.classList.remove('on');
+        sh.style.transform='';
+        over.style.background='';
+        over.style.opacity='';
+        over.style.transition='';
+      },280);
+    } else {
+      sh.style.transform='translateY(0)';
+      over.style.background='';
+    }
+    dragging=false;
   },{passive:true});
 }
 
@@ -23367,12 +23403,12 @@ const EE_DEFS = [
   { id:'ee_secretcount',icon:'🤫', name:'Chasseur de zones',     hint:'5 taps sur le texte "zones cachées attendent"' },
   { id:'ee_helpmode',   icon:'🎬', name:'Le Critique',           hint:'3 taps sur le titre d\'un mode dans l\'aide' },
   { id:'ee_cesoir',     icon:'🌙', name:'Noctambule',            hint:'5 taps sur la card "Ce soir" dans Hidden Movies' },
-  { id:'ee_hm_collection', icon:'🃏', name:'Le Conservateur',   hint:'Appui long 3s sur l\'onglet Collection dans HM' },
+  { id:'ee_hm_collection', icon:'🃏', name:'Le Conservateur',   hint:'Appui long 3s sur le clap dans "Comment ça marche ?" de Hidden Movies' },
   { id:'ee_jk_cover',   icon:'🎵', name:'Le Mélomane secret',    hint:'5 taps sur la pochette de la piste en cours' },
   { id:'ee_jk_progress',icon:'🎼', name:'L\'Oreille absolue',    hint:'Appui long 3s sur la barre de progression du Jukebox' },
   { id:'ee_arcade_score',icon:'🕹️',name:'High Score',            hint:'5 taps sur le score dans un jeu arcade' },
   { id:'ee_perfect_tap',icon:'🏆', name:'La Palme',              hint:'5 taps sur le 10/10 en fin de partie parfaite' },
-  { id:'ee_best_score', icon:'💰', name:'Le Record',             hint:'Appui long 3s sur le meilleur score dans le profil' },
+  { id:'ee_best_score', icon:'✍️', name:'L\'Encre et la Lumière', hint:'Appui long 3s sur la citation cachée tout en bas du profil' },
   { id:'ee_hm_stats',   icon:'📈', name:'Le Statisticien',       hint:'Appui long 3s sur l\'onglet Stats dans Hidden Movies' },
   { id:'ee_completionist', icon:'🌟', name:'Le Cinéphile Absolu', hint:'Découvre les 39 autres secrets cachés de CinéQuiz' },
 ];
@@ -23806,11 +23842,11 @@ function eeRenderProfile(){
       if(el._n>=5){eeTrigger('ee_cesoir');el._n=0;}
     });
 
-    // 36. Titre Collection dans HM — appui long 3s
+    // 36. Emoji clap dans "Comment ça marche" HM — appui long 3s
     (function(){
       let _t=null;
-      document.addEventListener('mousedown',e=>{const el=e.target.closest('#hm-tab-collection');if(!el)return;if(eeIsFound('ee_hm_collection'))return;_t=setTimeout(()=>eeTrigger('ee_hm_collection'),3000);});
-      document.addEventListener('touchstart',e=>{const el=e.target.closest('#hm-tab-collection');if(!el)return;if(eeIsFound('ee_hm_collection'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_hm_collection'),3000);},{passive:false});
+      document.addEventListener('mousedown',e=>{const el=e.target.closest('#hm-help-clap');if(!el)return;if(eeIsFound('ee_hm_collection'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_hm_collection'),3000);});
+      document.addEventListener('touchstart',e=>{const el=e.target.closest('#hm-help-clap');if(!el)return;if(eeIsFound('ee_hm_collection'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_hm_collection'),3000);},{passive:false});
       document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
     })();
 
@@ -23846,11 +23882,11 @@ function eeRenderProfile(){
       if(el._n>=5){eeTrigger('ee_perfect_tap');el._n=0;}
     });
 
-    // 46. Meilleur score dans le profil — appui long 3s
+    // 46. Citation cachée tout en bas du profil — appui long 3s
     (function(){
       let _t=null;
-      document.addEventListener('mousedown',e=>{const el=e.target.closest('#p-bs');if(!el)return;if(eeIsFound('ee_best_score'))return;_t=setTimeout(()=>eeTrigger('ee_best_score'),3000);});
-      document.addEventListener('touchstart',e=>{const el=e.target.closest('#p-bs');if(!el)return;if(eeIsFound('ee_best_score'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_best_score'),3000);},{passive:false});
+      document.addEventListener('mousedown',e=>{const el=e.target.closest('#profile-cocteau-quote');if(!el)return;if(eeIsFound('ee_best_score'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_best_score'),3000);});
+      document.addEventListener('touchstart',e=>{const el=e.target.closest('#profile-cocteau-quote');if(!el)return;if(eeIsFound('ee_best_score'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_best_score'),3000);},{passive:false});
       document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
     })();
 
