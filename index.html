@@ -10715,7 +10715,7 @@ const ANECDOTES=[
   {text:"Stanley Kubrick souffrait d'aérophobie — il n'a jamais pris l'avion de toute sa vie. Tous ses films après 1968 ont été tournés en Angleterre pour éviter tout voyage transatlantique.",tag:"Réalisateur"},
   {text:"Dans Pulp Fiction, la valise de Marcellus Wallace ne contient rien de précis. La lumière à l'intérieur était produite par une ampoule et une pile cachées. Tarantino laisse délibérément la question ouverte.",tag:"Anecdote"},
   {text:"Le rôle de Forrest Gump avait été écrit pour Gary Sinise — qui a finalement joué le lieutenant Dan. Tom Hanks a reçu le scénario par erreur et a tout de suite appelé pour demander le rôle.",tag:"Casting"},
-  {text:"Dans Interstellar, la planète des vagues a été filmée dans des dunes de sable en Islande recouvertes deau artificielle. Les acteurs avaient de leau salée jusqu'aux genoux pendant 10 heures.",tag:"Tournage"},
+  {text:"Dans Interstellar, la planète des vagues a été filmée dans des dunes de sable en Islande recouvertes d'eau artificielle. Les acteurs avaient de l'eau salée jusqu'aux genoux pendant 10 heures.",tag:"Tournage"},
   {text:"Le compositeur Bernard Herrmann — qui a signé les musiques d\'Hitchcock dont Psycho — est décédé la nuit même où il a terminé la partition de Taxi Driver. Cétait son dernier travail.",tag:"Musique"},
   {text:"Pour Le Loup de Wall Street, Matthew McConaughey a improvisé la scène du restaurant où il se frappe le torse et fredonne. DiCaprio a adoré et a demandé à Scorsese de garder la prise.",tag:"Tournage"},
   {text:"L\'actrice Lupita Nyongo a appris le swahili pour Black Panther — bien qu'elle soit kenyane, elle ne parlait pas la langue. Elle a suivi des cours intensifs pendant 3 mois.",tag:"Acteur"},
@@ -23716,11 +23716,11 @@ function eeRenderProfile(){
       if(el._n>=7){el.style.animation='eeShake .5s ease both';setTimeout(()=>el.style.animation='',600);eeTrigger('ee_xpfill');el._n=0;}
     });
 
-    // 22. Nom d'un mode dans la grille — appui long 3s
+    // 22. Nom d'un mode dans la grille — appui long 3s (sur le label uniquement)
     (function(){
       let _t=null;
-      document.addEventListener('mousedown',e=>{const el=e.target.closest('.mc-label,.mc');if(!el)return;if(eeIsFound('ee_modename'))return;_t=setTimeout(()=>eeTrigger('ee_modename'),3000);});
-      document.addEventListener('touchstart',e=>{const el=e.target.closest('.mc-label,.mc');if(!el)return;if(eeIsFound('ee_modename'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_modename'),3000);},{passive:false});
+      document.addEventListener('mousedown',e=>{const el=e.target.closest('.mc-label');if(!el)return;if(eeIsFound('ee_modename'))return;_t=setTimeout(()=>eeTrigger('ee_modename'),3000);});
+      document.addEventListener('touchstart',e=>{const el=e.target.closest('.mc-label');if(!el)return;if(eeIsFound('ee_modename'))return;_t=setTimeout(()=>eeTrigger('ee_modename'),3000);},{passive:true});
       document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
     })();
 
@@ -30014,8 +30014,17 @@ if('serviceWorker' in navigator){
             var cloud = JSON.parse(cloudData['cq11'] || '{}');
             if ((cloud.xp || 0) >= (local.xp || 0)) {
               applyProgression(cloudData);
-              showToastAuth('Progression restaurée ! Rechargement...');
-              setTimeout(function(){ location.reload(); }, 1200);
+              // Éviter la boucle infinie : ne recharger qu'une seule fois
+              try {
+                if (!sessionStorage.getItem('cq_just_reloaded')) {
+                  sessionStorage.setItem('cq_just_reloaded', '1');
+                  showToastAuth('Progression restaurée ! Rechargement...');
+                  setTimeout(function(){ location.reload(); }, 1200);
+                } else {
+                  sessionStorage.removeItem('cq_just_reloaded');
+                  showToastAuth('Connecté · progression restaurée.');
+                }
+              } catch(e) { showToastAuth('Connecté · progression restaurée.'); }
             } else {
               // Local is ahead — push it
               scheduleSave();
@@ -30023,7 +30032,14 @@ if('serviceWorker' in navigator){
             }
           } catch(e) {
             applyProgression(cloudData);
-            setTimeout(function(){ location.reload(); }, 1200);
+            try {
+              if (!sessionStorage.getItem('cq_just_reloaded')) {
+                sessionStorage.setItem('cq_just_reloaded', '1');
+                setTimeout(function(){ location.reload(); }, 1200);
+              } else {
+                sessionStorage.removeItem('cq_just_reloaded');
+              }
+            } catch(e2) {}
           }
         } else {
           // First login — push local data
@@ -30111,6 +30127,8 @@ if('serviceWorker' in navigator){
 
   // ── INIT ──
   function init() {
+    // Nettoyer le flag anti-boucle si on arrive ici après un reload
+    try { sessionStorage.removeItem('cq_just_reloaded'); } catch(e) {}
     var session = loadSession();
     if (!session) { updateAuthUI(); return; }
     // Try to use existing session, refresh if needed
