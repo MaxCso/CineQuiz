@@ -4774,7 +4774,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   will-change:transform;
 }
 .hmv-poster.flipped .hmv-poster-inner{
-  transform:rotateY(180deg);
+  transform:rotateY(var(--flip-deg, -180deg));
 }
 .hmv-poster.interacting .hmv-poster-inner{
   transition:none !important;
@@ -16575,10 +16575,33 @@ function _hmOpenCardDetail(idx) {
 
 function hmvPosterTap(){ hmvFlipPoster(); }
 
-function hmvFlipPoster(){
+function hmvFlipPoster(dir){
   const poster = document.getElementById('hmv-poster');
   if(!poster || _hmvInfoOpen) return;
-  const isFlipped = poster.classList.toggle('flipped');
+  const wasFlipped = poster.classList.contains('flipped');
+  const isFlipped = !wasFlipped;
+  // dir : 'left' (swipe droite→gauche) ou 'right' (swipe gauche→droite) ou undefined (tap)
+  // Si on flip vers l'arrière (recto→verso) : sens naturel = rotation vers la gauche (rotateY négatif = -180deg)
+  // Si on flip vers l'avant (verso→recto) : rotation inverse
+  const inner = poster.querySelector('.hmv-poster-inner');
+  if(inner){
+    if(!wasFlipped){
+      // On va montrer le verso : la direction du swipe dicte le sens
+      // swipe gauche (dir='left') → rotation vers la gauche : -180deg
+      // swipe droite (dir='right') → rotation vers la droite : +180deg
+      // tap (pas de dir) → défaut gauche comme avant
+      const deg = (dir === 'right') ? '180deg' : '-180deg';
+      inner.style.setProperty('--flip-deg', deg);
+      // La face-back doit s'adapter aussi
+      const faceBack = poster.querySelector('.hmv-face-back');
+      if(faceBack) faceBack.style.transform = 'rotateY('+((dir==='right')?'-180deg':'180deg')+')';
+    } else {
+      // On revient au recto : même sens que l'aller (stocké sur poster)
+      inner.style.setProperty('--flip-deg', '0deg');
+      // La face-back reste dans sa position (le inner revient à 0, elle disparaît naturellement)
+    }
+  }
+  poster.classList.toggle('flipped');
   if(isFlipped && !poster.dataset.backFilled){
     _hmvFillBack();
     poster.dataset.backFilled = '1';
@@ -17137,7 +17160,7 @@ function _hmvHoloTouchEnd(e) {
       const r = poster.getBoundingClientRect();
       const inBottomThird = _hmvTouchStartY > r.top + r.height * 0.6;
       if (inBottomThird && !_hmvInfoOpen) {
-        hmvFlipPoster();
+        hmvFlipPoster(dx < 0 ? 'left' : 'right');
       }
     }
   }
