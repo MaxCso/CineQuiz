@@ -1146,7 +1146,40 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 #jukebox{padding:max(54px,env(safe-area-inset-top)) 18px 0;display:flex;flex-direction:column;height:100%;}
 .jk-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;}
 .jk-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:3px;color:rgba(255,255,255,.6);}
-.jk-hero{display:flex;flex-direction:column;align-items:center;padding:8px 0 16px;gap:8px;flex-shrink:0;position:relative;perspective:600px;}
+.jk-hero{display:flex;flex-direction:column;align-items:center;padding:8px 0 16px;gap:8px;flex-shrink:0;position:relative;perspective:600px;transition:padding .35s cubic-bezier(.4,0,.2,1);}
+
+/* ── Mode condensé : hero réduit en mini-player ── */
+.jk-hero.condensed{padding:6px 0 8px;gap:0;}
+.jk-hero.condensed .jk-icon{
+  width:38px;height:38px;border-radius:12px;font-size:18px;
+  animation:none;transform:none !important;
+  transition:width .35s cubic-bezier(.4,0,.2,1),height .35s cubic-bezier(.4,0,.2,1),border-radius .35s,font-size .35s;
+}
+.jk-hero.condensed .jk-track{font-size:13px;letter-spacing:1px;margin-top:0;}
+.jk-hero.condensed .jk-mode{display:none;}
+.jk-hero.condensed .jk-konami-dots{display:none;}
+.jk-hero.condensed .jk-controls .jk-btn:not(.main):not(#jk-play-btn){display:none;}
+.jk-hero.condensed .jk-controls{gap:10px;margin-top:4px;}
+.jk-hero.condensed .jk-btn{width:34px;height:34px;}
+.jk-hero.condensed .jk-btn.main{width:40px;height:40px;}
+.jk-hero.condensed .jk-btn svg{width:13px;height:13px;}
+.jk-hero.condensed .jk-btn.main svg{width:15px;height:15px;}
+.jk-hero.condensed .jk-times{font-size:8px;}
+.jk-hero.condensed .jk-prog-track{height:2px;}
+
+/* En mode condensé, le hero passe en ligne horizontale */
+.jk-hero.condensed{flex-direction:row;justify-content:space-between;align-items:center;padding:6px 4px 8px;gap:10px;}
+.jk-hero.condensed .jk-konami-dots{display:none;}
+.jk-hero.condensed .jk-progress-zone{flex:1;min-width:0;}
+/* Masquer ce qui n'est pas nécessaire en mode condensé */
+.jk-hero.condensed .jk-mode{display:none;}
+.jk-hero.condensed .jk-track{font-size:12px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+/* Bloc texte + barre centré */
+.jk-hero-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;transition:gap .35s;}
+.jk-hero.condensed .jk-hero-mid{gap:2px;}
+/* Bouton play flottant à droite en mode condensé */
+.jk-hero.condensed .jk-controls{margin-top:0;gap:8px;flex-shrink:0;}
+.jk-hero.condensed .jk-btn:not(.main){display:none;}
 /* Icône hero — swipeable */
 .jk-icon{
   width:90px;height:90px;border-radius:24px;
@@ -1174,12 +1207,15 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   /* zone tactile agrandie invisible */
 }
 .jk-prog-track{
-  width:100%;height:3px;border-radius:3px;
-  background:rgba(255,255,255,.1);position:relative;overflow:visible;
+  width:100%;height:4px;border-radius:4px;
+  background:rgba(255,255,255,.15);position:relative;overflow:visible;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.3);
 }
 .jk-prog-fill{
-  height:100%;border-radius:3px;width:0%;
+  height:100%;border-radius:4px;width:0%;
   position:relative;transition:width .8s linear;
+  background:linear-gradient(90deg,rgba(200,140,20,.9),var(--gold));
+  box-shadow:0 0 8px rgba(245,200,66,.35);
 }
 .jk-prog-fill::after{
   content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);
@@ -4749,6 +4785,8 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   width:min(calc(62vh * 2/3), calc(100vw - 32px));
   height:min(62vh, calc((100vw - 32px) * 3/2));
   border-radius:20px;
+  /* overflow:hidden ne fonctionne pas avec preserve-3d — on utilise clip-path à la place */
+  -webkit-mask-image: -webkit-radial-gradient(white, black); /* force le clipping sur Safari/iOS */
   flex-shrink:0;
   will-change:transform;
   transform-style:preserve-3d;
@@ -4771,6 +4809,8 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   transform-style:preserve-3d;
   transition:transform .7s cubic-bezier(.35,0,.15,1);
   border-radius:20px;
+  overflow:hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   will-change:transform;
 }
 .hmv-poster.flipped .hmv-poster-inner{
@@ -4784,6 +4824,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   position:absolute;inset:0;
   border-radius:20px;
   overflow:hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
 }
@@ -5032,9 +5073,10 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 /* Hint swipe bas */
 .hmv-hint{
   position:absolute;
-  bottom:max(env(safe-area-inset-bottom),16px);
+  bottom:0;
   left:0;right:0;
-  display:flex;flex-direction:column;align-items:center;gap:5px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding-bottom:max(env(safe-area-inset-bottom),6px);
   pointer-events:none;
   z-index:20;
   transition:opacity .3s;
@@ -5045,10 +5087,10 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   letter-spacing:2px;text-transform:uppercase;
   text-align:center;line-height:1.6;
 }
-.hmv-hint svg{color:rgba(255,255,255,.22);}
+.hmv-hint svg{color:rgba(255,255,255,.22);width:16px;height:16px;}
 @keyframes hmvHintBounce{
   0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-5px);}
+  50%{transform:translateY(-4px);}
 }
 
 /* Panneau infos (slide-up) */
@@ -5556,33 +5598,40 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 }
 /* Indice avant grattage */
 .hm-scratch-hint{
-  position:absolute;inset:0;z-index:3;
+  position:absolute;inset:0;z-index:8;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-  background:rgba(7,6,12,.0);pointer-events:none;
-  transition:opacity .4s;
+  background:rgba(7,6,12,.0);
+  pointer-events:none;transition:opacity .4s;
 }
 .hm-scratch-hint.hidden{opacity:0;pointer-events:none;}
-.hm-scratch-hint-genre{
-  font-size:11px;letter-spacing:3px;color:rgba(192,132,252,.5);
-  font-weight:700;text-transform:uppercase;
-}
-.hm-scratch-hint-year{
-  font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;
-  color:rgba(255,255,255,.06);
-}
 .hm-scratch-hint-icon{
   width:56px;height:56px;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(168,85,247,.1);
-  border:1px solid rgba(168,85,247,.25);
+  background:rgba(100,50,180,.15);
+  border:1px solid rgba(120,70,200,.3);
   border-radius:18px;
-  color:rgba(192,132,252,.9);
-  filter:drop-shadow(0 0 18px rgba(168,85,247,.35));
+  color:rgba(100,60,180,.85);
+  filter:drop-shadow(0 0 12px rgba(120,70,200,.2));
 }
 .hm-scratch-hint-icon svg{width:28px;height:28px;}
+.hm-scratch-hint-genre{
+  font-size:11px;letter-spacing:3px;color:rgba(100,70,180,.6);
+  font-weight:700;text-transform:uppercase;
+}
+.hm-scratch-hint-year{
+  font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;
+  color:rgba(80,60,160,.12);line-height:1;
+}
+/* Phrase énigmatique */
+.hm-scratch-hint-clue{
+  font-size:12px;color:rgba(70,50,140,.55);
+  font-style:italic;text-align:center;line-height:1.55;
+  letter-spacing:.2px;padding:0 32px;
+}
+/* Label gratter */
 .hm-scratch-hint-label{
-  font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1px;
-  text-align:center;line-height:1.5;
+  font-size:10px;color:rgba(80,60,160,.35);letter-spacing:1.5px;
+  text-align:center;
 }
 
 /* Navigation */
@@ -5597,9 +5646,94 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 .hm-nav-btn:active{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(.9);}
 .hm-nav-prev{left:12px;}
 .hm-nav-next{right:12px;}
+
+/* ── CARTE TUTO HIDDEN MOVIES ── */
+#hm-tuto-overlay{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(4,3,12,.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .4s;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+#hm-tuto-overlay.on{opacity:1;pointer-events:all;}
+.hm-tuto-card{
+  width:min(340px,90vw);
+  background:linear-gradient(160deg,#0f0a22,#0a061a);
+  border:1px solid rgba(168,85,247,.25);
+  border-radius:28px;
+  padding:32px 28px 28px;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  box-shadow:0 40px 80px rgba(0,0,0,.8),0 0 60px rgba(168,85,247,.08);
+  position:relative;overflow:hidden;
+}
+.hm-tuto-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(168,85,247,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hm-tuto-logo{
+  width:160px;color:rgba(192,132,252,.9);
+  filter:drop-shadow(0 0 20px rgba(168,85,247,.4));
+  flex-shrink:0;
+}
+.hm-tuto-divider{
+  width:40px;height:1px;background:rgba(168,85,247,.3);
+}
+.hm-tuto-rules{
+  display:flex;flex-direction:column;gap:14px;width:100%;
+}
+.hm-tuto-rule{
+  display:flex;align-items:flex-start;gap:12px;
+  opacity:0;transform:translateY(10px);
+  transition:opacity .4s,transform .4s;
+}
+.hm-tuto-rule.visible{opacity:1;transform:translateY(0);}
+.hm-tuto-rule-icon{
+  width:36px;height:36px;border-radius:12px;flex-shrink:0;
+  background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.hm-tuto-rule-body{flex:1;min-width:0;}
+.hm-tuto-rule-title{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;
+  color:rgba(255,255,255,.9);margin-bottom:2px;
+}
+.hm-tuto-rule-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.5;}
+.hm-tuto-btn{
+  width:100%;padding:14px;margin-top:4px;
+  background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(140,60,220,.15));
+  border:1px solid rgba(168,85,247,.35);
+  border-radius:16px;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;
+  color:rgba(192,132,252,.9);
+  transition:transform .15s,border-color .2s;
+  opacity:0;transition:opacity .5s,transform .15s;
+}
+.hm-tuto-btn.visible{opacity:1;}
+.hm-tuto-btn:active{transform:scale(.97);}
+/* Carte tuto dans la collection */
+.hm-card-tuto{
+  position:relative;border-radius:18px;overflow:hidden;cursor:pointer;
+  background:linear-gradient(135deg,#0f0a22,#130d28);
+  border:1px solid rgba(168,85,247,.2);
+  aspect-ratio:2/3;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;padding:12px;
+  transition:transform .15s,border-color .2s;
+}
+.hm-card-tuto:active{transform:scale(.96);}
+.hm-card-tuto-logo{width:70%;color:rgba(192,132,252,.5);}
+.hm-card-tuto-label{
+  font-size:8px;letter-spacing:2px;color:rgba(192,132,252,.35);
+  font-family:'Bebas Neue',sans-serif;text-align:center;
+}
+
 .hm-scratch-counter{
-  position:absolute;bottom:12px;right:16px;z-index:6;
-  font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.5px;
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:6;
+  font-size:9px;color:rgba(255,255,255,.6);letter-spacing:2px;
+  background:rgba(0,0,0,.22);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);border-radius:20px;
+  padding:4px 12px;white-space:nowrap;
 }
 
 /* ── FICHE FILM (slide-up) ── */
@@ -5723,12 +5857,14 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   color:rgba(255,255,255,.3);
   background:none;border:none;cursor:pointer;
   border-bottom:2px solid transparent;
-  transition:all .2s;
+  transition:color .2s, border-bottom-color .2s, transform .15s;
 }
+.hm-tab:active{transform:scale(.93);}
 .hm-tab.active{
   color:#c084fc;
   border-bottom-color:#c084fc;
 }
+
 .hm-tab-count{
   background:rgba(168,85,247,.25);
   color:#c084fc;font-size:10px;
@@ -6098,10 +6234,32 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
           <div style="position:absolute;inset:0;border-radius:17px;background:radial-gradient(ellipse 75% 55% at 5% 0%,rgba(168,85,247,.13) 0%,transparent 65%),radial-gradient(ellipse 45% 35% at 95% 100%,rgba(139,60,200,.07) 0%,transparent 60%);pointer-events:none;z-index:0;"></div>
           <!-- Icône / Logo -->
           <div class="home-tilt-icon" style="width:54px;height:54px;border-radius:16px;background:rgba(168,85,247,.1);border:1.5px solid rgba(168,85,247,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;z-index:1;animation:xpIconFloat 4s ease-in-out infinite;animation-delay:.5s;">
-            <img src="logohiddenmovies.png" alt="HM"
-                 style="width:38px;height:38px;object-fit:contain;filter:brightness(1.1);"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <span style="display:none;font-size:22px;">🎬</span>
+            <div style="width:38px;height:20px;display:flex;align-items:center;justify-content:center;"><svg width="38" height="20" viewBox="0 0 761 401" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M374.616 0.0372614C376.572 -0.0124221 384.426 -0.0124189 386.382 0.0372614C457.403 0.834982 525.436 16.0469 588.676 45.3652C650.628 74.0859 705.95 116.146 748.66 166.994C765.113 186.583 765.113 213.941 748.66 233.532C705.949 284.382 650.628 326.44 588.676 355.161C525.436 384.479 457.401 399.69 386.382 400.489C384.426 400.539 376.572 400.539 374.616 400.489C303.595 399.691 235.562 384.479 172.322 355.161C110.37 326.44 55.0496 284.38 12.3402 233.532C-3.98484 214.096 -4.11245 187.009 11.9577 167.454L12.3402 166.994C55.0511 116.144 110.37 74.0859 172.322 45.3652C235.562 16.0469 303.597 0.836391 374.616 0.0372614ZM470.902 28.414C522.495 52.2479 562.223 95.8582 577.943 149.198H556.901C533.551 79.7955 463.908 29.1941 381.694 28.7089L380.501 28.7056C297.768 28.7056 227.563 79.4597 204.1 149.198H183.058C198.778 95.8582 238.505 52.2479 290.098 28.414C252.311 35.5738 215.757 47.3026 180.745 63.534C121.38 91.0557 68.4435 131.337 27.675 179.874C17.4773 192.015 17.4768 208.511 27.6745 220.651C68.4415 269.187 121.38 309.47 180.745 336.992C215.761 353.226 252.319 364.955 290.111 372.115C238.729 348.382 199.113 305.034 183.258 251.995H204.328C227.899 321.053 297.359 371.331 379.308 371.814L380.501 371.818C462.969 371.818 532.989 321.388 556.674 251.995H577.744C561.89 305.033 522.276 348.379 470.895 372.113C508.684 364.953 545.24 353.224 580.253 336.992L581.644 336.345C639.982 309.057 692.049 269.439 732.367 221.788L733.325 220.652C743.524 208.508 743.523 192.015 733.326 179.875C692.877 131.718 640.445 91.6857 581.644 64.1814L580.253 63.534C545.242 47.3026 508.689 35.5739 470.902 28.414Z" fill="#FAFAFA"/>
+<path d="M90.1961 170.386H103.03V234.436H90.1961V208.768H67.1903V234.436H54.3562V170.386H67.1903V196.014H90.1961V170.386Z" fill="#FAFAFA"/>
+<path d="M115.043 234.436V170.386H127.917V234.436H115.043Z" fill="#FAFAFA"/>
+<path d="M158.526 170.386C179.227 170.346 191.863 182.504 191.863 202.49C191.863 222.357 179.227 234.436 158.526 234.436H139.891V202.431V170.425L158.526 170.386ZM158.605 221.602C171.201 221.602 178.87 214.371 178.87 202.451C178.87 190.451 171.161 183.14 158.486 183.14H152.725V221.602H158.605Z" fill="#FAFAFA"/>
+<path d="M219.69 170.386C240.391 170.346 253.027 182.504 253.027 202.49C253.027 222.357 240.391 234.436 219.69 234.436H201.055V170.425L219.69 170.386ZM219.769 221.602C232.365 221.602 240.034 214.371 240.034 202.451C240.034 190.451 232.325 183.14 219.65 183.14H213.889V221.602H219.769Z" fill="#FAFAFA"/>
+<path d="M300.84 183.061H275.092V195.577H297.184V208.411H275.092V221.642H300.84V234.436H262.219V170.386H300.84V183.061Z" fill="#FAFAFA"/>
+<path d="M349.726 170.227H362.64V235.628H362.044L324.018 198.636V234.516H311.145V169.194H311.78L349.726 206.106V170.227Z" fill="#FAFAFA"/>
+<path d="M461.326 168.796H462.041V234.436H449.167V206.543L430.731 233.364H430.652L412.175 206.543V234.436H399.302V168.796H400.017L430.691 211.113L461.326 168.796Z" fill="#FAFAFA"/>
+<path d="M502.45 235.668C484.172 235.668 469.193 220.728 469.193 202.49C469.193 184.094 484.172 169.074 502.49 169.074C520.807 169.074 535.826 184.094 535.826 202.49C535.826 220.728 520.807 235.668 502.45 235.668ZM502.45 222.635C513.655 222.635 522.794 213.536 522.794 202.411C522.794 191.206 513.655 182.067 502.45 182.067C491.285 182.067 482.186 191.206 482.186 202.411C482.186 213.536 491.285 222.635 502.45 222.635Z" fill="#FAFAFA"/>
+<path d="M578.937 170.386H592.725L562.765 236.026H562.289L532.449 170.386H546.077L562.487 207.576L578.937 170.386Z" fill="#FAFAFA"/>
+<path d="M597.929 234.436V170.386H610.803V234.436H597.929Z" fill="#FAFAFA"/>
+<path d="M659.318 183.061H633.57V195.577H655.662V208.411H633.57V221.642H659.318V234.436H620.696V170.386H659.318V183.061Z" fill="#FAFAFA"/>
+<path d="M686.734 235.708C676.244 235.708 668.496 231.337 664.204 223.39L674.496 216.159C677.317 220.688 681.409 222.755 686.932 222.755C692.972 222.755 697.025 220.291 697.025 216.874C697.025 212.185 689.356 208.49 682.641 205.153C675.449 201.577 667.542 197.643 667.542 187.431C667.542 176.346 676.919 169.035 688.68 169.035C697.422 169.035 704.653 172.65 707.554 180.399L698.058 187.034C696.15 183.22 692.455 181.67 688.879 181.67C684.071 181.67 680.495 184.451 680.495 187.749C680.495 191.564 685.343 192.875 692.694 196.332C703.303 201.338 709.978 206.742 709.978 216.596C709.978 228.278 700.442 235.708 686.734 235.708Z" fill="#FAFAFA"/>
+<path d="M390.177 201.186C390.177 206.149 386.154 210.172 381.191 210.172C376.228 210.172 372.205 206.149 372.205 201.186C372.205 196.223 376.228 192.2 381.191 192.2C386.154 192.2 390.177 196.223 390.177 201.186Z" fill="#871417"/>
+<path d="M461.173 275.07C461.176 275.07 461.179 275.074 461.177 275.077L432.776 355.227C432.687 355.479 432.483 355.673 432.227 355.75C402.438 364.65 370.161 365.183 339.735 358.77C339.013 358.618 338.833 357.677 339.444 357.264L461.17 275.071L461.173 275.07Z" fill="#FAFAFA"/>
+<path d="M395.5 304.644C396.329 304.644 396.656 305.719 395.967 306.181L324.342 354.211C324.129 354.354 323.861 354.391 323.616 354.311C294.322 344.737 267.253 328.321 247.576 306.023C247.101 305.485 247.487 304.644 248.204 304.644H395.5Z" fill="#FAFAFA"/>
+<path d="M520.989 297.223C521.085 297.495 521.034 297.797 520.854 298.023C502.239 321.329 476.606 339.554 447.769 350.725C447.107 350.981 446.451 350.345 446.683 349.673L480.548 251.714H504.981L520.989 297.223Z" fill="#FAFAFA"/>
+<path d="M327.178 292.99C327.865 293.452 327.538 294.526 326.709 294.526H282.143H237.576C237.571 294.526 237.565 294.523 237.562 294.518C227.627 281.409 219.681 266.938 214.177 251.714H265.859L327.178 292.99Z" fill="#FAFAFA"/>
+<path d="M546.935 251.714C542.487 263.803 536.639 275.496 529.99 286.73C529.989 286.732 529.987 286.733 529.984 286.733C529.982 286.733 529.979 286.732 529.978 286.729L517.475 251.714H546.935Z" fill="#FAFAFA"/>
+<path d="M231.064 114.906C231.542 114.212 231.079 113.632 232.464 113.825C232.76 113.866 232.999 114.08 233.097 114.363L244.962 148.784H214.152C218.385 136.598 224.077 124.975 231.064 114.906Z" fill="#FAFAFA"/>
+<path d="M313.491 49.9258C314.153 49.6697 314.808 50.3043 314.578 50.9758L281.058 148.784H256.452L240.269 103.432C240.172 103.159 240.222 102.855 240.402 102.628C259.018 79.3214 284.653 61.0961 313.491 49.9258Z" fill="#FAFAFA"/>
+<path d="M523.695 106.123C523.7 106.123 523.706 106.126 523.709 106.13C533.611 119.197 541.539 133.615 547.04 148.784H495.188L434.093 107.659C433.406 107.196 433.733 106.123 434.562 106.123H479.128H523.695Z" fill="#FAFAFA"/>
+<path d="M329.036 44.8924C359.446 35.8057 392.45 35.4405 423.431 42.2823L423.43 42.2842L302.196 124.146C301.525 124.599 300.664 123.933 300.935 123.17L328.487 45.415C328.576 45.1632 328.78 44.9689 329.036 44.8924Z" fill="#FAFAFA"/>
+<path d="M436.949 46.4363C437.163 46.2929 437.431 46.2553 437.676 46.3353C466.97 55.9095 494.039 72.3257 513.715 94.6246C514.19 95.1627 513.805 96.0028 513.088 96.0028H439.44H365.792C364.962 96.0026 364.636 94.9283 365.324 94.4664L436.949 46.4363Z" fill="#FAFAFA"/>
+</svg></div>
           </div>
           <!-- Texte -->
           <div style="flex:1;min-width:0;position:relative;z-index:1;">
@@ -6814,13 +6972,17 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
         <div class="jk-konami-dot" id="jk-kd-6"></div>
         <div class="jk-konami-dot" id="jk-kd-7"></div>
       </div>
-      <div class="jk-track" id="jk-track">—</div>
-      <div class="jk-mode" id="jk-mode">—</div>
-      <div class="jk-progress-zone">
-        <div class="jk-prog-wrap" id="jk-prog-wrap">
-          <div class="jk-prog-fill" id="jk-prog-fill"></div>
+      <div class="jk-hero-mid" id="jk-hero-mid">
+        <div class="jk-track" id="jk-track">—</div>
+        <div class="jk-mode" id="jk-mode">—</div>
+        <div class="jk-progress-zone">
+          <div class="jk-prog-wrap" id="jk-prog-wrap">
+            <div class="jk-prog-track">
+              <div class="jk-prog-fill" id="jk-prog-fill"></div>
+            </div>
+          </div>
+          <div class="jk-times"><span id="jk-time-cur">0:00</span><span id="jk-time-dur">0:00</span></div>
         </div>
-        <div class="jk-times"><span id="jk-time-cur">0:00</span><span id="jk-time-dur">0:00</span></div>
       </div>
       <div class="jk-controls">
         <div class="jk-btn" id="jk-shuffle-btn" onclick="toggleJkShuffle()" title="Lecture aléatoire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></div>
@@ -7591,10 +7753,6 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
         </div>
         <div class="hmv-border" id="hmv-border"></div>
       </div>
-    <!-- Bouton flip — dans le flux, juste sous la card -->
-    <div class="hmv-flip-text-btn" id="hmv-flip-text-btn" onclick="hmvFlipPoster()">
-      <span id="hmv-flip-text-label">↻ retourner la carte</span>
-    </div>
     </div>
 
     <!-- Zone swipe active — en dessous du bouton flip -->
@@ -7603,7 +7761,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
     <!-- Hint swipe up -->
     <div class="hmv-hint" id="hmv-hint">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-      <span class="hmv-hint-text">SWIPE POUR LES INFOS</span>
+      <span class="hmv-hint-text">SWIPE ↑ INFOS<br>SWIPE ← RETOURNER</span>
     </div>
 
     <!-- Panneau infos (slide-up) -->
@@ -16328,7 +16486,51 @@ function hmSwitchTab(tab) {
   }
   // Sauvegarder l'onglet actif
   try{localStorage.setItem('hm_last_tab', tab);}catch(e){}
+  // Retour haptique léger
+  try{ if(navigator.vibrate) navigator.vibrate(6); }catch(e){}
 }
+
+// ══ HM — Swipe entre onglets ══
+(function(){
+  const HM_TABS = ['scratch','collection','cesoir','wishlist'];
+  let _swTouchX = null, _swTouchY = null, _swLocked = false;
+
+  window._hmInitSwipe = function(){
+    const el = document.getElementById('hm');
+    if(!el || el._hmSwipeReady) return;
+    el._hmSwipeReady = true;
+
+    el.addEventListener('touchstart', function(e){
+      if(window._hmScratching) return;
+      const t = e.touches[0];
+      _swTouchX = t.clientX;
+      _swTouchY = t.clientY;
+      _swLocked = false;
+    }, {passive:true});
+
+    el.addEventListener('touchmove', function(e){
+      if(_swTouchX === null || window._hmScratching) return;
+      const dx = e.touches[0].clientX - _swTouchX;
+      const dy = e.touches[0].clientY - _swTouchY;
+      if(!_swLocked && (Math.abs(dx)>8 || Math.abs(dy)>8)){
+        _swLocked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      }
+      if(_swLocked === 'h') e.preventDefault();
+    }, {passive:false});
+
+    el.addEventListener('touchend', function(e){
+      if(_swTouchX === null || _swLocked !== 'h') { _swTouchX=null; return; }
+      const dx = e.changedTouches[0].clientX - _swTouchX;
+      _swTouchX = null;
+      if(Math.abs(dx) < 50) return;
+      const cur = HM_TABS.indexOf(window._hmCurrentTab||'scratch');
+      const next = dx < 0
+        ? Math.min(cur+1, HM_TABS.length-1)
+        : Math.max(cur-1, 0);
+      if(next !== cur) hmSwitchTab(HM_TABS[next]);
+    }, {passive:true});
+  };
+})();
 
 function _hmUpdateTabCount() {
   const el = document.getElementById('hm-tab-count');
@@ -16457,6 +16659,16 @@ function _hmRenderCollection() {
   const statsHtml = _hmBuildCollectionStats(revealedFilms.map(f=>f.film));
   grid.innerHTML += statsHtml;
 
+  // Carte tuto à la fin de la collection (si déjà vue)
+  try {
+    if(localStorage.getItem('hm_tuto_collection')) {
+      const tuloCard = `<div class="hm-card hm-card-tuto" onclick="hmReopenTuto()" title="Revoir l'intro">
+        <div class="hm-card-tuto-logo" style="color:rgba(192,132,252,.4);"><svg viewBox="0 0 761 401" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M374.616 0.037C376.572-0.012 386.382 0.037C457.403 0.835 525.436 16.047 588.676 45.365C650.628 74.086 705.95 116.146 748.66 166.994C765.113 186.583 765.113 213.941 748.66 233.532C705.949 284.382 650.628 326.44 588.676 355.161C525.436 384.479 386.382 400.489C384.426 400.539 376.572 400.539 374.616 400.489C303.595 399.691 172.322 355.161C110.37 326.44 55.05 284.38 12.34 233.532C-3.985 214.096 11.958 167.454L12.34 166.994C55.051 116.144 172.322 45.365C235.562 16.047 374.616 0.037Z" fill="currentColor"/></svg></div>
+        <div class="hm-card-tuto-label">INTRO ↺</div>
+      </div>`;
+      if(grid) grid.innerHTML += tuloCard;
+    }
+  } catch(e) {}
   // Attacher les events holo après le rendu
   requestAnimationFrame(() => _hmInitHoloCards());
 }
@@ -16554,11 +16766,20 @@ let _hmvList  = [];   // liste des films de la collection (ordre affiché)
 let _hmvIdx   = 0;    // index courant dans _hmvList
 let _hmvInfoOpen = false;
 
-function _hmOpenCardDetail(idx) {
-  // Construire la liste dans le même ordre que la grille (tri actif)
-  _hmvList = _hmSortFilms([..._hmRevealed]
-    .map(i => ({ idx: i, film: _hmFilms[i] }))
-    .filter(f => f.film));
+function _hmOpenCardDetail(idx, source) {
+  // source='wishlist' ou onglet actif → limiter la liste au contexte courant
+  if ((source || _hmCurrentTab) === 'wishlist') {
+    _hmvList = [..._hmWishlist].map(key => {
+      const film = _hmFilms.find(f => f.t === key);
+      const i = film ? _hmFilms.indexOf(film) : -1;
+      return film ? { idx: i, film } : null;
+    }).filter(Boolean);
+  } else {
+    // Construire la liste dans le même ordre que la grille (tri actif)
+    _hmvList = _hmSortFilms([..._hmRevealed]
+      .map(i => ({ idx: i, film: _hmFilms[i] }))
+      .filter(f => f.film));
+  }
   // Trouver la position de la card cliquée
   const pos = _hmvList.findIndex(f => f.idx === idx);
   _hmvIdx = pos >= 0 ? pos : 0;
@@ -16586,19 +16807,19 @@ function hmvFlipPoster(dir){
   const inner = poster.querySelector('.hmv-poster-inner');
   if(inner){
     if(!wasFlipped){
-      // On va montrer le verso : la direction du swipe dicte le sens
-      // swipe gauche (dir='left') → rotation vers la gauche : -180deg
-      // swipe droite (dir='right') → rotation vers la droite : +180deg
-      // tap (pas de dir) → défaut gauche comme avant
+      // Recto → Verso
+      // swipe D→G (dir='left') → carte part vers la gauche : -180deg
+      // tap (dir indéfini) → même sens par défaut
       const deg = (dir === 'right') ? '180deg' : '-180deg';
       inner.style.setProperty('--flip-deg', deg);
-      // La face-back doit s'adapter aussi
+      poster.dataset.flipDir = deg; // mémorise le sens pour le retour
       const faceBack = poster.querySelector('.hmv-face-back');
       if(faceBack) faceBack.style.transform = 'rotateY('+((dir==='right')?'-180deg':'180deg')+')';
     } else {
-      // On revient au recto : même sens que l'aller (stocké sur poster)
+      // Verso → Recto : on inverse le sens mémorisé à l'aller pour un retour physique cohérent
+      // Si on avait flipé vers -180deg, on revient en allant vers 0 dans le même sens (la carte continue sa rotation)
+      // dir='right' (swipe G→D depuis verso) → retour naturel si l'aller était -180deg
       inner.style.setProperty('--flip-deg', '0deg');
-      // La face-back reste dans sa position (le inner revient à 0, elle disparaît naturellement)
     }
   }
   poster.classList.toggle('flipped');
@@ -16687,9 +16908,6 @@ function _hmvRender() {
     poster.classList.remove('flipped');
     delete poster.dataset.backFilled;
   }
-  const flipLbl = document.getElementById('hmv-flip-text-label');
-  if(flipLbl) flipLbl.textContent = '↻ retourner la carte';
-
   // Reset infos panel
   const infoEl = document.getElementById('hmv-info');
   if(infoEl) infoEl.classList.remove('open');
@@ -16931,20 +17149,16 @@ function _hmvTouchStart(e) {
   _hmvSY = e.touches[0].clientY;
   _hmvSwipeInFlipZone = false;
 
-  const flipBtn = document.getElementById('hmv-flip-text-btn');
-  const poster  = document.getElementById('hmv-poster');
-
-  if (flipBtn) {
-    const rb = flipBtn.getBoundingClientRect();
-    // Activer le swipe uniquement sous le bouton flip
-    _hmvSwipeEnabled = _hmvSY > rb.bottom + 8;
-    // Zone flip = sur le poster lui-même (le flip est géré par _hmvHoloTouchEnd)
-    // Zone navigation = SOUS le poster/bouton, pas sur l'affiche
-    _hmvSwipeInFlipZone = false; // navigation par défaut sous le bouton
+  // Le flip est géré par _hmvHoloTouchEnd (sur la carte elle-même)
+  // La navigation entre films est activée partout sous la carte
+  const poster = document.getElementById('hmv-poster');
+  if (poster) {
+    const r = poster.getBoundingClientRect();
+    _hmvSwipeEnabled = _hmvSY > r.bottom + 4;
   } else {
     _hmvSwipeEnabled = true;
-    _hmvSwipeInFlipZone = false;
   }
+  _hmvSwipeInFlipZone = false;
 }
 function _hmvTouchEnd(e) {
   if (!_hmvSwipeEnabled) return;
@@ -17150,17 +17364,26 @@ function _hmvHoloTouchMove(e) {
 function _hmvHoloTouchEnd(e) {
   _hmvTouchMoved = false;
   _hmvDeactivate();
-  // Swipe horizontal sur le tiers bas de l'affiche → flip
   if (!e || !e.changedTouches) return;
   const dx = e.changedTouches[0].clientX - _hmvTouchStartX;
   const dy = e.changedTouches[0].clientY - _hmvTouchStartY;
-  if (Math.abs(dx) > 44 && Math.abs(dy) < Math.abs(dx) * 0.6) {
+  const adx = Math.abs(dx), ady = Math.abs(dy);
+
+  // Swipe horizontal sur toute la carte → flip (sens physique)
+  // Recto : swipe G→D (dx>0) = pas logique, swipe D→G (dx<0) = retourner
+  // Verso  : swipe G→D (dx>0) = remettre recto, swipe D→G (dx<0) = pas logique
+  // → on flip dans les 2 sens selon l'état actuel
+  if (adx > 44 && ady < adx * 0.55 && !_hmvInfoOpen) {
     const poster = document.getElementById('hmv-poster');
     if (poster) {
-      const r = poster.getBoundingClientRect();
-      const inBottomThird = _hmvTouchStartY > r.top + r.height * 0.6;
-      if (inBottomThird && !_hmvInfoOpen) {
-        hmvFlipPoster(dx < 0 ? 'left' : 'right');
+      const isFlipped = poster.classList.contains('flipped');
+      // Recto + swipe D→G : retourner vers le verso
+      // Verso + swipe G→D : revenir au recto
+      // Les autres combinaisons : ignorées (geste contre-nature)
+      if (!isFlipped && dx < 0) {
+        hmvFlipPoster('left');
+      } else if (isFlipped && dx > 0) {
+        hmvFlipPoster('right');
       }
     }
   }
@@ -17225,10 +17448,14 @@ function openHM(){
   const hbg=document.getElementById('home-bg');if(hbg)hbg.classList.remove('visible');
   const el=document.getElementById('hm');
   if(el){el.setAttribute('style','display:flex;flex-direction:column;opacity:1;pointer-events:all;');}
+  // Swipe entre onglets
+  if(typeof window._hmInitSwipe==='function') window._hmInitSwipe();
   _hmLoadRevealed();
   _hmLoadWishlist();
   _hmBuildList();
   if(musOn)switchMusic('reco',0.22);
+  // Première visite → carte tuto
+  hmCheckFirstVisit();
 
   const s=ls();const userLvl=glv(s.xp);
   const daily = window._hmDailyAvailable || new Set();
@@ -17355,6 +17582,34 @@ function _hmBuildList(){
   _hmUpdateTabCount();
 }
 
+// ── HM : phrase énigmatique à partir du synopsis ──
+function _hmBuildClue(film) {
+  if (!film) return '';
+  const s = film.s || '';
+  if (!s) return '';
+  // Découper en phrases
+  const sentences = s.match(/[^.!?]+[.!?]?/g) || [];
+  const cleaned = sentences.map(x => x.trim()).filter(x => x.length > 18 && x.length < 90);
+  if (!cleaned.length) return s.slice(0, 70) + (s.length > 70 ? '…' : '');
+  // Prendre la phrase la plus évocatrice (ni trop courte ni trop longue, éviter noms propres évidents)
+  const title = (film.t || '').toLowerCase();
+  const scored = cleaned.map(phrase => {
+    let score = 0;
+    if (phrase.length > 30 && phrase.length < 70) score += 2;
+    if (/(il|elle|on|ils|elles|un|une|des|le|la|les)/i.test(phrase)) score += 1;
+    // Pénaliser si contient le titre du film
+    const words = title.split(/\s+/).filter(w => w.length > 3);
+    if (words.some(w => phrase.toLowerCase().includes(w))) score -= 3;
+    return { phrase, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  let best = scored[0].phrase.trim();
+  // Retirer ponctuation finale, ajouter ellipse si trop long
+  if (best.length > 72) best = best.slice(0, 70).trimEnd() + '…';
+  else best = best.replace(/[.!?]$/, '');
+  return '"' + best + '"';
+}
+
 function _hmRenderCard(idx){
   const film=_hmFilms[idx];
   if(!film)return;
@@ -17444,10 +17699,12 @@ function _hmRenderCard(idx){
   const moodDefault=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
   const mainMood=(film.m && film.m[0])||'';
   const moodIcon=moodSVGs[mainMood]||moodDefault;
+  const clue = _hmBuildClue(film);
   hint.innerHTML=`
     <div class="hm-scratch-hint-icon">${moodIcon}</div>
     <div class="hm-scratch-hint-genre">${film.g}</div>
     <div class="hm-scratch-hint-year">${film.y}</div>
+    ${clue ? `<div class="hm-scratch-hint-clue">${clue}</div>` : ''}
     <div class="hm-scratch-hint-label">Gratte pour révéler</div>`;
 
   if(isRevealed){
@@ -17505,19 +17762,18 @@ function _hmInitScratch(canvas, film, idx){
   ctx.scale(DPR, DPR);
   _hmCtx = ctx;
 
-  // 1. Fond argenté
+  // ── FOND argenté nacré ──
   const gBase = ctx.createLinearGradient(0, 0, W, H);
   gBase.addColorStop(0.00, '#c8c8d8');
-  gBase.addColorStop(0.18, '#e8e8f4');
-  gBase.addColorStop(0.36, '#b8b8cc');
-  gBase.addColorStop(0.52, '#dcdcec');
-  gBase.addColorStop(0.68, '#c0c0d4');
-  gBase.addColorStop(0.84, '#e0e0f0');
+  gBase.addColorStop(0.20, '#e4e4f2');
+  gBase.addColorStop(0.40, '#b8b8cc');
+  gBase.addColorStop(0.60, '#d8d8ec');
+  gBase.addColorStop(0.80, '#c0c0d6');
   gBase.addColorStop(1.00, '#b0b0c8');
   ctx.fillStyle = gBase;
   ctx.fillRect(0, 0, W, H);
 
-  // 2. Couche holographique irisée
+  // ── Couche holographique arc-en-ciel ──
   const gHolo = ctx.createLinearGradient(0, 0, W * 1.2, H * 0.8);
   gHolo.addColorStop(0.00, 'rgba(200,100,255,0.18)');
   gHolo.addColorStop(0.15, 'rgba(100,180,255,0.14)');
@@ -17530,58 +17786,53 @@ function _hmInitScratch(canvas, film, idx){
   ctx.fillStyle = gHolo;
   ctx.fillRect(0, 0, W, H);
 
-  // 3. Grain argenté fin (putImageData opère en coords bitmap, ignore le scale)
+
+
+  // ── GRAIN ──
   const imgData = ctx.getImageData(0, 0, W * DPR, H * DPR);
   const d = imgData.data;
   for (let i = 0; i < d.length; i += 4) {
-    const n = (Math.random() - 0.5) * 22;
+    const n = (Math.random() - 0.5) * 16;
     d[i]   = Math.min(255, Math.max(0, d[i]   + n));
     d[i+1] = Math.min(255, Math.max(0, d[i+1] + n));
-    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n * 0.7));
+    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n * 1.4));
   }
   ctx.putImageData(imgData, 0, 0);
-  // putImageData ignore le transform — le scale DPR est toujours actif, pas besoin de le ré-appliquer
 
-  // 4. Guilloché fin
+  // ── GUILLOCHÉ diagonal ──
   ctx.save();
-  ctx.globalAlpha = 0.045;
-  ctx.strokeStyle = '#6060a0';
+  ctx.globalAlpha = 0.07;
+  ctx.strokeStyle = 'rgba(192,132,252,0.9)';
   ctx.lineWidth = 0.4;
-  for (let x = -H; x < W + H; x += 10) {
+  for (let x = -H; x < W + H; x += 14) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H, H); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x - H, H); ctx.stroke();
   }
   ctx.restore();
 
-  // 5. Orbe central
-  const gCenter = ctx.createRadialGradient(W*.5, H*.38, 0, W*.5, H*.38, W*.65);
-  gCenter.addColorStop(0,   'rgba(255,255,255,0.28)');
-  gCenter.addColorStop(0.3, 'rgba(220,220,255,0.10)');
-  gCenter.addColorStop(1,   'rgba(180,180,220,0.00)');
-  ctx.fillStyle = gCenter;
+  // ── VIGNETTE bords ──
+  const gVign = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.9);
+  gVign.addColorStop(0, 'rgba(0,0,0,0)');
+  gVign.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = gVign;
   ctx.fillRect(0, 0, W, H);
 
-  // 6. Reflets violets aux coins
-  [[0,0,'rgba(168,85,247,0.12)'],[W,0,'rgba(100,180,255,0.10)'],[0,H,'rgba(255,100,200,0.09)'],[W,H,'rgba(168,85,247,0.11)']].forEach(([cx,cy,col]) => {
-    const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.4);
-    gr.addColorStop(0,   col);
-    gr.addColorStop(0.5, col.replace(/[\d.]+\)$/, '0.03)'));
-    gr.addColorStop(1,   col.replace(/[\d.]+\)$/, '0)'));
-    ctx.fillStyle = gr;
-    ctx.fillRect(0, 0, W, H);
-  });
-
-  // 7. Texte gravé
+  // ── CADRE INTÉRIEUR décoratif ──
   ctx.save();
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.globalAlpha = 0.28;
-  ctx.font = `700 11px -apple-system, sans-serif`;
-  ctx.fillStyle = '#4040a0';
-  ctx.fillText('✦  GRATTE POUR RÉVÉLER  ✦', W / 2, H / 2 + 10);
-  ctx.globalAlpha = 0.14;
-  ctx.font = `600 9px -apple-system, sans-serif`;
-  ctx.fillStyle = '#5050b0';
-  ctx.fillText(film.g.toUpperCase(), W / 2, H / 2 + 28);
+  const bm = 16;
+  // Ligne fine
+  ctx.strokeStyle = 'rgba(192,132,252,0.2)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(bm, bm, W - bm*2, H - bm*2);
+  // Coins en L
+  const cL = 18;
+  ctx.strokeStyle = 'rgba(192,132,252,0.6)';
+  ctx.lineWidth = 1.5;
+  [[bm,bm,1,1],[W-bm,bm,-1,1],[bm,H-bm,1,-1],[W-bm,H-bm,-1,-1]].forEach(([cx,cy,sx,sy]) => {
+    ctx.beginPath();
+    ctx.moveTo(cx + sx*cL, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy*cL);
+    ctx.stroke();
+  });
   ctx.restore();
 
   // ── SHIMMER animé par-dessus (mix-blend-mode:screen) ──
@@ -17598,26 +17849,27 @@ function _hmInitScratch(canvas, film, idx){
 
   const animShimmer2 = () => {
     shCtx.clearRect(0, 0, W, H);
-    shimmerPos += 0.004;
-    if (shimmerPos > 1.4) shimmerPos = -0.3;
-    const cx0 = W * (shimmerPos - 0.22);
-    const cx1 = W * (shimmerPos + 0.22);
-    const sh = shCtx.createLinearGradient(cx0, 0, cx1, H * 0.7);
+
+    // ── Balayage diagonal — pleine carte, boucle lissée ──
+    // On travaille en coordonnées diagonales pour couvrir H entier
+    shimmerPos += 0.006;
+    if (shimmerPos > 1.0) shimmerPos = 0.0;
+    // Le gradient va de (-W, 0) à (2W, H) — assez large pour couvrir tout le canvas
+    // t=0 : bande à gauche hors cadre ; t=1 : bande à droite hors cadre
+    const diagLen = W + H; // longueur diagonale
+    const cx = -H + shimmerPos * (W + H) * 1.4;
+    const sh = shCtx.createLinearGradient(cx, 0, cx + diagLen, H);
     sh.addColorStop(0,    'rgba(255,255,255,0)');
-    sh.addColorStop(0.35, 'rgba(200,180,255,0.06)');
-    sh.addColorStop(0.50, 'rgba(255,255,255,0.18)');
-    sh.addColorStop(0.65, 'rgba(180,220,255,0.06)');
+    sh.addColorStop(0.35, 'rgba(200,170,255,0.05)');
+    sh.addColorStop(0.48, 'rgba(240,225,255,0.22)');
+    sh.addColorStop(0.52, 'rgba(220,200,255,0.20)');
+    sh.addColorStop(0.65, 'rgba(180,160,255,0.05)');
     sh.addColorStop(1,    'rgba(255,255,255,0)');
     shCtx.fillStyle = sh;
     shCtx.fillRect(0, 0, W, H);
-    shimmerCurX += (shimmerTargetX - shimmerCurX) * 0.06;
-    const hue = Math.round(shimmerCurX * 280);
-    const sh2 = shCtx.createRadialGradient(W * shimmerCurX, H * 0.4, 0, W * shimmerCurX, H * 0.4, W * 0.5);
-    sh2.addColorStop(0,   `hsla(${hue},80%,75%,0.10)`);
-    sh2.addColorStop(0.4, `hsla(${hue+40},70%,65%,0.05)`);
-    sh2.addColorStop(1,   'rgba(0,0,0,0)');
-    shCtx.fillStyle = sh2;
-    shCtx.fillRect(0, 0, W, H);
+
+
+
     _hmShimmerRaf = requestAnimationFrame(animShimmer2);
   };
   _hmShimmerRaf = requestAnimationFrame(animShimmer2);
@@ -17632,35 +17884,31 @@ function _hmInitScratch(canvas, film, idx){
   const pCtx = pCanvas.getContext('2d');
   pCtx.scale(DPR, DPR);
 
-  // Pool de copeaux holographiques
+  // Micro-poussière argentée — fines particules discrètes, pas de confettis
   const particles = [];
-  const CHIP_COLORS = [
-    '#d0d0e8','#e8e8f8','#c0c0dc','#f0f0ff',
-    'rgba(200,150,255,0.95)',  // violet
-    'rgba(150,200,255,0.90)',  // bleu
-    'rgba(255,180,220,0.90)',  // rose
-    'rgba(180,255,220,0.85)',  // vert menthe
-    'rgba(255,230,150,0.90)',  // doré
-  ];
   const spawnChips = (x, y, speed = 1) => {
-    const count = Math.floor(Math.random() * 6) + 4;
+    const count = Math.floor(Math.random() * 4) + 2;
     for (let i = 0; i < count; i++) {
-      const angle  = Math.random() * Math.PI * 2;
-      const spd    = (Math.random() * 2.8 + 0.9) * speed;
-      const size   = Math.random() * 5.5 + 1.5;
-      const isHolo = Math.random() < 0.45; // plus de copeaux colorés
+      const angle = Math.random() * Math.PI * 2;
+      const spd   = (Math.random() * 1.4 + 0.4) * speed;
+      const size  = Math.random() * 2.2 + 0.6; // très petites
+      // Argenté uniquement : blanc, gris clair, légère iridescence violette
+      const colors = [
+        'rgba(255,255,255,0.9)',
+        'rgba(220,220,240,0.85)',
+        'rgba(200,200,225,0.80)',
+        'rgba(210,195,255,0.75)',
+      ];
       particles.push({
         x, y,
         vx: Math.cos(angle) * spd,
-        vy: Math.sin(angle) * spd - 1.8,
+        vy: Math.sin(angle) * spd - 1.2,
         size,
-        color: CHIP_COLORS[Math.floor(Math.random() * (isHolo ? CHIP_COLORS.length : 4))],
-        alpha: 0.95,
-        decay: Math.random() * 0.038 + 0.018,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 0.88,
+        decay: Math.random() * 0.055 + 0.025,
         rot: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.5,
-        type: ['chip','flake','dot'][Math.floor(Math.random() * 3)],
-        scaleY: 0.22 + Math.random() * 0.55,
+        rotSpeed: (Math.random() - 0.5) * 0.25,
       });
     }
   };
@@ -17671,8 +17919,8 @@ function _hmInitScratch(canvas, film, idx){
     let alive = false;
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
-      p.x  += p.vx;  p.y  += p.vy;
-      p.vy += 0.13;  p.vx *= 0.96;
+      p.x  += p.vx; p.y  += p.vy;
+      p.vy += 0.09; p.vx *= 0.97;
       p.alpha -= p.decay;
       p.rot   += p.rotSpeed;
       if (p.alpha <= 0) { particles.splice(i, 1); continue; }
@@ -17681,21 +17929,11 @@ function _hmInitScratch(canvas, film, idx){
       pCtx.globalAlpha = p.alpha;
       pCtx.translate(p.x, p.y);
       pCtx.rotate(p.rot);
+      // Petit éclat plat — comme une vraie paillette de carte à gratter
       pCtx.fillStyle = p.color;
-      if (p.type === 'chip') {
-        pCtx.scale(1, p.scaleY);
-        pCtx.beginPath();
-        pCtx.ellipse(0, 0, p.size, p.size * 0.45, 0, 0, Math.PI * 2);
-        pCtx.fill();
-      } else if (p.type === 'flake') {
-        pCtx.fillRect(-p.size * 0.5, -p.size * 0.2, p.size, p.size * 0.4);
-      } else {
-        pCtx.beginPath(); pCtx.arc(0, 0, p.size * 0.38, 0, Math.PI * 2); pCtx.fill();
-      }
-      // Mini-reflet
-      pCtx.globalAlpha = p.alpha * 0.55;
-      pCtx.fillStyle = 'rgba(255,255,255,0.9)';
-      pCtx.beginPath(); pCtx.arc(-p.size * 0.12, -p.size * 0.12, p.size * 0.18, 0, Math.PI * 2); pCtx.fill();
+      pCtx.beginPath();
+      pCtx.ellipse(0, 0, p.size, p.size * 0.35, 0, 0, Math.PI * 2);
+      pCtx.fill();
       pCtx.restore();
     }
     if (alive) { animId = requestAnimationFrame(animParticles); _hmParticleRaf = animId; }
@@ -19727,7 +19965,7 @@ function _hmRenderWishlist(){
     const imgHtml=posterUrl
       ?'<img class="hm-card-img" src="'+posterUrl+'" alt="'+film.t+'" loading="lazy">'
       :'<div class="hm-card-img-placeholder">'+film.y+'</div>';
-    return '<div class="hm-card" data-idx="'+idx+'" onclick="_hmOpenCardDetail('+idx+')">'
+    return '<div class="hm-card" data-idx="'+idx+'" onclick="_hmOpenCardDetail('+idx+',\'wishlist\')">'
       +imgHtml
       +'<div class="hm-card-overlay"></div>'
       +'<div class="hm-card-tap-shine"></div><div class="hm-card-border"></div>'
@@ -24575,6 +24813,8 @@ function openJukebox(){
   updateJukeboxDisplay();
   buildJkPlaylist();
   if(window._jkAudio&&!window._jkAudio.paused){_startProgInterval();}
+  // ── Condensed hero on playlist scroll ──
+  _jkInitCondensed();
   // ── Easter egg Chef d'orchestre : 2h dans le Jukebox ──
   if(!eeIsFound('ee_maestro')){
     window._jkMaestroTimer = setTimeout(function(){
@@ -24585,8 +24825,53 @@ function openJukebox(){
   window._jkOpenTime = Date.now();
 }
 
+function _jkInitCondensed(){
+  const playlist = document.getElementById('jk-playlist') || document.getElementById('jk-music-section');
+  const hero = document.querySelector('#jukebox .jk-hero');
+  if(!playlist || !hero) return;
+  // Éviter double init
+  if(playlist._condensedInit) return;
+  playlist._condensedInit = true;
+
+  let _lastScrollY = 0;
+  let _condensed = false;
+
+  const setCondensed = (on) => {
+    if(_condensed === on) return;
+    _condensed = on;
+    if(on){
+      hero.classList.add('condensed');
+    } else {
+      hero.classList.remove('condensed');
+    }
+    if(navigator.vibrate) navigator.vibrate(4);
+  };
+
+  // Scroll de la playlist
+  playlist.addEventListener('scroll', () => {
+    const sy = playlist.scrollTop;
+    if(sy > 30 && !_condensed) setCondensed(true);
+    if(sy < 8 && _condensed) setCondensed(false);
+    _lastScrollY = sy;
+  }, { passive: true });
+
+  // Swipe vertical sur le hero lui-même → condense/expand
+  let _heroTY = 0;
+  hero.addEventListener('touchstart', e => { _heroTY = e.touches[0].clientY; }, { passive: true });
+  hero.addEventListener('touchend', e => {
+    const dy = e.changedTouches[0].clientY - _heroTY;
+    if(dy < -40) setCondensed(true);
+    if(dy > 40)  setCondensed(false);
+  }, { passive: true });
+}
+
 function closeJukebox(){
   _stopProgInterval();
+  // Reset condensed state
+  const hero = document.querySelector('#jukebox .jk-hero');
+  if(hero) hero.classList.remove('condensed');
+  const playlist = document.getElementById('jk-playlist');
+  if(playlist) { playlist._condensedInit = false; }
   // Annuler le timer Chef d'orchestre si on quitte avant 2h
   if(window._jkMaestroTimer){ clearTimeout(window._jkMaestroTimer); window._jkMaestroTimer=null; }
   // ── Sauvegarder le temps passé dans le Jukebox ──
@@ -29860,6 +30145,7 @@ if('serviceWorker' in navigator){
 // ══════════════════════════════════════════════════════
 // SUPABASE AUTH & SYNC — CinéQuiz
 // ══════════════════════════════════════════════════════
+
 (function(){
   var SUPA_URL = 'https://sjkjujkvrjlrmehuxqnx.supabase.co';
   var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqa2p1amt2cmpscm1laHV4cW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTMxMDMsImV4cCI6MjA5MjAyOTEwM30.mZwY72_IKpeE-4qbREHFYLLPDi-RfKH748BR0DWOPAE';
@@ -30769,13 +31055,178 @@ if('serviceWorker' in navigator){
     }
   } catch(e) {}
 
+
   // Boot
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function(){ injectUI(); init(); });
   } else {
     injectUI(); init();
   }
 })();
-
 </script>
+
+<script>
+// ══ HIDDEN MOVIES — CARTE TUTO ══
+var _HM_TUTO_KEY = 'hm_tuto_done';
+
+function hmShowTuto() {
+  var overlay = document.getElementById('hm-tuto-overlay');
+  if(!overlay) return;
+  overlay.classList.add('on');
+  var rules = overlay.querySelectorAll('.hm-tuto-rule');
+  var btn = document.getElementById('hm-tuto-btn');
+  rules.forEach(function(r, i) {
+    setTimeout(function(){ r.classList.add('visible'); }, 300 + i * 220);
+  });
+  setTimeout(function(){ if(btn) btn.classList.add('visible'); }, 300 + rules.length * 220 + 100);
+  if(navigator.vibrate) navigator.vibrate([20, 60, 20]);
+}
+
+function hmCloseTuto() {
+  var overlay = document.getElementById('hm-tuto-overlay');
+  if(overlay) {
+    overlay.style.opacity='0';
+    setTimeout(function(){ overlay.classList.remove('on'); overlay.style.opacity=''; }, 400);
+  }
+  try { localStorage.setItem(_HM_TUTO_KEY, '1'); } catch(e) {}
+  try { localStorage.setItem('hm_tuto_collection', '1'); } catch(e) {}
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+
+function hmCheckFirstVisit() {
+  // Ne jamais réafficher si déjà vu (localStorage) ou déjà montré cette session
+  if(window._hmTutoShownThisSession) return;
+  try {
+    if(localStorage.getItem(_HM_TUTO_KEY) === '1') return;
+  } catch(e) {}
+  // Première visite → afficher une seule fois
+  window._hmTutoShownThisSession = true;
+  setTimeout(hmShowTuto, 700);
+}
+
+function hmReopenTuto() {
+  var overlay = document.getElementById('hm-tuto-overlay');
+  if(!overlay) return;
+  overlay.querySelectorAll('.hm-tuto-rule').forEach(function(r){ r.classList.remove('visible'); });
+  var btn = document.getElementById('hm-tuto-btn');
+  if(btn) btn.classList.remove('visible');
+  requestAnimationFrame(function(){ setTimeout(hmShowTuto, 50); });
+}
+</script>
+
+  <!-- ── HIDDEN MOVIES TUTO OVERLAY ── -->
+  <div id="hm-tuto-overlay">
+    <div class="hm-tuto-card">
+      <div class="hm-tuto-logo"><svg viewBox="0 0 761 401" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <!-- Gradient shimmer animé -->
+  <linearGradient id="hm-logo-shimmer" x1="-100%" y1="0%" x2="0%" y2="0%" gradientUnits="userSpaceOnUse">
+    <stop offset="0%"   stop-color="rgba(192,132,252,0)" />
+    <stop offset="40%"  stop-color="rgba(192,132,252,1)" />
+    <stop offset="50%"  stop-color="rgba(255,240,255,1)" />
+    <stop offset="60%"  stop-color="rgba(192,132,252,1)" />
+    <stop offset="100%" stop-color="rgba(192,132,252,0)" />
+    <animateTransform
+      attributeName="gradientTransform"
+      type="translate"
+      from="-761 0"
+      to="1522 0"
+      dur="2.4s"
+      repeatCount="indefinite"
+      begin="0.3s"
+    />
+  </linearGradient>
+  <!-- Gradient base (couleur stable) -->
+  <linearGradient id="hm-logo-base" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="rgba(210,170,255,0.95)" />
+    <stop offset="100%" stop-color="rgba(168,85,247,0.85)" />
+  </linearGradient>
+  <!-- Masque de la forme du logo -->
+  <mask id="hm-logo-mask">
+    <rect width="761" height="401" fill="black"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M374.616 0.0372614C376.572 -0.0124221 384.426 -0.0124188 386.382 0.0372614C457.403 0.834982 525.436 16.0469 588.676 45.3652C650.628 74.0859 705.95 116.146 748.66 166.994C765.113 186.583 765.113 213.941 748.66 233.532C705.949 284.382 650.628 326.44 588.676 355.161C525.436 384.479 457.401 399.69 386.382 400.489C384.426 400.539 376.572 400.539 374.616 400.489C303.595 399.691 235.562 384.479 172.322 355.161C110.37 326.44 55.0496 284.38 12.3402 233.532C-3.98484 214.096 -4.11245 187.009 11.9577 167.454L12.3402 166.994C55.0511 116.144 110.37 74.0859 172.322 45.3652C235.562 16.0469 303.597 0.836391 374.616 0.0372614ZM470.902 28.414C522.495 52.2479 562.223 95.8582 577.943 149.198H556.901C533.551 79.7955 463.908 29.1941 381.694 28.7089L380.501 28.7056C297.768 28.7056 227.563 79.4597 204.1 149.198H183.058C198.778 95.8582 238.505 52.248 290.098 28.414C252.311 35.5738 215.757 47.3026 180.745 63.534C121.38 91.0557 68.4435 131.337 27.675 179.874C17.4773 192.015 17.4768 208.511 27.6745 220.651C68.4415 269.187 121.38 309.47 180.745 336.992C215.761 353.226 252.319 364.955 290.111 372.115C238.729 348.382 199.113 305.034 183.258 251.995H204.328C227.899 321.053 297.359 371.331 379.308 371.814L380.501 371.818C462.969 371.818 532.989 321.388 556.674 251.995H577.744C561.89 305.033 522.276 348.379 470.895 372.113C508.684 364.953 545.24 353.225 580.253 336.992L581.644 336.345C639.982 309.057 692.049 269.44 732.367 221.788L733.325 220.652C743.524 208.508 743.523 192.015 733.326 179.875C692.877 131.718 640.445 91.6857 581.644 64.1814L580.253 63.534C545.242 47.3026 508.689 35.5739 470.902 28.414Z" fill="white"/>
+    <path d="M90.1961 170.386H103.03V234.436H90.1961V208.768H67.1903V234.436H54.3562V170.386H67.1903V196.014H90.1961V170.386Z" fill="white"/>
+    <path d="M115.043 234.436V170.386H127.917V234.436H115.043Z" fill="white"/>
+    <path d="M158.526 170.386C179.227 170.346 191.863 182.504 191.863 202.49C191.863 222.357 179.227 234.436 158.526 234.436H139.891V202.431V170.425L158.526 170.386ZM158.605 221.602C171.201 221.602 178.87 214.371 178.87 202.451C178.87 190.451 171.161 183.14 158.486 183.14H152.725V221.602H158.605Z" fill="white"/>
+    <path d="M219.69 170.386C240.391 170.346 253.027 182.504 253.027 202.49C253.027 222.357 240.391 234.436 219.69 234.436H201.055V170.425L219.69 170.386ZM219.769 221.602C232.365 221.602 240.034 214.371 240.034 202.451C240.034 190.451 232.325 183.14 219.65 183.14H213.889V221.602H219.769Z" fill="white"/>
+    <path d="M300.84 183.061H275.092V195.577H297.184V208.411H275.092V221.642H300.84V234.436H262.219V170.386H300.84V183.061Z" fill="white"/>
+    <path d="M349.726 170.227H362.64V235.628H362.044L324.018 198.636V234.516H311.145V169.194H311.78L349.726 206.106V170.227Z" fill="white"/>
+    <path d="M461.326 168.796H462.041V234.436H449.167V206.543L430.731 233.364H430.652L412.175 206.543V234.436H399.302V168.796H400.017L430.691 211.113L461.326 168.796Z" fill="white"/>
+    <path d="M502.45 235.668C484.172 235.668 469.193 220.728 469.193 202.49C469.193 184.094 484.172 169.074 502.49 169.074C520.807 169.074 535.826 184.094 535.826 202.49C535.826 220.728 520.807 235.668 502.45 235.668ZM502.45 222.635C513.655 222.635 522.794 213.536 522.794 202.411C522.794 191.206 513.655 182.067 502.45 182.067C491.285 182.067 482.186 191.206 482.186 202.411C482.186 213.536 491.285 222.635 502.45 222.635Z" fill="white"/>
+    <path d="M578.937 170.386H592.725L562.765 236.026H562.289L532.449 170.386H546.077L562.487 207.576L578.937 170.386Z" fill="white"/>
+    <path d="M597.929 234.436V170.386H610.803V234.436H597.929Z" fill="white"/>
+    <path d="M659.318 183.061H633.57V195.577H655.662V208.411H633.57V221.642H659.318V234.436H620.696V170.386H659.318V183.061Z" fill="white"/>
+    <path d="M686.734 235.708C676.244 235.708 668.496 231.337 664.204 223.39L674.496 216.159C677.317 220.688 681.409 222.755 686.932 222.755C692.972 222.755 697.025 220.291 697.025 216.874C697.025 212.185 689.356 208.49 682.641 205.153C675.449 201.577 667.542 197.643 667.542 187.431C667.542 176.346 676.919 169.035 688.68 169.035C697.422 169.035 704.653 172.65 707.554 180.399L698.058 187.034C696.15 183.22 692.455 181.67 688.879 181.67C684.071 181.67 680.495 184.451 680.495 187.749C680.495 191.564 685.343 192.875 692.694 196.332C703.303 201.338 709.978 206.742 709.978 216.596C709.978 228.278 700.442 235.708 686.734 235.708Z" fill="white"/>
+    <path d="M390.177 201.186C390.177 206.149 386.154 210.172 381.191 210.172C376.228 210.172 372.205 206.149 372.205 201.186C372.205 196.223 376.228 192.2 381.191 192.2C386.154 192.2 390.177 196.223 390.177 201.186Z" fill="white"/>
+  </mask>
+</defs>
+<!-- Couche de base — couleur stable -->
+<rect width="761" height="401" fill="url(#hm-logo-base)" mask="url(#hm-logo-mask)"/>
+<!-- Couche shimmer animée par-dessus -->
+<rect width="761" height="401" fill="url(#hm-logo-shimmer)" mask="url(#hm-logo-mask)" opacity="0.7"/>
+<!-- Point rouge préservé (pas dans le masque) -->
+<path d="M390.177 201.186C390.177 206.149 386.154 210.172 381.191 210.172C376.228 210.172 372.205 206.149 372.205 201.186C372.205 196.223 376.228 192.2 381.191 192.2C386.154 192.2 390.177 196.223 390.177 201.186Z" fill="#871417"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M374.616 0.0372614C376.572 -0.0124221 384.426 -0.0124188 386.382 0.0372614C457.403 0.834982 525.436 16.0469 588.676 45.3652C650.628 74.0859 705.95 116.146 748.66 166.994C765.113 186.583 765.113 213.941 748.66 233.532C705.949 284.382 650.628 326.44 588.676 355.161C525.436 384.479 457.401 399.69 386.382 400.489C384.426 400.539 376.572 400.539 374.616 400.489C303.595 399.691 235.562 384.479 172.322 355.161C110.37 326.44 55.0496 284.38 12.3402 233.532C-3.98484 214.096 -4.11245 187.009 11.9577 167.454L12.3402 166.994C55.0511 116.144 110.37 74.0859 172.322 45.3652C235.562 16.0469 303.597 0.836391 374.616 0.0372614ZM470.902 28.414C522.495 52.2479 562.223 95.8582 577.943 149.198H556.901C533.551 79.7955 463.908 29.1941 381.694 28.7089L380.501 28.7056C297.768 28.7056 227.563 79.4597 204.1 149.198H183.058C198.778 95.8582 238.505 52.248 290.098 28.414C252.311 35.5738 215.757 47.3026 180.745 63.534C121.38 91.0557 68.4435 131.337 27.675 179.874C17.4773 192.015 17.4768 208.511 27.6745 220.651C68.4415 269.187 121.38 309.47 180.745 336.992C215.761 353.226 252.319 364.955 290.111 372.115C238.729 348.382 199.113 305.034 183.258 251.995H204.328C227.899 321.053 297.359 371.331 379.308 371.814L380.501 371.818C462.969 371.818 532.989 321.388 556.674 251.995H577.744C561.89 305.033 522.276 348.379 470.895 372.113C508.684 364.953 545.24 353.225 580.253 336.992L581.644 336.345C639.982 309.057 692.049 269.44 732.367 221.788L733.325 220.652C743.524 208.508 743.523 192.015 733.326 179.875C692.877 131.718 640.445 91.6857 581.644 64.1814L580.253 63.534C545.242 47.3026 508.689 35.5739 470.902 28.414Z" fill="none"/>
+<path d="M90.1961 170.386H103.03V234.436H90.1961V208.768H67.1903V234.436H54.3562V170.386H67.1903V196.014H90.1961V170.386Z" fill="none"/>
+<path d="M115.043 234.436V170.386H127.917V234.436H115.043Z" fill="none"/>
+<path d="M158.526 170.386C179.227 170.346 191.863 182.504 191.863 202.49C191.863 222.357 179.227 234.436 158.526 234.436H139.891V202.431V170.425L158.526 170.386ZM158.605 221.602C171.201 221.602 178.87 214.371 178.87 202.451C178.87 190.451 171.161 183.14 158.486 183.14H152.725V221.602H158.605Z" fill="none"/>
+<path d="M219.69 170.386C240.391 170.346 253.027 182.504 253.027 202.49C253.027 222.357 240.391 234.436 219.69 234.436H201.055V170.425L219.69 170.386ZM219.769 221.602C232.365 221.602 240.034 214.371 240.034 202.451C240.034 190.451 232.325 183.14 219.65 183.14H213.889V221.602H219.769Z" fill="none"/>
+<path d="M300.84 183.061H275.092V195.577H297.184V208.411H275.092V221.642H300.84V234.436H262.219V170.386H300.84V183.061Z" fill="none"/>
+<path d="M349.726 170.227H362.64V235.628H362.044L324.018 198.636V234.516H311.145V169.194H311.78L349.726 206.106V170.227Z" fill="none"/>
+<path d="M461.326 168.796H462.041V234.436H449.167V206.543L430.731 233.364H430.652L412.175 206.543V234.436H399.302V168.796H400.017L430.691 211.113L461.326 168.796Z" fill="none"/>
+<path d="M502.45 235.668C484.172 235.668 469.193 220.728 469.193 202.49C469.193 184.094 484.172 169.074 502.49 169.074C520.807 169.074 535.826 184.094 535.826 202.49C535.826 220.728 520.807 235.668 502.45 235.668ZM502.45 222.635C513.655 222.635 522.794 213.536 522.794 202.411C522.794 191.206 513.655 182.067 502.45 182.067C491.285 182.067 482.186 191.206 482.186 202.411C482.186 213.536 491.285 222.635 502.45 222.635Z" fill="none"/>
+<path d="M578.937 170.386H592.725L562.765 236.026H562.289L532.449 170.386H546.077L562.487 207.576L578.937 170.386Z" fill="none"/>
+<path d="M597.929 234.436V170.386H610.803V234.436H597.929Z" fill="none"/>
+<path d="M659.318 183.061H633.57V195.577H655.662V208.411H633.57V221.642H659.318V234.436H620.696V170.386H659.318V183.061Z" fill="none"/>
+<path d="M686.734 235.708C676.244 235.708 668.496 231.337 664.204 223.39L674.496 216.159C677.317 220.688 681.409 222.755 686.932 222.755C692.972 222.755 697.025 220.291 697.025 216.874C697.025 212.185 689.356 208.49 682.641 205.153C675.449 201.577 667.542 197.643 667.542 187.431C667.542 176.346 676.919 169.035 688.68 169.035C697.422 169.035 704.653 172.65 707.554 180.399L698.058 187.034C696.15 183.22 692.455 181.67 688.879 181.67C684.071 181.67 680.495 184.451 680.495 187.749C680.495 191.564 685.343 192.875 692.694 196.332C703.303 201.338 709.978 206.742 709.978 216.596C709.978 228.278 700.442 235.708 686.734 235.708Z" fill="none"/>
+<path d="M390.177 201.186C390.177 206.149 386.154 210.172 381.191 210.172C376.228 210.172 372.205 206.149 372.205 201.186C372.205 196.223 376.228 192.2 381.191 192.2C386.154 192.2 390.177 196.223 390.177 201.186Z" fill="#871417"/>
+<path d="M461.173 275.07C461.176 275.07 461.179 275.074 461.177 275.077L432.776 355.227C432.687 355.479 432.483 355.673 432.227 355.75C402.438 364.651 370.161 365.183 339.735 358.77C339.013 358.618 338.833 357.677 339.444 357.264L461.17 275.071L461.173 275.07Z" fill="none"/>
+<path d="M395.5 304.644C396.329 304.644 396.656 305.719 395.967 306.181L324.342 354.211C324.129 354.354 323.861 354.391 323.616 354.311C294.322 344.737 267.253 328.322 247.576 306.023C247.101 305.485 247.487 304.644 248.204 304.644H395.5Z" fill="none"/>
+<path d="M520.989 297.223C521.085 297.495 521.034 297.797 520.854 298.023C502.239 321.329 476.606 339.554 447.769 350.725C447.107 350.981 446.451 350.345 446.683 349.673L480.548 251.714H504.981L520.989 297.223Z" fill="none"/>
+<path d="M327.178 292.99C327.865 293.452 327.538 294.526 326.709 294.526H282.143H237.576C237.571 294.526 237.565 294.523 237.562 294.518C227.627 281.409 219.681 266.938 214.177 251.714H265.859L327.178 292.99Z" fill="none"/>
+<path d="M546.935 251.714C542.487 263.803 536.639 275.496 529.99 286.73C529.989 286.732 529.987 286.733 529.984 286.733C529.982 286.733 529.979 286.732 529.978 286.729L517.475 251.714H546.935Z" fill="none"/>
+<path d="M231.064 114.906C231.542 114.212 231.079 113.632 232.464 113.825C232.76 113.866 232.999 114.08 233.097 114.363L244.962 148.784H214.152C218.385 136.598 224.077 124.975 231.064 114.906Z" fill="none"/>
+<path d="M313.491 49.9258C314.153 49.6697 314.808 50.3043 314.578 50.9758L281.058 148.784H256.452L240.269 103.432C240.172 103.159 240.222 102.855 240.402 102.628C259.018 79.3214 284.653 61.0961 313.491 49.9258Z" fill="none"/>
+<path d="M523.695 106.123C523.7 106.123 523.706 106.126 523.709 106.13C533.611 119.197 541.539 133.615 547.04 148.784H495.188L434.093 107.659C433.406 107.196 433.733 106.123 434.562 106.123H479.128H523.695Z" fill="none"/>
+<path d="M329.036 44.8924C359.446 35.8057 392.45 35.4405 423.431 42.2823L423.43 42.2842L302.196 124.146C301.525 124.599 300.664 123.933 300.935 123.17L328.487 45.415C328.576 45.1632 328.78 44.9689 329.036 44.8924Z" fill="none"/>
+<path d="M436.949 46.4363C437.163 46.2929 437.431 46.2553 437.676 46.3353C466.97 55.9095 494.039 72.3257 513.715 94.6246C514.19 95.1627 513.805 96.0028 513.088 96.0028H439.44H365.792C364.962 96.0026 364.636 94.9283 365.324 94.4664L436.949 46.4363Z" fill="none"/>
+</svg></div>
+      <div class="hm-tuto-divider"></div>
+      <div class="hm-tuto-rules" id="hm-tuto-rules">
+        <div class="hm-tuto-rule" id="hm-tuto-r0">
+          <div class="hm-tuto-rule-icon">🎴</div>
+          <div class="hm-tuto-rule-body">
+            <div class="hm-tuto-rule-title">7 cartes par jour</div>
+            <div class="hm-tuto-rule-desc">Chaque jour, 7 nouvelles cartes mystères t'attendent. Gratte pour révéler un film caché.</div>
+          </div>
+        </div>
+        <div class="hm-tuto-rule" id="hm-tuto-r1">
+          <div class="hm-tuto-rule-icon">✦</div>
+          <div class="hm-tuto-rule-body">
+            <div class="hm-tuto-rule-title">Indices avant de gratter</div>
+            <div class="hm-tuto-rule-desc">Genre, année et une phrase énigmatique — essaie de deviner le film avant même de gratter.</div>
+          </div>
+        </div>
+        <div class="hm-tuto-rule" id="hm-tuto-r2">
+          <div class="hm-tuto-rule-icon">🎬</div>
+          <div class="hm-tuto-rule-body">
+            <div class="hm-tuto-rule-title">Ta collection</div>
+            <div class="hm-tuto-rule-desc">Chaque film révélé rejoint ta collection. Retourne-les, explore les infos, ajoute tes favoris.</div>
+          </div>
+        </div>
+        <div class="hm-tuto-rule" id="hm-tuto-r3">
+          <div class="hm-tuto-rule-icon">🔒</div>
+          <div class="hm-tuto-rule-body">
+            <div class="hm-tuto-rule-title">Films à débloquer</div>
+            <div class="hm-tuto-rule-desc">Plus tu joues, plus tu montes en niveau — et plus de films rares se déverrouillent.</div>
+          </div>
+        </div>
+      </div>
+      <button class="hm-tuto-btn" id="hm-tuto-btn" onclick="hmCloseTuto()">
+        C'EST PARTI — GRATTE TA PREMIÈRE CARTE
+      </button>
+    </div>
+  </div>
+
 </body></html>
