@@ -4885,8 +4885,8 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hmvb-genre{font-size:11px;color:rgba(192,132,252,.55);letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;flex-shrink:0;}
 .hmvb-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:#fff;line-height:1;margin-bottom:5px;flex-shrink:0;}
 .hmvb-year{font-size:13px;color:rgba(255,255,255,.35);margin-bottom:10px;flex-shrink:0;}
-.hmvb-synopsis{font-size:13px;color:rgba(255,255,255,.6);line-height:1.55;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;margin-bottom:8px;}
-.hmvb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0;flex-shrink:0;}
+.hmvb-synopsis{font-size:13px;color:rgba(255,255,255,.6);line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;margin-bottom:8px;flex-shrink:0;}
+.hmvb-divider{height:1px;background:rgba(255,255,255,.08);margin:6px 0;flex-shrink:0;margin-top:auto;}
 .hmvb-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:8px;}
 .hmvb-lbl{font-size:9px;color:rgba(192,132,252,.5);letter-spacing:1.5px;text-transform:uppercase;}
 .hmvb-val{font-size:13px;color:rgba(255,255,255,.85);max-width:68%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -17054,25 +17054,30 @@ function _hmvRender() {
         img.onerror = null;
         const cacheKey = 'hm_poster_' + (film.t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase() + '_' + film.y;
         let cached = null; try { cached = localStorage.getItem(cacheKey); } catch {}
+        const hideSkel = () => { const sk=document.getElementById('hmv-skeleton'); if(sk) sk.style.display='none'; };
         const applyTmdb = path => {
           const url = TI + path;
           img.src = url;
           if (bg) bg.style.backgroundImage = 'url(' + url + ')';
           const b2=document.getElementById('hmv-bg2');if(b2)b2.style.backgroundImage='url('+url+')';
-          img.onload = () => { _hmvApplyHaloColor(img); };
+          img.onload = () => { _hmvApplyHaloColor(img); img.style.opacity='1'; hideSkel(); };
+          img.onerror = () => { hideSkel(); };
         };
         if (cached) { applyTmdb(cached); return; }
         fetch('https://api.themoviedb.org/3/search/movie?api_key=' + TK + '&language=fr-FR&query=' + encodeURIComponent(film.t) + '&year=' + film.y)
           .then(r=>r.json()).then(j=>{
             const p=j.results?.[0]?.poster_path;
             if(p){try{localStorage.setItem(cacheKey,p);}catch{}applyTmdb(p);}
-          }).catch(()=>{});
+            else { hideSkel(); }
+          }).catch(()=>{ hideSkel(); });
       };
     }
   } else {
     img.src = ''; img.style.display = 'none';
     if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; }
     if (bg) bg.style.backgroundImage = 'none';
+    // Pas d'affiche → on masque le skeleton pour éviter un second shimmer
+    if (_skEl) _skEl.style.display = 'none';
   }
 
   // Titre barre top
