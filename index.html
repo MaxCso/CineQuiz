@@ -17191,9 +17191,9 @@ let _C = { rx:0, ry:0, o:0, s:1, mx:50, my:50, px:50, py:50, hyp:0 };
 let _V = { rx:0, ry:0 };
 
 // Constantes spring
-const _STIFF = 0.18;   // raideur (0.05=très doux, 0.12=réactif)
-const _DAMP  = 0.72;   // amortissement
-const _LERP  = 0.28;   // lerp pour les vars non-spring (o, mx, my, px, py, hyp)
+const _STIFF = 0.12;   // raideur (plus doux = plus fluide sur mobile)
+const _DAMP  = 0.78;   // amortissement (plus haut = moins d'oscillation)
+const _LERP  = 0.20;   // lerp pour les vars non-spring
 
 function _hmvTick() {
   const poster = document.getElementById('hmv-poster');
@@ -17214,51 +17214,34 @@ function _hmvTick() {
   _C.py  += (_T.py  - _C.py)  * _LERP;
   _C.hyp += (_T.hyp - _C.hyp) * _LERP;
 
-  // Appliquer via CSS vars — le CSS fait tout le reste
+  // Appliquer via CSS vars — batch en une seule chaîne cssText pour perf
   const p = poster;
-  p.style.setProperty('--rx',   _C.rx.toFixed(3)  + 'deg');
-  p.style.setProperty('--ry',   _C.ry.toFixed(3)  + 'deg');
-  p.style.setProperty('--o',    _C.o.toFixed(4));
-  p.style.setProperty('--s',    _C.s.toFixed(4));
-  p.style.setProperty('--mx',   _C.mx.toFixed(2)  + '%');
-  p.style.setProperty('--my',   _C.my.toFixed(2)  + '%');
-  p.style.setProperty('--posx', _C.px.toFixed(2)  + '%');
-  p.style.setProperty('--posy', _C.py.toFixed(2)  + '%');
-  p.style.setProperty('--hyp',  _C.hyp.toFixed(4));
+  const rx = _C.rx, ry = _C.ry;
+  p.style.setProperty('--rx',   rx.toFixed(2)  + 'deg');
+  p.style.setProperty('--ry',   ry.toFixed(2)  + 'deg');
+  p.style.setProperty('--o',    _C.o.toFixed(3));
+  p.style.setProperty('--s',    _C.s.toFixed(3));
+  p.style.setProperty('--mx',   _C.mx.toFixed(1) + '%');
+  p.style.setProperty('--my',   _C.my.toFixed(1) + '%');
+  p.style.setProperty('--posx', _C.px.toFixed(1) + '%');
+  p.style.setProperty('--posy', _C.py.toFixed(1) + '%');
+  p.style.setProperty('--hyp',  _C.hyp.toFixed(3));
 
-  // Edge light — reflets de bord directionnels selon le tilt
-  // ry positif = incliné vers la droite = bord gauche éclairé
-  // rx positif = incliné vers le bas = bord haut éclairé
-  const MAX_RX = 10, MAX_RY = 14;
-  const tiltX = _C.rx / MAX_RX; // -1 à +1
-  const tiltY = _C.ry / MAX_RY; // -1 à +1
+  // Edge lights — seulement si actif (évite calculs inutiles)
   const eo = _C.o;
-  // Bord gauche éclairé quand tiltY > 0, droit quand tiltY < 0
-  const edgeL = Math.max(0,  tiltY) * eo * 0.28;
-  const edgeR = Math.max(0, -tiltY) * eo * 0.28;
-  // Bord haut éclairé quand tiltX < 0, bas quand tiltX > 0
-  const edgeT = Math.max(0, -tiltX) * eo * 0.20;
-  const edgeB = Math.max(0,  tiltX) * eo * 0.20;
-  p.style.setProperty('--edge-l', edgeL.toFixed(4));
-  p.style.setProperty('--edge-r', edgeR.toFixed(4));
-  p.style.setProperty('--edge-t', edgeT.toFixed(4));
-  p.style.setProperty('--edge-b', edgeB.toFixed(4));
+  if (eo > 0.01) {
+    const MAX_RX = 10, MAX_RY = 14;
+    const tiltY = ry / MAX_RY;
+    const tiltX = rx / MAX_RX;
+    p.style.setProperty('--edge-l', (Math.max(0,  tiltY) * eo * 0.28).toFixed(3));
+    p.style.setProperty('--edge-r', (Math.max(0, -tiltY) * eo * 0.28).toFixed(3));
+    p.style.setProperty('--edge-t', (Math.max(0, -tiltX) * eo * 0.20).toFixed(3));
+    p.style.setProperty('--edge-b', (Math.max(0,  tiltX) * eo * 0.20).toFixed(3));
 
-  // Box-shadow : ombre portée argentée selon le tilt
-  if (_C.o > 0.01) {
-    const tiltStr = Math.sqrt(_C.rx ** 2 + _C.ry ** 2) / 22;
-    const ox = (_C.ry / MAX_RY) * 16;
-    const oy = (-_C.rx / MAX_RX) * 12;
-    const blur = Math.round(28 + tiltStr * 24);
-    // Légère lueur aurora sur le bord éclairé + ombre profonde
-    const auroraGlow = (0.04 + tiltStr * 0.07).toFixed(3);
-    p.style.boxShadow = [
-      `${ox.toFixed(1)}px ${oy.toFixed(1)}px ${blur}px rgba(0,0,0,.70)`,
-      `0 40px 100px rgba(0,0,0,.88)`,
-      `0 0 0 1px rgba(140,100,220,${(0.08 + tiltStr * 0.06).toFixed(3)})`,
-      `inset 0 1.5px 0 rgba(180,140,255,${(0.10 + edgeT * 0.5).toFixed(3)})`,
-      `0 0 ${Math.round(10 + tiltStr * 18)}px rgba(100,160,220,${auroraGlow})`,
-    ].join(', ');
+    // Box-shadow simplifié — une seule ombre directionnelle
+    const ox = (tiltY * 12).toFixed(1);
+    const oy = (-tiltX * 8).toFixed(1);
+    p.style.boxShadow = `${ox}px ${oy}px 32px rgba(0,0,0,.4)`;
     poster.classList.add('touching');
   }
 
@@ -17290,16 +17273,20 @@ function _hmvStart() {
   _hmvRaf = requestAnimationFrame(_hmvTick);
 }
 
+let _hmvPosterRect = null;
+
 function _hmvUpdate(clientX, clientY) {
   const poster = document.getElementById('hmv-poster');
   if (!poster) return;
-  const r = poster.getBoundingClientRect();
+  // Cache le rect pour éviter un reflow à chaque touchmove
+  if (!_hmvPosterRect) _hmvPosterRect = poster.getBoundingClientRect();
+  const r = _hmvPosterRect;
 
   // Position relative 0–1 dans la carte
   const x = Math.max(0, Math.min(r.width,  clientX - r.left));
   const y = Math.max(0, Math.min(r.height, clientY - r.top));
-  const mx = (x / r.width)  * 100;   // 0–100
-  const my = (y / r.height) * 100;   // 0–100
+  const mx = (x / r.width)  * 100;
+  const my = (y / r.height) * 100;
 
   // Rotation : centre = 0, bords = ±max
   const MAX_RX = 10, MAX_RY = 14;
@@ -17327,6 +17314,7 @@ function _hmvUpdate(clientX, clientY) {
 
 function _hmvDeactivate() {
   _hmvActive = false;
+  _hmvPosterRect = null; // invalider le cache
   _T.rx = 0; _T.ry = 0;
   _T.o  = 0; _T.s  = 1; _T.hyp = 0;
   _T.mx = 50; _T.my = 50; _T.px = 50; _T.py = 50;
@@ -17381,6 +17369,7 @@ function _hmvHoloLeave()     { _hmvDeactivate(); }
 function _hmvInitHolo() {
   const poster = document.getElementById('hmv-poster');
   if (!poster) return;
+  _hmvPosterRect = null; // invalider le cache rect
 
   // Reset total
   if (_hmvRaf) { cancelAnimationFrame(_hmvRaf); _hmvRaf = null; }
