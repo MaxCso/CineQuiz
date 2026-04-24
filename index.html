@@ -30384,11 +30384,13 @@ if('serviceWorker' in navigator){
   }
 
   function sbSignOut() {
-    return sbFetch('/auth/v1/logout', { method: 'POST' }).then(function(){
-      _sbSession = null;
-      try { localStorage.removeItem('cq_sb_session'); } catch(e){}
-      updateAuthUI();
-    });
+    // Déconnexion locale immédiate — pas besoin d'attendre le réseau
+    _sbSession = null;
+    try { localStorage.removeItem('cq_sb_session'); } catch(e){}
+    updateAuthUI();
+    // Appel réseau en arrière-plan (on ignore les erreurs)
+    try { sbFetch('/auth/v1/logout', { method: 'POST' }).catch(function(){}); } catch(e){}
+    return Promise.resolve();
   }
 
   function sbRefreshToken(refresh_token) {
@@ -30775,46 +30777,11 @@ if('serviceWorker' in navigator){
 
   // ── INIT ──
   function init() {
-    // Nettoyer le flag anti-boucle si on arrive ici après un reload
+    // Ne pas restaurer la session automatiquement au démarrage :
+    // cela provoque un reload en boucle en mode PWA iOS.
+    // L'utilisateur se connecte depuis le profil quand il le souhaite.
     try { localStorage.removeItem('cq_just_reloaded'); } catch(e) {}
-    var session = loadSession();
-    if (!session) { updateAuthUI(); return; }
-    // Try to use existing session, refresh if needed
-    var now = Math.floor(Date.now() / 1000);
-    var exp = session.expires_at || 0;
-    if (now < exp - 300) {
-      // Still valid — restore silently, NO reload (causes PWA crash loop on iOS)
-      _sbSession = session;
-      updateAuthUI();
-      sbLoadProgression().then(function(cloudData) {
-        if (cloudData) {
-          try {
-            var local = JSON.parse(localStorage.getItem('cq11') || '{}');
-            var cloud = JSON.parse(cloudData['cq11'] || '{}');
-            if ((cloud.xp || 0) > (local.xp || 0)) {
-              // Apply silently without reload
-              Object.keys(cloudData).forEach(function(k) {
-                try { localStorage.setItem(k, cloudData[k]); } catch(e) {}
-              });
-              if (typeof refHome === 'function') refHome();
-            }
-          } catch(e) {}
-        }
-      }).catch(function(){});
-    } else if (session.refresh_token) {
-      sbRefreshToken(session.refresh_token).then(function(data) {
-        if (data.access_token) {
-          saveSession(data);
-          updateAuthUI();
-        } else {
-          _sbSession = null;
-          try { localStorage.removeItem('cq_sb_session'); } catch(e) {}
-          updateAuthUI();
-        }
-      }).catch(function(){ updateAuthUI(); });
-    } else {
-      updateAuthUI();
-    }
+    updateAuthUI();
   }
 
   // Inject only the auth modal (called lazily on first showAuthModal)
