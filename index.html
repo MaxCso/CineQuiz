@@ -4736,6 +4736,10 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   100%{transform:translate(0,0) scale(1);}
 }
 #hm-viewer.on{display:flex;opacity:1;pointer-events:all;}
+/* Geler toutes les animations en arrière-plan quand le viewer est ouvert */
+body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
+  animation-play-state:paused !important;
+}
 
 /* Fond flou coloré — désactivé, fond fixe utilisé à la place */
 .hmv-bg{ display:none; }
@@ -4826,6 +4830,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   padding:18px 16px 16px;
   box-sizing:border-box;
   overflow-y:auto;
+  position:relative;
 }
 /* Bouton texte flip — sous l'affiche, en dehors du poster */
 .hmv-flip-text-btn{
@@ -4958,7 +4963,68 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   z-index:3;
 }
 
-/* 1. AURORA BASE — nappe de couleur douce permanente très subtile */
+/* SHIMMER AUTO — éclat de lumière qui traverse la carte périodiquement */
+.hmv-shimmer{
+  position:absolute;inset:0;
+  border-radius:20px;
+  pointer-events:none;
+  z-index:5;
+  overflow:hidden;
+}
+.hmv-shimmer::after{
+  content:'';
+  position:absolute;
+  top:-10%;left:-60%;
+  width:40%;height:120%;
+  background:linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255,255,255,0) 35%,
+    rgba(255,255,255,.13) 48%,
+    rgba(255,255,255,.06) 54%,
+    transparent 70%
+  );
+  transform:skewX(-12deg);
+  animation:hmvShimmer 5s ease-in-out infinite;
+  animation-delay:inherit;
+}
+
+/* Animations icônes mood */
+
+/* Game Over Bobine animations */
+@keyframes bobOverIcon{from{opacity:0;transform:scale(0) rotate(-20deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
+@keyframes bobOverTitle{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes bobOverLine{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+@keyframes bobOverScore{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
+@keyframes bobOverBtns{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes hmvMoodRain{0%,100%{transform:translateY(0);}50%{transform:translateY(3px);}}
+@keyframes hmvMoodSun{0%,100%{transform:rotate(0deg);}50%{transform:rotate(20deg);}}
+@keyframes hmvMoodZap{0%,100%{transform:scale(1);}45%{transform:scale(1.3);}55%{transform:scale(.85);}}
+@keyframes hmvMoodSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@keyframes hmvMoodBounce{0%,100%{transform:translateY(0);}40%{transform:translateY(-4px);}60%{transform:translateY(-2px);}}
+@keyframes hmvMoodFloat{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-3px) scale(1.1);}}
+
+/* Skeleton loader affiches viewer */
+.hmv-skeleton{
+  position:absolute;inset:0;border-radius:20px;
+  background:linear-gradient(90deg,#1a1128 25%,#2a1a3e 50%,#1a1128 75%);
+  background-size:200% 100%;
+  animation:hmvSkeleton 1.4s ease-in-out infinite;
+  z-index:1;
+}
+@keyframes hmvSkeleton{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+@keyframes hmvEggIn{from{opacity:0;transform:translateX(-50%) translateY(16px) scale(.92);}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}}
+@keyframes hmvEggOut{from{opacity:1;}to{opacity:0;transform:translateX(-50%) translateY(8px);}}
+@keyframes hmvShimmer{
+  0%   { left:-60%; opacity:0; }
+  8%   { opacity:1; }
+  30%  { left:130%; opacity:0; }
+  100% { left:130%; opacity:0; }
+}
 .hmv-silver-base{
   position:absolute;inset:0;
   border-radius:20px;
@@ -5912,7 +5978,11 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   position:absolute;inset:0;border-radius:14px;overflow:hidden;
   backface-visibility:hidden;-webkit-backface-visibility:hidden;
 }
-.hm-card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.hm-card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;}
+.hm-card-img.loaded{opacity:1;}
+/* Apparition en cascade */
+@keyframes hmCardIn{from{opacity:0;transform:scale(.93);}to{opacity:1;transform:scale(1);}}
+.hm-card{animation:hmCardIn .3s ease both;}
 .hm-card-img-placeholder{position:absolute;inset:0;background:linear-gradient(160deg,#120820,#060310);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:28px;color:rgba(168,85,247,.15);letter-spacing:3px;}
 .hm-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(4,2,12,.92) 0%,rgba(4,2,12,.3) 45%,transparent 70%);}
 .hm-card-info{position:absolute;bottom:0;left:0;right:0;padding:8px;}
@@ -7510,11 +7580,13 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
     </div>
     <div id="bob-hint" style="font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-align:center;padding:6px 0 max(6px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:2;">← GLISSE → POUR ESQUIVER</div>
     <div id="bob-over" class="arc-gameover" style="display:none;">
-      <div class="arc-go-title" style="color:#f05aa0;">COUPURE !</div>
-      <div class="arc-go-score">Score : <span id="bob-final">0</span></div>
-      <div id="bob-best-msg" style="font-size:11px;color:rgba(240,90,160,.6);margin-top:-4px;"></div>
-      <div style="display:flex;gap:10px;width:100%;margin-top:4px;">
-        <div class="arc-btn-lg" style="flex:1.4;background:linear-gradient(135deg,rgba(240,90,160,.2),rgba(180,40,120,.1));border-color:rgba(240,90,160,.4);color:#f05aa0;" onclick="startBobine()">↺ Rejouer</div>
+      <div style="font-size:48px;margin-bottom:4px;animation:bobOverIcon .6s cubic-bezier(.34,1.56,.64,1) both;">🎬</div>
+      <div class="arc-go-title" style="color:#f05aa0;font-size:44px;letter-spacing:4px;animation:bobOverTitle .5s cubic-bezier(.34,1.56,.64,1) .1s both;">COUPURE !</div>
+      <div style="height:2px;width:60px;background:linear-gradient(90deg,transparent,#f05aa0,transparent);margin:4px auto;animation:bobOverLine .4s ease .3s both;transform:scaleX(0);"></div>
+      <div class="arc-go-score" style="font-size:28px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;color:#fff;animation:bobOverScore .5s cubic-bezier(.34,1.56,.64,1) .2s both;"><span id="bob-final">0</span> <span style="font-size:14px;color:rgba(255,255,255,.4);">PTS</span></div>
+      <div id="bob-best-msg" style="font-size:11px;color:rgba(240,90,160,.7);margin-top:-2px;letter-spacing:1px;"></div>
+      <div style="display:flex;gap:10px;width:100%;margin-top:12px;animation:bobOverBtns .4s ease .35s both;opacity:0;">
+        <div class="arc-btn-lg" style="flex:1.4;background:linear-gradient(135deg,rgba(240,90,160,.25),rgba(180,40,120,.12));border-color:rgba(240,90,160,.5);color:#f05aa0;" onclick="startBobine()">↺ Rejouer</div>
         <div class="arc-btn-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);flex:1;" onclick="go('arcade-menu');stopBobine()">← Arcade</div>
       </div>
     </div>
@@ -7740,6 +7812,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
           <div class="hmv-face">
             <img id="hmv-img" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
             <div id="hmv-placeholder" style="display:none;position:absolute;inset:0;background:linear-gradient(160deg,#1a0832,#08031a);align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:rgba(168,85,247,.2);"></div>
+            <div class="hmv-shimmer"></div>
           </div>
           <!-- VERSO : infos -->
           <div class="hmv-face hmv-face-back" id="hmv-face-back">
@@ -7752,7 +7825,6 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
             <div class="hmvb-moods" id="hmvb-moods"></div>
           </div>
         </div>
-        <!-- Hint swipe retourner — retiré du poster, voir #hm-viewer -->
         <!-- Couches effet argenté -->
         <div class="hmv-holo-clip">
           <!-- Base argentée toujours présente -->
@@ -16521,6 +16593,7 @@ function hmGoRandomViewer(){
   _hmvInfoOpen = false;
   _hmvRender();
   document.getElementById('hm-viewer').classList.add('on');
+  document.body.classList.add('viewer-open');
   document.body.style.overflow='hidden';
   const hmEl=document.getElementById('hm');
   if(hmEl)hmEl.style.overflow='hidden';
@@ -16610,12 +16683,13 @@ function _hmRenderCollection() {
     return;
   }
 
-  grid.innerHTML = revealedFilms.map(({ idx, film }) => {
+  grid.innerHTML = revealedFilms.map(({ idx, film }, i) => {
     const posterUrl = film.p ? (film.p.startsWith('/') ? TI + film.p : film.p) : '';
+    const delay = Math.min(i * 30, 400);
     const imgHtml = posterUrl
-      ? `<img class="hm-card-img" src="${posterUrl}" alt="${film.t}" loading="lazy">`
+      ? `<img class="hm-card-img" src="${posterUrl}" alt="${film.t}" loading="lazy" onload="this.classList.add('loaded');this.closest('.hm-card').classList.add('img-loaded')">`
       : `<div class="hm-card-img-placeholder">${film.y}</div>`;
-    return `<div class="hm-card" data-idx="${idx}" onclick="_hmOpenCardDetail(${idx})">
+    return `<div class="hm-card" data-idx="${idx}" onclick="_hmOpenCardDetail(${idx})" style="animation-delay:${delay}ms">
       ${imgHtml}
       <div class="hm-card-overlay"></div>
       <div class="hm-card-tap-shine"></div>
@@ -16760,6 +16834,7 @@ function _hmOpenCardDetail(idx, source) {
   _hmvRender();
   const viewer = document.getElementById('hm-viewer');
   viewer.classList.add('on');
+  document.body.classList.add('viewer-open');
   document.body.style.overflow = 'hidden';
   const hmEl=document.getElementById('hm');
   if(hmEl)hmEl.style.overflow='hidden';
@@ -16782,6 +16857,14 @@ function hmvFlipPoster(dir){
 
 
 
+function _hmvFmtDate(s){
+  if(!s) return s;
+  // Convertir YYYY-MM-DD en "10 octobre 2014"
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    try{const d=new Date(s);return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});}catch{}
+  }
+  return s;
+}
 function _hmvFillBack(){
   const entry=_hmvList[_hmvIdx];if(!entry)return;
   const {film}=entry;
@@ -16791,7 +16874,8 @@ function _hmvFillBack(){
   if(el('hmvb-year'))    el('hmvb-year').textContent    = film.y||'';
   if(el('hmvb-synopsis'))el('hmvb-synopsis').textContent= film.s||'';
   const moodEmoji={'mélancolique':'🌧','joyeux':'☀️','adrénaline':'⚡','réflexion':'🌀','comédie':'😄','atmosphère':'🌫'};
-  if(el('hmvb-moods'))   el('hmvb-moods').innerHTML    = (film.m||[]).map(m=>'<span class="hmvb-mood">'+(moodEmoji[m]||'✦')+' '+m+'</span>').join('');
+  const moodAnim={'mélancolique':'hmvMoodRain','joyeux':'hmvMoodSun','adrénaline':'hmvMoodZap','réflexion':'hmvMoodSpin','comédie':'hmvMoodBounce','atmosphère':'hmvMoodFloat'};
+  if(el('hmvb-moods'))   el('hmvb-moods').innerHTML    = (film.m||[]).map(m=>'<span class="hmvb-mood"><span class="hmvb-mood-icon" style="display:inline-block;animation:'+( moodAnim[m]||'hmvMoodFloat')+' 2s ease-in-out infinite;">'+(moodEmoji[m]||'✦')+'</span> '+m+'</span>').join('');
   const rows=el('hmvb-rows');if(!rows)return;
   const safe=(film.t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
   const key='hm_info2_'+safe+'_'+film.y;
@@ -16804,7 +16888,7 @@ function _hmvFillBack(){
       row('Scénario',    d.writer),
       row('Casting',     d.cast),
       row('Durée',       d.runtime?fmtR(d.runtime):null),
-      row('Sortie',      d.release),
+      row('Sortie',      d.release?_hmvFmtDate(d.release):null),
       row('Pays',        d.countries?.join(', ')),
       row('Production',  d.production),
       row('Note',        d.rating?fmtStar(d.rating):null),
@@ -16845,6 +16929,38 @@ function _hmvFillBack(){
       try{localStorage.setItem(key,JSON.stringify(d));}catch{}
       if(document.getElementById('hmvb-rows')===rows)rows.innerHTML=buildRows(d);
     }).catch(()=>{rows.innerHTML='';});
+
+  // Easter egg double-tap sur le verso → anecdote
+  const faceBack = document.getElementById('hmv-face-back');
+  if(faceBack && !faceBack._dtapInit){
+    faceBack._dtapInit = true;
+    let _lastTap = 0;
+    faceBack.addEventListener('touchend', function(e){
+      const now = Date.now();
+      if(now - _lastTap < 320){
+        e.preventDefault();
+        const entry = _hmvList[_hmvIdx];
+        if(!entry) return;
+        const anecdotes = HM_ANECDOTES_DB || [];
+        const film = entry.film;
+        const match = anecdotes.find(a => a.film && film.t && a.film.toLowerCase().includes(film.t.toLowerCase().split(' ')[0]));
+        const text = match ? match.text : '🎬 Ce film fait partie des Hidden Movies. Swipe pour découvrir la suite !';
+        _hmvShowEasterEgg(text);
+      }
+      _lastTap = now;
+    }, {passive:false});
+  }
+}
+
+function _hmvShowEasterEgg(text){
+  const existing = document.getElementById('hmv-easter-toast');
+  if(existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'hmv-easter-toast';
+  toast.style.cssText = 'position:fixed;bottom:calc(max(env(safe-area-inset-bottom),20px) + 80px);left:50%;transform:translateX(-50%);max-width:280px;width:90%;background:rgba(14,8,28,.95);border:1px solid rgba(168,85,247,.4);border-radius:16px;padding:14px 16px;z-index:9999;animation:hmvEggIn .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;';
+  toast.innerHTML = '<div style="font-size:16px;margin-bottom:6px;text-align:center;">✦</div><div style="font-size:12px;color:rgba(255,255,255,.75);line-height:1.55;text-align:center;">'+text+'</div>';
+  document.body.appendChild(toast);
+  setTimeout(()=>{toast.style.animation='hmvEggOut .3s ease forwards';setTimeout(()=>toast.remove(),300);}, 4000);
 }
 
 function _hmvRender() {
@@ -16906,6 +17022,12 @@ function _hmvRender() {
     ? (film.p.startsWith('/') ? TI + film.p : film.p.startsWith('http') ? film.p : film.p)
     : '';
 
+  // Skeleton loader
+  let _skEl=document.getElementById('hmv-skeleton');
+  if(!_skEl){_skEl=document.createElement('div');_skEl.id='hmv-skeleton';_skEl.className='hmv-skeleton';img.parentNode.insertBefore(_skEl,img);}
+  _skEl.style.display='block';
+  img.style.opacity='0';img.style.transition='opacity .4s ease';
+
   if (posterUrl) {
     // Encode local filenames for URL (handles accents)
     const safeUrl = posterUrl;
@@ -16916,8 +17038,16 @@ function _hmvRender() {
     const bg2e=document.getElementById('hmv-bg2');if(bg2e)bg2e.style.backgroundImage='url('+safeUrl+')';
     const bg2=document.getElementById('hmv-bg2');
     if(bg2) bg2.style.backgroundImage='url('+posterUrl+')';
-    img.onload = () => { _hmvApplyHaloColor(img); };
-    if(img.complete && img.naturalWidth) _hmvApplyHaloColor(img);
+    img.onload = () => {
+      _hmvApplyHaloColor(img);
+      img.style.opacity='1';
+      const sk=document.getElementById('hmv-skeleton');if(sk)sk.style.display='none';
+    };
+    if(img.complete && img.naturalWidth){
+      img.style.opacity='1';
+      const sk=document.getElementById('hmv-skeleton');if(sk)sk.style.display='none';
+      _hmvApplyHaloColor(img);
+    }
     // Si l'image locale échoue → chercher sur TMDB
     if (!film.p.startsWith('/') && !film.p.startsWith('http')) {
       img.onerror = () => {
@@ -17095,6 +17225,7 @@ function closeHMViewer() {
     viewer.style.pointerEvents='';
     viewer.classList.remove('on');
   }
+  document.body.classList.remove('viewer-open');
   document.body.style.overflow = '';
   const hmEl=document.getElementById('hm');
   if(hmEl)hmEl.style.overflow='';
@@ -18195,6 +18326,7 @@ function _hmReveal(film, idx, canvas){
     const viewer=document.getElementById('hm-viewer');
     // Ajouter .on immédiatement pour que closeHMViewer fonctionne
     viewer.classList.add('on');
+    document.body.classList.add('viewer-open');
     document.body.style.overflow='hidden';
     const hmEl=document.getElementById('hm');
     if(hmEl)hmEl.style.overflow='hidden';
@@ -27958,13 +28090,58 @@ function _bobDraw(s){
 
   ctx.restore();
 
-  // ── Combo ──
+  // ── Combo spectaculaire ──
   if(s.combo>=2){
     const a=Math.min(1,s.comboTimer/40);
+    // Pop scale : grossit au moment de l'incrément, puis oscille
+    const popT=1-(s.comboTimer/70);
+    const popScale=popT<0.15?1+popT*4:1+Math.sin(s.frame*0.22)*0.05*a;
+    const comboY=py-ph/2-18;
+    const comboSize=s.combo>=10?24:s.combo>=5?20:s.combo>=3?17:14;
+    const comboColor=s.combo>=10?'#ff2299':s.combo>=5?'#ff6600':'#f5c842';
     ctx.save();
-    ctx.font=`bold 14px 'Bebas Neue',sans-serif`;ctx.textAlign='center';
-    ctx.fillStyle=`rgba(245,200,66,${a})`;
-    ctx.fillText(`×${s.combo} COMBO`,px,py-ph/2-12);
+    ctx.translate(px,comboY);
+    ctx.scale(popScale,popScale);
+
+    // Halo pulsant (plus grand avec le combo)
+    const haloR=comboSize*(2.2+s.combo*0.15);
+    ctx.globalAlpha=a*0.12;
+    ctx.fillStyle=comboColor;
+    ctx.beginPath();ctx.ellipse(0,0,haloR,haloR*0.45,0,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=a*0.06;
+    ctx.beginPath();ctx.ellipse(0,0,haloR*1.5,haloR*0.65,0,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+
+    // Ombre portée
+    ctx.font=`bold ${comboSize}px 'Bebas Neue',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle=`rgba(0,0,0,${a*0.5})`;
+    ctx.fillText(`×${s.combo} COMBO`,2,2);
+
+    // Texte avec outline néon pour les hauts combos
+    if(s.combo>=5){
+      ctx.strokeStyle=comboColor;
+      ctx.lineWidth=3;ctx.globalAlpha=a*0.3;
+      ctx.strokeText(`×${s.combo} COMBO`,0,0);
+      ctx.globalAlpha=1;
+    }
+    ctx.fillStyle=comboColor;ctx.globalAlpha=a;
+    ctx.fillText(`×${s.combo} COMBO`,0,0);
+    ctx.globalAlpha=1;
+
+    // Petites étoiles autour pour combo >=5
+    if(s.combo>=5){
+      for(let i=0;i<4;i++){
+        const starA=(i/4)*Math.PI*2+(s.frame*0.04);
+        const sr=comboSize*1.8;
+        const sx=Math.cos(starA)*sr,sy=Math.sin(starA)*sr*0.4;
+        ctx.globalAlpha=a*0.7;
+        ctx.fillStyle=comboColor;
+        ctx.font=`bold ${Math.round(comboSize*0.45)}px sans-serif`;
+        ctx.fillText('★',sx,sy);
+      }
+      ctx.globalAlpha=1;
+    }
     ctx.restore();
   }
 
