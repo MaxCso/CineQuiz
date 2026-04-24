@@ -30651,12 +30651,14 @@ if('serviceWorker' in navigator){
               applyProgression(cloudData);
               // Éviter la boucle infinie : ne recharger qu'une seule fois
               try {
-                if (!sessionStorage.getItem('cq_just_reloaded')) {
-                  sessionStorage.setItem('cq_just_reloaded', '1');
+                var _rTs = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
+                var _rNow = Date.now();
+                if (!_rTs || _rNow - _rTs > 5000) {
+                  localStorage.setItem('cq_just_reloaded', String(_rNow));
                   showToastAuth('Progression restaurée ! Rechargement...');
                   setTimeout(function(){ location.reload(); }, 1200);
                 } else {
-                  sessionStorage.removeItem('cq_just_reloaded');
+                  localStorage.removeItem('cq_just_reloaded');
                   showToastAuth('Connecté · progression restaurée.');
                 }
               } catch(e) { showToastAuth('Connecté · progression restaurée.'); }
@@ -30668,11 +30670,13 @@ if('serviceWorker' in navigator){
           } catch(e) {
             applyProgression(cloudData);
             try {
-              if (!sessionStorage.getItem('cq_just_reloaded')) {
-                sessionStorage.setItem('cq_just_reloaded', '1');
+              var _rTs2 = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
+              var _rNow2 = Date.now();
+              if (!_rTs2 || _rNow2 - _rTs2 > 5000) {
+                localStorage.setItem('cq_just_reloaded', String(_rNow2));
                 setTimeout(function(){ location.reload(); }, 1200);
               } else {
-                sessionStorage.removeItem('cq_just_reloaded');
+                localStorage.removeItem('cq_just_reloaded');
               }
             } catch(e2) {}
           }
@@ -30763,7 +30767,7 @@ if('serviceWorker' in navigator){
   // ── INIT ──
   function init() {
     // Nettoyer le flag anti-boucle si on arrive ici après un reload
-    try { sessionStorage.removeItem('cq_just_reloaded'); } catch(e) {}
+    try { localStorage.removeItem('cq_just_reloaded'); } catch(e) {}
     var session = loadSession();
     if (!session) { updateAuthUI(); return; }
     // Try to use existing session, refresh if needed
