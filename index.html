@@ -17058,16 +17058,43 @@ function _hmvOpenInfo() {
   const infoPanel = document.getElementById('hmv-info');
   infoPanel.classList.add('open');
   document.getElementById('hmv-hint').style.opacity = '0';
-  // Attach swipe-down-to-close directly on panel (scroll intercepts viewer gestures)
+
   if (!infoPanel._swipeCloseInit) {
     infoPanel._swipeCloseInit = true;
-    let _ipSY = 0;
+    let _ipSY = 0, _ipDragging = false;
+
     infoPanel.addEventListener('touchstart', function(e) {
       _ipSY = e.touches[0].clientY;
+      _ipDragging = false;
     }, { passive: true });
+
+    infoPanel.addEventListener('touchmove', function(e) {
+      if (infoPanel.scrollTop > 2) return;
+      const dy = e.touches[0].clientY - _ipSY;
+      if (dy <= 0) return;
+      _ipDragging = true;
+      e.preventDefault();
+      infoPanel.style.transition = 'none';
+      infoPanel.style.transform = 'translateY(' + dy + 'px)';
+    }, { passive: false });
+
     infoPanel.addEventListener('touchend', function(e) {
+      if (!_ipDragging) return;
+      _ipDragging = false;
       const dy = e.changedTouches[0].clientY - _ipSY;
-      if (dy > 60 && infoPanel.scrollTop <= 2) _hmvCloseInfo();
+      if (dy > 80) {
+        infoPanel.style.transition = 'transform .35s cubic-bezier(.32,.72,0,1)';
+        infoPanel.style.transform = 'translateY(100%)';
+        setTimeout(function() {
+          infoPanel.style.transition = '';
+          infoPanel.style.transform = '';
+          _hmvCloseInfo(false);
+        }, 350);
+      } else {
+        infoPanel.style.transition = 'transform .3s cubic-bezier(.32,.72,0,1)';
+        infoPanel.style.transform = 'translateY(0)';
+        setTimeout(function() { infoPanel.style.transition = ''; infoPanel.style.transform = ''; }, 300);
+      }
     }, { passive: true });
   }
 }
@@ -17352,12 +17379,21 @@ function _hmvDeactivate() {
 }
 
 // ── Handlers touch/mouse ──
-let _hmvTouchStartX = 0, _hmvTouchStartY = 0, _hmvTouchMoved = false;
+let _hmvTouchStartX = 0, _hmvTouchStartY = 0, _hmvTouchMoved = false, _hmvTouchInFlipZone = false;
 
 function _hmvHoloTouchStart(e) {
   _hmvTouchStartX = e.touches[0].clientX;
   _hmvTouchStartY = e.touches[0].clientY;
   _hmvTouchMoved  = false;
+  // Détecter si le touch commence dans les 25% bas de l'affiche
+  const poster = document.getElementById('hmv-poster');
+  if (poster) {
+    const rect = poster.getBoundingClientRect();
+    const relY = (e.touches[0].clientY - rect.top) / rect.height;
+    _hmvTouchInFlipZone = relY >= 0.75;
+  } else {
+    _hmvTouchInFlipZone = false;
+  }
 }
 function _hmvHoloTouchMove(e) {
   const dx = Math.abs(e.touches[0].clientX - _hmvTouchStartX);
@@ -17377,11 +17413,8 @@ function _hmvHoloTouchEnd(e) {
   const dy = e.changedTouches[0].clientY - _hmvTouchStartY;
   const adx = Math.abs(dx), ady = Math.abs(dy);
 
-  // Swipe horizontal sur toute la carte → flip (sens physique)
-  // Recto : swipe G→D (dx>0) = pas logique, swipe D→G (dx<0) = retourner
-  // Verso  : swipe G→D (dx>0) = remettre recto, swipe D→G (dx<0) = pas logique
-  // → on flip dans les 2 sens selon l'état actuel
-  if (adx > 44 && ady < adx * 0.55 && !_hmvInfoOpen) {
+  // Flip uniquement si swipe horizontal depuis le bas de l'affiche (25% bas)
+  if (adx > 44 && ady < adx * 0.55 && !_hmvInfoOpen && _hmvTouchInFlipZone) {
     hmvFlipPoster();
   }
 }
