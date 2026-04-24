@@ -30505,14 +30505,20 @@ if('serviceWorker' in navigator){
   }
 
   // Patch localStorage.setItem to auto-sync relevant keys
+  // Wrapped in try-catch: on iOS PWA standalone, overriding native localStorage
+  // methods can throw in strict mode and silently kill all subsequent JS
   var _origSetItem = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function(key, value) {
-    _origSetItem(key, value);
-    var relevant = key === 'cq11' || key === 'cq_arc_hs' || key === 'hm_revealed' ||
-                   key === 'hm_wishlist' || key === 'cq_daily' || key === 'cq_jk_seen' ||
-                   key.indexOf('cq_played_') === 0;
-    if (relevant) scheduleSave();
-  };
+  try {
+    localStorage.setItem = function(key, value) {
+      _origSetItem(key, value);
+      var relevant = key === 'cq11' || key === 'cq_arc_hs' || key === 'hm_revealed' ||
+                     key === 'hm_wishlist' || key === 'cq_daily' || key === 'cq_jk_seen' ||
+                     key.indexOf('cq_played_') === 0;
+      if (relevant) scheduleSave();
+    };
+  } catch(e) {
+    // Patch failed in strict PWA context — auto-sync disabled, manual save only
+  }
 
   // ── UI ──
   function setSyncBadge(state) {
