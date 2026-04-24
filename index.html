@@ -30783,7 +30783,7 @@ if('serviceWorker' in navigator){
     var now = Math.floor(Date.now() / 1000);
     var exp = session.expires_at || 0;
     if (now < exp - 300) {
-      // Still valid
+      // Still valid — restore silently, NO reload (causes PWA crash loop on iOS)
       _sbSession = session;
       updateAuthUI();
       sbLoadProgression().then(function(cloudData) {
@@ -30791,7 +30791,13 @@ if('serviceWorker' in navigator){
           try {
             var local = JSON.parse(localStorage.getItem('cq11') || '{}');
             var cloud = JSON.parse(cloudData['cq11'] || '{}');
-            if ((cloud.xp || 0) > (local.xp || 0)) applyProgression(cloudData);
+            if ((cloud.xp || 0) > (local.xp || 0)) {
+              // Apply silently without reload
+              Object.keys(cloudData).forEach(function(k) {
+                try { localStorage.setItem(k, cloudData[k]); } catch(e) {}
+              });
+              if (typeof refHome === 'function') refHome();
+            }
           } catch(e) {}
         }
       }).catch(function(){});
