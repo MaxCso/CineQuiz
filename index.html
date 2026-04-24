@@ -5722,17 +5722,37 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 /* Carte tuto dans la collection */
 .hm-card-tuto{
   position:relative;border-radius:18px;overflow:hidden;cursor:pointer;
-  background:linear-gradient(135deg,#0f0a22,#130d28);
-  border:1px solid rgba(168,85,247,.2);
+  background:linear-gradient(160deg,#180a2e 0%,#0d0820 40%,#1a0635 100%);
+  border:1px solid rgba(168,85,247,.45);
+  box-shadow:0 0 18px rgba(168,85,247,.18),inset 0 0 30px rgba(168,85,247,.06);
   aspect-ratio:2/3;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;padding:12px;
-  transition:transform .15s,border-color .2s;
+  align-items:center;justify-content:center;gap:10px;padding:14px;
+  transition:transform .15s,border-color .2s,box-shadow .2s;
+}
+.hm-card-tuto::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(168,85,247,.18) 0%,transparent 70%);
+  pointer-events:none;
 }
 .hm-card-tuto:active{transform:scale(.96);}
-.hm-card-tuto-logo{width:70%;color:rgba(192,132,252,.5);}
+.hm-card-tuto:hover{border-color:rgba(168,85,247,.7);box-shadow:0 0 28px rgba(168,85,247,.28),inset 0 0 30px rgba(168,85,247,.09);}
+.hm-card-tuto-logo{
+  width:78%;
+  filter:drop-shadow(0 0 8px rgba(192,132,252,.4));
+}
+.hm-card-tuto-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:15px;letter-spacing:3px;
+  color:rgba(220,170,255,.9);
+  text-align:center;
+  text-shadow:0 0 12px rgba(168,85,247,.6);
+  line-height:1.1;
+}
 .hm-card-tuto-label{
-  font-size:8px;letter-spacing:2px;color:rgba(192,132,252,.35);
-  font-family:'Bebas Neue',sans-serif;text-align:center;
+  font-size:7.5px;letter-spacing:2.5px;color:rgba(192,132,252,.45);
+  font-family:'DM Sans',sans-serif;font-weight:500;text-align:center;
+  background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);
+  border-radius:20px;padding:3px 10px;
 }
 
 .hm-scratch-counter{
@@ -16662,20 +16682,21 @@ function _hmRenderCollection() {
     </div>`;
   }).join('');
 
+  // Carte tuto juste après la dernière vraie carte (si déjà vue), avant les stats
+  try {
+    if(localStorage.getItem('hm_tuto_collection')) {
+      const tuloCard = `<div class="hm-card hm-card-tuto" onclick="hmReopenTuto()" title="Revoir l'intro">
+        <div class="hm-card-tuto-logo"><img src="hiddenmovies.svg" alt="Hidden Movies" style="width:100%;filter:drop-shadow(0 0 10px rgba(192,132,252,.55)) brightness(1.1);"></div>
+        <div class="hm-card-tuto-label">REVOIR L'INTRO ↺</div>
+      </div>`;
+      grid.innerHTML += tuloCard;
+    }
+  } catch(e) {}
+
   // Stats section en bas de la collection
   const statsHtml = _hmBuildCollectionStats(revealedFilms.map(f=>f.film));
   grid.innerHTML += statsHtml;
 
-  // Carte tuto à la fin de la collection (si déjà vue)
-  try {
-    if(localStorage.getItem('hm_tuto_collection')) {
-      const tuloCard = `<div class="hm-card hm-card-tuto" onclick="hmReopenTuto()" title="Revoir l'intro">
-        <div class="hm-card-tuto-logo" style="color:rgba(192,132,252,.4);"><svg viewBox="0 0 761 401" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M374.616 0.037C376.572-0.012 386.382 0.037C457.403 0.835 525.436 16.047 588.676 45.365C650.628 74.086 705.95 116.146 748.66 166.994C765.113 186.583 765.113 213.941 748.66 233.532C705.949 284.382 650.628 326.44 588.676 355.161C525.436 384.479 386.382 400.489C384.426 400.539 376.572 400.539 374.616 400.489C303.595 399.691 172.322 355.161C110.37 326.44 55.05 284.38 12.34 233.532C-3.985 214.096 11.958 167.454L12.34 166.994C55.051 116.144 172.322 45.365C235.562 16.047 374.616 0.037Z" fill="currentColor"/></svg></div>
-        <div class="hm-card-tuto-label">INTRO ↺</div>
-      </div>`;
-      if(grid) grid.innerHTML += tuloCard;
-    }
-  } catch(e) {}
   // Attacher les events holo après le rendu
   requestAnimationFrame(() => _hmInitHoloCards());
 }
