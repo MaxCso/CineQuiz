@@ -7529,7 +7529,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
       <div class="arc-score-badge">Score : <span id="bob-score-badge">0</span></div>
     </div>
     <div id="bob-game-area" style="flex:1;min-height:0;position:relative;z-index:1;">
-      <canvas id="bob-canvas" style="display:block;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <canvas id="bob-canvas" style="display:block;position:absolute;inset:0;width:100%;height:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;"></canvas>
     </div>
     <div id="bob-hint" style="font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-align:center;padding:6px 0 max(6px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:2;">← GLISSE → POUR ESQUIVER</div>
     <div id="bob-over" class="arc-gameover" style="display:none;">
@@ -7554,7 +7554,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
       <div class="arc-score-badge">Score : <span id="doodle-score-badge">0</span></div>
     </div>
     <div id="doodle-game-area" style="flex:1;min-height:0;position:relative;z-index:1;">
-      <canvas id="doodle-canvas" style="display:block;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+      <canvas id="doodle-canvas" style="display:block;position:absolute;inset:0;width:100%;height:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;"></canvas>
     </div>
     <div id="doodle-hint" style="font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-align:center;padding:6px 0 max(8px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:2;">← GLISSE → POUR VISER</div>
     <div id="doodle-over" class="arc-gameover" style="display:none;">
@@ -27183,7 +27183,6 @@ function _brDraw(){
   // Falling powerups
   st.powerups.forEach(pu=>{
     ctx.save();
-    ctx.shadowColor='rgba(245,200,66,.6)';ctx.shadowBlur=8;
     ctx.font='16px serif';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(pu.type,pu.x,pu.y);
     ctx.restore();
@@ -27204,7 +27203,6 @@ function _brDraw(){
   st.balls.forEach((ball,i)=>{
     ctx.save();
     const ballColor=isFire?'rgba(255,120,0,.7)':'rgba(245,200,66,.6)';
-    ctx.shadowColor=ballColor;ctx.shadowBlur=10;
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(ball.x,ball.y,7,0,Math.PI*2);ctx.fill();
     ctx.restore();
     ctx.fillStyle=isFire?'rgba(255,140,0,.9)':'rgba(245,200,66,.8)';
@@ -27217,7 +27215,6 @@ function _brDraw(){
     const a=Math.min(lf.alpha,1);
     ctx.save();
     ctx.font='bold 14px Bebas Neue,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.shadowColor=`rgba(${lf.rgb||'245,200,66'},.8)`;ctx.shadowBlur=12;
     ctx.fillStyle=`rgba(${lf.rgb||'245,200,66'},${a})`;
     ctx.fillText(lf.text,BR_W/2,lf.y);
     ctx.restore();
@@ -27590,6 +27587,9 @@ function startBobine(){
     const cv=document.getElementById('bob-canvas');
     const W=area.clientWidth||612,H=area.clientHeight||560;
     cv.width=W;cv.height=H;
+    // Perf mobile : désactiver l'antialiasing et forcer le rendu CPU optimisé
+    const _ctx=cv.getContext('2d',{alpha:false,desynchronized:true});
+    if(_ctx){_ctx.imageSmoothingEnabled=false;}
     const LANES=3,laneW=W/LANES;
     const playerW=38,playerH=48;
     // Décor : étoiles de fond fixes + rails de perspective animés
@@ -27704,6 +27704,14 @@ function _bobDraw(s){
   const cv=document.getElementById('bob-canvas');if(!cv)return;
   const ctx=cv.getContext('2d');
   const W=s.W,H=s.H;
+  // Fast glow helper (no shadowBlur — too slow on mobile)
+  function _glow(x,y,r,color,alpha){
+    ctx.globalAlpha=alpha*0.4;ctx.fillStyle=color;
+    ctx.beginPath();ctx.arc(x,y,r*1.8,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=alpha*0.25;
+    ctx.beginPath();ctx.arc(x,y,r*2.6,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+  }
 
   // ── Fond : dégradé sombre violet/noir ──
   const bg=ctx.createLinearGradient(0,0,0,H);
@@ -27794,7 +27802,6 @@ function _bobDraw(s){
     const scale=0.4+0.6*(c.y/H);  // perspective : plus grand en bas
     const r=c.r*scale;
     ctx.save();
-    ctx.shadowBlur=18;ctx.shadowColor='rgba(0,255,220,0.8)';
     // Halo
     ctx.fillStyle='rgba(245,200,66,0.15)';
     // Bobine néon — anneau extérieur
@@ -27807,7 +27814,6 @@ function _bobDraw(s){
     ctx.lineWidth=2.5;
     ctx.beginPath();ctx.arc(c.x,c.y,r,0,Math.PI*2);ctx.stroke();
     // 6 trous de bobine
-    ctx.shadowBlur=0;
     for(let h=0;h<6;h++){
       const a=(h/6)*Math.PI*2+(s.frame*0.04);
       const hx=c.x+Math.cos(a)*(r*0.52), hy=c.y+Math.sin(a)*(r*0.52);
@@ -27830,11 +27836,9 @@ function _bobDraw(s){
     const glitch=Math.sin(s.frame*0.02+o.x)*2;
     ctx.save();
     // Ombre portée néon
-    ctx.shadowColor='rgba(240,50,180,0.8)';ctx.shadowBlur=12;
     // Corps principal sombre
     ctx.fillStyle='#08040f';
     ctx.beginPath();_bobRR(ctx,x,y+h*0.38,w,h*0.62,4);ctx.fill();
-    ctx.shadowBlur=0;
     // Bord néon magenta
     ctx.strokeStyle='rgba(240,50,180,0.9)';ctx.lineWidth=1.5;
     ctx.beginPath();_bobRR(ctx,x,y+h*0.38,w,h*0.62,4);ctx.stroke();
@@ -27853,7 +27857,6 @@ function _bobDraw(s){
     }
     ctx.restore();
     // Texte CINÉQUIZ avec effet glitch
-    ctx.shadowColor='rgba(0,255,200,0.8)';ctx.shadowBlur=6;
     ctx.fillStyle='rgba(0,255,200,0.8)';
     ctx.font=`bold ${Math.max(6,Math.round(h*0.16))}px 'Bebas Neue',sans-serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';
@@ -27861,19 +27864,16 @@ function _bobDraw(s){
     // Décalage glitch rouge
     ctx.fillStyle='rgba(255,50,100,0.35)';
     ctx.fillText('CINÉQUIZ',o.x-glitch+1,y+h*0.72);
-    ctx.shadowBlur=0;
     // Planche supérieure
     ctx.fillStyle='#0f0820';
     ctx.beginPath();
     ctx.moveTo(x,y+h*0.38);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y+h*0.18);ctx.lineTo(x,y+h*0.56);
     ctx.closePath();ctx.fill();
     // Bord planche néon
-    ctx.shadowColor='rgba(240,50,180,0.6)';ctx.shadowBlur=8;
     ctx.strokeStyle='rgba(240,50,180,0.85)';ctx.lineWidth=1.5;
     ctx.beginPath();
     ctx.moveTo(x,y+h*0.38);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y+h*0.18);ctx.lineTo(x,y+h*0.56);
     ctx.closePath();ctx.stroke();
-    ctx.shadowBlur=0;
     ctx.restore();
   });
 
@@ -27929,20 +27929,16 @@ function _bobDraw(s){
   ctx.fillStyle='#0d0820';
   _bobRR(ctx,-17,-ph*0.14+runBob,34,ph*0.36,6);ctx.fill();
   // Bord néon corps
-  ctx.shadowColor='rgba(0,220,255,0.7)';ctx.shadowBlur=8;
   ctx.strokeStyle='rgba(0,220,255,0.7)';ctx.lineWidth=1.5;
   ctx.beginPath();_bobRR(ctx,-17,-ph*0.14+runBob,34,ph*0.36,6);ctx.stroke();
-  ctx.shadowBlur=0;
   // Bande centrale magenta
   ctx.fillStyle='rgba(240,50,180,0.4)';
   _bobRR(ctx,-17,-ph*0.04+runBob,34,ph*0.14,2);ctx.fill();
   ctx.strokeStyle='rgba(240,50,180,0.7)';ctx.lineWidth=1;
   ctx.beginPath();_bobRR(ctx,-17,-ph*0.04+runBob,34,ph*0.14,2);ctx.stroke();
   // Réacteur central pulsant
-  ctx.shadowColor=`rgba(0,255,220,${0.8+pulse*0.2})`;ctx.shadowBlur=10+pulse*6;
   ctx.fillStyle=`rgba(0,255,220,${0.7+pulse*0.3})`;
   ctx.beginPath();ctx.arc(0,-ph*0.02+runBob,4+pulse,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;
 
   // Bras gauche
   ctx.fillStyle='#0d0820';
@@ -27961,37 +27957,29 @@ function _bobDraw(s){
   // Gant droit + lueur laser
   ctx.fillStyle='#06101e';
   _bobRR(ctx,27,-ph*0.17+runBob,9,7,2);ctx.fill();
-  ctx.shadowColor='rgba(240,50,180,0.9)';ctx.shadowBlur=8+pulse*4;
   ctx.fillStyle=`rgba(240,50,180,${0.8+pulse*0.2})`;
   ctx.beginPath();ctx.arc(34,-ph*0.135+runBob,3+pulse*1.5,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;
 
   // Cou
   ctx.fillStyle='#0d0820';
   _bobRR(ctx,-5,-ph*0.36+runBob,10,ph*0.22,3);ctx.fill();
 
   // Casque cyberpunk
-  ctx.shadowColor='rgba(0,220,255,0.6)';ctx.shadowBlur=12;
   ctx.fillStyle='#06040f';
   ctx.beginPath();ctx.arc(0,-ph*0.52+runBob,18,0,Math.PI*2);ctx.fill();
   // Bord casque néon
   ctx.strokeStyle='rgba(0,220,255,0.8)';ctx.lineWidth=2;
   ctx.beginPath();ctx.arc(0,-ph*0.52+runBob,18,0,Math.PI*2);ctx.stroke();
-  ctx.shadowBlur=0;
   // Visière holographique
   ctx.fillStyle='rgba(0,30,60,0.85)';
   ctx.beginPath();ctx.ellipse(0,-ph*0.52+runBob,13,11,0,0,Math.PI*2);ctx.fill();
   // Reflet scan sur visière
-  ctx.shadowColor='rgba(0,255,200,0.9)';ctx.shadowBlur=6;
   ctx.strokeStyle=`rgba(0,255,200,${0.5+pulse*0.3})`;ctx.lineWidth=1;
   ctx.beginPath();ctx.ellipse(0,-ph*0.52+runBob,13,11,0,0,Math.PI*2);ctx.stroke();
-  ctx.shadowBlur=0;
   // Yeux LED magenta
-  ctx.shadowColor='rgba(240,50,180,1)';ctx.shadowBlur=8;
   ctx.fillStyle=`rgba(240,50,180,${0.9+pulse*0.1})`;
   ctx.beginPath();ctx.ellipse(-5,-ph*0.54+runBob,4,2.5,0,0,Math.PI*2);ctx.fill();
   ctx.beginPath();ctx.ellipse(5,-ph*0.54+runBob,4,2.5,0,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;
   // Ligne scan horizontale visière
   ctx.fillStyle=`rgba(0,255,200,${0.15+pulse*0.1})`;
   var scanY=-ph*0.52+runBob+Math.sin(s.frame*0.08)*10;
@@ -27999,10 +27987,8 @@ function _bobDraw(s){
   // Antenne
   ctx.strokeStyle='rgba(0,220,255,0.7)';ctx.lineWidth=1.5;
   ctx.beginPath();ctx.moveTo(8,-ph*0.52+runBob-18);ctx.lineTo(14,-ph*0.52+runBob-28);ctx.stroke();
-  ctx.shadowColor='rgba(0,220,255,1)';ctx.shadowBlur=6;
   ctx.fillStyle='rgba(0,220,255,0.9)';
   ctx.beginPath();ctx.arc(14,-ph*0.52+runBob-28,2.5,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;
 
   ctx.restore();
 
@@ -28093,6 +28079,8 @@ function _bobGameOver(s){
       const cv=document.getElementById('doodle-canvas');
       const W=area.clientWidth||612, H=area.clientHeight||580;
       cv.width=W; cv.height=H;
+      const _dctx=cv.getContext('2d',{alpha:false,desynchronized:true});
+      if(_dctx){_dctx.imageSmoothingEnabled=false;}
       const PLAT_W=68;
       const plats=[];
       plats.push({x:W/2-PLAT_W/2, y:H-40, w:PLAT_W, type:'normal', broken:false, vx:0});
@@ -28334,10 +28322,8 @@ function _bobGameOver(s){
       if(p.type==='move'){col='#63d2ff';glow='rgba(99,210,255,0.5)';}
       else if(p.type==='break'){col='#ff7a3d';glow='rgba(255,122,61,0.5)';}
       else{col='#82dc64';glow='rgba(130,220,100,0.4)';}
-      ctx.shadowBlur=10;ctx.shadowColor=glow;
       ctx.fillStyle=col;
       ctx.beginPath();ctx.roundRect(p.x,sy,p.w,PLAT_H,4);ctx.fill();
-      ctx.shadowBlur=0;
       // Reflet
       ctx.fillStyle='rgba(255,255,255,0.25)';
       ctx.beginPath();ctx.roundRect(p.x+3,sy+1,p.w-6,3,2);ctx.fill();
@@ -28354,9 +28340,7 @@ function _bobGameOver(s){
       const bSY=b.y-s.camY+Math.sin(b.floatOff)*5;
       if(bSY<-40||bSY>H+40)return;
       ctx.save();
-      ctx.shadowBlur=20;ctx.shadowColor=b.col;
       _ddDrawBonus(ctx,b.x,bSY,b.r*1.4,b.kind,b.col);  // +40% taille
-      ctx.shadowBlur=0;
       // Label sous le bonus
       ctx.fillStyle=b.col;ctx.font="bold 10px 'Bebas Neue',sans-serif";ctx.textAlign='center';
       ctx.fillText(b.label,b.x,bSY+b.r*1.4+14);
@@ -28370,9 +28354,7 @@ function _bobGameOver(s){
       ctx.save();
       ctx.translate(h.x+h.w/2,hSY+h.h/2);
       ctx.rotate(h.angle);
-      ctx.shadowBlur=12;ctx.shadowColor=h.col+'aa';
       _ddDrawHazard(ctx,-h.w/2,-h.h/2,h.w,h.h,h.kind,h.col);
-      ctx.shadowBlur=0;
       ctx.restore();
     });
 
@@ -28589,6 +28571,26 @@ function _bobGameOver(s){
   }
 
   // Swipe gauche/droite
+  const _ddCanvas = document.getElementById('doodle-canvas');
+  if(_ddCanvas){
+    _ddCanvas.addEventListener('contextmenu', e=>e.preventDefault(), false);
+    _ddCanvas.addEventListener('touchstart', function(e){
+      e.preventDefault();
+      if(!document.getElementById('arc-doodle').classList.contains('on'))return;
+      _ddS&&(_ddS.swipeStartX=e.touches[0].clientX);
+    },{passive:false});
+    _ddCanvas.addEventListener('touchmove', function(e){
+      e.preventDefault();
+      if(!document.getElementById('arc-doodle').classList.contains('on'))return;
+      if(!_ddS||_ddS.swipeStartX===null)return;
+      _ddS.pvx=(e.touches[0].clientX-_ddS.swipeStartX)*0.10;
+    },{passive:false});
+    _ddCanvas.addEventListener('touchend', function(e){
+      e.preventDefault();
+      if(!document.getElementById('arc-doodle').classList.contains('on'))return;
+      if(_ddS)_ddS.swipeStartX=null;
+    },{passive:false});
+  }
   document.addEventListener('touchstart',function(e){
     if(!document.getElementById('arc-doodle').classList.contains('on'))return;
     _ddS&&(_ddS.swipeStartX=e.touches[0].clientX);
