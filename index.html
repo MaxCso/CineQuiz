@@ -4814,7 +4814,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   will-change:transform;
 }
 .hmv-poster.flipped .hmv-poster-inner{
-  transform:rotateY(var(--flip-deg, -180deg));
+  transform:rotateY(var(--flip-deg, 180deg));
 }
 .hmv-poster.interacting .hmv-poster-inner{
   transition:none !important;
@@ -16835,16 +16835,11 @@ function hmvFlipPoster(dir){
   const inner = poster.querySelector('.hmv-poster-inner');
   if(inner){
     if(!wasFlipped){
-      // Recto → Verso
-      // swipe D→G (dir='left') → carte part vers la gauche : -180deg
-      // tap (dir indéfini) → même sens par défaut
-      const deg = (dir === 'right') ? '180deg' : '-180deg';
-      inner.style.setProperty('--flip-deg', deg);
-      poster.dataset.flipDir = deg;
+      // Recto → Verso : toujours +180deg pour s'aligner avec .hmv-face-back{rotateY(180deg)}
+      inner.style.setProperty('--flip-deg', '180deg');
+      poster.dataset.flipDir = '180deg';
     } else {
-      // Verso → Recto : on inverse le sens mémorisé à l'aller pour un retour physique cohérent
-      // Si on avait flipé vers -180deg, on revient en allant vers 0 dans le même sens (la carte continue sa rotation)
-      // dir='right' (swipe G→D depuis verso) → retour naturel si l'aller était -180deg
+      // Verso → Recto : retour à 0
       inner.style.setProperty('--flip-deg', '0deg');
     }
   }
