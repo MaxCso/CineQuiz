@@ -4856,26 +4856,28 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   position:absolute;inset:0;
   transform-style:preserve-3d;
   -webkit-transform-style:preserve-3d;
-  transition:transform .65s cubic-bezier(.35,0,.15,1);
+  transition:transform .55s cubic-bezier(.4,0,.2,1);
   border-radius:20px;
   will-change:transform;
+}
+/* Squeeze très léger au milieu du flip pour masquer la tranche */
+@keyframes hmvFlipSqueeze{
+  0%   { transform:scaleX(1); }
+  45%  { transform:scaleX(0.96); }
+  55%  { transform:scaleX(0.96); }
+  100% { transform:scaleX(1); }
+}
+.hmv-poster.flipping{
+  animation: hmvFlipSqueeze .55s cubic-bezier(.4,0,.2,1) both;
 }
 .hmv-poster.flipped .hmv-poster-inner{
   transform:rotateY(calc(180deg * var(--flip-dir, 1)));
 }
 /* Fondu de la carte au milieu du flip pour masquer la démarcation */
-@keyframes hmvFlipFade{
-  0%   { opacity:1; }
-  40%  { opacity:0; }
-  60%  { opacity:0; }
-  100% { opacity:1; }
-}
-.hmv-poster.flipping .hmv-poster-inner{
-  animation: hmvFlipFade .65s cubic-bezier(.35,0,.15,1) both;
-}
+/* Flip : pas d'animation d'opacité sur l'inner, juste masquer le holo */
 .hmv-poster.flipping .hmv-holo-clip{
   opacity:0;
-  transition:opacity .1s ease;
+  transition:opacity .08s ease;
 }
 .hmv-poster.interacting .hmv-poster-inner{
   transition:none !important;
@@ -6056,6 +6058,8 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hm-card-info{position:absolute;bottom:0;left:0;right:0;padding:8px;}
 .hm-card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:#fff;line-height:1.1;margin-bottom:3px;}
 .hm-card-meta{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.5px;}
+.hm-card-rating{display:inline-flex;align-items:center;gap:3px;font-size:9px;color:rgba(245,200,66,.7);font-family:'Bebas Neue',sans-serif;letter-spacing:.5px;margin-top:2px;}
+.hm-card-rating svg{opacity:.8;}
 .hm-flip-hint{position:absolute;top:6px;right:6px;font-size:12px;opacity:.4;pointer-events:none;line-height:1;}
 
 /* VERSO */
@@ -7770,8 +7774,17 @@ if(window.location.search.indexOf('reset=1')!==-1){try{localStorage.clear();}cat
 
     <!-- Catalogue grille -->
     <div class="hm-collection-wrap" id="hm-collection-wrap" style="display:none;">
+      <!-- Barre de recherche -->
+      <div style="padding:10px 12px 0;">
+        <div style="position:relative;">
+          <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.35;pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="hm-search-input" type="text" placeholder="Rechercher un film…" oninput="hmSearchCollection(this.value)"
+            style="width:100%;padding:9px 32px 9px 30px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;box-sizing:border-box;-webkit-appearance:none;">
+          <button id="hm-search-clear" onclick="hmSearchClear()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1;">✕</button>
+        </div>
+      </div>
       <!-- Filtres centrés -->
-      <div style="display:flex;justify-content:center;gap:6px;padding:10px 12px 0;flex-wrap:nowrap;">
+      <div id="hm-sort-bar" style="display:flex;justify-content:center;gap:6px;padding:8px 12px 0;flex-wrap:nowrap;">
         <button class="hm-sort-btn active" id="hm-sort-date" onclick="hmSetSort('date',this)">Récents</button>
         <button class="hm-sort-btn" id="hm-sort-genre" onclick="hmSetSort('genre',this)">Genre</button>
         <button class="hm-sort-btn" id="hm-sort-mood" onclick="hmSetSort('mood',this)">Ambiance</button>
@@ -7807,6 +7820,11 @@ if(window.location.search.indexOf('reset=1')!==-1){try{localStorage.clear();}cat
             <button class="hm-cesoir-mood-btn" data-mood="atmosphère" onclick="hmCesoirSelectMood(this)">🌙 Atmosphère</button>
             <button class="hm-cesoir-mood-btn" data-mood="réflexion" onclick="hmCesoirSelectMood(this)">💭 Réflexion</button>
             <button class="hm-cesoir-mood-btn" data-mood="comédie" onclick="hmCesoirSelectMood(this)">😄 Comédie</button>
+          </div>
+          <!-- Filtre genre optionnel -->
+          <div id="hm-cesoir-genre-wrap" style="margin-top:10px;">
+            <div style="font-size:9px;color:rgba(192,132,252,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;">FILTRER PAR GENRE (optionnel)</div>
+            <div id="hm-cesoir-genres" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
           </div>
           <button id="hm-cesoir-btn" onclick="hmCesoirRecommend()" class="hm-cesoir-btn" disabled>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -10605,6 +10623,8 @@ const POOL=[
   128,8392,149,9323,8271,1359,1078605,1233413,840705,11036,1072269,
   451657,670292,1110358,615777,580175,577922,19908,504949,419704,
   586863,512263,570131,500664,339692,339403,263115,290250,381356,312221,
+,
+  773, 1640, 2153, 2292, 4771, 7445, 7457, 7972, 8052, 8194, 9787, 10741, 11524, 12163, 17431, 24469, 39210, 43920, 64720, 71859, 76025, 88005, 96936, 97370, 121872, 122906, 156700, 157354, 157386, 157845, 157847, 164457, 181886, 210479, 220289, 223485, 241239, 244267, 252512, 256569, 264644, 265195, 296523, 319066, 331781, 334541, 340666, 342737, 347031, 347866, 355254, 371638, 376865, 391713, 393519, 396461, 399057, 418078, 424781, 428449, 453278, 458737, 493066, 507076, 520023, 522039, 541572, 542417, 559907, 565310, 573952, 575417, 575776, 585378, 587792, 592695, 595586, 615643, 632617, 635731, 648878, 660120, 760104, 760329, 763329, 780609, 788929, 790416, 798286, 828558, 834027, 858017, 869626, 896536, 901563, 912520, 929590, 946127, 949423, 985617, 988402, 989662, 1008042, 1013850, 1020006, 1023922, 1058647, 1079310, 1100099, 1109255, 1128752, 1136867, 1138194, 1155828, 1158996, 1205515, 1239655, 1241436, 1242419, 1242434, 1242686, 1313229, 1325734
 ];
 
 const GENRE_IDS={Action:28,'Science-Fiction':878,Drame:18,Horreur:27,Animation:16,Comédie:35};
@@ -16656,6 +16676,14 @@ function hmSwitchTab(tab) {
     if(scratchWrap)scratchWrap.style.display='flex';
   } else if(tab==='collection'){
     if(collectionWrap)collectionWrap.style.display='block';
+    // Reset search si on revient sur collection
+    if(typeof _hmSearchQuery !== 'undefined') _hmSearchQuery = '';
+    const si = document.getElementById('hm-search-input');
+    const sc = document.getElementById('hm-search-clear');
+    const sb = document.getElementById('hm-sort-bar');
+    if(si) si.value = '';
+    if(sc) sc.style.display = 'none';
+    if(sb) sb.style.display = 'flex';
     _hmRenderCollection();
   } else if(tab==='cesoir'){
     if(cesoirWrap)cesoirWrap.style.display='block';
@@ -16762,6 +16790,37 @@ function _hmSortFilms(films){
   return films; // date = ordre de révélation (défaut)
 }
 
+// ── Récupère la note TMDB depuis le cache localStorage ──
+function _hmGetRating(film) {
+  if(!film || !film.id) return null;
+  try {
+    const safe = (film.t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+    const key = 'hm_info2_' + safe + '_' + film.y;
+    const cached = localStorage.getItem(key);
+    if(!cached) return null;
+    const d = JSON.parse(cached);
+    return d.rating ? d.rating.toFixed(1) : null;
+  } catch(e) { return null; }
+}
+
+// ── Recherche dans la collection ──
+let _hmSearchQuery = '';
+function hmSearchCollection(val) {
+  _hmSearchQuery = (val||'').toLowerCase().trim();
+  const clearBtn = document.getElementById('hm-search-clear');
+  const sortBar = document.getElementById('hm-sort-bar');
+  const moodFilter = document.getElementById('hm-mood-filter');
+  if(clearBtn) clearBtn.style.display = _hmSearchQuery ? 'block' : 'none';
+  if(sortBar) sortBar.style.display = _hmSearchQuery ? 'none' : 'flex';
+  if(moodFilter && _hmSearchQuery) moodFilter.style.display = 'none';
+  _hmRenderCollection();
+}
+function hmSearchClear() {
+  const input = document.getElementById('hm-search-input');
+  if(input) input.value = '';
+  hmSearchCollection('');
+}
+
 function _hmRenderCollection() {
   const grid = document.getElementById('hm-collection-grid');
   if (!grid) return;
@@ -16773,13 +16832,22 @@ function _hmRenderCollection() {
   let revealedFilms = _hmSortFilms([..._hmRevealed]
     .map(idx => ({ idx, film: _hmFilms[idx] }))
     .filter(({ film }) => film));
+  // Filtre par recherche
+  if(_hmSearchQuery) {
+    revealedFilms = revealedFilms.filter(({film}) =>
+      (film.t||'').toLowerCase().includes(_hmSearchQuery) ||
+      (film.g||'').toLowerCase().includes(_hmSearchQuery)
+    );
+  }
   // Filtre par ambiance
-  if(_hmMoodFilter && _hmSortMode==='mood'){
+  if(!_hmSearchQuery && _hmMoodFilter && _hmSortMode==='mood'){
     revealedFilms = revealedFilms.filter(({film})=>film.m&&film.m.includes(_hmMoodFilter));
   }
 
   if (!revealedFilms.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(255,255,255,.2);font-size:13px;line-height:1.6;">Gratte des cartes pour remplir<br>ta collection ✦</div>';
+    grid.innerHTML = _hmSearchQuery
+      ? '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(255,255,255,.25);font-size:13px;line-height:1.6;">Aucun film trouvé pour<br><span style=\"color:rgba(192,132,252,.6);\">\"' + _hmSearchQuery + '\"</span></div>'
+      : '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(255,255,255,.2);font-size:13px;line-height:1.6;">Gratte des cartes pour remplir<br>ta collection ✦</div>';
     return;
   }
 
@@ -16797,6 +16865,7 @@ function _hmRenderCollection() {
       <div class="hm-card-info">
         <div class="hm-card-title">${film.t}</div>
         <div class="hm-card-meta">${film.y} · ${film.g}</div>
+        ${_hmGetRating(film) ? `<div class="hm-card-rating"><svg width="9" height="9" viewBox="0 0 24 24" fill="rgba(245,200,66,.8)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${_hmGetRating(film)}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -18816,16 +18885,16 @@ const HM_MUSIC={
 function _hmGetMusic(filmTitle){return HM_MUSIC[filmTitle]||null;}
 
 const HM_DB=[
-  {lvl:0,p:'20th Century Women.jpg',t:'20th Century Women',g:'Drame',y:2016,m:['mélancolique','réflexion','atmosphère'],s:'Une mère bohème élève son fils ado dans le Santa Barbara des années 70, entourée de deux femmes qui vont changer leurs vies.',id:342737},
-  {lvl:0,p:'A Beautiful Day.png',t:'A Beautiful Day',g:'Thriller',y:2017,m:['adrénaline','atmosphère'],s:'Un ancien soldat d\'élite traque des prédateurs sexuels en marge de la loi. Brutal et cathartique.',id:398181},
-  {lvl:0,p:'A ceux qui nous ont offenses.jpg',t:'À ceux qui nous ont offensés',g:'Drame',y:2023,m:['mélancolique','réflexion'],s:'Un portrait intime de résilience et de pardon dans une famille marquée par la violence.',id:256569},
-  {lvl:0,p:'A Different Man.jpg',t:'A Different Man',g:'Comédie dramatique',y:2024,m:['réflexion','atmosphère'],s:'Un acteur défiguré subit une opération radicale et voit sa vie basculer. Étrange et captivant.',id:989662},
-  {lvl:0,p:'A Ghost Story.jpg',t:'A Ghost Story',g:'Drame',y:2017,m:['mélancolique','atmosphère','réflexion'],s:'Un fantôme drapé d\'un drap blanc observe le passage du temps dans sa maison. Poétique et hors du temps.',id:428449},
-  {lvl:0,p:'A Most Violent Year.jpg',t:'A Most Violent Year',g:'Thriller',y:2014,m:['adrénaline','réflexion'],s:'New York, 1981. Un entrepreneur tente de se hisser au sommet sans compromettre ses principes.',id:241239},
-  {lvl:0,p:'A Real Pain.png',t:'A Real Pain',g:'Comédie dramatique',y:2024,m:['mélancolique','réflexion','comédie'],s:'Deux cousins très différents traversent la Pologne pour honorer leur grand-mère. Jesse Eisenberg touchant.',id:1013850},
-  {lvl:0,p:'After Hours.jpg',t:'After Hours',g:'Comédie',y:1985,m:['adrénaline','comédie','atmosphère'],s:'Une nuit new-yorkaise tourne au cauchemar absurde pour un jeune homme ordinaire. Scorsese délirant.',id:10843},
-  {lvl:0,p:'After Yang.jpg',t:'After Yang',g:'Science-fiction',y:2021,m:['mélancolique','réflexion','atmosphère'],s:'Une famille fait le deuil de leur androïde. Méditation sur la mémoire et l\'humanité.',id:585378},
-  {lvl:0,p:'Aftersun.png',t:'Aftersun',g:'Drame',y:2022,m:['mélancolique','atmosphère','réflexion'],s:'Sophie se souvient de ses vacances avec son père à travers des vidéos retrouvées. Charlotte Wells, chef-d\'œuvre déchirant.',id:965150},
+  {lvl:1,p:'20th Century Women.jpg',t:'20th Century Women',g:'Drame',y:2016,m:['mélancolique','réflexion','atmosphère'],s:'Une mère bohème élève son fils ado dans le Santa Barbara des années 70, entourée de deux femmes qui vont changer leurs vies.',id:342737},
+  {lvl:1,p:'A Beautiful Day.png',t:'A Beautiful Day',g:'Thriller',y:2017,m:['adrénaline','atmosphère'],s:'Un ancien soldat d\'élite traque des prédateurs sexuels en marge de la loi. Brutal et cathartique.',id:398181},
+  {lvl:1,p:'A ceux qui nous ont offenses.jpg',t:'À ceux qui nous ont offensés',g:'Drame',y:2023,m:['mélancolique','réflexion'],s:'Un portrait intime de résilience et de pardon dans une famille marquée par la violence.',id:256569},
+  {lvl:1,p:'A Different Man.jpg',t:'A Different Man',g:'Comédie dramatique',y:2024,m:['réflexion','atmosphère'],s:'Un acteur défiguré subit une opération radicale et voit sa vie basculer. Étrange et captivant.',id:989662},
+  {lvl:1,p:'A Ghost Story.jpg',t:'A Ghost Story',g:'Drame',y:2017,m:['mélancolique','atmosphère','réflexion'],s:'Un fantôme drapé d\'un drap blanc observe le passage du temps dans sa maison. Poétique et hors du temps.',id:428449},
+  {lvl:1,p:'A Most Violent Year.jpg',t:'A Most Violent Year',g:'Thriller',y:2014,m:['adrénaline','réflexion'],s:'New York, 1981. Un entrepreneur tente de se hisser au sommet sans compromettre ses principes.',id:241239},
+  {lvl:1,p:'A Real Pain.png',t:'A Real Pain',g:'Comédie dramatique',y:2024,m:['mélancolique','réflexion','comédie'],s:'Deux cousins très différents traversent la Pologne pour honorer leur grand-mère. Jesse Eisenberg touchant.',id:1013850},
+  {lvl:1,p:'After Hours.jpg',t:'After Hours',g:'Comédie',y:1985,m:['adrénaline','comédie','atmosphère'],s:'Une nuit new-yorkaise tourne au cauchemar absurde pour un jeune homme ordinaire. Scorsese délirant.',id:10843},
+  {lvl:1,p:'After Yang.jpg',t:'After Yang',g:'Science-fiction',y:2021,m:['mélancolique','réflexion','atmosphère'],s:'Une famille fait le deuil de leur androïde. Méditation sur la mémoire et l\'humanité.',id:585378},
+  {lvl:1,p:'Aftersun.png',t:'Aftersun',g:'Drame',y:2022,m:['mélancolique','atmosphère','réflexion'],s:'Sophie se souvient de ses vacances avec son père à travers des vidéos retrouvées. Charlotte Wells, chef-d\'œuvre déchirant.',id:965150},
   {lvl:1,p:'American Beauty.jpg',t:'American Beauty',g:'Drame',y:1999,m:['réflexion','mélancolique','atmosphère'],s:'Un père de banlieue en crise de la quarantaine se révolte contre sa vie parfaite mais creuse.',id:14},
   {lvl:1,p:'American Honey.jpg',t:'American Honey',g:'Drame',y:2016,m:['atmosphère','mélancolique','adrénaline'],s:'Une adolescente fugue avec une bande de vendeurs itinérants parcourant l\'Amérique profonde.',id:340485},
   {lvl:1,p:'Amy.jpg',t:'Amy',g:'Documentaire',y:2015,m:['mélancolique','réflexion'],s:'Portrait intime et bouleversant d\'Amy Winehouse, de ses débuts foudroyants à sa fin tragique.',id:331781},
@@ -29936,8 +30005,16 @@ function hmCesoirInit(){
     if(moodWrap)moodWrap.style.display='block';
     if(result){result.style.display='none';result.classList.remove('on');}
   }
+  // Populate genre filter with genres from revealed collection
+  const genreWrap = document.getElementById('hm-cesoir-genres');
+  if(genreWrap) {
+    const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
+    const genres = [...new Set(revealed.map(f=>f.g).filter(Boolean))].sort();
+    genreWrap.innerHTML = '<button class="hm-cesoir-mood-btn hm-cesoir-genre-btn active" data-genre="" onclick="hmCesoirSelectGenre(this)">Tous</button>'
+      + genres.map(g => `<button class="hm-cesoir-mood-btn hm-cesoir-genre-btn" data-genre="${g}" onclick="hmCesoirSelectGenre(this)">${g}</button>`).join('');
+  }
   // Reset mood selection
-  _hmCesoirMood='';
+  _hmCesoirMood=''; _hmCesoirGenre='';
   document.querySelectorAll('.hm-cesoir-mood-btn').forEach(b=>b.classList.remove('selected'));
   const btn=document.getElementById('hm-cesoir-btn');
   const labelEl=document.getElementById('hm-cesoir-btn-label');
@@ -29945,9 +30022,15 @@ function hmCesoirInit(){
   if(labelEl)labelEl.textContent='CHOISIR UNE AMBIANCE';
 }
 
+function hmCesoirSelectGenre(el){
+  _hmCesoirGenre = el.dataset.genre;
+  document.querySelectorAll('.hm-cesoir-genre-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 function hmCesoirSelectMood(el){
   _hmCesoirMood = el.dataset.mood;
-  document.querySelectorAll('.hm-cesoir-mood-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.hm-cesoir-mood-btn:not(.hm-cesoir-genre-btn)').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
   const btn=document.getElementById('hm-cesoir-btn');
   const labelEl=document.getElementById('hm-cesoir-btn-label');
@@ -29956,7 +30039,7 @@ function hmCesoirSelectMood(el){
 }
 
 function hmCesoirReset(){
-  _hmCesoirMood='';
+  _hmCesoirMood=''; _hmCesoirGenre='';
   document.querySelectorAll('.hm-cesoir-mood-btn').forEach(b=>b.classList.remove('selected'));
   const result=document.getElementById('hm-cesoir-result');
   const moodWrap=document.getElementById('hm-cesoir-mood-wrap');
@@ -29992,7 +30075,12 @@ function hmCesoirRecommend(){
   // Recommander uniquement parmi les films déjà révélés (pas de spoil)
   const db = typeof HM_DB!=='undefined' ? HM_DB : (dbFilms||[]);
   // Enrichir les films révélés avec les métadonnées HM_DB
-  const candidates = revealed.map(f => db.find(d => d.t===f.t) || f).filter(Boolean);
+  let candidates = revealed.map(f => db.find(d => d.t===f.t) || f).filter(Boolean);
+  // Filtre par genre si sélectionné
+  if(_hmCesoirGenre) {
+    const filtered = candidates.filter(f => f.g === _hmCesoirGenre);
+    if(filtered.length > 0) candidates = filtered;
+  }
   if(!candidates.length) return;
 
   // Analyser les goûts : genres et ambiances les plus présents dans la collection
