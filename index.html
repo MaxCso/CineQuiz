@@ -16896,17 +16896,13 @@ function _hmBuildCollectionStats(films){
         </div>`).join('')}
     </div>
 
-    <div style="font-size:9px;color:rgba(192,132,252,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;">Progression par niveau</div>
-    <div style="margin-bottom:8px;">
-      ${lvls.map(g=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
-          <div style="font-size:11px;color:rgba(255,255,255,.5);width:90px;flex-shrink:0;">${g.name}</div>
-          <div style="flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;">
-            <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,rgba(168,85,247,.5),rgba(168,85,247,.9));width:${g.total?Math.round(g.rev/g.total*100):0}%;"></div>
-          </div>
-          <div style="font-size:10px;color:rgba(192,132,252,.5);font-family:'Bebas Neue',sans-serif;width:32px;text-align:right;">${g.rev}/${g.total}</div>
-        </div>`).join('')}
+
+    <div style="margin-top:28px;padding-bottom:24px;">
+      <button onclick="hmResetCollection()" style="width:100%;padding:13px;border-radius:14px;background:rgba(232,52,74,.05);border:1px solid rgba(232,52,74,.18);color:rgba(232,52,74,.55);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.3px;cursor:pointer;">
+        ↺ Réinitialiser ma collection
+      </button>
     </div>
+
   </div>`;
 }
 
@@ -19940,15 +19936,6 @@ function renderDailyMsg(){
     <div class="dmc-body">
       <span class="dmc-label">${labelMap[msg.tag]||'Message du jour'}</span>
       <div class="dmc-text">${msg.text}</div>
-    </div>
-
-    <div style="margin-top:24px;padding-bottom:16px;">
-      <button onclick="hmResetCollection()" style="
-        width:100%;padding:13px;border-radius:14px;
-        background:rgba(232,52,74,.05);border:1px solid rgba(232,52,74,.15);
-        color:rgba(232,52,74,.5);font-family:'DM Sans',sans-serif;font-size:12px;
-        letter-spacing:.3px;cursor:pointer;
-      ">↺ Réinitialiser ma collection</button>
     </div>
 
   </div>`;
@@ -30984,8 +30971,47 @@ if('serviceWorker' in navigator){
   window.authDoLogout = function() {
     sbSignOut().then(function() {
       hideAuthModal();
-      showToastAuth('Deconnecte.');
+      showToastAuth('Tu es deconnecte.');
     });
+  };
+
+  window.authDoLogoutConfirmUI = function() {
+    var existing = document.getElementById('_lcm');
+    if(existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = '_lcm';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:0 0 32px;box-sizing:border-box;';
+    var sheet = document.createElement('div');
+    sheet.style.cssText = 'background:linear-gradient(160deg,#13101f,#0e0c1a);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:28px 24px 20px;width:calc(100% - 48px);max-width:360px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.5);';
+    var emoji = document.createElement('div');
+    emoji.style.cssText = 'font-size:32px;margin-bottom:12px;';
+    emoji.textContent = String.fromCodePoint(0x1F44B);
+    var title = document.createElement('div');
+    title.style.cssText = 'font-size:20px;letter-spacing:1.5px;color:#fff;margin-bottom:8px;font-weight:700;';
+    title.textContent = 'Se déconnecter ?';
+    var sub = document.createElement('div');
+    sub.style.cssText = 'font-size:13px;color:rgba(255,255,255,.45);line-height:1.5;margin-bottom:24px;';
+    sub.innerHTML = 'Ta progression locale est conservée.<br>Tu pourras te reconnecter depuis le profil.';
+    var btnOk = document.createElement('button');
+    btnOk.style.cssText = 'width:100%;padding:14px;border-radius:14px;background:rgba(232,52,74,.12);border:1px solid rgba(232,52,74,.3);color:#e8344a;font-size:16px;letter-spacing:1.5px;cursor:pointer;margin-bottom:10px;display:block;';
+    btnOk.textContent = 'Se déconnecter';
+    btnOk.onclick = function(){ authDoLogout(); modal.remove(); };
+    var btnCancel = document.createElement('button');
+    btnCancel.style.cssText = 'width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:16px;letter-spacing:1.5px;cursor:pointer;display:block;';
+    btnCancel.textContent = 'Annuler';
+    btnCancel.onclick = function(){ modal.remove(); };
+    sheet.appendChild(emoji); sheet.appendChild(title); sheet.appendChild(sub);
+    sheet.appendChild(btnOk); sheet.appendChild(btnCancel);
+    modal.appendChild(sheet);
+    modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+    document.body.appendChild(modal);
+    sheet.style.transform = 'translateY(40px)';
+    sheet.style.opacity = '0';
+    sheet.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1), opacity .2s ease';
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      sheet.style.transform = 'translateY(0)';
+      sheet.style.opacity = '1';
+    });});
   };
 
   window.switchAuthTab = switchAuthTab;
@@ -31054,7 +31080,7 @@ if('serviceWorker' in navigator){
       '    <div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Ta progression est sauvegardee automatiquement dans le cloud.</div>',
       '    <button class="auth-btn" onclick="hideAuthModal();goProfile();" style="background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(167,139,250,.1));border-color:rgba(167,139,250,.4);color:#c4b5fd;">&#128100; Voir mon profil</button>',
       '    <button class="auth-btn auth-btn-secondary" onclick="sbManualSync()">&#8645; Synchroniser maintenant</button>',
-      '    <button class="auth-btn auth-btn-danger" onclick="if(confirm(\'Te deconnecter ?\'))authDoLogout()">Se deconnecter</button>',
+      '    <button class="auth-btn auth-btn-danger" onclick="authDoLogoutConfirmUI()">Se déconnecter</button>',
       '  </div>',
       '</div>',
     ].join('');
@@ -31197,9 +31223,7 @@ if('serviceWorker' in navigator){
     requestAnimationFrame(function(){ modal.classList.add('on'); });
   };
 
-  window.authDoLogoutConfirm = function() {
-    if (confirm('Te déconnecter ?')) authDoLogout();
-  };
+  window.authDoLogoutConfirm = function() { authDoLogoutConfirmUI(); };
 
   window.closeAccountModal = function() {
     var m = document.getElementById('account-modal');
