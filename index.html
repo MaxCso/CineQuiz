@@ -38,9 +38,6 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
   position:relative;
   overflow:hidden;
   isolation:isolate;
-  /* Safe area pour notch / Dynamic Island / barre de navigation */
-  padding-top:env(safe-area-inset-top);
-  padding-bottom:env(safe-area-inset-bottom);
   box-sizing:border-box;
 }
 #result.on{overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -5354,7 +5351,7 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hm-help-close:active{transform:scale(.97);}
 
 /* ══ HIDDEN MOVIES COLLECTION ══ */
-#hm{position:absolute;inset:0;z-index:1;overflow:hidden;display:flex;flex-direction:column;background:#07060c;padding-bottom:env(safe-area-inset-bottom,0px);}
+#hm{position:absolute;inset:0;z-index:1;overflow:hidden;display:flex;flex-direction:column;background:#07060c;}
 #hm .hm-bg{
   position:absolute;inset:0;pointer-events:none;z-index:0;
   overflow:hidden;background:#07060c;
@@ -16532,10 +16529,33 @@ let _hmParticleRaf=null;  // RAF particules actif (pour annulation propre)
 let _hmExtraCanvases=[];  // canvas dynamiques créés (texCanvas, shCanvas, pCanvas)
 
 function _hmLoadRevealed(){
-  try{const r=localStorage.getItem('hm_revealed');if(r)_hmRevealed=new Set(JSON.parse(r));}catch{}
+  try{
+    const r=localStorage.getItem('hm_revealed');
+    if(!r){_hmRevealed=new Set();return;}
+    const stored=JSON.parse(r);
+    // Nouveau format : tableau d'IDs TMDB (nombres > 1000 ou strings)
+    // Ancien format : tableau d'indices dans _hmFilms (petits nombres)
+    const isNewFormat = stored.length===0 || stored[0]>1000;
+    if(isNewFormat){
+      // Convertir les IDs TMDB en indices dans _hmFilms courant
+      _hmRevealed=new Set();
+      stored.forEach(tmdbId=>{
+        const idx=_hmFilms.findIndex(f=>f.id===tmdbId);
+        if(idx>=0)_hmRevealed.add(idx);
+      });
+    } else {
+      // Ancien format : indices directs (migration en cours)
+      // Convertir en IDs TMDB pour la prochaine sauvegarde
+      _hmRevealed=new Set(stored);
+    }
+  }catch{_hmRevealed=new Set();}
 }
 function _hmSaveRevealed(){
-  try{localStorage.setItem('hm_revealed',JSON.stringify([..._hmRevealed]));}catch{}
+  try{
+    // Sauvegarder les IDs TMDB (stables) plutôt que les indices (qui changent chaque jour)
+    const tmdbIds=[..._hmRevealed].map(i=>_hmFilms[i]?.id).filter(Boolean);
+    localStorage.setItem('hm_revealed',JSON.stringify(tmdbIds));
+  }catch{}
   // Vérifier si toutes les cartes débloquées sont révélées → bonus
   _hmCheckBonus();
 }
@@ -17652,9 +17672,8 @@ function openHM(){
   if(el){el.setAttribute('style','display:flex;flex-direction:column;opacity:1;pointer-events:all;');}
   // Swipe entre onglets
   if(typeof window._hmInitSwipe==='function') window._hmInitSwipe();
-  _hmLoadRevealed();
   _hmLoadWishlist();
-  _hmBuildList();
+  _hmBuildList(); // peuple _hmFilms puis appelle _hmLoadRevealed()
   if(musOn)switchMusic('reco',0.22);
   // Première visite → carte tuto
   hmCheckFirstVisit();
@@ -17669,8 +17688,13 @@ function openHM(){
 
   if(firstUnrevealed>=0){
     // Il reste des cartes à gratter
+    // Restaurer depuis l'ID TMDB stable (ou l'index en fallback)
     let savedIdx=-1;
-    try{savedIdx=parseInt(localStorage.getItem('hm_last_idx')||'-1',10);}catch(e){}
+    try{
+      const savedTmdbId=parseInt(localStorage.getItem('hm_last_tmdb_id')||'0',10);
+      if(savedTmdbId) savedIdx=_hmFilms.findIndex(f=>f.id===savedTmdbId);
+      if(savedIdx<0) savedIdx=parseInt(localStorage.getItem('hm_last_idx')||'-1',10);
+    }catch(e){}
     const validSaved=savedIdx>=0&&savedIdx<_hmFilms.length&&_hmFilms[savedIdx]?.lvl<=userLvl&&daily.has(savedIdx)&&!_hmRevealed.has(savedIdx);
     _hmIdx=validSaved?savedIdx:firstUnrevealed;
     _hmRenderCard(_hmIdx);
@@ -17736,23 +17760,29 @@ function _hmGetDailyUnlocked(allUnlocked, revealed){
 
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    // Invalider le cache si la DB a changé de taille (ex: nouveaux films ajoutés)
     const dbSize = HM_DB.length;
     if(saved && saved.date === today && saved.dbSize === dbSize){
-      // Même jour et même DB : on retourne exactement la sélection du jour
-      return new Set([...revealed, ...saved.indices]);
+      // Même jour et même DB — convertir les IDs TMDB sauvegardés en indices courants
+      if(saved.tmdbIds){
+        const todayIndices = saved.tmdbIds
+          .map(id => _hmFilms.findIndex(f => f.id === id))
+          .filter(i => i >= 0);
+        return new Set([...revealed, ...todayIndices]);
+      }
+      // Ancien format (indices directs) — invalider
     }
-    // Nouveau jour : piocher 7 cartes aléatoires parmi non grattées
+    // Nouveau jour ou cache invalide : piocher 7 cartes parmi non grattées
     const pending = allUnlocked.filter(i => !revealed.has(i));
-    if(pending.length === 0) return new Set([...revealed]); // tout gratté
-    // Mélange Fisher-Yates vraiment aléatoire
+    if(pending.length === 0) return new Set([...revealed]);
     const shuffled = [...pending];
     for(let i = shuffled.length-1; i > 0; i--){
       const j = Math.floor(Math.random() * (i+1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     const todayBatch = shuffled.slice(0, MAX_PER_DAY);
-    localStorage.setItem(storageKey, JSON.stringify({date: today, indices: todayBatch, dbSize: HM_DB.length}));
+    // Sauvegarder les IDs TMDB (stables) plutôt que les indices (qui changent chaque jour)
+    const tmdbIds = todayBatch.map(i => _hmFilms[i]?.id).filter(Boolean);
+    localStorage.setItem(storageKey, JSON.stringify({date: today, tmdbIds, dbSize}));
     return new Set([...revealed, ...todayBatch]);
   } catch(e) {
     return new Set([...revealed, ...allUnlocked.slice(0, MAX_PER_DAY)]);
@@ -17760,11 +17790,12 @@ function _hmGetDailyUnlocked(allUnlocked, revealed){
 }
 
 function _hmBuildList(){
-  // Invalider le cache daily si la taille de la DB a changé
+  // Invalider le cache daily si : taille DB changée OU ancien format (indices au lieu de tmdbIds)
   try {
     const saved = JSON.parse(localStorage.getItem('hm_daily_unlocked') || 'null');
-    if(saved && saved.dbSize !== HM_DB.length) {
+    if(saved && (saved.dbSize !== HM_DB.length || !saved.tmdbIds)) {
       localStorage.removeItem('hm_daily_unlocked');
+      localStorage.removeItem('hm_last_idx'); // index obsolète aussi
     }
   } catch(e) {}
 
@@ -17824,7 +17855,11 @@ function _hmBuildClue(film) {
 function _hmRenderCard(idx){
   const film=_hmFilms[idx];
   if(!film)return;
-  try{localStorage.setItem('hm_last_idx',idx);}catch(e){}
+  // Sauvegarder l'ID TMDB (stable) plutôt que l'index (change chaque jour)
+  try{
+    if(film.id) localStorage.setItem('hm_last_tmdb_id', String(film.id));
+    localStorage.setItem('hm_last_idx',idx); // gardé pour rétrocompat immédiate
+  }catch(e){}
   const s=ls();
   const userLvl=glv(s.xp);
   const daily = window._hmDailyAvailable || new Set();
@@ -19906,6 +19941,16 @@ function renderDailyMsg(){
       <span class="dmc-label">${labelMap[msg.tag]||'Message du jour'}</span>
       <div class="dmc-text">${msg.text}</div>
     </div>
+
+    <div style="margin-top:24px;padding-bottom:16px;">
+      <button onclick="hmResetCollection()" style="
+        width:100%;padding:13px;border-radius:14px;
+        background:rgba(232,52,74,.05);border:1px solid rgba(232,52,74,.15);
+        color:rgba(232,52,74,.5);font-family:'DM Sans',sans-serif;font-size:12px;
+        letter-spacing:.3px;cursor:pointer;
+      ">↺ Réinitialiser ma collection</button>
+    </div>
+
   </div>`;
 }
 
@@ -20304,7 +20349,35 @@ function _hmRenderStats(){
           <div class="hm-lvl-track"><div class="hm-lvl-fill" style="width:${g.total?Math.round(g.revealed/g.total*100):0}%"></div></div>
           <div class="hm-lvl-pct">${g.revealed}/${g.total}</div>
         </div>`).join('')}
+    </div>
+
+    <div style="margin-top:32px;padding:0 4px 32px;">
+      <button onclick="hmResetCollection()" style="
+        width:100%;padding:14px;border-radius:16px;
+        background:rgba(232,52,74,.06);border:1px solid rgba(232,52,74,.2);
+        color:rgba(232,52,74,.6);font-family:'DM Sans',sans-serif;font-size:13px;
+        letter-spacing:.3px;cursor:pointer;transition:all .2s;
+      ">
+        ↺ Réinitialiser ma collection
+      </button>
     </div>`;
+}
+
+function hmResetCollection(){
+  if(!confirm('Réinitialiser toute ta collection ? Toutes tes cartes grattées seront perdues. Cette action est irréversible.')) return;
+  try{
+    localStorage.removeItem('hm_revealed');
+    localStorage.removeItem('hm_daily_unlocked');
+    localStorage.removeItem('hm_bonus_shown');
+    localStorage.removeItem('hm_last_idx');
+    localStorage.removeItem('hm_last_tmdb_id');
+    localStorage.removeItem('hm_last_tab');
+  }catch(e){}
+  _hmRevealed=new Set();
+  // Recharger Hidden Movies proprement
+  _hmBuildList();
+  hmSwitchTab('scratch');
+  showToastAuth('Collection réinitialisée.');
 }
 
 function _hmCheckBonus(){
@@ -29862,7 +29935,7 @@ let _hmCesoirMood = '';
 function hmCesoirInit(){
   // Charger les données si pas encore fait
   if(_hmFilms.length===0&&typeof _hmBuildList==='function')_hmBuildList();
-  if(_hmRevealed.size===0)_hmLoadRevealed();
+  // _hmLoadRevealed() est appelé par _hmBuildList, pas besoin de le rappeler
   // Mapper les indices sur _hmFilms (nécessite que _hmFilms soit peuplé)
   const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
   const stateEl = document.getElementById('hm-cesoir-state');
