@@ -16553,9 +16553,9 @@ function _hmLoadRevealed(){
     const r=localStorage.getItem('hm_revealed');
     if(!r){_hmRevealed=new Set();return;}
     const stored=JSON.parse(r);
-    // Nouveau format : tableau d'IDs TMDB (nombres > 1000 ou strings)
-    // Ancien format : tableau d'indices dans _hmFilms (petits nombres)
-    const isNewFormat = stored.length===0 || stored[0]>1000;
+    // Détecter le format : IDs TMDB sont dans HM_DB, indices anciens ne le sont pas
+    // On vérifie si le premier élément correspond à un ID TMDB connu
+    const isNewFormat = stored.length===0 || HM_DB.some(f=>f.id===stored[0]);
     if(isNewFormat){
       // Convertir les IDs TMDB en indices dans _hmFilms courant
       _hmRevealed=new Set();
@@ -17855,12 +17855,23 @@ function _hmGetDailyUnlocked(allUnlocked, revealed){
 }
 
 function _hmBuildList(){
-  // Invalider le cache daily si : taille DB changée OU ancien format (indices au lieu de tmdbIds)
   try {
     const saved = JSON.parse(localStorage.getItem('hm_daily_unlocked') || 'null');
-    if(saved && (saved.dbSize !== HM_DB.length || !saved.tmdbIds)) {
-      localStorage.removeItem('hm_daily_unlocked');
-      localStorage.removeItem('hm_last_idx'); // index obsolète aussi
+    const revealed = JSON.parse(localStorage.getItem('hm_revealed') || '[]');
+    const revealedCount = revealed ? revealed.length : 0;
+
+    // Invalider si :
+    // 1. Taille DB changée
+    // 2. Ancien format sans tmdbIds
+    // 3. Le cache daily prétend avoir des cartes grattées mais la collection est vide (incohérence)
+    if(saved){
+      const dailyCount = saved.tmdbIds ? saved.tmdbIds.length : 0;
+      const incoherent = dailyCount > 0 && revealedCount === 0;
+      if(saved.dbSize !== HM_DB.length || !saved.tmdbIds || incoherent){
+        localStorage.removeItem('hm_daily_unlocked');
+        localStorage.removeItem('hm_last_idx');
+        localStorage.removeItem('hm_last_tmdb_id');
+      }
     }
   } catch(e) {}
 
@@ -31140,6 +31151,8 @@ if('serviceWorker' in navigator){
             Object.keys(cloudData).forEach(function(k) {
               try { localStorage.setItem(k, cloudData[k]); } catch(e) {}
             });
+            // Invalider le cache daily car hm_revealed vient de changer
+            try { localStorage.removeItem('hm_daily_unlocked'); } catch(e) {}
             if (typeof refHome === 'function') refHome();
             if (typeof updateProfileDot === 'function') updateProfileDot();
           }
