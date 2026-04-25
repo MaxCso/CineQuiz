@@ -17432,7 +17432,23 @@ function closeHMViewer() {
     const daily = window._hmDailyAvailable || new Set();
     const next=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&daily.has(i)&&!_hmRevealed.has(i));
     if(next>=0){_hmIdx=next;_hmRenderCard(_hmIdx);}
-    else{ hmSwitchTab('collection'); }
+    else{
+      // Toutes les cartes du jour grattées → afficher le message
+      const scratchWrap=document.getElementById('hm-scratch-wrap');
+      const allScratched=_hmRevealed.size>=HM_DB.length;
+      if(allScratched){
+        hmSwitchTab('collection');
+      } else if(scratchWrap){
+        scratchWrap.innerHTML=`
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:14px;text-align:center;">
+            <div style="font-size:40px;">🎴</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Cartes du jour épuisées</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Tu as gratté tes 10 cartes du jour.<br>Reviens demain pour de nouveaux films.</div>
+            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ 10 nouvelles cartes demain ✦</div>
+            <button onclick="hmSwitchTab('collection')" style="margin-top:12px;padding:12px 24px;border-radius:20px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;">VOIR MA COLLECTION →</button>
+          </div>`;
+      }
+    }
   }
 }
 
