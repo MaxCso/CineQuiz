@@ -4804,12 +4804,20 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hmv-poster-inner{
   position:absolute;inset:0;
   transform-style:preserve-3d;
-  transition:transform .7s cubic-bezier(.35,0,.15,1);
+  transition:transform .65s cubic-bezier(.35,0,.15,1);
   border-radius:20px;
   will-change:transform;
+  /* Masque la démarcation entre les deux faces */
+  outline:2px solid transparent;
+  -webkit-transform-style:preserve-3d;
 }
 .hmv-poster.flipped .hmv-poster-inner{
   transform:rotateY(calc(180deg * var(--flip-dir, 1)));
+}
+/* Pendant le flip : masquer la ligne de séparation via un fondu rapide */
+.hmv-poster.flipping .hmv-holo-clip{
+  opacity:0;
+  transition:opacity .1s ease;
 }
 .hmv-poster.interacting .hmv-poster-inner{
   transition:none !important;
@@ -4822,6 +4830,8 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   background:#000;
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
+  /* Légère ombre interne pour effacer la jointure de profil */
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.8);
 }
 .hmv-face-back{
   transform:rotateY(calc(180deg * var(--flip-dir, 1)));
@@ -16853,17 +16863,27 @@ function hmvFlipPoster(dir){
   const poster = document.getElementById('hmv-poster');
   if(!poster || _hmvInfoOpen) return;
   const wasFlipped = poster.classList.contains('flipped');
-  // dir: 1 = swipe gauche→droite, -1 = swipe droite→gauche, undefined = tap
   if(dir !== undefined){
-    // Swipe droite (dx>0) = dir 1 → rotation positive
-    // Swipe gauche (dx<0) = dir -1 → rotation négative
     const flipDir = dir > 0 ? 1 : -1;
     poster.style.setProperty('--flip-dir', flipDir);
   }
-  poster.classList.toggle('flipped');
   if(!wasFlipped && !poster.dataset.backFilled){
     _hmvFillBack();
     poster.dataset.backFilled = '1';
+  }
+  // Ajouter classe flipping pour masquer la jointure pendant l'animation
+  poster.classList.add('flipping');
+  poster.classList.toggle('flipped');
+  const inner = poster.querySelector('.hmv-poster-inner');
+  if(inner){
+    // Écouter la fin de transition pour retirer la classe flipping
+    const onEnd = function(){
+      poster.classList.remove('flipping');
+      inner.removeEventListener('transitionend', onEnd);
+    };
+    inner.addEventListener('transitionend', onEnd);
+    // Sécurité : retirer après 800ms max
+    setTimeout(function(){ poster.classList.remove('flipping'); }, 800);
   }
 }
 
