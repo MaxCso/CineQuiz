@@ -17676,9 +17676,10 @@ function _hmGetDailyUnlocked(allUnlocked, revealed){
 
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    if(saved && saved.date === today){
-      // Même jour : on retourne exactement la sélection du jour (grattées ou pas)
-      // Ne jamais redistribuer le même jour
+    // Invalider le cache si la DB a changé de taille (ex: nouveaux films ajoutés)
+    const dbSize = HM_DB.length;
+    if(saved && saved.date === today && saved.dbSize === dbSize){
+      // Même jour et même DB : on retourne exactement la sélection du jour
       return new Set([...revealed, ...saved.indices]);
     }
     // Nouveau jour : piocher 7 cartes aléatoires parmi non grattées
@@ -17691,7 +17692,7 @@ function _hmGetDailyUnlocked(allUnlocked, revealed){
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     const todayBatch = shuffled.slice(0, MAX_PER_DAY);
-    localStorage.setItem(storageKey, JSON.stringify({date: today, indices: todayBatch}));
+    localStorage.setItem(storageKey, JSON.stringify({date: today, indices: todayBatch, dbSize: HM_DB.length}));
     return new Set([...revealed, ...todayBatch]);
   } catch(e) {
     return new Set([...revealed, ...allUnlocked.slice(0, MAX_PER_DAY)]);
