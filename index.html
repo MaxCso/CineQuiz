@@ -6240,6 +6240,16 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 <script>
 // Reset urgence: cinequiz.site?reset=1
 if(window.location.search.indexOf('reset=1')!==-1){try{localStorage.clear();}catch(e){}window.location.href=window.location.pathname;}
+// Bloquer Face ID / PasswordCredential dès le démarrage en PWA
+(function(){
+  try {
+    var isPWA=(window.navigator.standalone===true)||(window.matchMedia('(display-mode: standalone)').matches);
+    if(isPWA && navigator.credentials){
+      var noop=function(){return Promise.reject(new Error('blocked'));};
+      try{Object.defineProperty(navigator,'credentials',{value:{get:noop,store:noop,create:noop,preventSilentAccess:noop},configurable:false});}catch(e){}
+    }
+  } catch(e){}
+})();
 </script>
 <div class="wrap" id="wrap">
 
@@ -31124,6 +31134,18 @@ if('serviceWorker' in navigator){
   window.switchAuthTab = switchAuthTab;
   window.showAuthModal = function(tab) {
     injectAuthModal();
+    // Désactiver autocomplete en PWA pour éviter Face ID intempestif
+    var isPWA = (window.navigator.standalone === true) ||
+                (window.matchMedia('(display-mode: standalone)').matches);
+    if (isPWA) {
+      setTimeout(function() {
+        document.querySelectorAll('#auth-modal input').forEach(function(i) {
+          i.setAttribute('autocomplete', 'off');
+          i.setAttribute('autocorrect', 'off');
+          i.setAttribute('autocapitalize', 'off');
+        });
+      }, 50);
+    }
     showAuthModal(tab);
   };
   window.hideAuthModal = hideAuthModal;
@@ -31295,7 +31317,7 @@ if('serviceWorker' in navigator){
     // Désactiver WebAuthn / Face ID sur les inputs password au runtime
     setTimeout(function() {
       document.querySelectorAll('#auth-modal input[type="password"]').forEach(function(el) {
-        el.setAttribute('autocomplete', el.id === 'auth-pass-login' ? 'current-password' : 'new-password');
+        el.setAttribute('autocomplete', 'off');
         // Bloquer navigator.credentials sur ce contexte
         el.addEventListener('focus', function() {
           if (window.PublicKeyCredential) {
@@ -31637,7 +31659,11 @@ if('serviceWorker' in navigator){
     if (navigator.credentials && navigator.credentials.get) {
       var _origCredGet = navigator.credentials.get.bind(navigator.credentials);
       navigator.credentials.get = function(opts) {
-        // N'autoriser que si l'utilisateur a explicitement cliqué sur "Se connecter"
+        // Bloquer complètement en PWA standalone - cause des crashes iOS
+        var isPWA = (window.navigator.standalone === true) ||
+                    (window.matchMedia('(display-mode: standalone)').matches);
+        if (isPWA) return Promise.reject(new Error('Credentials blocked in PWA'));
+        // En navigateur normal, n'autoriser que si clic explicite
         if (window._allowCredentials) return _origCredGet(opts);
         return Promise.reject(new Error('Credentials blocked'));
       };
