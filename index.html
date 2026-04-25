@@ -4793,7 +4793,7 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   will-change:transform;
   transform-style:preserve-3d;
   /* Perspective portée ICI pour que rotateX/Y aient du relief */
-  transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--s));
+  transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--s));
   transition: transform .3s cubic-bezier(.2,1,.3,1), box-shadow .25s ease;
   box-shadow: 0 8px 30px rgba(0,0,0,.3);
 }
@@ -5046,16 +5046,16 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
     calc(115deg + var(--ry, 0deg) * -1.5),
     rgba(100, 40, 200, 0)                  0%,
     rgba(100, 40, 200, 0)                  calc(var(--posx, 50%) - 38%),
-    rgba(80,  180, 200, .04)               calc(var(--posx, 50%) - 18%),
-    rgba(160, 80,  220, .06)               calc(var(--posx, 50%) - 5%),
-    rgba(200, 170, 60,  .05)               var(--posx, 50%),
-    rgba(60,  160, 180, .04)               calc(var(--posx, 50%) + 5%),
-    rgba(100, 40,  200, .02)               calc(var(--posx, 50%) + 18%),
+    rgba(80,  180, 200, .12)               calc(var(--posx, 50%) - 18%),
+    rgba(160, 80,  220, .18)               calc(var(--posx, 50%) - 5%),
+    rgba(200, 170, 60,  .15)               var(--posx, 50%),
+    rgba(60,  160, 180, .12)               calc(var(--posx, 50%) + 5%),
+    rgba(100, 40,  200, .07)               calc(var(--posx, 50%) + 18%),
     rgba(100, 40,  200, 0)                 calc(var(--posx, 50%) + 38%),
     rgba(100, 40,  200, 0)                 100%
   );
   mix-blend-mode: screen;
-  opacity: calc(var(--o, 0) * 0.9);
+  opacity: calc(var(--o, 0) * 1.8);
   will-change: opacity, background;
 }
 
@@ -5066,12 +5066,12 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   background:
     linear-gradient(
       180deg,
-      rgba(200, 160, 60, calc(var(--edge-t, 0) * 0.35)) 0%,
-      rgba(200, 160, 60, calc(var(--edge-t, 0) * 0.10)) 8%,
+      rgba(200, 160, 60, calc(var(--edge-t, 0) * 0.70)) 0%,
+      rgba(200, 160, 60, calc(var(--edge-t, 0) * 0.20)) 8%,
       transparent 22%,
       transparent 78%,
-      rgba(80, 140, 200, calc(var(--edge-b, 0) * 0.10)) 92%,
-      rgba(80, 140, 200, calc(var(--edge-b, 0) * 0.35)) 100%
+      rgba(80, 140, 200, calc(var(--edge-b, 0) * 0.20)) 92%,
+      rgba(80, 140, 200, calc(var(--edge-b, 0) * 0.70)) 100%
     );
   mix-blend-mode: screen;
   opacity: var(--o, 0);
@@ -5083,9 +5083,9 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   position:absolute;inset:0;border-radius:20px;
   pointer-events:none;
   box-shadow:
-    inset 0 1.5px 0 rgba(180, 140, 255, calc(0.12 + var(--o,0) * 0.22)),
-    inset 0 -1px  0 rgba(60, 180, 200, .05);
-  border: 1px solid rgba(160, 120, 220, .08);
+    inset 0 1.5px 0 rgba(180, 140, 255, calc(0.15 + var(--o,0) * 0.45)),
+    inset 0 -1px  0 rgba(60, 180, 200, calc(0.05 + var(--o,0) * 0.15));
+  border: 1px solid rgba(160, 120, 220, calc(0.08 + var(--o,0) * 0.12));
   z-index:4;
   opacity: 1;
 }
@@ -17327,9 +17327,9 @@ let _C = { rx:0, ry:0, o:0, s:1, mx:50, my:50, px:50, py:50, hyp:0 };
 let _V = { rx:0, ry:0 };
 
 // Constantes spring
-const _STIFF = 0.12;   // raideur (plus doux = plus fluide sur mobile)
-const _DAMP  = 0.78;   // amortissement (plus haut = moins d'oscillation)
-const _LERP  = 0.20;   // lerp pour les vars non-spring
+const _STIFF = 0.16;   // raideur (plus doux = plus fluide sur mobile)
+const _DAMP  = 0.72;   // amortissement (plus haut = moins d'oscillation)
+const _LERP  = 0.25;   // lerp pour les vars non-spring
 
 function _hmvTick() {
   const poster = document.getElementById('hmv-poster');
@@ -17366,18 +17366,18 @@ function _hmvTick() {
   // Edge lights — seulement si actif (évite calculs inutiles)
   const eo = _C.o;
   if (eo > 0.01) {
-    const MAX_RX = 10, MAX_RY = 14;
+    const MAX_RX = 18, MAX_RY = 26;
     const tiltY = ry / MAX_RY;
     const tiltX = rx / MAX_RX;
-    p.style.setProperty('--edge-l', (Math.max(0,  tiltY) * eo * 0.28).toFixed(3));
-    p.style.setProperty('--edge-r', (Math.max(0, -tiltY) * eo * 0.28).toFixed(3));
-    p.style.setProperty('--edge-t', (Math.max(0, -tiltX) * eo * 0.20).toFixed(3));
-    p.style.setProperty('--edge-b', (Math.max(0,  tiltX) * eo * 0.20).toFixed(3));
+    p.style.setProperty('--edge-l', (Math.max(0,  tiltY) * eo * 0.55).toFixed(3));
+    p.style.setProperty('--edge-r', (Math.max(0, -tiltY) * eo * 0.55).toFixed(3));
+    p.style.setProperty('--edge-t', (Math.max(0, -tiltX) * eo * 0.42).toFixed(3));
+    p.style.setProperty('--edge-b', (Math.max(0,  tiltX) * eo * 0.42).toFixed(3));
 
     // Box-shadow simplifié — une seule ombre directionnelle
     const ox = (tiltY * 12).toFixed(1);
     const oy = (-tiltX * 8).toFixed(1);
-    p.style.boxShadow = `${ox}px ${oy}px 32px rgba(0,0,0,.4)`;
+    p.style.boxShadow = `${ox}px ${oy}px 48px rgba(0,0,0,.6), 0 0 20px rgba(168,85,247,${(eo * 0.25).toFixed(2)})`;
     poster.classList.add('touching');
   }
 
@@ -17425,7 +17425,7 @@ function _hmvUpdate(clientX, clientY) {
   const my = (y / r.height) * 100;
 
   // Rotation : centre = 0, bords = ±max
-  const MAX_RX = 10, MAX_RY = 14;
+  const MAX_RX = 18, MAX_RY = 26;
   _T.ry =  ((mx - 50) / 50) * MAX_RY;
   _T.rx = -((my - 50) / 50) * MAX_RX;
 
@@ -17433,8 +17433,8 @@ function _hmvUpdate(clientX, clientY) {
   const hyp = Math.min(1, Math.sqrt(((mx-50)/50)**2 + ((my-50)/50)**2));
 
   // Position foil (décalée légèrement du doigt pour effet parallaxe)
-  const px = 50 + (mx - 50) * 0.35;
-  const py = 50 + (my - 50) * 0.35;
+  const px = 50 + (mx - 50) * 0.55;
+  const py = 50 + (my - 50) * 0.55;
 
   _T.mx  = mx;
   _T.my  = my;
@@ -17442,7 +17442,7 @@ function _hmvUpdate(clientX, clientY) {
   _T.py  = py;
   _T.hyp = hyp;
   _T.o   = 1;
-  _T.s   = 1.04;
+  _T.s   = 1.07;
 
   poster.classList.add('interacting');
   _hmvStart();
