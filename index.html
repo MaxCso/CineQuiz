@@ -30997,20 +30997,12 @@ if('serviceWorker' in navigator){
             var local = JSON.parse(localStorage.getItem('cq11') || '{}');
             var cloud = JSON.parse(cloudData['cq11'] || '{}');
             if ((cloud.xp || 0) >= (local.xp || 0)) {
+              // Appliquer silencieusement SANS reload - évite la boucle PWA iOS
               applyProgression(cloudData);
-              // Éviter la boucle infinie : ne recharger qu'une seule fois
-              try {
-                var _rTs = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
-                var _rNow = Date.now();
-                if (!_rTs || _rNow - _rTs > 5000) {
-                  localStorage.setItem('cq_just_reloaded', String(_rNow));
-                  showToastAuth('Progression restaurée ! Rechargement...');
-                  setTimeout(function(){ location.reload(); }, 1200);
-                } else {
-                  localStorage.removeItem('cq_just_reloaded');
-                  showToastAuth('Connecté · progression restaurée.');
-                }
-              } catch(e) { showToastAuth('Connecté · progression restaurée.'); }
+              showToastAuth('Connecté · progression restaurée.');
+              if (typeof refHome === 'function') refHome();
+              if (typeof updateProfileDot === 'function') updateProfileDot();
+              try { localStorage.removeItem('hm_daily_unlocked'); } catch(e) {}
             } else {
               // Local is ahead — push it
               scheduleSave();
@@ -31018,16 +31010,8 @@ if('serviceWorker' in navigator){
             }
           } catch(e) {
             applyProgression(cloudData);
-            try {
-              var _rTs2 = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
-              var _rNow2 = Date.now();
-              if (!_rTs2 || _rNow2 - _rTs2 > 5000) {
-                localStorage.setItem('cq_just_reloaded', String(_rNow2));
-                setTimeout(function(){ location.reload(); }, 1200);
-              } else {
-                localStorage.removeItem('cq_just_reloaded');
-              }
-            } catch(e2) {}
+            if (typeof refHome === 'function') refHome();
+            try { localStorage.removeItem('hm_daily_unlocked'); } catch(e2) {}
           }
         } else {
           // First login — push local data
