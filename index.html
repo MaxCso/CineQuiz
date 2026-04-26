@@ -25635,40 +25635,75 @@ if('serviceWorker' in navigator){
   }
 
   // ── Sync manuel depuis le profil ──
+  function _doSync(fb) {
+    if (fb) { fb.style.display = 'block'; fb.textContent = '☁ Synchronisation en cours…'; }
+    var p = sbSaveProgression();
+    if (!p || typeof p.then !== 'function') {
+      if (fb) {
+        fb.textContent = '✗ Déjà en cours ou non connecté.';
+        setTimeout(function(){ fb.style.display = 'none'; }, 2500);
+      }
+      return;
+    }
+    p.then(function(ok) {
+      if (fb) {
+        fb.textContent = ok ? '✓ Progression sauvegardée !' : '✗ Erreur de synchronisation.';
+        setTimeout(function(){ fb.style.display = 'none'; }, 2500);
+      }
+    });
+  }
+
   window._profileManualSync = function() {
     var btn = document.getElementById('profile-sync-btn');
     var icon = document.getElementById('profile-sync-icon');
     var fb = document.getElementById('profile-sync-feedback');
     if (!btn || !icon) return;
-    // Restaurer la session si absente (mode PWA)
-    if (!_sbSession) {
-      var saved = loadSession();
-      if (saved) { _sbSession = saved; }
-    }
+
     // Animation rotation
     icon.style.transition = 'transform .6s linear';
     icon.style.transform = 'rotate(360deg)';
     setTimeout(function(){ icon.style.transition=''; icon.style.transform=''; }, 700);
-    // Lancer la sync
-    sbSaveProgression();
-    // Feedback
-    if (fb) {
-      fb.style.display = 'block';
-      fb.textContent = '✓ Synchronisation en cours…';
-      setTimeout(function(){
-        fb.textContent = '✓ Progression sauvegardée !';
-        setTimeout(function(){ fb.style.display = 'none'; }, 2500);
-      }, 1200);
+
+    // Restaurer la session si absente (mode PWA)
+    if (!_sbSession) {
+      var saved = loadSession();
+      if (!saved) {
+        if (fb) { fb.style.display = 'block'; fb.textContent = '✗ Non connecté.'; setTimeout(function(){ fb.style.display = 'none'; }, 2500); }
+        return;
+      }
+      // Vérifier si le token est expiré et le rafraîchir si besoin
+      var now = Math.floor(Date.now() / 1000);
+      var exp = saved.expires_at || 0;
+      if (exp > 0 && now >= exp - 300 && saved.refresh_token) {
+        if (fb) { fb.style.display = 'block'; fb.textContent = '☁ Rafraîchissement du token…'; }
+        sbRefreshToken(saved.refresh_token).then(function(data) {
+          if (data && data.access_token) {
+            saveSession(data);
+            _doSync(fb);
+          } else {
+            _sbSession = null;
+            try { localStorage.removeItem('cq_sb_session'); } catch(e) {}
+            if (fb) { fb.style.display = 'block'; fb.textContent = '✗ Session expirée, reconnecte-toi.'; setTimeout(function(){ fb.style.display = 'none'; }, 3000); }
+          }
+        }).catch(function() {
+          if (fb) { fb.style.display = 'block'; fb.textContent = '✗ Erreur réseau.'; setTimeout(function(){ fb.style.display = 'none'; }, 2500); }
+        });
+        return;
+      }
+      _sbSession = saved;
     }
+
+    // Lancer la sync et afficher le vrai résultat
+    _doSync(fb);
   };
 
   function sbSaveProgression() {
-    if (!_sbSession || _sbSyncing) return;
+    if (!_sbSession || _sbSyncing) return Promise.resolve(false);
     _sbSyncing = true;
     var data = collectProgression();
     var userId = _sbSession.user.id;
     // Upsert
-    sbFetch('/rest/v1/progression', {
+    return sbFetch('/rest/v1/progression', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25677,8 +25712,12 @@ if('serviceWorker' in navigator){
         'Prefer': 'resolution=merge-duplicates'
       },
       body: JSON.stringify({ user_id: userId, scores: data, updated_at: new Date().toISOString() })
-    }).then(function(){ _sbSyncing = false; setSyncBadge('ok'); })
-      .catch(function(){ _sbSyncing = false; setSyncBadge('err'); });
+    }).then(function(response) {
+      _sbSyncing = false;
+      if (!response.ok) { setSyncBadge('err'); return false; }
+      setSyncBadge('ok');
+      return true;
+    }).catch(function(){ _sbSyncing = false; setSyncBadge('err'); return false; });
   }
 
   // Debounced save — fires 3s after last change
