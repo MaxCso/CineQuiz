@@ -14964,7 +14964,7 @@ function setupSwipeHoriz(el,onLeft,onRight){
   },{passive:true});
 }
 
-function goProfile(){refProfile();go('profile');setTimeout(eeRenderProfile,300);const s=ls();renderModeStats(s);buildMusicManager();renderThemePicker();if(typeof updateAuthUI==='function'){updateAuthUI();setTimeout(updateAuthUI,200);}if(typeof window._authModalInjected!=='undefined')window._authModalInjected=false;
+function goProfile(){refProfile();go('profile');setTimeout(eeRenderProfile,300);const s=ls();renderModeStats(s);buildMusicManager();renderThemePicker();if(typeof updateAuthUI==='function'){updateAuthUI();setTimeout(updateAuthUI,200);}if(typeof window._resetAuthModal==='function')window._resetAuthModal();
   // Les pastilles disparaissent au clic sur chaque élément — pas en masse à l'ouverture
 }
 
@@ -25822,15 +25822,9 @@ if('serviceWorker' in navigator){
             var cloud = JSON.parse(cloudData['cq11'] || '{}');
             if ((cloud.xp || 0) >= (local.xp || 0)) {
               applyProgression(cloudData);
-              // Éviter la boucle infinie : ne recharger qu'une seule fois
-              try {
-                var _rTs = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
-                var _rNow = Date.now();
-                if (!_rTs || _rNow - _rTs > 5000) {
-                  showToastAuth('Connecté · progression restaurée.');
-                  if(typeof refHome==='function') refHome();
-                  try{localStorage.removeItem('hm_daily_unlocked');}catch(e){}
-              } catch(e) { showToastAuth('Connecté · progression restaurée.'); }
+              showToastAuth('Connecté · progression restaurée.');
+              if(typeof refHome==='function') refHome();
+              try{localStorage.removeItem('hm_daily_unlocked');}catch(e){}
             } else {
               // Local is ahead — push it
               scheduleSave();
@@ -25838,13 +25832,8 @@ if('serviceWorker' in navigator){
             }
           } catch(e) {
             applyProgression(cloudData);
-            try {
-              var _rTs2 = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
-              var _rNow2 = Date.now();
-              if (!_rTs2 || _rNow2 - _rTs2 > 5000) {
-                showToastAuth('Connecté.');
-              if(typeof refHome==='function') refHome();
-            } catch(e2) {}
+            showToastAuth('Connecté.');
+            if(typeof refHome==='function') refHome();
           }
         } else {
           // First login — push local data
@@ -26018,6 +26007,7 @@ if('serviceWorker' in navigator){
 
   // Inject only the auth modal (called lazily on first showAuthModal)
   var _authModalInjected = false;
+  window._resetAuthModal = function() { _authModalInjected = false; };
   function injectAuthModal() {
     if (_authModalInjected) return;
     _authModalInjected = true;
