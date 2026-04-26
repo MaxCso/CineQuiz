@@ -6240,16 +6240,6 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 <script>
 // Reset urgence: cinequiz.site?reset=1
 if(window.location.search.indexOf('reset=1')!==-1){try{localStorage.clear();}catch(e){}window.location.href=window.location.pathname;}
-// Bloquer Face ID / PasswordCredential dès le démarrage en PWA
-(function(){
-  try {
-    var isPWA=(window.navigator.standalone===true)||(window.matchMedia('(display-mode: standalone)').matches);
-    if(isPWA && navigator.credentials){
-      var noop=function(){return Promise.reject(new Error('blocked'));};
-      try{Object.defineProperty(navigator,'credentials',{value:{get:noop,store:noop,create:noop,preventSilentAccess:noop},configurable:false});}catch(e){}
-    }
-  } catch(e){}
-})();
 </script>
 <div class="wrap" id="wrap">
 
@@ -30699,53 +30689,976 @@ if('serviceWorker' in navigator){
 // ══════════════════════════════════════════════════════
 
 (function(){
-  // ── SUPABASE DÉSACTIVÉ ──
-  // Toutes les fonctions sont remplacées par des stubs no-op
+  var SUPA_URL = 'https://sjkjujkvrjlrmehuxqnx.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqa2p1amt2cmpscm1laHV4cW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTMxMDMsImV4cCI6MjA5MjAyOTEwM30.mZwY72_IKpeE-4qbREHFYLLPDi-RfKH748BR0DWOPAE';
 
-  function noop(){}
-  function noopPromise(){ return Promise.resolve(null); }
+  var _sbSession = null;
+  var _sbSyncing = false;
+  var _sbSaveTimer = null;
 
-  // Sync / save
-  window.scheduleSave = noop;
-  window.scheduleSaveImmediate = noop;
+  // ── API helpers ──
+  function sbFetch(path, opts) {
+    var headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + ((_sbSession && _sbSession.access_token) || SUPA_KEY)
+    };
+    return fetch(SUPA_URL + path, Object.assign({ headers: headers }, opts || {}));
+  }
 
-  // Toast
-  window.showToastAuth = function(msg){
-    if(typeof showToast === 'function') showToast(msg);
-  };
+  // ── AUTH ──
+  function sbSignUp(email, password) {
+    return sbFetch('/auth/v1/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email: email, password: password })
+    }).then(function(r){ return r.json(); });
+  }
 
-  // Auth UI
-  window.updateAuthUI = function(){
-    var els = document.querySelectorAll('.sb-sync-badge, #profile-account-section, .auth-account-wrap');
-    els.forEach(function(el){ if(el) el.style.display='none'; });
-  };
+  function sbSignIn(email, password) {
+    return sbFetch('/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      body: JSON.stringify({ email: email, password: password })
+    }).then(function(r){ return r.json(); });
+  }
 
-  window.authDoLogin = noop;
-  window.authDoSignup = noop;
-  window.authDoLogout = noop;
-  window.authDoLogoutConfirm = noop;
-  window.authDoLogoutConfirmUI = noop;
-  window.switchAuthTab = noop;
-  window.showAuthModal = noop;
-  window.hideAuthModal = noop;
-  window.injectAuthModal = noop;
-
-  // Session
-  window._sbSession = null;
-
-  // Init — appelé au boot
-  function init(){
-    try { localStorage.removeItem('cq_just_reloaded'); } catch(e){}
+  function sbSignOut() {
+    // Déconnexion locale immédiate — pas besoin d'attendre le réseau
+    _sbSession = null;
+    try { localStorage.removeItem('cq_sb_session'); } catch(e){}
     updateAuthUI();
+    // Appel réseau en arrière-plan (on ignore les erreurs)
+    try { sbFetch('/auth/v1/logout', { method: 'POST' }).catch(function(){}); } catch(e){}
+    return Promise.resolve();
   }
 
-  // injectUI — appelé au boot pour injecter les éléments d'interface
-  function injectUI(){
-    // Pas d'UI auth à injecter sans Supabase
+  function sbRefreshToken(refresh_token) {
+    return sbFetch('/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token: refresh_token })
+    }).then(function(r){ return r.json(); });
   }
+
+  // ── SESSION PERSISTENCE ──
+  function saveSession(session) {
+    _sbSession = session;
+    try { localStorage.setItem('cq_sb_session', JSON.stringify(session)); } catch(e){}
+  }
+
+  function loadSession() {
+    try {
+      var raw = localStorage.getItem('cq_sb_session');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch(e) { return null; }
+  }
+
+  // ── PROGRESSION SYNC ──
+  function getKeys() {
+    return ['cq11','cq_arc_hs','hm_revealed','hm_wishlist','cq_daily','cq_jk_seen','cq_jk_secret_found'];
+  }
+
+  function collectProgression() {
+    var data = {};
+    getKeys().forEach(function(k) {
+      try {
+        var v = localStorage.getItem(k);
+        if (v !== null) data[k] = v;
+      } catch(e) {}
+    });
+    // Also collect cq_played_ keys
+    try {
+      Object.keys(localStorage).forEach(function(k) {
+        if (k.indexOf('cq_played_') === 0) data[k] = localStorage.getItem(k);
+      });
+    } catch(e) {}
+    return data;
+  }
+
+  function applyProgression(data) {
+    if (!data) return;
+    Object.keys(data).forEach(function(k) {
+      try { localStorage.setItem(k, data[k]); } catch(e) {}
+    });
+    // Refresh UI after applying
+    if (typeof refHome === 'function') refHome();
+  }
+
+  function sbLoadProgression() {
+    if (!_sbSession) return Promise.resolve(null);
+    return sbFetch('/rest/v1/progression?user_id=eq.' + _sbSession.user.id + '&select=data', {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + _sbSession.access_token
+      }
+    }).then(function(r){ return r.json(); })
+      .then(function(rows) {
+        if (rows && rows.length > 0 && rows[0].data) return rows[0].data;
+        return null;
+      });
+  }
+
+  // ── Sync manuel depuis le profil ──
+  window._profileManualSync = function() {
+    var btn = document.getElementById('profile-sync-btn');
+    var icon = document.getElementById('profile-sync-icon');
+    var fb = document.getElementById('profile-sync-feedback');
+    if (!btn || !icon) return;
+    // Animation rotation
+    icon.style.transition = 'transform .6s linear';
+    icon.style.transform = 'rotate(360deg)';
+    setTimeout(function(){ icon.style.transition=''; icon.style.transform=''; }, 700);
+    // Lancer la sync
+    sbSaveProgression();
+    // Feedback
+    if (fb) {
+      fb.style.display = 'block';
+      fb.textContent = '✓ Synchronisation en cours…';
+      setTimeout(function(){
+        fb.textContent = '✓ Progression sauvegardée !';
+        setTimeout(function(){ fb.style.display = 'none'; }, 2500);
+      }, 1200);
+    }
+  };
+
+  function sbSaveProgression() {
+    if (!_sbSession || _sbSyncing) return;
+    _sbSyncing = true;
+    var data = collectProgression();
+    var userId = _sbSession.user.id;
+    // Upsert
+    sbFetch('/rest/v1/progression', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + _sbSession.access_token,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ user_id: userId, data: data, updated_at: new Date().toISOString() })
+    }).then(function(){ _sbSyncing = false; setSyncBadge('ok'); })
+      .catch(function(){ _sbSyncing = false; setSyncBadge('err'); });
+  }
+
+  // Debounced save — fires 3s after last change
+  function scheduleSave() {
+    if (!_sbSession) return;
+    if (_sbSaveTimer) clearTimeout(_sbSaveTimer);
+    setSyncBadge('pending');
+    _sbSaveTimer = setTimeout(function(){ sbSaveProgression(); }, 3000);
+  }
+
+  // Patch localStorage.setItem to auto-sync relevant keys
+  // Wrapped in try-catch: on iOS PWA standalone, overriding native localStorage
+  // methods can throw in strict mode and silently kill all subsequent JS
+  var _origSetItem = localStorage.setItem.bind(localStorage);
+  try {
+    localStorage.setItem = function(key, value) {
+      _origSetItem(key, value);
+      var relevant = key === 'cq11' || key === 'cq_arc_hs' || key === 'hm_revealed' ||
+                     key === 'hm_wishlist' || key === 'cq_daily' || key === 'cq_jk_seen' ||
+                     key.indexOf('cq_played_') === 0;
+      if (relevant) scheduleSave();
+    };
+  } catch(e) {
+    // Patch failed in strict PWA context — auto-sync disabled, manual save only
+  }
+
+  // ── UI ──
+  function setSyncBadge(state) {
+    var badge = document.getElementById('sb-sync-badge');
+    if (!badge) return;
+    if (state === 'ok') {
+      badge.textContent = '☁ Sauvegardé';
+      badge.style.color = 'rgba(46,204,113,.8)';
+      badge.style.opacity = '1';
+      setTimeout(function(){ badge.style.opacity = '0'; }, 2500);
+    } else if (state === 'pending') {
+      badge.textContent = '☁ Sync...';
+      badge.style.color = 'rgba(245,200,66,.7)';
+      badge.style.opacity = '1';
+    } else if (state === 'err') {
+      badge.textContent = '☁ Erreur sync';
+      badge.style.color = 'rgba(232,52,74,.8)';
+      badge.style.opacity = '1';
+    }
+  }
+
+  function updateAuthUI() {
+    var btn = document.getElementById('btn-profile');
+    var badge = document.getElementById('sb-sync-badge');
+    if (btn) {
+      if (_sbSession && _sbSession.user) {
+        var email = _sbSession.user.email || '';
+        btn.style.background = 'rgba(167,139,250,.15)';
+        btn.style.borderColor = 'rgba(167,139,250,.4)';
+        btn.style.color = 'rgba(167,139,250,.9)';
+        btn.title = email;
+        var dot = document.getElementById('profile-auth-dot');
+        if (!dot) {
+          dot = document.createElement('div');
+          dot.id = 'profile-auth-dot';
+          dot.style.cssText = 'position:absolute;bottom:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#2ecc71;border:1.5px solid #0a0a0f;';
+          btn.appendChild(dot);
+        }
+        dot.style.display = 'block';
+        if (badge) badge.style.display = 'block';
+      } else {
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.title = 'Mon profil';
+        var dot2 = document.getElementById('profile-auth-dot');
+        if (dot2) dot2.style.display = 'none';
+        if (badge) { badge.style.opacity = '0'; badge.style.display = 'none'; }
+      }
+    }
+    // Mettre à jour le bandeau dans l'écran profil
+    var banner = document.getElementById('profile-auth-banner');
+    var guest = document.getElementById('profile-auth-guest');
+    var logged = document.getElementById('profile-auth-logged');
+    var emailTxt = document.getElementById('profile-auth-email-txt');
+    if (banner) banner.style.display = 'block';
+    if (_sbSession && _sbSession.user) {
+      if (guest) guest.style.display = 'none';
+      if (logged) logged.style.display = 'block';
+      var pseudoTxt = document.getElementById('profile-auth-pseudo-txt');
+      var _s = {}; try { _s = JSON.parse(localStorage.getItem('cq11') || '{}'); } catch(e) {}
+      var _pseudo = _s.pseudo || '';
+      if (pseudoTxt) pseudoTxt.textContent = '✓ ' + (_pseudo || _sbSession.user.email || 'Mon compte');
+      if (emailTxt) emailTxt.textContent = _sbSession.user.email || '';
+    } else {
+      if (guest) guest.style.display = 'flex';
+      if (logged) logged.style.display = 'none';
+    }
+  }
+
+  function showAuthModal(tab) {
+    var modal = document.getElementById('auth-modal');
+    if (!modal) return;
+    modal.classList.add('on');
+    switchAuthTab(tab || 'login');
+    clearAuthMsg();
+  }
+
+  function hideAuthModal() {
+    var modal = document.getElementById('auth-modal');
+    if (modal) modal.classList.remove('on');
+  }
+
+  function switchAuthTab(tab) {
+    document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('auth-tab-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('auth-form-login').style.display = tab === 'login' ? 'flex' : 'none';
+    document.getElementById('auth-form-signup').style.display = tab === 'signup' ? 'flex' : 'none';
+    clearAuthMsg();
+  }
+
+  function clearAuthMsg() {
+    var msg = document.getElementById('auth-msg');
+    if (msg) { msg.textContent = ''; msg.className = 'auth-msg'; }
+  }
+
+  function setAuthMsg(txt, type) {
+    var msg = document.getElementById('auth-msg');
+    if (!msg) return;
+    msg.textContent = txt;
+    msg.className = 'auth-msg ' + (type || 'error');
+  }
+
+  function setAuthLoading(loading) {
+    var btn = document.getElementById('auth-submit-btn');
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Connexion...' : btn.dataset.label;
+  }
+
+  // ── AUTH ACTIONS ──
+  window.authDoLogin = function() {
+    window._allowCredentials = true;
+    var email = document.getElementById('auth-email-login').value.trim();
+    var pass = document.getElementById('auth-pass-login').value;
+    if (!email || !pass) { setAuthMsg('Remplis tous les champs.'); return; }
+    var btn = document.getElementById('auth-submit-btn');
+    btn.disabled = true; btn.textContent = 'Connexion...';
+    sbSignIn(email, pass).then(function(data) {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      if (data.error || data.error_description || data.msg) {
+        setAuthMsg(data.error_description || data.msg || 'Identifiants incorrects.'); return;
+      }
+      if (!data.access_token) { setAuthMsg('Identifiants incorrects.'); return; }
+      saveSession(data);
+      hideAuthModal();
+      updateAuthUI();
+      // Load cloud progression and merge (cloud wins if more XP)
+      sbLoadProgression().then(function(cloudData) {
+        if (cloudData) {
+          try {
+            var local = JSON.parse(localStorage.getItem('cq11') || '{}');
+            var cloud = JSON.parse(cloudData['cq11'] || '{}');
+            if ((cloud.xp || 0) >= (local.xp || 0)) {
+              applyProgression(cloudData);
+              // Éviter la boucle infinie : ne recharger qu'une seule fois
+              try {
+                var _rTs = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
+                var _rNow = Date.now();
+                if (!_rTs || _rNow - _rTs > 5000) {
+                  localStorage.setItem('cq_just_reloaded', String(_rNow));
+                  showToastAuth('Progression restaurée ! Rechargement...');
+                  setTimeout(function(){ location.reload(); }, 1200);
+                } else {
+                  localStorage.removeItem('cq_just_reloaded');
+                  showToastAuth('Connecté · progression restaurée.');
+                }
+              } catch(e) { showToastAuth('Connecté · progression restaurée.'); }
+            } else {
+              // Local is ahead — push it
+              scheduleSave();
+              showToastAuth('Connecté · progression locale conservée.');
+            }
+          } catch(e) {
+            applyProgression(cloudData);
+            try {
+              var _rTs2 = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
+              var _rNow2 = Date.now();
+              if (!_rTs2 || _rNow2 - _rTs2 > 5000) {
+                localStorage.setItem('cq_just_reloaded', String(_rNow2));
+                setTimeout(function(){ location.reload(); }, 1200);
+              } else {
+                localStorage.removeItem('cq_just_reloaded');
+              }
+            } catch(e2) {}
+          }
+        } else {
+          // First login — push local data
+          scheduleSave();
+        }
+      }).catch(function(){ scheduleSave(); });
+      showToastAuth('Connecte ! Progression synchronisee.');
+    }).catch(function() {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      setAuthMsg('Erreur reseau. Reessaie.');
+    });
+  };
+
+  window.authDoSignup = function() {
+    var pseudo = document.getElementById('auth-pseudo-signup').value.trim();
+    var email = document.getElementById('auth-email-signup').value.trim();
+    var pass = document.getElementById('auth-pass-signup').value;
+    var pass2 = document.getElementById('auth-pass-signup2').value;
+    if (!email || !pass) { setAuthMsg('Remplis tous les champs.'); return; }
+    if (pass !== pass2) { setAuthMsg('Les mots de passe ne correspondent pas.'); return; }
+    if (pass.length < 6) { setAuthMsg('Mot de passe trop court (6 caractères min).'); return; }
+    var btn = document.getElementById('auth-submit-btn');
+    btn.disabled = true; btn.textContent = 'Inscription...';
+    sbSignUp(email, pass).then(function(data) {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      if (data.error || data.error_description) {
+        setAuthMsg(data.error_description || 'Erreur inscription.'); return;
+      }
+      if (data.id || (data.user && data.user.id)) {
+        // Sauvegarder le pseudo si renseigné
+        if (pseudo) {
+          try {
+            var s = JSON.parse(localStorage.getItem('cq11') || '{}');
+            s.pseudo = pseudo;
+            localStorage.setItem('cq11', JSON.stringify(s));
+            // Mettre à jour l'affichage du pseudo dans le profil et l'accueil
+            var pnm = document.getElementById('p-nm');
+            if (pnm) pnm.textContent = pseudo;
+            var hnm = document.getElementById('h-nm');
+            if (hnm) hnm.textContent = pseudo;
+          } catch(e) {}
+        }
+        // Auto-login after signup
+        sbSignIn(email, pass).then(function(loginData) {
+          if (loginData.access_token) {
+            saveSession(loginData);
+            hideAuthModal();
+            updateAuthUI();
+            scheduleSave();
+            showToastAuth('Compte créé ! Progression sauvegardée.');
+          } else {
+            setAuthMsg('Compte créé ! Vérifie ton email puis connecte-toi.', 'success');
+          }
+        });
+      } else {
+        setAuthMsg('Compte créé ! Vérifie ton email si besoin.', 'success');
+      }
+    }).catch(function() {
+      btn.disabled = false; btn.textContent = btn.dataset.label;
+      setAuthMsg('Erreur réseau. Réessaie.');
+    });
+  };
+
+  window.authDoLogout = function() {
+    sbSignOut().then(function() {
+      hideAuthModal();
+      showToastAuth('Tu es deconnecte.');
+    });
+  };
+
+  window.authDoLogoutConfirmUI = function() {
+    var existing = document.getElementById('_lcm');
+    if(existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = '_lcm';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:0 0 32px;box-sizing:border-box;';
+    var sheet = document.createElement('div');
+    sheet.style.cssText = 'background:linear-gradient(160deg,#13101f,#0e0c1a);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:28px 24px 20px;width:calc(100% - 48px);max-width:360px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.5);';
+    var emoji = document.createElement('div');
+    emoji.style.cssText = 'font-size:32px;margin-bottom:12px;';
+    emoji.textContent = String.fromCodePoint(0x1F44B);
+    var title = document.createElement('div');
+    title.style.cssText = 'font-size:20px;letter-spacing:1.5px;color:#fff;margin-bottom:8px;font-weight:700;';
+    title.textContent = 'Se déconnecter ?';
+    var sub = document.createElement('div');
+    sub.style.cssText = 'font-size:13px;color:rgba(255,255,255,.45);line-height:1.5;margin-bottom:24px;';
+    sub.innerHTML = 'Ta progression locale est conservée.<br>Tu pourras te reconnecter depuis le profil.';
+    var btnOk = document.createElement('button');
+    btnOk.style.cssText = 'width:100%;padding:14px;border-radius:14px;background:rgba(232,52,74,.12);border:1px solid rgba(232,52,74,.3);color:#e8344a;font-size:16px;letter-spacing:1.5px;cursor:pointer;margin-bottom:10px;display:block;';
+    btnOk.textContent = 'Se déconnecter';
+    btnOk.onclick = function(){ authDoLogout(); modal.remove(); };
+    var btnCancel = document.createElement('button');
+    btnCancel.style.cssText = 'width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:16px;letter-spacing:1.5px;cursor:pointer;display:block;';
+    btnCancel.textContent = 'Annuler';
+    btnCancel.onclick = function(){ modal.remove(); };
+    sheet.appendChild(emoji); sheet.appendChild(title); sheet.appendChild(sub);
+    sheet.appendChild(btnOk); sheet.appendChild(btnCancel);
+    modal.appendChild(sheet);
+    modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+    document.body.appendChild(modal);
+    sheet.style.transform = 'translateY(40px)';
+    sheet.style.opacity = '0';
+    sheet.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1), opacity .2s ease';
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      sheet.style.transform = 'translateY(0)';
+      sheet.style.opacity = '1';
+    });});
+  };
+
+  window.switchAuthTab = switchAuthTab;
+  window.showAuthModal = function(tab) {
+    injectAuthModal();
+    showAuthModal(tab);
+  };
+  window.hideAuthModal = hideAuthModal;
+
+  function showToastAuth(msg) {
+    var el = document.getElementById('auth-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('on');
+    setTimeout(function(){ el.classList.remove('on'); }, 3000);
+  }
+
+  // ── INIT ──
+  function init() {
+    try { localStorage.removeItem('cq_just_reloaded'); } catch(e) {}
+    var session = loadSession();
+    if (!session) { updateAuthUI(); return; }
+
+    var now = Math.floor(Date.now() / 1000);
+    var exp = session.expires_at || 0;
+
+    if (now < exp - 300) {
+      // Session encore valide — restaurer silencieusement, SANS reload
+      _sbSession = session;
+      updateAuthUI();
+      // Charger la progression cloud en arrière-plan sans recharger la page
+      sbLoadProgression().then(function(cloudData) {
+        if (!cloudData) return;
+        try {
+          var local = JSON.parse(localStorage.getItem('cq11') || '{}');
+          var cloud = JSON.parse(cloudData['cq11'] || '{}');
+          if ((cloud.xp || 0) > (local.xp || 0)) {
+            Object.keys(cloudData).forEach(function(k) {
+              try { localStorage.setItem(k, cloudData[k]); } catch(e) {}
+            });
+            // Invalider le cache daily car hm_revealed vient de changer
+            try { localStorage.removeItem('hm_daily_unlocked'); } catch(e) {}
+            if (typeof refHome === 'function') refHome();
+            if (typeof updateProfileDot === 'function') updateProfileDot();
+          }
+        } catch(e) {}
+      }).catch(function(){});
+    } else if (session.refresh_token) {
+      // Token expiré — rafraîchir silencieusement
+      sbRefreshToken(session.refresh_token).then(function(data) {
+        if (data && data.access_token) {
+          saveSession(data);
+          updateAuthUI();
+        } else {
+          _sbSession = null;
+          try { localStorage.removeItem('cq_sb_session'); } catch(e) {}
+          updateAuthUI();
+        }
+      }).catch(function() { updateAuthUI(); });
+    } else {
+      updateAuthUI();
+    }
+  }
+
+  // Inject only the auth modal (called lazily on first showAuthModal)
+  var _authModalInjected = false;
+  function injectAuthModal() {
+    if (_authModalInjected) return;
+    _authModalInjected = true;
+
+    var modal = document.createElement('div');
+    modal.id = 'auth-modal';
+    modal.innerHTML = [
+      '<div class="auth-backdrop" onclick="hideAuthModal()"></div>',
+      '<div class="auth-sheet">',
+      '  <div class="auth-header">',
+      '    <div class="auth-logo">&#127909; CineQuiz</div>',
+      '    <div class="auth-close ibtn" onclick="hideAuthModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>',
+      '  </div>',
+      '  <!-- Tabs -->',
+      '  <div class="auth-tabs" id="auth-tabs-bar">',
+      '    <div id="auth-tab-login" class="auth-tab active" onclick="switchAuthTab(\'login\')">Connexion</div>',
+      '    <div id="auth-tab-signup" class="auth-tab" onclick="switchAuthTab(\'signup\')">Inscription</div>',
+      '  </div>',
+      '  <!-- Login form -->',
+      '  <div id="auth-form-login" class="auth-form" style="display:flex;">',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-login" type="email" placeholder="ton@email.com" autocomplete="off" inputmode="email"/></div>',
+      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-login" type="password" placeholder="••••••" autocomplete="off" onkeydown="if(event.key===\'Enter\')authDoLogin()"/></div>',
+      '    <button id="auth-submit-btn" class="auth-btn" data-label="Se connecter" onclick="authDoLogin()">Se connecter</button>',
+      '  </div>',
+      '  <!-- Signup form -->',
+      '  <div id="auth-form-signup" class="auth-form" style="display:none;">',
+      '    <div class="auth-field"><label>Pseudo (visible dans le jeu)</label><input id="auth-pseudo-signup" type="text" placeholder="Ex: CinéManiac42" autocomplete="nickname" maxlength="20" inputmode="text"/></div>',
+      '    <div class="auth-field"><label>Email</label><input id="auth-email-signup" type="email" placeholder="ton@email.com" autocomplete="email" inputmode="email"/></div>',
+      '    <div class="auth-field"><label>Mot de passe</label><input id="auth-pass-signup" type="password" placeholder="6 caractères min" autocomplete="new-password" webauthn="false"/></div>',
+      '    <div class="auth-field"><label>Confirmer le mot de passe</label><input id="auth-pass-signup2" type="password" placeholder="••••••" autocomplete="new-password" webauthn="false" onkeydown="if(event.key===\'Enter\')authDoSignup()"/></div>',
+      '    <button id="auth-submit-btn" class="auth-btn" data-label="Creer mon compte" onclick="authDoSignup()">Creer mon compte</button>',
+      '  </div>',
+      '  <!-- Message -->',
+      '  <div id="auth-msg" class="auth-msg"></div>',
+      '  <!-- Account panel (when logged in) -->',
+      '  <div id="auth-account-panel" style="display:none;flex-direction:column;gap:14px;padding:0 4px;">',
+      '    <div id="auth-account-email" style="font-size:13px;color:rgba(255,255,255,.55);text-align:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:14px;"></div>',
+      '    <div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Ta progression est sauvegardee automatiquement dans le cloud.</div>',
+      '    <button class="auth-btn" onclick="hideAuthModal();goProfile();" style="background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(167,139,250,.1));border-color:rgba(167,139,250,.4);color:#c4b5fd;">&#128100; Voir mon profil</button>',
+      '    <button class="auth-btn auth-btn-secondary" onclick="sbManualSync()">&#8645; Synchroniser maintenant</button>',
+      '    <button class="auth-btn auth-btn-danger" onclick="authDoLogoutConfirmUI()">Se déconnecter</button>',
+      '  </div>',
+      '</div>',
+    ].join('');
+    document.body.appendChild(modal);
+
+    // 4. Toast
+    var toast = document.createElement('div');
+    toast.id = 'auth-toast';
+    document.body.appendChild(toast);
+
+    // Observe tab changes to show account panel
+    var origSwitch = window.switchAuthTab;
+    window.switchAuthTab = function(tab) {
+      if (tab === 'account') {
+        // Show account panel, hide tabs & forms
+        document.getElementById('auth-tabs-bar').style.display = 'none';
+        document.getElementById('auth-form-login').style.display = 'none';
+        document.getElementById('auth-form-signup').style.display = 'none';
+        document.getElementById('auth-account-panel').style.display = 'flex';
+        if (_sbSession) document.getElementById('auth-account-email').textContent = _sbSession.user.email;
+      } else {
+        document.getElementById('auth-tabs-bar').style.display = 'flex';
+        document.getElementById('auth-account-panel').style.display = 'none';
+        origSwitch(tab);
+      }
+    };
+
+    // Inject CSS
+    var style = document.createElement('style');
+    style.textContent = [
+      '#auth-modal{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}',
+      '#auth-modal.on{opacity:1;pointer-events:all;}',
+      '.auth-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);}',
+      '.auth-sheet{position:relative;z-index:1;width:100%;max-width:500px;background:#13131a;border-radius:28px 28px 0 0;padding:24px 20px max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px;border-top:1px solid rgba(255,255,255,.1);transform:translateY(60px);transition:transform .3s cubic-bezier(.2,1,.3,1);}',
+      '#auth-modal.on .auth-sheet{transform:translateY(0);}',
+      '.auth-header{display:flex;align-items:center;justify-content:space-between;}',
+      '.auth-logo{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);}',
+      '.auth-tabs{display:flex;background:rgba(255,255,255,.05);border-radius:12px;padding:3px;gap:3px;}',
+      '.auth-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:600;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.4);transition:all .2s;}',
+      '.auth-tab.active{background:rgba(245,200,66,.15);color:var(--gold);}',
+      '.auth-form{flex-direction:column;gap:12px;}',
+      '.auth-field{display:flex;flex-direction:column;gap:5px;}',
+      '.auth-field label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px;}',
+      '.auth-field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none;font-family:"DM Sans",sans-serif;-webkit-appearance:none;transition:border-color .2s;}',
+      '.auth-field input:focus{border-color:rgba(245,200,66,.4);}',
+      '.auth-pseudo-hint{font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.3px;margin-top:-6px;}',
+      '.auth-btn{background:linear-gradient(135deg,rgba(245,200,66,.2),rgba(245,200,66,.1));border:1px solid rgba(245,200,66,.35);border-radius:14px;padding:14px;font-family:"Bebas Neue",sans-serif;font-size:17px;letter-spacing:1px;color:var(--gold);cursor:pointer;transition:transform .15s,background .2s;-webkit-appearance:none;}',
+      '.auth-btn:active{transform:scale(.97);}',
+      '.auth-btn:disabled{opacity:.5;cursor:default;}',
+      '.auth-btn-secondary{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:14px;padding:12px;}',
+      '.auth-btn-danger{background:rgba(232,52,74,.1);border-color:rgba(232,52,74,.3);color:#e8344a;font-size:14px;padding:12px;}',
+      '.auth-msg{font-size:12px;text-align:center;min-height:16px;transition:color .2s;}',
+      '.auth-msg.error{color:#e8344a;}',
+      '.auth-msg.success{color:#2ecc71;}',
+      '#auth-toast{position:fixed;bottom:max(28px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#1c1c28;border:1px solid rgba(46,204,113,.3);border-radius:20px;padding:10px 20px;font-size:12px;color:#2ecc71;opacity:0;transition:opacity .3s,transform .3s;z-index:9100;pointer-events:none;white-space:nowrap;}',
+      '#auth-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}',
+      /* Bloquer l'UI WebAuthn/Face ID sur les champs du formulaire */
+      'input[webauthn="false"]::-webkit-credentials-auto-fill-button{visibility:hidden;}',
+    ].join('\n');
+    document.head.appendChild(style);
+
+    // Désactiver WebAuthn / Face ID sur les inputs password au runtime
+    setTimeout(function() {
+      document.querySelectorAll('#auth-modal input[type="password"]').forEach(function(el) {
+        el.setAttribute('autocomplete', el.id === 'auth-pass-login' ? 'current-password' : 'new-password');
+        // Bloquer navigator.credentials sur ce contexte
+        el.addEventListener('focus', function() {
+          if (window.PublicKeyCredential) {
+            // On ne désactive pas l'API globalement, on absorbe juste les erreurs
+          }
+        });
+      });
+    }, 500);
+  }
+
+  // Inject non-auth UI (sync badge) at startup — no password fields here
+  function injectUI() {
+    var topbar = document.querySelector('#home .topbar');
+    if (topbar) {
+      var badge = document.createElement('div');
+      badge.id = 'sb-sync-badge';
+      badge.style.cssText = 'position:absolute;top:max(54px,env(safe-area-inset-top));right:16px;font-size:9px;letter-spacing:1px;opacity:0;transition:opacity .4s;z-index:10;display:none;pointer-events:none;';
+      badge.textContent = '';
+      document.getElementById('home').appendChild(badge);
+    }
+  }
+
+  window.sbManualSync = function() {
+    sbSaveProgression();
+    // Feedback inline dans la card profil
+    var fb = document.getElementById('profile-sync-feedback');
+    if (fb) {
+      fb.textContent = '✓ Progression sauvegardée';
+      fb.style.display = 'block';
+      clearTimeout(window._syncFbTimer);
+      window._syncFbTimer = setTimeout(function(){ fb.style.display = 'none'; }, 3000);
+    }
+  };
+
+  // ── MODALE COMPTE ──
+  window.openAccountModal = function() {
+    var existing = document.getElementById('account-modal');
+    if (existing) { existing.classList.add('on'); return; }
+    var modal = document.createElement('div');
+    modal.id = 'account-modal';
+    modal.className = 'mover';
+    modal.style.alignItems = 'center';
+    modal.style.padding = '20px';
+    modal.onclick = function(e){ if(e.target === modal) closeAccountModal(); };
+
+    var _s = {}; try { _s = JSON.parse(localStorage.getItem('cq11') || '{}'); } catch(e) {}
+    var pseudo = _s.pseudo || '';
+    var email = (_sbSession && _sbSession.user) ? (_sbSession.user.email || '') : '';
+
+    modal.innerHTML = [
+      '<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);" onclick="closeAccountModal()"></div>',
+      '<div class="mover-box" style="position:relative;z-index:1;max-width:380px;width:calc(100% - 32px);background:#13131a;border-radius:24px;padding:22px 18px;border:1px solid rgba(255,255,255,.08);">',
+      '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">',
+      '    <span style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;color:#2ecc71;">MON COMPTE</span>',
+      '    <button onclick="closeAccountModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;width:32px;height:32px;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>',
+      '  </div>',
+      '  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">',
+      '    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;">',
+      '      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-bottom:5px;">PSEUDO</div>',
+      '      <div style="font-size:15px;font-weight:600;color:rgba(255,255,255,.85);">' + (pseudo || '<span style="color:rgba(255,255,255,.25);font-size:13px;">Non renseigné</span>') + '</div>',
+      '    </div>',
+      '    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;">',
+      '      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-bottom:5px;">EMAIL</div>',
+      '      <div style="font-size:13px;color:rgba(255,255,255,.65);word-break:break-all;">' + email + '</div>',
+      '    </div>',
+      '  </div>',
+      '  <div id="account-modal-feedback" style="display:none;margin-bottom:12px;padding:8px 12px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:10px;font-size:12px;color:#2ecc71;text-align:center;"></div>',
+      '  <div style="display:flex;flex-direction:column;gap:8px;">',
+      '    <button onclick="accountSync()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:13px;font-family:Bebas Neue,sans-serif;font-size:15px;letter-spacing:1px;color:rgba(255,255,255,.6);cursor:pointer;">↻ Synchroniser maintenant</button>',
+      '    <button onclick="authDoLogoutConfirm()" style="background:rgba(232,52,74,.08);border:1px solid rgba(232,52,74,.25);border-radius:13px;padding:13px;font-family:Bebas Neue,sans-serif;font-size:15px;letter-spacing:1px;color:#e8344a;cursor:pointer;">Se déconnecter</button>',
+      '  </div>',
+      '</div>',
+    ].join('');
+    document.body.appendChild(modal);
+    requestAnimationFrame(function(){ modal.classList.add('on'); });
+  };
+
+  window.authDoLogoutConfirm = function() { authDoLogoutConfirmUI(); };
+
+  window.closeAccountModal = function() {
+    var m = document.getElementById('account-modal');
+    if (m) { m.classList.remove('on'); setTimeout(function(){ m.remove(); }, 300); }
+  };
+
+  window.accountSync = function() {
+    sbSaveProgression();
+    var fb = document.getElementById('account-modal-feedback');
+    var cardFb = document.getElementById('profile-sync-feedback');
+    if (fb) {
+      fb.textContent = '✓ Progression sauvegardée';
+      fb.style.display = 'block';
+      setTimeout(function(){ fb.style.display = 'none'; }, 3000);
+    }
+    if (cardFb) {
+      cardFb.textContent = '✓ Progression sauvegardée';
+      cardFb.style.display = 'block';
+      clearTimeout(window._syncFbTimer);
+      window._syncFbTimer = setTimeout(function(){ cardFb.style.display = 'none'; }, 3000);
+    }
+  };
+
+
+  // ══ EASTER EGGS CINÉMA ══
+
+  // 1. Splash — citation injectée inline directement sous l'élément (voir HTML du splash)
+
+  // 2. Quit modal — nouvelle réplique à chaque ouverture (géré dans confirmQuit())
+
+  // 3. Écran résultat — message enrichi selon le score
+  window._injectResultEaster = function(score, correct) {
+    var el = document.getElementById('r-easter');
+    if (!el) return;
+    var msgs;
+    if (correct >= 10) {
+      msgs = [
+        "« You're a wizard, Harry. » — Parfait, comme toi.",
+        "« There is no spoon. » — Et pour toi, aucun obstacle.",
+        "« With great power comes great responsibility. » — Tu l'as, la puissance.",
+        "Scorsese aurait applaudi. Debout.",
+        "10/10. Même les Academy Awards sont moins sélectifs.",
+        "Hitchcock aurait fait un film sur toi. Le héros, cette fois.",
+        "Nolan t'aurait mis dans le générique. Consultant technique.",
+      ];
+    } else if (correct >= 7) {
+      msgs = [
+        "« Not all those who wander are lost. » — T'es sur la bonne voie.",
+        "« To infinity and beyond. » — Presque.",
+        "Roger Ebert t'aurait donné 3,5 étoiles.",
+        "« Life is like a box of chocolates. » — Pas toutes bonnes, mais presque.",
+        "Tarantino aurait gardé ta scène au montage.",
+        "Solid. Spielberg aurait dit 'On retourne ?'",
+        "Pas mal, cinéphile. Lynch aurait dit que c'est une bonne chose.",
+      ];
+    } else if (correct >= 4) {
+      msgs = [
+        "« Houston, we have a problem. » — Mais rien d'insurmontable.",
+        "Même Spielberg a eu des flops.",
+        "« It's not who I am underneath, but what I do that defines me. » — Rejoue.",
+        "Kubrick aurait refait la prise. Toi aussi tu peux.",
+        "Tarantino aurait coupé à la moitié. Toi t'arrives à la fin.",
+        "Mi-figue, mi-raisin. Fassbender aurait renégocié son contrat.",
+      ];
+    } else {
+      msgs = [
+        "« I am Groot. » — On comprend.",
+        "« You can't handle the truth! » — La vérité : rejoue.",
+        "« I'm gonna make him an offer he can't refuse. » — Une revanche ?",
+        "Kubrick a mis 400 jours pour filmer The Shining. Prends ton temps.",
+        "Ed Wood aussi avait des débuts difficiles. Il est devenu culte.",
+        "« Just keep swimming. » — Dory savait de quoi elle parlait.",
+        "Même Jar Jar Binks a eu droit à une deuxième chance.",
+      ];
+    }
+    el.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  };
+
+  // 4. Logo accueil ×5 taps → toast cinéma secret (distinct du ×7 qui ouvre l'Arcade)
+  (function() {
+    var logoEl = document.querySelector('.logo');
+    if (!logoEl) return;
+    var taps = 0, tapTimer = null;
+    var secrets = [
+      { icon: '🎬', name: 'Mode réalisateur activé', sub: 'Action ! Tu diriges maintenant.' },
+      { icon: '🎞️', name: 'Pellicule dévoilée', sub: 'Le format 35mm ne ment jamais.' },
+      { icon: '🍿', name: 'Rang VIP accordé', sub: 'Première rangée, siège central. Comme il se doit.' },
+      { icon: '🏆', name: 'Oscar de la curiosité', sub: 'Décerné pour services rendus au 7ème art.' },
+      { icon: '🌟', name: 'Étoile sur Hollywood Blvd', sub: 'Ton nom en lettres dorées, cinéphile.' },
+      { icon: '🎭', name: 'Masque levé', sub: 'Tu connais les coulisses maintenant.' },
+    ];
+    logoEl.addEventListener('click', function(e) {
+      // Éviter d'interférer avec le ×7 de l'arcade (on garde les 2 listeners indépendants)
+      try { if (localStorage.getItem('cq_logo5_seen')) return; } catch(e2) {}
+      taps++;
+      clearTimeout(tapTimer);
+      if (taps === 5) {
+        taps = 0;
+        try { localStorage.setItem('cq_logo5_seen', '1'); } catch(e2) {}
+        var s = secrets[Math.floor(Math.random() * secrets.length)];
+        if (typeof showBadgeToast === 'function') showBadgeToast(s);
+      }
+      tapTimer = setTimeout(function() { taps = 0; }, 1500);
+    });
+  })();
+
+  // 5. Heure de jeu — message au lancement selon l'heure (une fois par jour max)
+  (function() {
+    var _origStart = window.startGame;
+    if (typeof _origStart !== 'function') return;
+    window.startGame = function() {
+      var today = new Date().toDateString();
+      var seenKey = 'cq_time_toast_seen';
+      try {
+        if (localStorage.getItem(seenKey) !== today) {
+          var h = new Date().getHours();
+          var toast = null;
+          if (h >= 2 && h < 5)        toast = { icon: '🌙', name: 'Cinéphile nocturne', sub: 'Lynch, Kubrick et toi — les seuls encore éveillés à cette heure.' };
+          else if (h >= 5 && h < 7)   toast = { icon: '🌅', name: 'Première séance', sub: 'Avant le café. Respect.' };
+          else if (h >= 7 && h < 9)   toast = { icon: '☕', name: 'Matinée ciné', sub: 'Truffaut commençait ses tournages à l\'aube. Tu es en bonne compagnie.' };
+          else if (h >= 12 && h < 14) toast = { icon: '🌞', name: 'Séance de midi', sub: 'Popcorn + sandwich + quiz. Le combo parfait.' };
+          else if (h >= 22 && h < 24) toast = { icon: '🎬', name: 'Séance de nuit', sub: 'Les meilleures projections commencent après 22h.' };
+          if (toast) {
+            localStorage.setItem(seenKey, today);
+            setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(toast); }, 800);
+          }
+        }
+      } catch(e) {}
+      return _origStart.apply(this, arguments);
+    };
+  })();
+
+  // 6. Konami code clavier → toast légendaire
+  (function() {
+    var seq = [38,38,40,40,37,39,37,39,66,65];
+    var pos = 0;
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === seq[pos]) { pos++; if (pos === seq.length) { pos = 0; if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '👾', name: 'KONAMI CODE', sub: '↑↑↓↓←→←→BA — Tu es un vrai joueur. Et un cinéphile.' }); } }
+      else pos = 0;
+    });
+  })();
+
+  // 7. Dates spéciales — Noël, Halloween, Nouvel An, Saint-Valentin, Fête du Cinéma
+  (function() {
+    var now = new Date(), m = now.getMonth()+1, d = now.getDate();
+    var seasonal = null;
+    if      (m===12 && d===25) seasonal = { icon:'🎄', name:'Joyeux Noël !',       sub:"Même aujourd'hui, tu penses cinéma. Santa approuve." };
+    else if (m===10 && d===31) seasonal = { icon:'🎃', name:'Bonne Halloween !',    sub:'Soirée horreur ou quiz ciné ? Pourquoi pas les deux.' };
+    else if (m===1  && d===1)  seasonal = { icon:'🎆', name:'Bonne année !',        sub:'365 films à découvrir. Commence maintenant.' };
+    else if (m===2  && d===14) seasonal = { icon:'❤️', name:'Saint-Valentin',       sub:"Le plus beau film d'amour ? Celui que tu regardes avec quelqu'un." };
+    else if (m===6  && d===26) seasonal = { icon:'🎟️', name:'Fête du Cinéma !',    sub:"Aujourd'hui, le 7ème art se fête. T'es au bon endroit." };
+    else if (m===12 && d===28) seasonal = { icon:'🎬', name:'Naissance du cinéma', sub:"Le 28 décembre 1895, les frères Lumière changeaient le monde." };
+    if (seasonal) setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(seasonal); }, 3500);
+  })();
+
+  // 8. Score parfait — vibration spéciale + toast bonus
+  (function() {
+    var _orig = window._injectResultEaster;
+    window._injectResultEasterFull = function(score, correct) {
+      if (typeof _orig === 'function') _orig(score, correct);
+      if (correct >= 10) {
+        setTimeout(function() {
+          if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🏆', name: 'PERFECT — 10/10 !', sub: 'Score parfait. Tu rejoins le panthéon des cinéphiles.' });
+          if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 200]);
+        }, 1200);
+      }
+    };
+  })();
+
+  // 9. Première partie du jour → encouragement matinal
+  (function() {
+    try {
+      var today = new Date().toDateString();
+      var lastPlay = localStorage.getItem('cq_last_play_date');
+      if (lastPlay !== today) {
+        localStorage.setItem('cq_last_play_date', today);
+        var h = new Date().getHours();
+        var msgs = [
+          { icon:'🌟', name:'Bonne session !', sub:'Une partie par jour garde le ciné en éveil.' },
+          { icon:'🎬', name:'Nouvelle journée, nouveau quiz !', sub:'Chaque jour un peu plus cinéphile.' },
+          { icon:'⚡', name:'C\'est parti !', sub:'La caméra tourne. Le quiz commence.' },
+        ];
+        var msg = msgs[Math.floor(Math.random() * msgs.length)];
+        setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(msg); }, 4000);
+      }
+    } catch(e) {}
+  })();
+
+  // 10. Milestone de parties — 10, 50, 100, 500 parties jouées
+  (function() {
+    try {
+      var s = typeof ls === 'function' ? ls() : null;
+      if (!s) return;
+      var games = s.games || 0;
+      var milestones = {
+        10:  { icon:'🎬', name:'10 parties jouées',   sub:'Tu commences à connaître le chemin. Continue.' },
+        50:  { icon:'⭐', name:'50 parties jouées',   sub:"La moitié d'un marathon Kubrick. Respect." },
+        100: { icon:'🏆', name:'100 parties jouées', sub:'Centenaire ! Chaplin aurait souri.' },
+        500: { icon:'🌟', name:'500 parties jouées', sub:'Légende vivante du quiz ciné.' },
+      };
+      if (milestones[games]) {
+        var key = 'cq_milestone_seen_' + games;
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, '1');
+          setTimeout(function() { if (typeof showBadgeToast === 'function') showBadgeToast(milestones[games]); }, 2500);
+        }
+      }
+    } catch(e) {}
+  })();
+
+  // 11. Swipe rapide entre écrans (home → profil → home) 3x → toast Easter egg
+  (function() {
+    var navCount = 0, navTimer = null;
+    var _bbN = 0, _bbT = 0; // Ping-Pong EE
+    var _origGo = window.go;
+    if (typeof _origGo !== 'function') return;
+    window.go = function(screen) {
+      // Toast Tournis
+      navCount++;
+      clearTimeout(navTimer);
+      navTimer = setTimeout(function() { navCount = 0; }, 4000);
+      if (navCount >= 6) {
+        navCount = 0;
+        if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🎠', name: 'Tournis cinéma', sub: "T'as fait plus d'allers-retours que Forrest Gump sur son banc." });
+      }
+      // EE Ping-Pong — 3 navigations en 15s
+      var now = Date.now();
+      if (now - _bbT > 15000) _bbN = 0;
+      _bbT = now; _bbN++;
+      if (_bbN >= 3 && typeof eeIsFound === 'function' && !eeIsFound('ee_backback')) {
+        _bbN = 0;
+        if (typeof eeTrigger === 'function') eeTrigger('ee_backback');
+      }
+      return _origGo.apply(this, arguments);
+    };
+  })();
+
+  // 12. Inactivité longue (5 min sans interaction) → clin d'œil
+  (function() {
+    var _lastActivity = Date.now();
+    var _inactiveToastShown = false;
+    ['touchstart','click','keydown'].forEach(function(ev) {
+      document.addEventListener(ev, function() { _lastActivity = Date.now(); _inactiveToastShown = false; }, { passive: true });
+    });
+    setInterval(function() {
+      if (!_inactiveToastShown && Date.now() - _lastActivity > 300000) { // 5 min
+        _inactiveToastShown = true;
+        var msgs = [
+          { icon:'😴', name:'Tu es encore là ?', sub:'HAL 9000 te surveille. Ou pas.' },
+          { icon:'🎬', name:'Lumières, caméra…', sub:"T'attends quoi ? La bobine se rembobine pas toute seule." },
+          { icon:'🍿', name:'Les popcorns refroidissent', sub:'Et le quiz t\'attend.' },
+        ];
+        var m = msgs[Math.floor(Math.random() * msgs.length)];
+        if (typeof showBadgeToast === 'function') showBadgeToast(m);
+      }
+    }, 30000);
+  })();
+
+  // Bloquer Face ID / WebAuthn automatique au démarrage
+  try {
+    if (navigator.credentials && navigator.credentials.get) {
+      var _origCredGet = navigator.credentials.get.bind(navigator.credentials);
+      navigator.credentials.get = function(opts) {
+        // N'autoriser que si l'utilisateur a explicitement cliqué sur "Se connecter"
+        if (window._allowCredentials) return _origCredGet(opts);
+        return Promise.reject(new Error('Credentials blocked'));
+      };
+    }
+  } catch(e) {}
+
 
   // Boot
-  if(document.readyState === 'loading'){
+
+  if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function(){ injectUI(); init(); });
   } else {
     injectUI(); init();
