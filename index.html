@@ -6240,8 +6240,23 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 <script>
 // Reset urgence: cinequiz.site?reset=1
 if(window.location.search.indexOf('reset=1')!==-1){try{localStorage.clear();}catch(e){}window.location.href=window.location.pathname;}
-// Nettoyer la clé corrompue 'setItem' si elle existe
-try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem('setItem');}catch(e){}
+// Nettoyer les clés corrompues au démarrage
+try{
+  // Supprimer toute clé dont la valeur est du code JS (patch setItem corrompu)
+  var _keys=[];
+  for(var _i=0;_i<localStorage.length;_i++){_keys.push(localStorage.key(_i));}
+  _keys.forEach(function(_k){
+    try{
+      var _v=localStorage.getItem(_k);
+      // Si la valeur contient du code JS, supprimer
+      if(_v && (
+        _v.indexOf('function(key')===0 ||
+        _v.indexOf('function (key')===0 ||
+        _v.indexOf('_origSetItem')!==-1
+      )){ localStorage.removeItem(_k); }
+    }catch(_e){}
+  });
+}catch(_e){}
 </script>
 <div class="wrap" id="wrap">
 
