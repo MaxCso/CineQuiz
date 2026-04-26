@@ -25702,22 +25702,40 @@ if('serviceWorker' in navigator){
     _sbSyncing = true;
     var data = collectProgression();
     var userId = _sbSession.user.id;
-    // Upsert
-    return sbFetch('/rest/v1/progression', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + _sbSession.access_token,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({ user_id: userId, scores: data, updated_at: new Date().toISOString() })
-    }).then(function(response) {
-      _sbSyncing = false;
-      if (!response.ok) { setSyncBadge('err'); return false; }
-      setSyncBadge('ok');
+    var authHeaders = {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + _sbSession.access_token
+    };
+
+    // Stratégie PATCH-then-POST :
+    // 1. On essaie de mettre à jour la ligne existante (PATCH)
+    // 2. Si aucune ligne trouvée (tableau vide), on insère (POST)
+    return fetch(SUPA_URL + '/rest/v1/progression?user_id=eq.' + userId, {
+      method: 'PATCH',
+      headers: Object.assign({}, authHeaders, { 'Prefer': 'return=representation' }),
+      body: JSON.stringify({ scores: data, updated_at: new Date().toISOString() })
+    }).then(function(r) {
+      if (!r.ok) throw new Error('patch_failed');
+      return r.json();
+    }).then(function(rows) {
+      if (Array.isArray(rows) && rows.length === 0) {
+        // Aucune ligne existante — on insère
+        return fetch(SUPA_URL + '/rest/v1/progression', {
+          method: 'POST',
+          headers: Object.assign({}, authHeaders, { 'Prefer': 'return=minimal' }),
+          body: JSON.stringify({ user_id: userId, scores: data, updated_at: new Date().toISOString() })
+        }).then(function(r2) {
+          if (!r2.ok) throw new Error('insert_failed');
+          return true;
+        });
+      }
       return true;
-    }).catch(function(){ _sbSyncing = false; setSyncBadge('err'); return false; });
+    }).then(function() {
+      _sbSyncing = false; setSyncBadge('ok'); return true;
+    }).catch(function() {
+      _sbSyncing = false; setSyncBadge('err'); return false;
+    });
   }
 
   // Debounced save — fires 3s after last change
