@@ -25827,13 +25827,9 @@ if('serviceWorker' in navigator){
                 var _rTs = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
                 var _rNow = Date.now();
                 if (!_rTs || _rNow - _rTs > 5000) {
-                  localStorage.setItem('cq_just_reloaded', String(_rNow));
-                  showToastAuth('Progression restaurée ! Rechargement...');
-                  setTimeout(function(){ location.reload(); }, 1200);
-                } else {
-                  localStorage.removeItem('cq_just_reloaded');
                   showToastAuth('Connecté · progression restaurée.');
-                }
+                  if(typeof refHome==='function') refHome();
+                  try{localStorage.removeItem('hm_daily_unlocked');}catch(e){}
               } catch(e) { showToastAuth('Connecté · progression restaurée.'); }
             } else {
               // Local is ahead — push it
@@ -25846,11 +25842,8 @@ if('serviceWorker' in navigator){
               var _rTs2 = parseInt(localStorage.getItem('cq_just_reloaded') || '0', 10);
               var _rNow2 = Date.now();
               if (!_rTs2 || _rNow2 - _rTs2 > 5000) {
-                localStorage.setItem('cq_just_reloaded', String(_rNow2));
-                setTimeout(function(){ location.reload(); }, 1200);
-              } else {
-                localStorage.removeItem('cq_just_reloaded');
-              }
+                showToastAuth('Connecté.');
+              if(typeof refHome==='function') refHome();
             } catch(e2) {}
           }
         } else {
@@ -25979,14 +25972,6 @@ if('serviceWorker' in navigator){
   // ── INIT ──
   function init() {
     try { localStorage.removeItem('cq_just_reloaded'); } catch(e) {}
-    // En mode PWA standalone : ne PAS toucher à Supabase au démarrage
-    // La session sera restaurée quand l'utilisateur ira dans son profil
-    var isPWA = (window.navigator.standalone === true) ||
-                (window.matchMedia('(display-mode: standalone)').matches);
-    if (isPWA) {
-      updateAuthUI();
-      return;
-    }
     var session = loadSession();
     if (!session) { updateAuthUI(); return; }
 
