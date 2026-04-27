@@ -16981,9 +16981,16 @@ function hideToast(){
     st.timer=setTimeout(()=>_notifDismiss(channel),dur);
 
     // Swipe ↑ pour dismiss — touch
-    wrap.addEventListener('touchstart',_onTouchStart.bind(null,channel),{passive:true});
-    wrap.addEventListener('touchmove', _onTouchMove.bind(null,channel), {passive:false});
-    wrap.addEventListener('touchend',  _onTouchEnd.bind(null,channel),  {passive:true});
+    // On retire les anciens listeners avant d'en attacher de nouveaux
+    if(st._boundStart){ wrap.removeEventListener('touchstart', st._boundStart); }
+    if(st._boundMove){  wrap.removeEventListener('touchmove',  st._boundMove);  }
+    if(st._boundEnd){   wrap.removeEventListener('touchend',   st._boundEnd);   }
+    st._boundStart = _onTouchStart.bind(null, channel);
+    st._boundMove  = _onTouchMove.bind(null, channel);
+    st._boundEnd   = _onTouchEnd.bind(null, channel);
+    wrap.addEventListener('touchstart', st._boundStart, {passive:true});
+    wrap.addEventListener('touchmove',  st._boundMove,  {passive:false});
+    wrap.addEventListener('touchend',   st._boundEnd,   {passive:true});
     // Tap pour dismiss immédiat
     wrap.addEventListener('click',()=>_notifDismiss(channel),{once:true});
   };
@@ -17032,7 +17039,20 @@ function hideToast(){
   function _onTouchEnd(channel){
     const st=_state[channel];
     if(st.swipeDy<-42){
-      _notifDismiss(channel);
+      // Finir le geste visuellement avant le dismiss
+      const wrap=document.getElementById('notif-'+channel);
+      if(wrap){
+        wrap.style.transition='transform .18s cubic-bezier(.55,0,.45,1),opacity .18s ease';
+        wrap.style.transform='translateX(-50%) translateY(-110%)';
+        wrap.style.opacity='0';
+        setTimeout(()=>{
+          wrap.style.transition='';
+          wrap.style.opacity='';
+          _notifDismiss(channel);
+        },180);
+      } else {
+        _notifDismiss(channel);
+      }
     } else {
       // Snap back
       const wrap=document.getElementById('notif-'+channel);
