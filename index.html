@@ -2498,8 +2498,19 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 .splash-curtain.open .splash-curtain-l{ transform:translateX(-100%); }
 .splash-curtain.open .splash-curtain-r{ transform:translateX(100%); transition-delay:.12s; }
-.splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);filter:blur(6px);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1),filter .7s ease;background:transparent;}
-.splash-logo-wrap.show{opacity:1;transform:scale(1);filter:blur(0);}
+.splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
+.splash-logo-wrap.show{opacity:1;transform:scale(1);}
+@keyframes splashZoomOut{
+  0%  {transform:scale(1);opacity:1;}
+  55% {transform:scale(3.5);opacity:.5;}
+  100%{transform:scale(7);opacity:0;}
+}
+.splash-logo-wrap.zoom-out{
+  animation:splashZoomOut .85s cubic-bezier(.3,0,.7,1) forwards;
+  pointer-events:none;
+}
+.splash-logo-wrap.zoom-out .splash-tagline,
+.splash-logo-wrap.zoom-out .splash-tap{opacity:0;transition:opacity .15s ease;}
 .splash-logo{
   font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;
   background:linear-gradient(135deg,#fff3c0,#f5c842,#fff8e0,#e8a800);
@@ -2522,13 +2533,6 @@ body.theme-matrix  .splash-logo{background:linear-gradient(135deg,#88ff00,#00ff4
 body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb4,#d4006c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .splash-tagline{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:4px;text-transform:uppercase;margin-top:4px;}
 .splash-sep{width:28px;height:1px;margin:10px auto 0;background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
-.splash-date{
-  position:absolute;top:max(20px,env(safe-area-inset-top));
-  left:0;right:0;text-align:center;
-  font-size:10px;color:rgba(255,255,255,.22);letter-spacing:3px;text-transform:uppercase;
-  z-index:3;opacity:0;transition:opacity .8s ease .5s;
-}
-#splash.ready .splash-date{opacity:1;}
 .splash-tap{
   margin-top:32px;font-size:11px;color:rgba(255,255,255,.3);
   letter-spacing:3px;text-transform:uppercase;
@@ -2541,33 +2545,6 @@ body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb
   letter-spacing:2.5px;text-transform:uppercase;
   z-index:3;
   opacity:0;transition:opacity .8s ease .7s;
-}
-/* ── Scanlines ── */
-#splash::after{
-  content:'';position:absolute;inset:0;z-index:9;pointer-events:none;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0,0,0,.025) 3px,
-    rgba(0,0,0,.025) 4px
-  );
-}
-/* ── Citation ── */
-#splash-quote{
-  position:absolute;bottom:58px;left:0;right:0;
-  text-align:center;font-size:12px;
-  color:rgba(255,255,255,0);
-  letter-spacing:.4px;font-style:italic;
-  padding:0 40px;pointer-events:none;
-  line-height:1.6;
-  transition:color 1.6s ease .2s;
-  z-index:3;
-}
-.splash-qmark{
-  font-size:15px;font-style:normal;font-weight:700;
-  color:rgba(245,200,66,0);
-  transition:color 1.6s ease .2s;
 }
 #splash.ready .splash-credit{opacity:1;}
 
@@ -6847,7 +6824,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       <div class="splash-curtain-l"></div>
       <div class="splash-curtain-r"></div>
     </div>
-    <div class="splash-date" id="splash-date"></div>
     <div class="splash-logo-wrap" id="splash-logo">
       <div class="splash-logo-container">
         <div class="splash-logo">CinéQuiz</div>
@@ -6861,14 +6837,8 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       var q=["« Un film est un rêve qu'on partage. »","« Every frame a painting. »","« I'll make him an offer he can't refuse. »","« You talkin' to me? »","« Frankly, my dear, I don't give a damn. »","« Here's looking at you, kid. »","« To infinity and beyond. »","« May the Force be with you. »","« E.T. phone home. »","« I see dead people. »","« There's no place like home. »","« Life is like a box of chocolates. »","« Just keep swimming. »","« Why so serious? »","« I am your father. »","« You can't handle the truth! »","« I'll be back. »","« Hasta la vista, baby. »","« Elementary, my dear Watson. »","« Le cinéma substitue à notre regard un monde qui s'accorde à nos désirs. »"];
       var el=document.getElementById('splash-quote');
       if(el){
-        var raw=q[Math.floor(Math.random()*q.length)];
-        var inner=raw.replace(/^«\s*/,'').replace(/\s*»$/,'');
-        el.innerHTML='<span class="splash-qmark">«</span> '+inner+' <span class="splash-qmark">»</span>';
-        requestAnimationFrame(function(){requestAnimationFrame(function(){
-          el.style.color='rgba(255,255,255,.6)';
-          var marks=el.querySelectorAll('.splash-qmark');
-          marks.forEach(function(m){m.style.color='rgba(245,200,66,.75)';});
-        });});
+        el.textContent=q[Math.floor(Math.random()*q.length)];
+        requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.color='rgba(255,255,255,.55)';});});
       }
     })();
     </script>
@@ -18673,12 +18643,19 @@ function runSplash(){
       }
     } catch(e){}
 
-    setTimeout(()=>{logo.classList.add('show');},100);
-    setTimeout(()=>{curtain.classList.add('open');},1500);
+    // Zoom du logo puis disparition du splash
     setTimeout(()=>{
-      splash.classList.add('out');
-      setTimeout(()=>{splash.style.display='none';if(window._stopNeuroSplash)window._stopNeuroSplash();},700);
-    },3600);
+      logo.classList.add('zoom-out');
+      // Fade out rapide du fond et des éléments autour
+      splash.style.transition='opacity .5s ease .4s';
+      splash.style.opacity='0';
+      setTimeout(()=>{
+        splash.style.display='none';
+        splash.style.opacity='';
+        splash.style.transition='';
+        if(window._stopNeuroSplash)window._stopNeuroSplash();
+      },900);
+    },80);
   }
 
   // Afficher le logo immédiatement, attendre le 1er tap
