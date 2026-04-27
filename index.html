@@ -25294,6 +25294,10 @@ setInterval(updateDailyCountdown,1000);
   const canvas = document.getElementById('splash-neuro');
   if (!canvas) return;
 
+  // Cold start (premier lancement, JS non encore en cache) → shader allégé
+  const _isCold = !localStorage.getItem('cq11');
+  const _iter = _isCold ? 8 : 15;
+
   const dpr = Math.min(window.devicePixelRatio, 2);
   const pointer = { x: 0.5, y: 0.5, tX: 0.5, tY: 0.5 };
   let uniforms, animId, stopped = false;
@@ -25327,7 +25331,7 @@ setInterval(updateDailyCountdown,1000);
       vec2 sine_acc = vec2(0.);
       vec2 res = vec2(0.);
       float scale = 8.;
-      for (int j = 0; j < 15; j++) {
+      for (int j = 0; j < ${_iter}; j++) {
         uv = rotate(uv, 1.);
         sine_acc = rotate(sine_acc, 1.);
         vec2 layer = uv * scale + float(j) + sine_acc - t;
