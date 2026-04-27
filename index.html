@@ -5031,15 +5031,16 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hmvb-row{
   display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;
 }
-.hmvb-lbl{font-size:9px;color:rgba(192,132,252,.4);letter-spacing:1.5px;text-transform:uppercase;}
-.hmvb-val{font-size:11px;color:rgba(255,255,255,.7);max-width:65%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hmvb-lbl{font-size:11px;color:rgba(192,132,252,.45);letter-spacing:1.5px;text-transform:uppercase;}
+.hmvb-val{font-size:13px;color:rgba(255,255,255,.85);max-width:65%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hmvb-tagline{font-size:11px;color:rgba(255,255,255,.32);font-style:italic;margin-bottom:8px;flex-shrink:0;line-height:1.4;}
 .hmv-poster-back-moods{
   display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;flex-shrink:0;
 }
 .hmvb-mood{
-  font-size:8px;color:rgba(192,132,252,.65);
-  background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15);
-  border-radius:10px;padding:3px 8px;
+  font-size:11px;font-weight:600;color:#c084fc;
+  background:rgba(168,85,247,.16);border:1px solid rgba(168,85,247,.35);
+  border-radius:12px;padding:5px 12px;
 }
 .hmv-poster-back-flip-back{
   margin-top:10px;flex-shrink:0;
@@ -7977,6 +7978,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
             <div class="hmvb-title" id="hmvb-title"></div>
             <div class="hmvb-year" id="hmvb-year"></div>
             <div class="hmvb-synopsis" id="hmvb-synopsis"></div>
+            <div class="hmvb-tagline" id="hmvb-tagline" style="display:none;"></div>
             <div class="hmvb-divider"></div>
             <div id="hmvb-rows"></div>
             <div class="hmvb-moods" id="hmvb-moods"></div>
@@ -12178,6 +12180,7 @@ function _hmvFillBack(){
   if(el('hmvb-title'))   el('hmvb-title').textContent  = film.t||'';
   if(el('hmvb-year'))    el('hmvb-year').textContent    = film.y||'';
   if(el('hmvb-synopsis'))el('hmvb-synopsis').textContent= film.s||'';
+  const tEl=el('hmvb-tagline');if(tEl){tEl.style.display='none';tEl.textContent='';}
   const moodEmoji={'mélancolique':'🌧','joyeux':'☀️','adrénaline':'⚡','réflexion':'🌀','comédie':'😄','atmosphère':'🌫'};
   const moodAnim={'mélancolique':'hmvMoodRain','joyeux':'hmvMoodSun','adrénaline':'hmvMoodZap','réflexion':'hmvMoodSpin','comédie':'hmvMoodBounce','atmosphère':'hmvMoodFloat'};
   if(el('hmvb-moods'))   el('hmvb-moods').innerHTML    = (film.m||[]).map(m=>'<span class="hmvb-mood"><span class="hmvb-mood-icon" style="display:inline-block;animation:'+( moodAnim[m]||'hmvMoodFloat')+' 2s ease-in-out infinite;">'+(moodEmoji[m]||'✦')+'</span> '+m+'</span>').join('');
@@ -12201,7 +12204,12 @@ function _hmvFillBack(){
     ].filter(Boolean).join('');
   };
   let d=null;try{const r=localStorage.getItem(key);if(r)d=JSON.parse(r);}catch{}
-  if(d){rows.innerHTML=buildRows(d);return;}
+  if(d){
+    rows.innerHTML=buildRows(d);
+    const tElC=document.getElementById('hmvb-tagline');
+    if(tElC){if(d.tagline){tElC.textContent='« '+d.tagline+' »';tElC.style.display='block';}else{tElC.style.display='none';}}
+    return;
+  }
   rows.innerHTML='<div style="font-size:11px;color:rgba(255,255,255,.25);padding:6px 0;">Chargement…</div>';
   // Utiliser l'ID TMDB direct si disponible (évite les mauvais matches par recherche titre)
   const _tmdbId = film.id || null;
@@ -12235,9 +12243,22 @@ function _hmvFillBack(){
         production:prod||null,
         rating:mv.vote_average?Math.round(mv.vote_average*10)/10:null,
         streaming:(wp.results?.FR?.flatrate||[]).map(p=>p.provider_name).slice(0,3),
+        tagline:mv.tagline||null,
       };
+      // Fallback tagline anglais si fr-FR vide
+      if(!d.tagline){
+        try{
+          const re=await fetch('https://api.themoviedb.org/3/movie/'+match.id+'?api_key='+TK+'&language=en-US');
+          const me=await re.json();
+          if(me.tagline)d.tagline=me.tagline;
+        }catch{}
+      }
       try{localStorage.setItem(key,JSON.stringify(d));}catch{}
-      if(document.getElementById('hmvb-rows')===rows)rows.innerHTML=buildRows(d);
+      if(document.getElementById('hmvb-rows')===rows){
+        rows.innerHTML=buildRows(d);
+        const tEl2=document.getElementById('hmvb-tagline');
+        if(tEl2){if(d.tagline){tEl2.textContent='« '+d.tagline+' »';tEl2.style.display='block';}else{tEl2.style.display='none';}}
+      }
     }).catch(()=>{rows.innerHTML='';});
 
   // Easter egg double-tap sur le verso → anecdote
