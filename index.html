@@ -5272,7 +5272,7 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hmv-info-synopsis{font-size:16px;color:rgba(255,255,255,.7);line-height:1.75;margin-bottom:10px;}
 #hmv-info-tagline{font-size:13px;color:rgba(255,255,255,.38);font-style:italic;letter-spacing:.3px;margin-bottom:14px;padding-left:2px;}
 .hmv-info-moods{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
-.hmv-info-mood{font-size:15px;color:rgba(192,132,252,.65);background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.15);border-radius:20px;padding:6px 16px;}
+.hmv-info-mood{font-size:16px;font-weight:500;color:rgba(210,160,255,.95);background:rgba(168,85,247,.16);border:1px solid rgba(168,85,247,.35);border-radius:20px;padding:9px 20px;}
 .hmv-info-details{display:flex;flex-direction:column;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;margin-bottom:8px;}
 .hmv-info-row{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
 .hmv-info-row:last-child{border-bottom:none;}
@@ -5954,8 +5954,8 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hm-fiche-details{display:flex;flex-direction:column;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;}
 .hm-fiche-row{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
 .hm-fiche-row:last-child{border-bottom:none;}
-.hm-fiche-label{font-size:13px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:105px;}
-.hm-fiche-val{font-size:16px;color:rgba(255,255,255,.88);line-height:1.45;flex:1;}
+.hm-fiche-label{font-size:14px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:108px;}
+.hm-fiche-val{font-size:17px;color:rgba(255,255,255,.9);line-height:1.45;flex:1;}
 .hm-fiche-rating{display:inline-flex;align-items:center;gap:5px;}
 .hm-fiche-stars{color:#f5c842;font-size:15px;}
 .hm-fiche-score{font-size:16px;font-weight:700;color:#f5c842;}
@@ -13874,7 +13874,7 @@ async function _hmEnrichFiche(film, container){
         countries:(d.production_countries||[]).map(co=>countryMap[co.name]||co.name).slice(0,2),
         rating:d.vote_average?Math.round(d.vote_average*10)/10:null,
         voteCount:d.vote_count,
-        tagline:d.tagline||null,
+        tagline:d.tagline||null,_movieId:movieId,
         production:prodCompany.length?prodCompany:null,
         streaming:streaming.length?streaming:null,
         rent:rent.length?rent:null,
@@ -13915,14 +13915,21 @@ async function _hmEnrichFiche(film, container){
     }).join('')+'</span>';
   };
 
-  // Tagline sous le synopsis
+  // Tagline sous le synopsis — fr-FR d'abord, fallback en-US
   const taglineEl = container ? container.querySelector('#hmv-info-tagline') : null;
-  if(taglineEl) {
-    if(data.tagline) {
-      taglineEl.innerHTML = '« ' + data.tagline + ' »';
-      taglineEl.style.display = 'block';
+  if(taglineEl){
+    const showTagline=t=>{
+      if(t){taglineEl.innerHTML='« '+t+' »';taglineEl.style.display='block';}
+      else{taglineEl.style.display='none';}
+    };
+    if(data.tagline){
+      showTagline(data.tagline);
+    } else if(data._movieId){
+      showTagline(null); // masqué le temps du fetch
+      fetch(`https://api.themoviedb.org/3/movie/${data._movieId}?api_key=${TK}&language=en-US`)
+        .then(r=>r.json()).then(d=>showTagline(d.tagline||null)).catch(()=>{});
     } else {
-      taglineEl.style.display = 'none';
+      showTagline(null);
     }
   }
 
