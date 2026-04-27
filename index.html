@@ -2434,7 +2434,6 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
     radial-gradient(ellipse 45% 38% at 68% 65%, rgba(20,60,180,.32) 0%, transparent 55%),
     radial-gradient(ellipse 42% 36% at 22% 70%, rgba(140,20,80,.26) 0%, transparent 54%),
     radial-gradient(ellipse 38% 32% at 72% 18%, rgba(170,80,10,.22) 0%, transparent 50%);
-  animation:splashProjA 10s ease-in-out infinite;
 }
 #splash-bg::after{
   content:'';position:absolute;inset:-20%;width:140%;height:140%;
@@ -2442,7 +2441,6 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
     radial-gradient(ellipse 40% 32% at 58% 42%, rgba(190,105,15,.18) 0%, transparent 50%),
     radial-gradient(ellipse 46% 37% at 28% 52%, rgba(10,55,150,.15) 0%, transparent 52%),
     radial-gradient(ellipse 80% 70% at 50% 50%, transparent 25%, rgba(0,0,0,.85) 100%);
-  animation:splashProjB 14s ease-in-out infinite reverse;
 }
 @keyframes splashProjA{
   0%,100%{transform:translate(0%,0%) rotate(0deg) scale(1);}
@@ -2520,6 +2518,14 @@ body.theme-inferno .splash-logo{background-color:transparent;background:linear-g
 body.theme-matrix  .splash-logo{background:linear-gradient(135deg,#88ff00,#00ff41,#00bb30);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(0,255,65,.7));}
 body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb4,#d4006c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 28px rgba(255,110,180,.7));}
 .splash-tagline{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:4px;text-transform:uppercase;margin-top:4px;}
+.splash-sep{width:28px;height:1px;margin:10px auto 0;background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
+.splash-date{
+  position:absolute;top:max(20px,env(safe-area-inset-top));
+  left:0;right:0;text-align:center;
+  font-size:10px;color:rgba(255,255,255,.22);letter-spacing:3px;text-transform:uppercase;
+  z-index:3;opacity:0;transition:opacity .8s ease .5s;
+}
+#splash.ready .splash-date{opacity:1;}
 .splash-tap{
   margin-top:32px;font-size:11px;color:rgba(255,255,255,.3);
   letter-spacing:3px;text-transform:uppercase;
@@ -2536,6 +2542,53 @@ body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb
 #splash.ready .splash-credit{opacity:1;}
 
 @keyframes tapPulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
+
+/* ── Grain cinéma ── */
+#splash-grain{
+  position:absolute;inset:0;z-index:10;pointer-events:none;
+  opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+  animation:grainShift .45s steps(2) infinite;
+}
+@keyframes grainShift{
+  0%  {background-position:0 0;}
+  25% {background-position:-55px -30px;}
+  50% {background-position:40px 55px;}
+  75% {background-position:-35px 40px;}
+  100%{background-position:50px -40px;}
+}
+
+/* ── Vignette projecteur ── */
+#splash-vignette{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse 62% 52% at 50% 46%,transparent 25%,rgba(0,0,0,.72) 100%);
+}
+
+/* ── Shimmer logo ── */
+.splash-logo-container{position:relative;display:inline-block;}
+.splash-logo-shimmer{
+  position:absolute;inset:-4px;pointer-events:none;
+  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.13) 44%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.13) 56%,transparent 80%);
+  transform:translateX(-160%) skewX(-12deg);
+  animation:shimmerSweep 5s ease-in-out infinite 2s;
+}
+@keyframes shimmerSweep{
+  0%  {transform:translateX(-160%) skewX(-12deg);}
+  35% {transform:translateX(160%) skewX(-12deg);}
+  100%{transform:translateX(160%) skewX(-12deg);}
+}
+
+/* ── Stagger d'entrée ── */
+.splash-logo-wrap .splash-logo-container,
+.splash-logo-wrap .splash-tagline,
+.splash-logo-wrap .splash-tap{
+  transform:translateY(14px);
+  transition:transform .55s cubic-bezier(.22,.68,0,1.2);
+}
+.splash-logo-wrap.show .splash-logo-container{transform:none;transition-delay:0s;}
+.splash-logo-wrap.show .splash-tagline       {transform:none;transition-delay:.13s;}
+.splash-logo-wrap.show .splash-tap           {transform:none;transition-delay:.3s;}
 
 /* -- TRANSITIONS QUESTIONS -- */
 @keyframes slideInRight{from{opacity:0;transform:translateX(38px) scale(.97);}to{opacity:1;transform:translateX(0) scale(1);}}
@@ -6786,12 +6839,18 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   <div id="splash">
     <canvas id="splash-neuro"></canvas>
     <div id="splash-bg"></div>
+    <div id="splash-vignette"></div>
+    <div id="splash-grain"></div>
     <div class="splash-curtain" id="splash-curtain">
       <div class="splash-curtain-l"></div>
       <div class="splash-curtain-r"></div>
     </div>
+    <div class="splash-date" id="splash-date"></div>
     <div class="splash-logo-wrap" id="splash-logo">
-      <div class="splash-logo">CinéQuiz</div>
+      <div class="splash-logo-container">
+        <div class="splash-logo">CinéQuiz</div>
+        <div class="splash-logo-shimmer"></div>
+      </div>
       <div class="splash-tagline">Le quiz du 7ème art</div>
       <div class="splash-tap">Appuie pour commencer</div>
     </div>
@@ -6803,6 +6862,15 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       if(el){
         el.textContent=q[Math.floor(Math.random()*q.length)];
         requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.color='rgba(255,255,255,.32)';});});
+      }
+    })();
+    </script>
+    <script>
+    (function(){
+      var el=document.getElementById('splash-date');
+      if(el){
+        var d=new Date();
+        el.textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
       }
     })();
     </script>
@@ -8706,6 +8774,14 @@ if(!window._musicPending) window._musicPending=null;
 
 function switchMusic(key,vol=0.28){
   if(!musOn)return;
+
+  // Jukebox actif → garder la piste du jukebox, juste ajuster le volume
+  if(window._jkAudio && !window._jkAudio.paused){
+    fadeTrack(window._jkAudio,vol,400);
+    _curMode=key;
+    return;
+  }
+
   const src=_getSrc(key);
   if(!src) return;
 
