@@ -2500,17 +2500,6 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .splash-curtain.open .splash-curtain-r{ transform:translateX(100%); transition-delay:.12s; }
 .splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
-@keyframes splashZoomOut{
-  0%  {transform:scale(1);opacity:1;}
-  55% {transform:scale(3.5);opacity:.5;}
-  100%{transform:scale(7);opacity:0;}
-}
-.splash-logo-wrap.zoom-out{
-  animation:splashZoomOut .85s cubic-bezier(.3,0,.7,1) forwards;
-  pointer-events:none;
-}
-.splash-logo-wrap.zoom-out .splash-tagline,
-.splash-logo-wrap.zoom-out .splash-tap{opacity:0;transition:opacity .15s ease;}
 .splash-logo{
   font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;
   background:linear-gradient(135deg,#fff3c0,#f5c842,#fff8e0,#e8a800);
@@ -18643,19 +18632,12 @@ function runSplash(){
       }
     } catch(e){}
 
-    // Zoom du logo puis disparition du splash
+    setTimeout(()=>{logo.classList.add('show');},100);
+    setTimeout(()=>{curtain.classList.add('open');},1500);
     setTimeout(()=>{
-      logo.classList.add('zoom-out');
-      // Fade out rapide du fond et des éléments autour
-      splash.style.transition='opacity .5s ease .4s';
-      splash.style.opacity='0';
-      setTimeout(()=>{
-        splash.style.display='none';
-        splash.style.opacity='';
-        splash.style.transition='';
-        if(window._stopNeuroSplash)window._stopNeuroSplash();
-      },900);
-    },80);
+      splash.classList.add('out');
+      setTimeout(()=>{splash.style.display='none';if(window._stopNeuroSplash)window._stopNeuroSplash();},700);
+    },3600);
   }
 
   // Afficher le logo immédiatement, attendre le 1er tap
@@ -25309,7 +25291,6 @@ setInterval(updateDailyCountdown,1000);
 (function(){
   const canvas = document.getElementById('splash-neuro');
   if (!canvas) return;
-  return; // désactivé pour éviter le crash au premier lancement sur appareils < 6GB
 
   const dpr = Math.min(window.devicePixelRatio, 2);
   const pointer = { x: 0.5, y: 0.5, tX: 0.5, tY: 0.5 };
