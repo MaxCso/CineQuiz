@@ -5232,14 +5232,15 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hmv-info-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
 .hmv-info-pill{font-size:13px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;}
 .hmv-info-pill.genre{color:rgba(192,132,252,.7);border-color:rgba(168,85,247,.2);background:rgba(168,85,247,.08);}
-.hmv-info-synopsis{font-size:16px;color:rgba(255,255,255,.7);line-height:1.75;margin-bottom:14px;}
+.hmv-info-synopsis{font-size:16px;color:rgba(255,255,255,.7);line-height:1.75;margin-bottom:10px;}
+#hmv-info-tagline{font-size:13px;color:rgba(255,255,255,.38);font-style:italic;letter-spacing:.3px;margin-bottom:14px;padding-left:2px;}
 .hmv-info-moods{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
-.hmv-info-mood{font-size:13px;color:rgba(192,132,252,.65);background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.15);border-radius:20px;padding:4px 12px;}
+.hmv-info-mood{font-size:15px;color:rgba(192,132,252,.65);background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.15);border-radius:20px;padding:6px 16px;}
 .hmv-info-details{display:flex;flex-direction:column;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;margin-bottom:8px;}
 .hmv-info-row{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
 .hmv-info-row:last-child{border-bottom:none;}
-.hmv-info-label{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:82px;}
-.hmv-info-val{font-size:13px;color:rgba(255,255,255,.8);line-height:1.4;flex:1;}
+.hmv-info-label{font-size:12px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:90px;}
+.hmv-info-val{font-size:15px;color:rgba(255,255,255,.8);line-height:1.4;flex:1;}
 .hmv-info-swipe-hint{
   text-align:center;font-size:11px;color:rgba(255,255,255,.3);
   letter-spacing:1.5px;padding:18px 0 8px;
@@ -5916,8 +5917,8 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 .hm-fiche-details{display:flex;flex-direction:column;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;}
 .hm-fiche-row{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
 .hm-fiche-row:last-child{border-bottom:none;}
-.hm-fiche-label{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:95px;}
-.hm-fiche-val{font-size:15px;color:rgba(255,255,255,.88);line-height:1.45;flex:1;}
+.hm-fiche-label{font-size:13px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;width:105px;}
+.hm-fiche-val{font-size:16px;color:rgba(255,255,255,.88);line-height:1.45;flex:1;}
 .hm-fiche-rating{display:inline-flex;align-items:center;gap:5px;}
 .hm-fiche-stars{color:#f5c842;font-size:15px;}
 .hm-fiche-score{font-size:16px;font-weight:700;color:#f5c842;}
@@ -12343,6 +12344,7 @@ function _hmvRender() {
         '<span class="hmv-info-pill genre">' + film.g + '</span>' +
       '</div>' +
       (film.s ? '<div class="hmv-info-synopsis">' + film.s + '</div>' : '') +
+      '<div id="hmv-info-tagline" style="display:none;"></div>' +
       (moodsHtml ? '<div class="hmv-info-moods">' + moodsHtml + '</div>' : '') +
       '<div class="hmv-info-details" id="hmv-info-details"><div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Chargement…</div></div>';
     // Enrichir depuis TMDB
@@ -13849,8 +13851,18 @@ async function _hmEnrichFiche(film, container){
     }).join('')+'</span>';
   };
 
+  // Tagline sous le synopsis
+  const taglineEl = container ? container.querySelector('#hmv-info-tagline') : null;
+  if(taglineEl) {
+    if(data.tagline) {
+      taglineEl.innerHTML = '« ' + data.tagline + ' »';
+      taglineEl.style.display = 'block';
+    } else {
+      taglineEl.style.display = 'none';
+    }
+  }
+
   detailsEl.innerHTML = [
-    data.tagline?'<div style="font-size:13px;color:rgba(255,255,255,.4);font-style:italic;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);">« '+data.tagline+' »</div>':'',
     row('Réalisateur', data.director),
     row('Scénario', data.writers?.length ? fmt(data.writers) : null),
     row('Casting', data.cast?.length ? fmt(data.cast) : null),
