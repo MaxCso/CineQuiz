@@ -2500,9 +2500,18 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
 .splash-logo{
   font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;
-  background:linear-gradient(135deg,#fff3c0,#f5c842,#fff8e0,#e8a800);
+  background:linear-gradient(110deg,#e8a800 0%,#f5c842 30%,#fffde0 48%,#ffffff 50%,#fffde0 52%,#f5c842 70%,#e8a800 100%);
+  background-size:250% 100%;
+  background-position:100% 50%;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
   filter:drop-shadow(0 0 28px rgba(245,200,66,.6));
+  animation:logoShimmer 5s ease-in-out infinite 1.5s;
+}
+@keyframes logoShimmer{
+  0%,8%  {background-position:100% 50%;}
+  38%    {background-position:-30% 50%;}
+  100%   {background-position:-30% 50%;}
 }
 
 /* ── Splash logo adapté au thème ── */
@@ -2567,17 +2576,6 @@ body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb
 
 /* ── Shimmer logo ── */
 .splash-logo-container{position:relative;display:inline-block;}
-.splash-logo-shimmer{
-  position:absolute;inset:-4px;pointer-events:none;
-  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.13) 44%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.13) 56%,transparent 80%);
-  transform:translateX(-160%) skewX(-12deg);
-  animation:shimmerSweep 5s ease-in-out infinite 2s;
-}
-@keyframes shimmerSweep{
-  0%  {transform:translateX(-160%) skewX(-12deg);}
-  35% {transform:translateX(160%) skewX(-12deg);}
-  100%{transform:translateX(160%) skewX(-12deg);}
-}
 
 /* ── Stagger d'entrée ── */
 .splash-logo-wrap .splash-logo-container,
@@ -6849,7 +6847,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     <div class="splash-logo-wrap" id="splash-logo">
       <div class="splash-logo-container">
         <div class="splash-logo">CinéQuiz</div>
-        <div class="splash-logo-shimmer"></div>
       </div>
       <div class="splash-tagline">Le quiz du 7ème art</div>
       <div class="splash-tap">Appuie pour commencer</div>
@@ -11597,12 +11594,8 @@ function closeModeInfo(){
 }
 function launchFromInfo(){
   closeModeInfo();
-  // Couper le jukebox avant de lancer le jeu
-  if(window._jkAudio){
-    fadeTrack(window._jkAudio,0,400,()=>{if(window._jkAudio){window._jkAudio.pause();window._jkAudio=null;}});
-    _stopProgInterval();
-    updateMiniPlayer();
-  }
+  // Si jukebox actif, juste arrêter l'interval de progression (pas l'audio)
+  if(window._jkAudio) _stopProgInterval();
   setTimeout(startGame,120);
 }
 
@@ -20244,19 +20237,15 @@ function closeJukebox(){
     if(sec > 0){ const _sj=ls(); _sj.jkplaytime=(_sj.jkplaytime||0)+sec; ss(_sj); }
     window._jkOpenTime = null;
   }
-  // Arrêter le jukebox proprement avec fade out
-  if(window._jkAudio){
-    const jka=window._jkAudio;
-    fadeTrack(jka,0,500,()=>{jka.pause();});
-    window._jkAudio=null;
-  }
   // Pause vidéo si active (FLINGO FREESTYLE ou autre)
   const vid=document.getElementById('jk-video-player');
   if(vid&&!vid.paused){vid.pause();vid.src='';}
   go('home');
   const gbg=document.getElementById('game-bg');if(gbg)gbg.classList.remove('on');
   updateMiniPlayer();
-  if(musOn) setTimeout(()=>playMus(),300);
+  // Si jukebox actif, il continue — switchMusic('home') ajustera juste son volume
+  // Sinon, reprendre la musique prédéfinie normalement
+  if(musOn) setTimeout(()=>switchMusic('home',0.3),300);
 }
 
 // ══ ZONE VIDÉO SECRÈTE ══
