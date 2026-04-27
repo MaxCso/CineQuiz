@@ -25288,13 +25288,12 @@ function hmOracleReset(){
 
 
 
-applyNewBadges();
-refHome();
+// ── Palier 1 : visuel immédiat (thème + countdown) ──
 loadTheme();
-updateProfileDot();
-updateDailyCard();
-initMiniPlayer();
 setInterval(updateDailyCountdown,1000);
+
+// ── Palier 2 : après le premier rendu (~1 frame) — WebGL + splash ──
+requestAnimationFrame(function(){
 
 // ══ NEURO NOISE — Splash Screen WebGL Shader (v2) ══
 (function(){
@@ -25453,12 +25452,22 @@ runSplash();
 const _hbg2=document.getElementById('home-bg');
 if(_hbg2)_hbg2.classList.add('visible');
 
-// ── Neural Noise sur l'accueil ──
-// Tutoriel : seulement au 1er lancement, jamais après
-const _s=ls();
-if(!_s.onboardingDone){
-  setTimeout(initOnboarding,2200);
-}
+// ── Palier 2 fermé ──
+}); // fin requestAnimationFrame
+
+// ── Palier 3 : inits accueil différées (~300ms) — laisse le splash démarrer d'abord ──
+setTimeout(function(){
+  applyNewBadges();
+  refHome();
+  updateProfileDot();
+  updateDailyCard();
+  initMiniPlayer();
+  // Tutoriel : seulement au 1er lancement
+  const _s=ls();
+  if(!_s.onboardingDone){
+    setTimeout(initOnboarding,2200);
+  }
+}, 300);
 
 
 </script>
