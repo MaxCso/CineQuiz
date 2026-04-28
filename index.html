@@ -2446,7 +2446,7 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   flex:1;
   position:relative;
   overflow:hidden;
-  transition:transform 1.1s cubic-bezier(.77,0,.175,1);
+  transition:transform 1.7s cubic-bezier(.77,0,.175,1);
 }
 .splash-curtain-l{
   transform-origin:left center;
@@ -2479,7 +2479,7 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
 .splash-logo{
-  font-family:'Bebas Neue',sans-serif;font-size:90px;letter-spacing:5px;
+  font-family:'Bebas Neue',sans-serif;font-size:85px;letter-spacing:5px;
   background:linear-gradient(135deg,#fff3c0,#f5c842,#fff8e0,#e8a800);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
@@ -2558,7 +2558,7 @@ body.theme-matrix  .splash-swipe-track::before{background:linear-gradient(90deg,
 body.theme-rose    .splash-swipe-thumb{background:linear-gradient(145deg,#ffb8e0,#ff6eb4,#d4006c);color:#1a0014;}
 body.theme-rose    .splash-swipe-track{border-color:rgba(255,110,180,.4);}
 body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,rgba(255,110,180,.2),rgba(255,110,180,.06));}
-.splash-tagline{font-size:15px;color:rgba(255,255,255,.4);letter-spacing:5px;text-transform:uppercase;margin-top:6px;}
+.splash-tagline{font-size:14px;color:rgba(255,255,255,.4);letter-spacing:5px;text-transform:uppercase;margin-top:6px;}
 .splash-sep{width:28px;height:1px;margin:10px auto 0;background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
 .splash-swipe-wrap{
   margin-top:140px;
@@ -2691,17 +2691,20 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 /* ── Flash projecteur à l'ouverture du rideau ── */
 #splash-flash{
   position:absolute;inset:0;z-index:5;pointer-events:none;
-  background:radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,220,140,.55) 0%, rgba(255,180,60,.18) 40%, transparent 70%);
+  background:
+    radial-gradient(ellipse 40% 30% at 50% 45%, rgba(255,245,200,.9) 0%, rgba(255,220,120,.6) 20%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(255,190,60,.35) 0%, rgba(255,150,30,.1) 50%, transparent 75%);
   opacity:0;
 }
 @keyframes splashFlash{
-  0%  {opacity:0;}
-  8%  {opacity:1;}
-  25% {opacity:.6;}
-  50% {opacity:.25;}
-  100%{opacity:0;}
+  0%   {opacity:0;}
+  4%   {opacity:1;}
+  12%  {opacity:.75;}
+  28%  {opacity:.4;}
+  55%  {opacity:.15;}
+  100% {opacity:0;}
 }
-.splash-flash-on{animation:splashFlash 1.8s cubic-bezier(.22,1,.36,1) forwards;}
+.splash-flash-on{animation:splashFlash 2.2s cubic-bezier(.22,1,.36,1) forwards;}
 
 /* ── Citation ciné à l'ouverture du rideau ── */
 #splash-quote{
@@ -2717,7 +2720,7 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 }
 .splash-quote-sep{
   width:28px;height:1px;
-  margin:16px auto 14px;
+  margin:8px auto 8px;
   background:linear-gradient(90deg,transparent,rgba(245,200,66,.5),transparent);
 }
 #splash-quote-text{
@@ -9662,6 +9665,37 @@ function haptic(type){
 }
 
 // -- SON CLAQUETTE (splash) --
+function sndSwipe(){
+  if(!sndOn)return;
+  const ctx=ac();if(!ctx)return;
+  try{
+    const t=ctx.currentTime;
+    // Whoosh rapide — glissement du curseur
+    const wLen=Math.ceil(ctx.sampleRate*.22);
+    const wBuf=ctx.createBuffer(1,wLen,ctx.sampleRate);
+    const wd=wBuf.getChannelData(0);
+    for(let i=0;i<wLen;i++){
+      const env=(1-i/wLen)*Math.pow(i/wLen,.15);
+      wd[i]=(Math.random()*2-1)*env;
+    }
+    const w=ctx.createBufferSource();w.buffer=wBuf;
+    const wf=ctx.createBiquadFilter();wf.type='bandpass';wf.frequency.value=1800;wf.Q.value=.8;
+    const wg=ctx.createGain();wg.gain.setValueAtTime(.18,t);wg.gain.exponentialRampToValueAtTime(.0001,t+.22);
+    w.connect(wf);wf.connect(wg);wg.connect(ctx.destination);
+    w.start(t);
+    // Petit click de déverrouillage
+    const cLen=Math.ceil(ctx.sampleRate*.04);
+    const cBuf=ctx.createBuffer(1,cLen,ctx.sampleRate);
+    const cd=cBuf.getChannelData(0);
+    for(let i=0;i<cLen;i++) cd[i]=(Math.random()*2-1)*Math.pow(1-i/cLen,3);
+    const c=ctx.createBufferSource();c.buffer=cBuf;
+    const cf=ctx.createBiquadFilter();cf.type='highpass';cf.frequency.value=3000;
+    const cg=ctx.createGain();cg.gain.setValueAtTime(.25,t+.18);cg.gain.exponentialRampToValueAtTime(.0001,t+.22);
+    c.connect(cf);cf.connect(cg);cg.connect(ctx.destination);
+    c.start(t+.18);
+  }catch(e){}
+}
+
 function sndClap(){
   if(!sndOn)return;
   const ctx=ac();if(!ctx)return;
@@ -18927,8 +18961,8 @@ function runSplash(){
     // Trigger at 85%
     if(pct >= 0.85 && !triggered){
       triggered = true;
-      // Lancer la musique immédiatement dans le gestionnaire de mouvement (contexte audio déjà débloqué dans onPointerDown)
-      sndClap();
+      // Sound design swipe + musique
+      sndSwipe();
       if(musOn) playMus();
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
