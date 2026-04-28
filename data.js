@@ -84,7 +84,7 @@ const REPLIQUES=[
   {quote:"On est tous fous. La question, c'est à quel point.",film:"Joker",actor:"Joaquin Phoenix",year:2019,hint:"Un homme au maquillage de clown dans un escalier",id:475557},
   {quote:"L'argent ne fait pas le bonheur, mais il aide à chercher.",film:"Le Loup de Wall Street",actor:"Leonardo DiCaprio",year:2013,hint:"Un trader en costume sur un yacht",id:106646},
   {quote:"Dans la vie, rien n'est à craindre, tout est à comprendre.",film:"Marie Curie",actor:"Rosamund Pike",year:2019,hint:"Une femme en blouse blanche dans un laboratoire",id:527641},
-  {quote:"Avec un grand pouvoir viennent de grandes responsabilités.",film:"Spider-Man",actor:"Cliff Robertson",year:2002,hint:"Un oncle mourant dans les bras d'un jeune homme",id:557},
+  {quote:"Un grand pouvoir implique de grandes responsabilités.",film:"Spider-Man",actor:"Cliff Robertson",year:2002,hint:"Un oncle mourant dans les bras d'un jeune homme",id:557},
   {quote:"Je suis indestructible.",film:"Terminator",actor:"Arnold Schwarzenegger",year:1984,hint:"Un cyborg aux yeux rouges dans la nuit",id:218},
   {quote:"La vérité ? Tu ne peux pas l'accepter !",film:"Des hommes d'honneur",actor:"Jack Nicholson",year:1992,hint:"Un officier qui explose à la barre",id:9562},
   {quote:"Je suis le capitaine maintenant.",film:"Capitaine Phillips",actor:"Barkhad Abdi",year:2013,hint:"Un homme maigre tenant une arme sur un bateau",id:140607},
