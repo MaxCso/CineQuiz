@@ -13747,7 +13747,10 @@ function _hmInitScratch(canvas, film, idx){
   const rect = wrap.getBoundingClientRect();
   const W   = Math.round(rect.width)  || 375;
   const H   = Math.round(rect.height) || 600;
-  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  // Détection appareil peu puissant (petite mémoire ou petit écran)
+  const _isLowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
+                    (window.screen.width <= 375 && window.screen.height <= 812);
+  const DPR = _isLowEnd ? 1 : Math.min(window.devicePixelRatio || 1, 2);
 
   // ══ ARCHITECTURE SIMPLIFIÉE ══
   // - hm-scratch-under (z auto) : affiche floue + poster → visible quand on gratte
@@ -13836,17 +13839,17 @@ function _hmInitScratch(canvas, film, idx){
   });
   ctx.restore();
 
-  // ── SHIMMER animé par-dessus (mix-blend-mode:screen) ──
+  // ── SHIMMER animé par-dessus — désactivé sur appareils peu puissants ──
   let shimmerPos = -0.3;
   let shimmerTargetX = 0.5;
   let shimmerCurX = 0.5;
   const shCanvas = document.createElement('canvas');
   shCanvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;pointer-events:none;z-index:5;mix-blend-mode:screen;`;
-  shCanvas.width = W * DPR; shCanvas.height = H * DPR;
-  wrap.appendChild(shCanvas);
-  _hmExtraCanvases.push(shCanvas);
+  shCanvas.width = _isLowEnd ? 2 : W * DPR;
+  shCanvas.height = _isLowEnd ? 2 : H * DPR;
+  if(!_isLowEnd){ wrap.appendChild(shCanvas); _hmExtraCanvases.push(shCanvas); }
   const shCtx = shCanvas.getContext('2d');
-  shCtx.scale(DPR, DPR);
+  shCtx.scale(_isLowEnd ? 1 : DPR, _isLowEnd ? 1 : DPR);
 
   const animShimmer2 = () => {
     shCtx.clearRect(0, 0, W, H);
@@ -13873,7 +13876,7 @@ function _hmInitScratch(canvas, film, idx){
 
     _hmShimmerRaf = requestAnimationFrame(animShimmer2);
   };
-  _hmShimmerRaf = requestAnimationFrame(animShimmer2);
+  if(!_isLowEnd) _hmShimmerRaf = requestAnimationFrame(animShimmer2);
 
   // ── CANVAS PARTICULES ──
   const pCanvas = document.createElement('canvas');
@@ -13888,6 +13891,7 @@ function _hmInitScratch(canvas, film, idx){
   // Micro-poussière argentée — fines particules discrètes, pas de confettis
   const particles = [];
   const spawnChips = (x, y, speed = 1) => {
+    if(_isLowEnd) return; // skip particles on low-end
     const count = Math.floor(Math.random() * 4) + 2;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
