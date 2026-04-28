@@ -2515,13 +2515,69 @@ body.theme-matrix  .splash-logo{background:linear-gradient(135deg,#88ff00,#00ff4
 body.theme-rose    .splash-logo{background:linear-gradient(135deg,#ffb8e0,#ff6eb4,#d4006c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .splash-tagline{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:4px;text-transform:uppercase;margin-top:4px;}
 .splash-sep{width:28px;height:1px;margin:10px auto 0;background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
-.splash-tap{
-  margin-top:28px;font-size:11px;color:rgba(255,255,255,.3);
-  letter-spacing:3px;text-transform:uppercase;
-  animation:tapPulse 1.6s ease-in-out infinite;
+.splash-swipe-wrap{
+  margin-top:32px;
+  display:flex;justify-content:center;
   transition:opacity .4s ease, transform .4s ease;
 }
-.splash-tap.hidden{opacity:0;transform:translateY(-6px);pointer-events:none;}
+.splash-swipe-wrap.hidden{opacity:0;transform:translateY(-6px);pointer-events:none;}
+
+.splash-swipe-track{
+  position:relative;
+  width:220px;height:48px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(245,200,66,.25);
+  border-radius:999px;
+  overflow:hidden;
+  display:flex;align-items:center;
+}
+/* Fill that grows behind thumb */
+.splash-swipe-track::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;
+  width:var(--swipe-fill,48px);
+  background:linear-gradient(90deg,rgba(245,200,66,.12),rgba(245,200,66,.04));
+  border-radius:999px;
+  transition:width .05s linear;
+  pointer-events:none;
+}
+
+.splash-swipe-thumb{
+  position:absolute;
+  left:4px;
+  width:40px;height:40px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#f5c842,#e8a800);
+  box-shadow:0 2px 12px rgba(245,200,66,.4), 0 0 0 1px rgba(245,200,66,.3);
+  display:flex;align-items:center;justify-content:center;
+  color:#0a0810;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  transition:box-shadow .2s ease;
+  z-index:2;
+  animation:swipeHint 2.2s ease-in-out 1.2s 3;
+}
+.splash-swipe-thumb:active{cursor:grabbing;}
+
+@keyframes swipeHint{
+  0%,100%{transform:translateX(0);}
+  30%{transform:translateX(12px);}
+  60%{transform:translateX(4px);}
+}
+
+.splash-swipe-label{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:11px;letter-spacing:3.5px;
+  color:rgba(255,255,255,.3);
+  pointer-events:none;
+  padding-left:48px;
+  transition:opacity .3s ease;
+  z-index:1;
+}
+.splash-swipe-label.fade{opacity:0;}
 .splash-credit{
   position:absolute;bottom:max(24px,env(safe-area-inset-bottom));
   left:0;right:0;text-align:center;
@@ -6888,7 +6944,14 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div class="splash-logo">CinéQuiz</div>
       </div>
       <div class="splash-tagline">Le quiz du 7ème art</div>
-      <div class="splash-tap" id="splash-tap">Appuie pour commencer</div>
+      <div class="splash-swipe-wrap" id="splash-tap">
+        <div class="splash-swipe-track" id="splash-swipe-track">
+          <div class="splash-swipe-thumb" id="splash-swipe-thumb">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <span class="splash-swipe-label" id="splash-swipe-label">SWIPE POUR ENTRER</span>
+        </div>
+      </div>
       <div id="splash-quote">
         <div class="splash-quote-sep"></div>
         <div id="splash-quote-text"></div>
@@ -18769,17 +18832,75 @@ function runSplash(){
     },3100);
   }
 
-  // Logo visible dès le départ, attendre le tap
+  // Logo visible dès le départ
   setTimeout(()=>{logo.classList.add('show');splash.classList.add('ready');},300);
 
-  const onTap=()=>{
-    splash.removeEventListener('touchend',onTap);
-    splash.removeEventListener('click',onTap);
-    _initAC();
-    startSequence();
-  };
-  splash.addEventListener('touchend',onTap,{once:true});
-  splash.addEventListener('click',onTap,{once:true});
+  // ── Swipe to unlock ──
+  const thumb = document.getElementById('splash-swipe-thumb');
+  const track = document.getElementById('splash-swipe-track');
+  const label = document.getElementById('splash-swipe-label');
+  if(!thumb || !track) return;
+
+  const THUMB_W = 40;
+  const PADDING = 4;
+  let dragging = false;
+  let startX = 0;
+  let currentX = 0;
+  let triggered = false;
+
+  function getTrackWidth(){ return track.getBoundingClientRect().width; }
+
+  function setThumbPos(x){
+    const maxX = getTrackWidth() - THUMB_W - PADDING * 2;
+    x = Math.max(0, Math.min(x, maxX));
+    currentX = x;
+    thumb.style.transform = 'translateX(' + x + 'px)';
+    track.style.setProperty('--swipe-fill', (x + THUMB_W + PADDING) + 'px');
+    // Fade label when thumb advances
+    const pct = x / maxX;
+    if(label) label.style.opacity = Math.max(0, 1 - pct * 2.5);
+    // Trigger at 85%
+    if(pct >= 0.85 && !triggered){
+      triggered = true;
+      _initAC();
+      // Snap to end
+      thumb.style.transition = 'transform .15s ease';
+      thumb.style.transform = 'translateX(' + maxX + 'px)';
+      track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
+      setTimeout(()=>{ thumb.style.transition = ''; startSequence(); }, 150);
+    }
+  }
+
+  function onPointerDown(e){
+    if(triggered) return;
+    dragging = true;
+    startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
+    thumb.style.animation = 'none';
+    e.preventDefault();
+  }
+  function onPointerMove(e){
+    if(!dragging) return;
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+    setThumbPos(cx - startX);
+  }
+  function onPointerUp(){
+    if(!dragging) return;
+    dragging = false;
+    if(!triggered){
+      // Snap back
+      thumb.style.transition = 'transform .35s cubic-bezier(.34,1.56,.64,1)';
+      setTimeout(()=>{ thumb.style.transition=''; },350);
+      setThumbPos(0);
+      if(label) label.style.opacity = '';
+    }
+  }
+
+  thumb.addEventListener('touchstart', onPointerDown, {passive:false});
+  thumb.addEventListener('mousedown',  onPointerDown);
+  window.addEventListener('touchmove', onPointerMove, {passive:true});
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('touchend',  onPointerUp);
+  window.addEventListener('mouseup',   onPointerUp);
 }
 
 // ── SWIPE GESTURES ──
