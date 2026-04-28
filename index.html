@@ -11638,6 +11638,13 @@ let _hmExtraCanvases=[];  // canvas dynamiques créés (texCanvas, shCanvas, pCa
 
 function _hmLoadRevealed(){
   try{
+    // Safety: clean up corrupted values written as "[object Object]"
+    const _raw=localStorage.getItem('hm_revealed');
+    if(_raw && (_raw.includes('[object Object]') || (_raw[0]!=='[' && _raw[0]!=='{' && _raw!=='null'))){
+      localStorage.removeItem('hm_revealed');
+    }
+  }catch{}
+  try{
     const r=localStorage.getItem('hm_revealed');
     if(!r){_hmRevealed=new Set();return;}
     const stored=JSON.parse(r);
@@ -25579,7 +25586,12 @@ if('serviceWorker' in navigator){
   function applyProgression(data) {
     if (!data) return;
     Object.keys(data).forEach(function(k) {
-      try { localStorage.setItem(k, data[k]); } catch(e) {}
+      try {
+        var v = data[k];
+        // Supabase JSONB parse les valeurs en objets — re-stringifier
+        if (v !== null && typeof v === 'object') v = JSON.stringify(v);
+        localStorage.setItem(k, v);
+      } catch(e) {}
     });
     // Refresh UI after applying
     if (typeof refHome === 'function') refHome();
@@ -25850,9 +25862,9 @@ if('serviceWorker' in navigator){
             var cloud = JSON.parse(cloudData['cq11'] || '{}');
             if ((cloud.xp || 0) >= (local.xp || 0)) {
               applyProgression(cloudData);
-              showToastAuth('Connecté · progression restaurée.');
-              if(typeof refHome==='function') refHome();
               try{localStorage.removeItem('hm_daily_unlocked');}catch(e){}
+              showToastAuth('Connecté · progression restaurée. Rechargement…');
+              setTimeout(function(){ window.location.reload(); }, 1200);
             } else {
               // Local is ahead — push it
               scheduleSave();
@@ -25860,8 +25872,9 @@ if('serviceWorker' in navigator){
             }
           } catch(e) {
             applyProgression(cloudData);
-            showToastAuth('Connecté.');
-            if(typeof refHome==='function') refHome();
+            try{localStorage.removeItem('hm_daily_unlocked');}catch(e2){}
+            showToastAuth('Connecté · progression restaurée. Rechargement…');
+            setTimeout(function(){ window.location.reload(); }, 1200);
           }
         } else {
           // First login — push local data
@@ -26010,12 +26023,17 @@ if('serviceWorker' in navigator){
           var cloud = JSON.parse(cloudData['cq11'] || '{}');
           if ((cloud.xp || 0) > (local.xp || 0)) {
             Object.keys(cloudData).forEach(function(k) {
-              try { localStorage.setItem(k, cloudData[k]); } catch(e) {}
+              try {
+                var v = cloudData[k];
+                // Supabase JSONB parse les valeurs en objets — re-stringifier
+                if (v !== null && typeof v === 'object') v = JSON.stringify(v);
+                localStorage.setItem(k, v);
+              } catch(e) {}
             });
             // Invalider le cache daily car hm_revealed vient de changer
             try { localStorage.removeItem('hm_daily_unlocked'); } catch(e) {}
-            if (typeof refHome === 'function') refHome();
-            if (typeof updateProfileDot === 'function') updateProfileDot();
+            // Recharger pour appliquer proprement la progression cloud
+            window.location.reload();
           }
         } catch(e) {}
       }).catch(function(){});
