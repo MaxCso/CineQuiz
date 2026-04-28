@@ -11870,7 +11870,7 @@ function _hmSortFilms(films){
     // Récupérer les notes depuis le localStorage
     return [...films].sort((a,b)=>{
       const getR=f=>{
-        try{const safe=f.t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();const d=JSON.parse(localStorage.getItem('hm_info2_'+safe+'_'+f.y)||'{}');return d.rating||0;}catch{return 0;}
+        try{const safe=f.t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();const k=f.id?'hm_info3_id_'+f.id:'hm_info2_'+safe+'_'+f.y;const d=JSON.parse(localStorage.getItem(k)||'{}');return d.rating||0;}catch{return 0;}
       };
       return getR(b.film)-getR(a.film);
     });
@@ -11884,7 +11884,7 @@ function _hmCleanTmdbCache(){
     var keys=[];
     for(var i=0;i<localStorage.length;i++){
       var k=localStorage.key(i);
-      if(k&&(k.indexOf('hm_info2_')===0||k.indexOf('hm_poster_')===0)) keys.push(k);
+      if(k&&(k.indexOf('hm_info2_')===0||k.indexOf('hm_info3_')===0||k.indexOf('hm_poster_')===0)) keys.push(k);
     }
     if(keys.length>30){
       keys.slice(0,keys.length-30).forEach(function(k){ try{localStorage.removeItem(k);}catch(e){} });
@@ -11896,7 +11896,7 @@ function _hmGetRating(film) {
   if(!film || !film.id) return null;
   try {
     const safe = (film.t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
-    const key = 'hm_info2_' + safe + '_' + film.y;
+    const key = film.id ? 'hm_info3_id_'+film.id : 'hm_info2_' + safe + '_' + film.y;
     const cached = localStorage.getItem(key);
     if(!cached) return null;
     const d = JSON.parse(cached);
@@ -13829,25 +13829,36 @@ function hmResetScratch(){
 
 async function _hmEnrichFiche(film, container){
   const safeTitle=film.t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/gi,'_').toLowerCase();
-  const cacheKey='hm_info2_'+safeTitle+'_'+film.y;
+  // Use TMDB id in cache key when available to prevent wrong-film cache collisions
+  const cacheKey = film.id ? 'hm_info3_id_'+film.id : 'hm_info2_'+safeTitle+'_'+film.y;
   let data=null;
   try{const raw=localStorage.getItem(cacheKey);if(raw)data=JSON.parse(raw);}catch{}
   if(!data){
     try{
-      let res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
-      let json=await res.json();
-      let match=(json.results && json.results[0]);
-      if(!match){
-        res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}`);
-        json=await res.json();
-        match=(json.results && json.results[0]);
+      // Use direct TMDB ID when available — avoids wrong-film search results
+      let movieId = film.id || null;
+      if(!movieId){
+        let res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}&year=${film.y}`);
+        let json=await res.json();
+        let match=(json.results && json.results[0]);
+        if(!match){
+          res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TK}&language=fr-FR&query=${encodeURIComponent(film.t)}`);
+          json=await res.json();
+          match=(json.results && json.results[0]);
+        }
+        if(!match){
+          const el=container?(container.querySelector('.hm-fiche-details')||container.querySelector('.hmv-info-details')):null;
+          if(el)el.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Données non disponibles</div>';
+          return;
+        }
+        movieId=match.id;
       }
-      if(!match){
+      if(!movieId){
         const el=container?(container.querySelector('.hm-fiche-details')||container.querySelector('.hmv-info-details')):null;
         if(el)el.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Données non disponibles</div>';
         return;
       }
-      const movieId=match.id;
+
       // Appel 1 : détails + crédits
       const [res2, res3] = await Promise.all([
         fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TK}&language=fr-FR&append_to_response=credits`),
