@@ -12321,7 +12321,8 @@ function hmGoRandomViewer(){
   const hmEl=document.getElementById('hm');
   if(hmEl)hmEl.style.overflow='hidden';
   _hmvInitGestures();
-  _hmvInitHolo();
+    const _ile=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(window.screen.width<=375&&window.screen.height<=812);
+  if(!_ile) _hmvInitHolo();
 }
 
 let _hmMoodFilter='';
@@ -12614,7 +12615,8 @@ function _hmOpenCardDetail(idx, source) {
   const hmEl=document.getElementById('hm');
   if(hmEl)hmEl.style.overflow='hidden';
   _hmvInitGestures();
-  _hmvInitHolo();
+    const _ile=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(window.screen.width<=375&&window.screen.height<=812);
+  if(!_ile) _hmvInitHolo();
 }
 
 function hmvPosterTap(){ hmvFlipPoster(); }
@@ -13706,7 +13708,8 @@ function _hmRenderCard(idx){
     const hmEl2=document.getElementById('hm');
     if(hmEl2)hmEl2.style.overflow='hidden';
     _hmvInitGestures();
-    _hmvInitHolo();
+      const _ile=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(window.screen.width<=375&&window.screen.height<=812);
+  if(!_ile) _hmvInitHolo();
     return;
   }
 
@@ -14182,17 +14185,15 @@ function _hmReveal(film, idx, canvas){
   setTimeout(()=>{if(canvas.parentElement)canvas.remove();},380);
 
   // 3. Zoom + deflouttage de l'affiche (CSS pur, zéro DOM extra)
+  const _isLowEndRev=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(window.screen.width<=375&&window.screen.height<=812);
   if(scratchUnder){
     const img=scratchUnder.querySelector('img');
     const poster=scratchUnder.querySelector('.hm-scratch-poster');
     if(img){
-      // Déclencher la transition CSS définie dans la feuille de style
-      requestAnimationFrame(()=>{
-        img.classList.add('revealed');
-      });
+      requestAnimationFrame(()=>{ img.classList.add('revealed'); });
     }
-    // Shimmer léger via pseudo-élément CSS (juste une classe)
-    if(poster){
+    // Shimmer désactivé sur appareils peu puissants
+    if(poster && !_isLowEndRev){
       poster.classList.add('revealing');
       setTimeout(()=>poster.classList.remove('revealing'), 3131);
     }
@@ -14207,43 +14208,43 @@ function _hmReveal(film, idx, canvas){
   _hmSaveRevealed();
   _hmPlaySlideAudio(idx, _hmFilms);
 
-  // 6. Entrée cinématique du viewer (depuis le bas, avec scale)
+  // 6. Entrée du viewer
   setTimeout(()=>{
     _hmvList=[{idx,film}];
     _hmvIdx=0;_hmvInfoOpen=false;
     _hmvRender();
 
     const viewer=document.getElementById('hm-viewer');
-    // Ajouter .on immédiatement pour que closeHMViewer fonctionne
     viewer.classList.add('on');
     document.body.classList.add('viewer-open');
     document.body.style.overflow='hidden';
     const hmEl=document.getElementById('hm');
     if(hmEl)hmEl.style.overflow='hidden';
 
-    // Animation d'entrée via styles inline temporaires
-    viewer.style.transition='none';
-    viewer.style.transform='translateY(40px) scale(0.96)';
-    viewer.style.opacity='0';
-
-    requestAnimationFrame(()=>{requestAnimationFrame(()=>{
-      viewer.style.transition='opacity 0.45s cubic-bezier(.25,.46,.45,.94), transform 0.45s cubic-bezier(.34,1.2,.64,1)';
+    if(_isLowEndRev){
+      // Sur appareils peu puissants : pas d'animation d'entrée
       viewer.style.opacity='1';
-      viewer.style.transform='translateY(0) scale(1)';
-      // Nettoyer tous les styles inline après l'animation
-      setTimeout(()=>{
-        viewer.style.transition='';
-        viewer.style.transform='';
-        viewer.style.opacity='';
-      },460);
-    });});
+      viewer.style.transform='';
+    } else {
+      viewer.style.transition='none';
+      viewer.style.transform='translateY(40px) scale(0.96)';
+      viewer.style.opacity='0';
+      requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+        viewer.style.transition='opacity 0.45s cubic-bezier(.25,.46,.45,.94), transform 0.45s cubic-bezier(.34,1.2,.64,1)';
+        viewer.style.opacity='1';
+        viewer.style.transform='translateY(0) scale(1)';
+        setTimeout(()=>{
+          viewer.style.transition='';
+          viewer.style.transform='';
+          viewer.style.opacity='';
+        },460);
+      });});
+    }
 
     _hmvInitGestures();
-    // Désactiver l'effet holographique sur appareils peu puissants
-    const _isLowEndReveal = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
-                             (window.screen.width <= 375 && window.screen.height <= 812);
-    if(!_isLowEndReveal) _hmvInitHolo();
-  }, 380);
+    const _ile2=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(window.screen.width<=375&&window.screen.height<=812);
+    if(!_ile2) _hmvInitHolo();
+  }, _isLowEndRev ? 200 : 380);
 }
 
 function _hmShowSheet(film, idx){
