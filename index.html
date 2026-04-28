@@ -2437,23 +2437,44 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 
 /* ── Animation one-shot des gradients à l'ouverture du rideau ── */
-@keyframes bgRevealBefore{
-  0%  {opacity:1;transform:scale(1);}
-  30% {opacity:.6;transform:scale(1.06);}
-  60% {opacity:.85;transform:scale(1.03);}
-  100%{opacity:1;transform:scale(1);}
+/* Utilise un pseudo-élément supplémentaire via un div dédié */
+#splash-bg-anim{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  opacity:0;
 }
-@keyframes bgRevealAfter{
-  0%  {opacity:1;transform:scale(1);}
-  25% {opacity:.5;transform:scale(.97);}
-  65% {opacity:.9;transform:scale(1.02);}
-  100%{opacity:1;transform:scale(1);}
+#splash-bg-anim::before{
+  content:'';position:absolute;inset:-30%;width:160%;height:160%;
+  background:
+    radial-gradient(ellipse 70% 55% at 38% 28%, rgba(220,140,30,.55) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 70% 68%, rgba(30,80,210,.45) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 45% at 18% 72%, rgba(170,30,100,.38) 0%, transparent 50%);
 }
-#splash.curtain-open #splash-bg::before{
-  animation:bgRevealBefore 2s cubic-bezier(.4,0,.2,1) 1 forwards;
+#splash-bg-anim::after{
+  content:'';position:absolute;inset:-20%;width:140%;height:140%;
+  background:
+    radial-gradient(ellipse 65% 55% at 62% 40%, rgba(210,130,20,.28) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 30% 55%, rgba(15,65,180,.22) 0%, transparent 52%);
 }
-#splash.curtain-open #splash-bg::after{
-  animation:bgRevealAfter 2.4s cubic-bezier(.4,0,.2,1) .1s 1 forwards;
+@keyframes bgAnim1{
+  0%  {opacity:0;transform:scale(.92);}
+  20% {opacity:1;transform:scale(1.08);}
+  55% {opacity:.7;transform:scale(1.02);}
+  100%{opacity:0;transform:scale(1);}
+}
+@keyframes bgAnim2{
+  0%  {opacity:0;}
+  15% {opacity:1;}
+  50% {opacity:.6;}
+  100%{opacity:0;}
+}
+#splash.curtain-open #splash-bg-anim{
+  animation:bgAnim2 2.8s cubic-bezier(.4,0,.2,1) forwards;
+}
+#splash.curtain-open #splash-bg-anim::before{
+  animation:bgAnim1 2.8s cubic-bezier(.22,.68,0,1.1) forwards;
+}
+#splash.curtain-open #splash-bg-anim::after{
+  animation:bgAnim1 3.2s cubic-bezier(.22,.68,0,1.1) .15s forwards;
 }
 
 /* ── RIDEAU CINÉMA — V3 : Velours 3D ── */
@@ -7070,6 +7091,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
 
     <!-- Flash projecteur au moment de l'ouverture du rideau -->
     <div id="splash-flash"></div>
+    <div id="splash-bg-anim"></div>
 
     <div class="splash-curtain" id="splash-curtain">
       <div class="splash-curtain-l"><div class="curtain-shimmer"></div></div>
@@ -8761,7 +8783,7 @@ const MUSIC_FILES={
 
 // Noms réels des musiques
 const MUSIC_TRACK_NAMES={
-  home:        'Blade Runner Blues',
+  home:        '2Wicky',
   quiz:        'Ocean Ambient',
   photo:       'The Sea',
   year:        'Intriguing Possibilities',
@@ -8968,8 +8990,9 @@ const MUSIC_LABELS={
 };
 
 function _getSrc(key){
-  // La piste 'home' joue la piste ambiante choisie par l'utilisateur
-  const resolvedKey=(key==='home')?getAmbientKey():key;
+  // La piste 'home' joue 2Wicky.mp3 par défaut
+  // La piste 'ambient' joue la piste ambiante choisie par l'utilisateur
+  const resolvedKey=(key==='ambient')?getAmbientKey():key;
   return MUSIC_FILES[resolvedKey]||null;
 }
 
