@@ -1611,32 +1611,32 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 /* Onboarding stats row */
 .ob-stats-row{
-  display:flex;justify-content:space-around;
-  margin:4px 0 18px;
-  gap:8px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  margin:8px 0 18px;
+  gap:10px;
 }
 .ob-stat{
-  flex:1;
   background:rgba(245,200,66,.07);
-  border:1px solid rgba(245,200,66,.18);
-  border-radius:14px;
-  padding:10px 4px;
+  border:1px solid rgba(245,200,66,.2);
+  border-radius:16px;
+  padding:16px 8px;
   text-align:center;
 }
 .ob-stat-n{
   display:block;
   font-family:'Bebas Neue',sans-serif;
-  font-size:22px;
+  font-size:34px;
   letter-spacing:1px;
   color:var(--gold);
   line-height:1;
 }
 .ob-stat-l{
   display:block;
-  font-size:9px;
-  color:rgba(255,255,255,.4);
+  font-size:11px;
+  color:rgba(255,255,255,.45);
   letter-spacing:.5px;
-  margin-top:3px;
+  margin-top:4px;
 }
 /* Onboarding features */
 .ob-features{
@@ -13747,10 +13747,65 @@ function _hmInitScratch(canvas, film, idx){
   const rect = wrap.getBoundingClientRect();
   const W   = Math.round(rect.width)  || 375;
   const H   = Math.round(rect.height) || 600;
-  // Détection appareil peu puissant (petite mémoire ou petit écran)
+  // Détection appareil peu puissant
   const _isLowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
                     (window.screen.width <= 375 && window.screen.height <= 812);
-  const DPR = _isLowEnd ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+
+  // ── MODE SIMPLIFIÉ pour appareils peu puissants ──
+  // Pas de canvas holographique — grattage léger puis révélation
+  if(_isLowEnd){
+    canvas.width  = W;
+    canvas.height = H;
+    canvas.style.cssText = `position:absolute;top:0;left:0;width:${W}px;height:${H}px;z-index:4;touch-action:none;display:block;`;
+    const ctx = canvas.getContext('2d');
+    _hmCtx = ctx;
+    // Fond simple sans holographie
+    const gSimple = ctx.createLinearGradient(0, 0, W, H);
+    gSimple.addColorStop(0, '#c8c8d8');
+    gSimple.addColorStop(1, '#b0b0c8');
+    ctx.fillStyle = gSimple;
+    ctx.fillRect(0, 0, W, H);
+    // Texte "Gratte pour révéler"
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.font = `bold ${Math.round(W*0.05)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Gratte pour révéler', W/2, H/2);
+    // Grattage simplifié : destination-out, révélation à 50%
+    let scrLowDone = false;
+    let scrLowDrawing = false;
+    let scrLowThrottle = 0;
+    const scrLowPos = (e) => {
+      const r = canvas.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      return { x: (t.clientX - r.left)*(W/r.width), y: (t.clientY - r.top)*(H/r.height) };
+    };
+    const scrLow = (x, y) => {
+      if(scrLowDone) return;
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 28, 0, Math.PI*2);
+      ctx.fill();
+      if(++scrLowThrottle % 8 === 0){
+        const d = ctx.getImageData(0,0,W,H).data;
+        let cleared = 0;
+        for(let i=3;i<d.length;i+=4) if(d[i]<128) cleared++;
+        if(cleared/(W*H) > 0.45){
+          scrLowDone = true;
+          _hmReveal(film, idx, canvas);
+        }
+      }
+    };
+    canvas.addEventListener('mousedown', e=>{scrLowDrawing=true;const p=scrLowPos(e);scrLow(p.x,p.y);});
+    canvas.addEventListener('mousemove', e=>{if(!scrLowDrawing)return;const p=scrLowPos(e);scrLow(p.x,p.y);});
+    canvas.addEventListener('mouseup', ()=>scrLowDrawing=false);
+    let _swX=0,_swY=0;
+    canvas.addEventListener('touchstart', e=>{e.preventDefault();scrLowDrawing=true;_swX=e.touches[0].clientX;_swY=e.touches[0].clientY;const p=scrLowPos(e);scrLow(p.x,p.y);},{passive:false});
+    canvas.addEventListener('touchmove', e=>{e.preventDefault();if(!scrLowDrawing)return;const p=scrLowPos(e);scrLow(p.x,p.y);},{passive:false});
+    canvas.addEventListener('touchend', e=>{scrLowDrawing=false;const dx=e.changedTouches[0].clientX-_swX;const dy=Math.abs(e.changedTouches[0].clientY-_swY);if(Math.abs(dx)>60&&dy<40)hmNavigate(dx<0?1:-1);});
+    return;
+  }
+
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
   // ══ ARCHITECTURE SIMPLIFIÉE ══
   // - hm-scratch-under (z auto) : affiche floue + poster → visible quand on gratte
@@ -18225,8 +18280,8 @@ const OB_STEPS=[
   {icon:'🎬',title:'Bienvenue sur CinéQuiz !',desc:'Le quiz du 7ème art. Swipe pour découvrir.',demo:null,btn:'SUIVANT →',extra:'welcome'},
   {icon:'✨',title:'Ce qui t\'attend',desc:'',demo:null,btn:'SUIVANT →',extra:'features'},
   {icon:'🎯',title:'Essaie toi-même !',desc:'Une vraie question pour te mettre dans l\'ambiance.',demo:true,btn:null},
-  {icon:'🌟',title:'Progression & Badges',desc:'Gagne de l\'XP à chaque partie pour monter jusqu\'au niveau Dieu du 7ème Art (20 niveaux). Débloque 120+ badges et personnalise ton thème !',demo:null,btn:'SUIVANT →'},
-  {icon:'🏆',title:'C\'est parti !',desc:'Tes stats et badges sont sauvegardés automatiquement. Une anecdote ciné t\'attend chaque jour. Bonne chance !',demo:null,btn:'COMMENCER 🎬'},
+  {icon:'🌟',title:'Progression & Badges',desc:'',demo:null,btn:'SUIVANT →',extra:'progression'},
+  {icon:'🏆',title:'C\'est parti !',desc:'',demo:null,btn:'COMMENCER 🎬',extra:'start'},
 ];
 let obStep=0;
 let obDemoAnswered=false;
@@ -18262,9 +18317,22 @@ function _obBuildSlider(){
       </div>`;
     } else if(step.extra==='features'){
       extraHtml=`<div class="ob-features">
-        <div class="ob-feature"><span class="ob-feat-icon">🎵</span><div><div class="ob-feat-title">Jukebox</div><div class="ob-feat-desc">40+ titres iconiques. Joue en musique.</div></div></div>
-        <div class="ob-feature"><span class="ob-feat-icon">🎴</span><div><div class="ob-feat-title">Hidden Movies</div><div class="ob-feat-desc">Gratte des cartes pour révéler des films cachés.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🎵</span><div><div class="ob-feat-title">Jukebox</div><div class="ob-feat-desc">40+ titres iconiques pour jouer en musique.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🎴</span><div><div class="ob-feat-title">Hidden Movies</div><div class="ob-feat-desc">Gratte des cartes mystères pour révéler des films cachés.</div></div></div>
         <div class="ob-feature"><span class="ob-feat-icon">🔐</span><div><div class="ob-feat-title">3 Zones secrètes</div><div class="ob-feat-desc">Des salles cachées attendent d'être découvertes.</div></div></div>
+      </div>`;
+    } else if(step.extra==='progression'){
+      extraHtml=`<div class="ob-features">
+        <div class="ob-feature"><span class="ob-feat-icon">⚡</span><div><div class="ob-feat-title">20 niveaux</div><div class="ob-feat-desc">De Figurant à Dieu du 7ème Art — gagne de l'XP à chaque partie.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🏅</span><div><div class="ob-feat-title">120+ badges</div><div class="ob-feat-desc">Débloque des badges en accomplissant des exploits cinéphiles.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🎨</span><div><div class="ob-feat-title">12 thèmes</div><div class="ob-feat-desc">Personnalise l'interface avec des thèmes à débloquer.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">📅</span><div><div class="ob-feat-title">Défi du jour</div><div class="ob-feat-desc">Un nouveau défi chaque jour pour booster ton XP.</div></div></div>
+      </div>`;
+    } else if(step.extra==='start'){
+      extraHtml=`<div class="ob-features">
+        <div class="ob-feature"><span class="ob-feat-icon">☁️</span><div><div class="ob-feat-title">Sauvegarde cloud</div><div class="ob-feat-desc">Crée un compte gratuit pour ne jamais perdre ta progression, même en changeant d'appareil.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🎞️</span><div><div class="ob-feat-title">Anecdote ciné</div><div class="ob-feat-desc">Une anecdote inédite t'attend chaque jour sur l'accueil.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">📊</span><div><div class="ob-feat-title">Tes stats</div><div class="ob-feat-desc">Suis ta progression, tes meilleurs scores et tes parties.</div></div></div>
       </div>`;
     }
     slide.innerHTML=`
