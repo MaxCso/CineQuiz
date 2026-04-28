@@ -1,5 +1,5 @@
 const REPLIQUES=[
-  {quote:"Tu parles à moi ? Tu parles à moi ?",quoteVO:"You talkin' to me?",film:"Taxi Driver",actor:"Robert De Niro",year:1976,hint:"Robert De Niro face à un miroir",id:103},
+  {quote:"C'est à moi que tu parles ? C'est à moi que tu parles ?",quoteVO:"You talkin' to me?",film:"Taxi Driver",actor:"Robert De Niro",year:1976,hint:"Robert De Niro face à un miroir",id:103},
   {quote:"Je vais lui faire une offre qu'il ne pourra pas refuser.",quoteVO:"I'm gonna make him an offer he can't refuse.",film:"Le Parrain",actor:"Marlon Brando",year:1972,hint:"Don Corleone dans son bureau",id:238},
   {quote:"Houston, on a un problème.",quoteVO:"Houston, we have a problem.",film:"Apollo 13",actor:"Tom Hanks",year:1995,hint:"Tom Hanks dans une capsule spatiale",id:568},
   {quote:"Que la Force soit avec toi.",quoteVO:"May the Force be with you.",film:"Star Wars",actor:"Alec Guinness",year:1977,hint:"Un chevalier Jedi en robe brune",id:11},
