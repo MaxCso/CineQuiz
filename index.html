@@ -2954,7 +2954,7 @@ body.theme-rose .splash-curtain-r .curtain-shimmer{background:linear-gradient(27
 }
 .splash-quote-sep{
   width:28px;height:1px;
-  margin:4px auto 4px;
+  margin:0px auto 2px;
   background:linear-gradient(90deg,transparent,rgba(245,200,66,.5),transparent);
 }
 #splash-quote-text{
@@ -6064,6 +6064,10 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   position:relative;overflow:hidden;
   display:flex;flex-direction:column;
   perspective:1200px;
+  width:100%;
+}
+.hm-scratch-card{
+  flex:1;min-height:0;width:100%;
 }
 .hm-scratch-card{
   flex:1;min-height:0;
@@ -6150,6 +6154,7 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 }
 .hm-scratch-canvas{
   position:absolute;top:0;left:0;
+  width:100%;height:100%;
   z-index:4;
   cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23f5c842' stroke-width='2' opacity='0.8'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f5c842'/%3E%3C/svg%3E") 16 16, crosshair;
   touch-action:none;
@@ -6411,10 +6416,10 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 
 /* Image de fond floue sous le canvas */
 .hm-scratch-bg{
-  position:absolute;inset:0;
+  position:absolute;inset:-10%;
+  width:120%;height:120%;
   background-size:cover;background-position:center top;
   filter:blur(24px) brightness(.5) saturate(.6);
-  transform:scale(1.08);
 }
 .hm-scratch-poster{
   position:absolute;inset:0;
@@ -9908,57 +9913,62 @@ function sndSwipe(){
   try{
     const t=ctx.currentTime;
 
-    // Petit jingle cinéma — 4 notes + accord final
-    // Notes : Ré, Fa#, La, Ré (arpège de Ré majeur) + accord final brillant
-    const notes=[
-      {freq:293.7, delay:0,    dur:.12, vol:.28},  // Ré3
-      {freq:369.9, delay:.1,   dur:.12, vol:.26},  // Fa#3
-      {freq:440.0, delay:.2,   dur:.12, vol:.26},  // La3
-      {freq:587.3, delay:.3,   dur:.22, vol:.30},  // Ré4 — note longue
-    ];
+    // ── Claquette + résonance longue ──
 
-    notes.forEach(({freq,delay,dur,vol})=>{
-      // Onde sinusoïdale douce
-      const o=ctx.createOscillator();
-      o.type='sine';
-      o.frequency.setValueAtTime(freq,t+delay);
-      // Légère vibration en fin de note
-      o.frequency.setValueAtTime(freq,t+delay+dur*.7);
-      o.frequency.linearRampToValueAtTime(freq*1.008,t+delay+dur);
+    // 1. Clac sec initial
+    const clacLen=Math.ceil(ctx.sampleRate*.025);
+    const clacBuf=ctx.createBuffer(1,clacLen,ctx.sampleRate);
+    const cd=clacBuf.getChannelData(0);
+    for(let i=0;i<clacLen;i++) cd[i]=(Math.random()*2-1)*Math.pow(1-i/clacLen,1.8);
+    const clac=ctx.createBufferSource();clac.buffer=clacBuf;
+    const cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=4500;cf.Q.value=1.5;
+    const cg=ctx.createGain();cg.gain.setValueAtTime(.6,t);cg.gain.exponentialRampToValueAtTime(.0001,t+.028);
+    clac.connect(cf);cf.connect(cg);cg.connect(ctx.destination);
+    clac.start(t);
 
-      const g=ctx.createGain();
-      g.gain.setValueAtTime(0,t+delay);
-      g.gain.linearRampToValueAtTime(vol,t+delay+.018);
-      g.gain.exponentialRampToValueAtTime(.0001,t+delay+dur+.08);
+    // 2. Corps grave (bois)
+    const bodyLen=Math.ceil(ctx.sampleRate*.05);
+    const bodyBuf=ctx.createBuffer(1,bodyLen,ctx.sampleRate);
+    const bd=bodyBuf.getChannelData(0);
+    for(let i=0;i<bodyLen;i++) bd[i]=(Math.random()*2-1)*Math.pow(1-i/bodyLen,2.5);
+    const body=ctx.createBufferSource();body.buffer=bodyBuf;
+    const bf=ctx.createBiquadFilter();bf.type='lowpass';bf.frequency.value=600;
+    const bg=ctx.createGain();bg.gain.setValueAtTime(.45,t+.003);bg.gain.exponentialRampToValueAtTime(.0001,t+.055);
+    body.connect(bf);bf.connect(bg);bg.connect(ctx.destination);
+    body.start(t+.003);
 
-      // Filtre pour adoucir
-      const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=2200;
+    // 3. Résonance longue — vibration de la planche qui s'éteint
+    const resLen=Math.ceil(ctx.sampleRate*.55);
+    const resBuf=ctx.createBuffer(1,resLen,ctx.sampleRate);
+    const rd=resBuf.getChannelData(0);
+    for(let i=0;i<resLen;i++) rd[i]=(Math.random()*2-1)*Math.pow(1-i/resLen,1.2);
+    const res=ctx.createBufferSource();res.buffer=resBuf;
+    const rf=ctx.createBiquadFilter();rf.type='bandpass';rf.frequency.value=1400;rf.Q.value=4;
+    const rg=ctx.createGain();rg.gain.setValueAtTime(.0001,t+.01);rg.gain.linearRampToValueAtTime(.14,t+.04);rg.gain.exponentialRampToValueAtTime(.0001,t+.6);
+    res.connect(rf);rf.connect(rg);rg.connect(ctx.destination);
+    res.start(t+.01);
 
-      o.connect(f);f.connect(g);g.connect(ctx.destination);
-      o.start(t+delay);o.stop(t+delay+dur+.1);
-    });
+    // 4. Harmonique aiguë longue — sifflement léger type claquette pro
+    const harmLen=Math.ceil(ctx.sampleRate*.4);
+    const harmBuf=ctx.createBuffer(1,harmLen,ctx.sampleRate);
+    const hd=harmBuf.getChannelData(0);
+    for(let i=0;i<harmLen;i++) hd[i]=(Math.random()*2-1)*Math.pow(1-i/harmLen,1.4);
+    const harm=ctx.createBufferSource();harm.buffer=harmBuf;
+    const hf=ctx.createBiquadFilter();hf.type='bandpass';hf.frequency.value=3200;hf.Q.value=3;
+    const hg=ctx.createGain();hg.gain.setValueAtTime(.0001,t+.005);hg.gain.linearRampToValueAtTime(.09,t+.025);hg.gain.exponentialRampToValueAtTime(.0001,t+.42);
+    harm.connect(hf);hf.connect(hg);hg.connect(ctx.destination);
+    harm.start(t+.005);
 
-    // Harmonique douce sur la note finale (+octave, léger)
-    const harm=ctx.createOscillator();
-    harm.type='sine';
-    harm.frequency.setValueAtTime(1174.6,t+.3); // Ré5
-    const hg=ctx.createGain();
-    hg.gain.setValueAtTime(0,t+.3);
-    hg.gain.linearRampToValueAtTime(.10,t+.32);
-    hg.gain.exponentialRampToValueAtTime(.0001,t+.58);
-    harm.connect(hg);hg.connect(ctx.destination);
-    harm.start(t+.3);harm.stop(t+.6);
-
-    // Shimmer — bruit blanc très doux sur l'accord final (comme un léger éclat)
-    const shLen=Math.ceil(ctx.sampleRate*.25);
-    const shBuf=ctx.createBuffer(1,shLen,ctx.sampleRate);
-    const shd=shBuf.getChannelData(0);
-    for(let i=0;i<shLen;i++) shd[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/shLen);
-    const sh=ctx.createBufferSource();sh.buffer=shBuf;
-    const shf=ctx.createBiquadFilter();shf.type='highpass';shf.frequency.value=5000;
-    const shg=ctx.createGain();shg.gain.setValueAtTime(.0001,t+.28);shg.gain.linearRampToValueAtTime(.06,t+.35);shg.gain.exponentialRampToValueAtTime(.0001,t+.52);
-    sh.connect(shf);shf.connect(shg);shg.connect(ctx.destination);
-    sh.start(t+.28);
+    // 5. Queue grave très douce — amortissement final
+    const tailLen=Math.ceil(ctx.sampleRate*.35);
+    const tailBuf=ctx.createBuffer(1,tailLen,ctx.sampleRate);
+    const td=tailBuf.getChannelData(0);
+    for(let i=0;i<tailLen;i++) td[i]=(Math.random()*2-1)*Math.pow(1-i/tailLen,1.8);
+    const tail=ctx.createBufferSource();tail.buffer=tailBuf;
+    const tlf=ctx.createBiquadFilter();tlf.type='lowpass';tlf.frequency.value=300;
+    const tg=ctx.createGain();tg.gain.setValueAtTime(.0001,t+.02);tg.gain.linearRampToValueAtTime(.08,t+.06);tg.gain.exponentialRampToValueAtTime(.0001,t+.38);
+    tail.connect(tlf);tlf.connect(tg);tg.connect(ctx.destination);
+    tail.start(t+.02);
 
   }catch(e){}
 }
@@ -12289,6 +12299,30 @@ function hmSwitchTab(tab) {
 
   if(tab==='scratch'){
     if(scratchWrap)scratchWrap.style.display='flex';
+    // Forcer le recalcul du canvas après que le conteneur soit visible
+    requestAnimationFrame(()=>{
+      const canvas=document.getElementById('hm-scratch-canvas');
+      if(canvas && canvas.parentElement){
+        const wrap=canvas.parentElement;
+        const rect=wrap.getBoundingClientRect();
+        if(rect.width>0 && rect.height>0){
+          const W=Math.round(rect.width);
+          const H=Math.round(rect.height);
+          const DPR=Math.min(window.devicePixelRatio||1,2);
+          if(Math.abs(canvas.width - W*DPR) > 2 || Math.abs(canvas.height - H*DPR) > 2){
+            // Canvas mal dimensionné — redimensionner sans perdre le contenu
+            canvas.style.width=W+'px';
+            canvas.style.height=H+'px';
+          }
+        }
+      }
+      // Aussi corriger le fond flou et le poster
+      const scratchUnder=document.getElementById('hm-scratch-under');
+      if(scratchUnder){
+        scratchUnder.style.inset='0';
+        scratchUnder.style.position='absolute';
+      }
+    });
   } else if(tab==='collection'){
     if(collectionWrap)collectionWrap.style.display='block';
     // Reset search si on revient sur collection
@@ -13751,11 +13785,12 @@ function _hmRenderCard(idx){
 }
 
 function _hmInitScratch(canvas, film, idx){
-  requestAnimationFrame(()=>{
+  // Double RAF pour s'assurer que le layout est calculé après display:flex
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   const wrap = canvas.parentElement;
   const rect = wrap.getBoundingClientRect();
-  const W   = Math.round(rect.width)  || 375;
-  const H   = Math.round(rect.height) || 600;
+  const W   = Math.round(rect.width)  || window.innerWidth  || 375;
+  const H   = Math.round(rect.height) || window.innerHeight || 600;
   // Détection appareil peu puissant
   const _isLowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
                     (window.screen.width <= 375 && window.screen.height <= 812);
@@ -14071,7 +14106,7 @@ function _hmInitScratch(canvas, film, idx){
     const dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
     if (Math.abs(dx) > 60 && dy < 40) { hmNavigate(dx < 0 ? 1 : -1); }
   });
-  }); // end requestAnimationFrame
+  })); // end double requestAnimationFrame
 }
 
 // ── Son de grattage continu ──
