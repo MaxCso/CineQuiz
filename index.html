@@ -7852,16 +7852,20 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div id="hm-cesoir-mood-wrap" style="display:none;">
           <div class="hm-cesoir-mood-label">QUELLE EST TON HUMEUR CE SOIR ?</div>
           <div class="hm-cesoir-moods" id="hm-cesoir-moods">
+            <button class="hm-cesoir-mood-btn" data-mood="joyeux" onclick="hmCesoirSelectMood(this)">&#9728;&#65039; Joyeux</button>
             <button class="hm-cesoir-mood-btn" data-mood="mélancolique" onclick="hmCesoirSelectMood(this)">😔 Mélancolique</button>
             <button class="hm-cesoir-mood-btn" data-mood="adrénaline" onclick="hmCesoirSelectMood(this)">🔥 Adrénaline</button>
             <button class="hm-cesoir-mood-btn" data-mood="atmosphère" onclick="hmCesoirSelectMood(this)">🌙 Atmosphère</button>
             <button class="hm-cesoir-mood-btn" data-mood="réflexion" onclick="hmCesoirSelectMood(this)">💭 Réflexion</button>
             <button class="hm-cesoir-mood-btn" data-mood="comédie" onclick="hmCesoirSelectMood(this)">😄 Comédie</button>
           </div>
-          <!-- Filtre genre optionnel -->
-          <div id="hm-cesoir-genre-wrap" style="margin-top:10px;">
-            <div style="font-size:9px;color:rgba(192,132,252,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;">FILTRER PAR GENRE (optionnel)</div>
-            <div id="hm-cesoir-genres" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <!-- Filtre genre optionnel — select déroulant -->
+          <div id="hm-cesoir-genre-wrap" style="margin-top:14px;">
+            <div style="font-size:9px;color:rgba(192,132,252,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">FILTRER PAR GENRE (optionnel)</div>
+            <select id="hm-cesoir-genres-select" onchange="hmCesoirSelectGenreFromSelect(this)" style="width:100%;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.22);border-radius:12px;padding:11px 14px;color:rgba(192,132,252,.8);font-size:13px;font-family:'DM Sans',sans-serif;letter-spacing:.3px;appearance:none;-webkit-appearance:none;cursor:pointer;outline:none;">
+              <option value="">Tous les genres</option>
+            </select>
+            <div id="hm-cesoir-genres" style="display:none;"></div>
           </div>
           <button id="hm-cesoir-btn" onclick="hmCesoirRecommend()" class="hm-cesoir-btn" disabled>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -24973,16 +24977,18 @@ function hmCesoirInit(){
     if(result){result.style.display='none';result.classList.remove('on');}
   }
   // Populate genre filter with genres from revealed collection
-  const genreWrap = document.getElementById('hm-cesoir-genres');
-  if(genreWrap) {
-    const revealed = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
-    const genres = [...new Set(revealed.map(f=>f.g).filter(Boolean))].sort();
-    genreWrap.innerHTML = '<button class="hm-cesoir-mood-btn hm-cesoir-genre-btn active" data-genre="" onclick="hmCesoirSelectGenre(this)">Tous</button>'
-      + genres.map(g => `<button class="hm-cesoir-mood-btn hm-cesoir-genre-btn" data-genre="${g}" onclick="hmCesoirSelectGenre(this)">${g}</button>`).join('');
+  const genreSelect = document.getElementById('hm-cesoir-genres-select');
+  if(genreSelect) {
+    const revealed2 = [..._hmRevealed].map(i => _hmFilms[i]).filter(Boolean);
+    const genres = [...new Set(revealed2.map(f=>f.g).filter(Boolean))].sort();
+    genreSelect.innerHTML = '<option value="">Tous les genres</option>'
+      + genres.map(g => `<option value="${g}">${g}</option>`).join('');
+    genreSelect.value = '';
   }
   // Reset mood selection
   _hmCesoirMood=''; _hmCesoirGenre='';
   document.querySelectorAll('.hm-cesoir-mood-btn').forEach(b=>b.classList.remove('selected'));
+  var gs=document.getElementById('hm-cesoir-genres-select'); if(gs) gs.value='';
   const btn=document.getElementById('hm-cesoir-btn');
   const labelEl=document.getElementById('hm-cesoir-btn-label');
   if(btn){btn.disabled=true;}
@@ -24993,6 +24999,10 @@ function hmCesoirSelectGenre(el){
   _hmCesoirGenre = el.dataset.genre;
   document.querySelectorAll('.hm-cesoir-genre-btn').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
+}
+
+function hmCesoirSelectGenreFromSelect(sel){
+  _hmCesoirGenre = sel.value;
 }
 
 function hmCesoirSelectMood(el){
