@@ -2418,14 +2418,6 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 #splash.out{opacity:0;pointer-events:none;}
 
 /* Fond animé du splash — même halos projecteur que l'accueil */
-#splash-neuro{
-  position:absolute;inset:0;z-index:1;
-  width:100%;height:100%;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity 0.6s ease;
-}
-#splash-neuro.active{opacity:0.85;}
 #splash-bg{
   position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;
 }
@@ -6807,7 +6799,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
 
   <!-- SPLASH SCREEN -->
   <div id="splash">
-    <canvas id="splash-neuro"></canvas>
     <div id="splash-bg"></div>
 
 
@@ -25289,164 +25280,6 @@ updateDailyCard();
 initMiniPlayer();
 setInterval(updateDailyCountdown,1000);
 
-// ══ NEURO NOISE — Splash Screen WebGL Shader (désactivé — trop lourd au cold start) ══
-(function(){
-  const canvas = document.getElementById('splash-neuro');
-  if (!canvas) return;
-
-  // Cold start (premier lancement, JS non encore en cache) → shader allégé
-  const _isCold = !localStorage.getItem('cq11');
-  const _iter = _isCold ? 8 : 15;
-
-  const dpr = Math.min(window.devicePixelRatio, 2);
-  const pointer = { x: 0.5, y: 0.5, tX: 0.5, tY: 0.5 };
-  let uniforms, animId, stopped = false;
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  if (!gl) return;
-
-  const vsSource = `
-    precision mediump float;
-    varying vec2 vUv;
-    attribute vec2 a_position;
-    void main() {
-      vUv = .5 * (a_position + 1.);
-      gl_Position = vec4(a_position, 0.0, 1.0);
-    }
-  `;
-
-  // Neuro Noise fragment shader — palette cinéma : doré, bordeaux, bleu nuit
-  const fsSource = `
-    precision mediump float;
-    varying vec2 vUv;
-    uniform float u_time;
-    uniform float u_ratio;
-    uniform vec2 u_pointer_position;
-    uniform float u_scroll_progress;
-
-    vec2 rotate(vec2 uv, float th) {
-      return mat2(cos(th), -sin(th), sin(th), cos(th)) * uv;
-    }
-
-    float neuro_shape(vec2 uv, float t, float p) {
-      vec2 sine_acc = vec2(0.);
-      vec2 res = vec2(0.);
-      float scale = 8.;
-      for (int j = 0; j < ${_iter}; j++) {
-        uv = rotate(uv, 1.);
-        sine_acc = rotate(sine_acc, 1.);
-        vec2 layer = uv * scale + float(j) + sine_acc - t;
-        sine_acc += sin(layer);
-        res += (.5 + .5 * cos(layer)) / scale;
-        scale *= (1.2 - .07 * p);
-      }
-      return res.x + res.y;
-    }
-
-    void main() {
-      vec2 uv = .5 * vUv;
-      uv.x *= u_ratio;
-
-      float t = .001 * u_time;
-      float p = u_scroll_progress;
-
-      float noise = neuro_shape(uv, t, p);
-
-      noise = 1.2 * pow(noise, 3.);
-      noise += pow(noise, 10.);
-      noise = max(.0, noise - .5);
-      noise *= (1. - length(vUv - .5));
-
-      // Palette : fond très sombre, teintes dorées/bordeaux/bleu profond
-      vec3 color = vec3(0.04, 0.03, 0.06); // base presque noire violacée
-
-      // Vague dorée chaude
-      color = mix(color, vec3(0.72, 0.44, 0.08), pow(noise, .8));
-      // Touche bordeaux/rouge profond
-      color = mix(color, vec3(0.55, 0.10, 0.18), pow(noise, 1.4));
-      // Éclats dorés vifs au pic
-      color = mix(color, vec3(0.96, 0.79, 0.26), pow(noise, 2.5));
-
-      // Influence du pointeur : légère teinte bleutée là où bouge le doigt
-      float dist = length(uv - u_pointer_position * vec2(u_ratio, 1.));
-      color += vec3(0.04, 0.08, 0.18) * (1. - smoothstep(0., .4, dist)) * noise;
-
-      gl_FragColor = vec4(color, noise * 0.95 + 0.05);
-    }
-  `;
-
-  function createShader(src, type) {
-    const sh = gl.createShader(type);
-    gl.shaderSource(sh, src);
-    gl.compileShader(sh);
-    return sh;
-  }
-
-  const prog = gl.createProgram();
-  gl.attachShader(prog, createShader(vsSource, gl.VERTEX_SHADER));
-  gl.attachShader(prog, createShader(fsSource, gl.FRAGMENT_SHADER));
-  gl.linkProgram(prog);
-  gl.useProgram(prog);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(prog, 'a_position');
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-
-  uniforms = {
-    u_time:             gl.getUniformLocation(prog, 'u_time'),
-    u_ratio:            gl.getUniformLocation(prog, 'u_ratio'),
-    u_pointer_position: gl.getUniformLocation(prog, 'u_pointer_position'),
-    u_scroll_progress:  gl.getUniformLocation(prog, 'u_scroll_progress'),
-  };
-
-  function resize() {
-    const w = canvas.offsetWidth  * dpr;
-    const h = canvas.offsetHeight * dpr;
-    canvas.width  = w;
-    canvas.height = h;
-    gl.viewport(0, 0, w, h);
-    gl.uniform1f(uniforms.u_ratio, w / h);
-  }
-
-  let _firstFrame = true;
-  function render() {
-    if (stopped) return;
-    pointer.x += (pointer.tX - pointer.x) * 0.05;
-    pointer.y += (pointer.tY - pointer.y) * 0.05;
-    gl.uniform1f(uniforms.u_time, performance.now());
-    gl.uniform2f(uniforms.u_pointer_position, pointer.x, pointer.y);
-    gl.uniform1f(uniforms.u_scroll_progress, 0.0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    if (_firstFrame) { _firstFrame = false; canvas.classList.add('active'); }
-    animId = requestAnimationFrame(render);
-  }
-
-  // Events pointer — lerp plus lent pour un suivi plus fluide
-  const splash = document.getElementById('splash');
-  function onMove(e) {
-    const r = canvas.getBoundingClientRect();
-    const cx = (e.clientX ?? e.touches?.[0]?.clientX) - r.left;
-    const cy = (e.clientY ?? e.touches?.[0]?.clientY) - r.top;
-    pointer.tX = cx / r.width;
-    pointer.tY = 1. - cy / r.height;
-  }
-  if (splash) {
-    splash.addEventListener('mousemove', onMove);
-    splash.addEventListener('touchmove', onMove, { passive: true });
-
-  }
-
-  window._stopNeuroSplash = function() {
-    stopped = true;
-    if (animId) cancelAnimationFrame(animId);
-  };
-
-  resize();
-  window.addEventListener('resize', resize);
-  render();
-})();
 
 runSplash();
 const _hbg2=document.getElementById('home-bg');
