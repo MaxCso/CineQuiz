@@ -18878,9 +18878,16 @@ function runSplash(){
     }
   }
 
+  var musicStarted = false;
   function onPointerDown(e){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
+    // iOS: prime the audio element in this direct user event so .play() is allowed later
+    if(!musicStarted){
+      musicStarted = true;
+      const t = typeof getTrack==='function' ? getTrack('home') : null;
+      if(t){ t.volume=0; t.play().catch(()=>{}); }
+    }
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
     thumb.style.animation = 'none';
