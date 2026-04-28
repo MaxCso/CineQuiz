@@ -2689,22 +2689,52 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 
 
 /* ── Flash projecteur à l'ouverture du rideau ── */
-#splash-flash{
-  position:absolute;inset:0;z-index:5;pointer-events:none;
-  background:
-    radial-gradient(ellipse 40% 30% at 50% 45%, rgba(255,245,200,.9) 0%, rgba(255,220,120,.6) 20%, transparent 55%),
-    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(255,190,60,.35) 0%, rgba(255,150,30,.1) 50%, transparent 75%);
+#splash-flash{ display:none; }
+
+/* ── Shimmer doré sur les rideaux à l'ouverture ── */
+@keyframes curtainShimmerL{
+  0%  {opacity:0; transform:translateX(-100%);}
+  15% {opacity:1;}
+  85% {opacity:.6;}
+  100%{opacity:0; transform:translateX(0%);}
+}
+@keyframes curtainShimmerR{
+  0%  {opacity:0; transform:translateX(100%);}
+  15% {opacity:1;}
+  85% {opacity:.6;}
+  100%{opacity:0; transform:translateX(0%);}
+}
+.splash-curtain-l .curtain-shimmer,
+.splash-curtain-r .curtain-shimmer{
+  position:absolute;inset:0;pointer-events:none;
   opacity:0;
 }
-@keyframes splashFlash{
-  0%   {opacity:0;}
-  4%   {opacity:1;}
-  12%  {opacity:.75;}
-  28%  {opacity:.4;}
-  55%  {opacity:.15;}
-  100% {opacity:0;}
+.splash-curtain-l .curtain-shimmer{
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(245,200,66,.0) 30%,
+    rgba(245,200,66,.18) 55%,
+    rgba(255,230,120,.32) 70%,
+    rgba(245,200,66,.12) 85%,
+    transparent 100%
+  );
 }
-.splash-flash-on{animation:splashFlash 2.2s cubic-bezier(.22,1,.36,1) forwards;}
+.splash-curtain-r .curtain-shimmer{
+  background:linear-gradient(270deg,
+    transparent 0%,
+    rgba(245,200,66,.0) 30%,
+    rgba(245,200,66,.18) 55%,
+    rgba(255,230,120,.32) 70%,
+    rgba(245,200,66,.12) 85%,
+    transparent 100%
+  );
+}
+.splash-curtain.shimmer .splash-curtain-l .curtain-shimmer{
+  animation:curtainShimmerL 1.4s cubic-bezier(.4,0,.2,1) forwards;
+}
+.splash-curtain.shimmer .splash-curtain-r .curtain-shimmer{
+  animation:curtainShimmerR 1.4s cubic-bezier(.4,0,.2,1) forwards;
+}
 
 /* ── Citation ciné à l'ouverture du rideau ── */
 #splash-quote{
@@ -6998,8 +7028,8 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     <div id="splash-flash"></div>
 
     <div class="splash-curtain" id="splash-curtain">
-      <div class="splash-curtain-l"></div>
-      <div class="splash-curtain-r"></div>
+      <div class="splash-curtain-l"><div class="curtain-shimmer"></div></div>
+      <div class="splash-curtain-r"><div class="curtain-shimmer"></div></div>
     </div>
     <div class="splash-logo-wrap" id="splash-logo">
       <div class="splash-logo-container">
@@ -18879,7 +18909,6 @@ function runSplash(){
   const splash=document.getElementById('splash');
   const logo=document.getElementById('splash-logo');
   const curtain=document.getElementById('splash-curtain');
-  const flashEl=document.getElementById('splash-flash');
   const quoteEl=document.getElementById('splash-quote');
   if(!splash)return;
 
@@ -18907,8 +18936,8 @@ function runSplash(){
     // 0ms — Rideau s'ouvre immédiatement au tap
     curtain.classList.add('open');
     splash.classList.add('curtain-open');
-    // Flash chaud
-    if(flashEl) flashEl.classList.add('splash-flash-on');
+    // Shimmer doré sur les rideaux
+    curtain.classList.add('shimmer');
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
     if(tapEl) tapEl.classList.add('hidden');
