@@ -1586,6 +1586,84 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .ob-demo-btn:active{transform:scale(.95);}
 .ob-demo-btn.ob-ok{background:rgba(46,204,113,.22);border-color:rgba(46,204,113,.5);color:#4ade80;font-weight:700;animation:btnOk .4s cubic-bezier(.34,1.56,.64,1) both;}
 .ob-demo-btn.ob-no{background:rgba(232,52,74,.18);border-color:rgba(232,52,74,.45);color:#f87171;animation:btnNo .35s ease both;}
+.ob-slider{
+  overflow:hidden;
+  width:100%;
+  touch-action:pan-y;
+}
+.ob-slides-track{
+  display:flex;
+  transition:transform .35s cubic-bezier(.25,.46,.45,.94);
+  will-change:transform;
+}
+.ob-slide{
+  min-width:100%;
+  box-sizing:border-box;
+  padding:0 2px;
+  text-align:center;
+}
+.ob-icon{font-size:52px;text-align:center;display:block;margin-bottom:12px;animation:rIconPop .5s cubic-bezier(.34,1.56,.64,1) both;}
+.ob-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--gold);text-align:center;margin-bottom:6px;}
+.ob-desc{font-size:14px;color:rgba(255,255,255,.6);text-align:center;line-height:1.65;margin-bottom:18px;}
+.ob-demo{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;padding:14px 16px;margin-bottom:18px;
+}
+/* Onboarding stats row */
+.ob-stats-row{
+  display:flex;justify-content:space-around;
+  margin:4px 0 18px;
+  gap:8px;
+}
+.ob-stat{
+  flex:1;
+  background:rgba(245,200,66,.07);
+  border:1px solid rgba(245,200,66,.18);
+  border-radius:14px;
+  padding:10px 4px;
+  text-align:center;
+}
+.ob-stat-n{
+  display:block;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;
+  letter-spacing:1px;
+  color:var(--gold);
+  line-height:1;
+}
+.ob-stat-l{
+  display:block;
+  font-size:9px;
+  color:rgba(255,255,255,.4);
+  letter-spacing:.5px;
+  margin-top:3px;
+}
+/* Onboarding features */
+.ob-features{
+  display:flex;flex-direction:column;gap:10px;
+  margin:4px 0 18px;
+  text-align:left;
+}
+.ob-feature{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:12px 14px;
+}
+.ob-feat-icon{font-size:26px;flex-shrink:0;}
+.ob-feat-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;letter-spacing:1px;
+  color:rgba(255,255,255,.85);
+  margin-bottom:2px;
+}
+.ob-feat-desc{
+  font-size:11px;
+  color:rgba(255,255,255,.4);
+  line-height:1.4;
+}
+
 .ob-next{
   width:100%;background:linear-gradient(100deg,#f5c842,#e8a800);
   color:#000;border:none;border-radius:18px;padding:16px;
@@ -6960,10 +7038,9 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   <div id="onboarding">
     <div class="ob-card">
       <div class="ob-step-dots" id="ob-dots"></div>
-      <span class="ob-icon" id="ob-icon">🎬</span>
-      <div class="ob-title" id="ob-title">Bienvenue sur CinéQuiz !</div>
-      <div class="ob-desc" id="ob-desc">Le quiz du 7ème art. 18 modes de jeu, 400+ questions, 273 répliques cultes et 10 niveaux de progression.</div>
-      <div class="ob-demo" id="ob-demo" style="display:none;"></div>
+      <div class="ob-slider" id="ob-slider">
+        <!-- slides injected by JS -->
+      </div>
       <button class="ob-next" id="ob-next" onclick="obNext()">SUIVANT →</button>
       <span class="ob-skip" onclick="obSkip()">Passer le tutoriel</span>
     </div>
@@ -11022,7 +11099,7 @@ const DECENNIE_FILMS=[
   {title:"Tangerine",year:2015,id:308084},
   {title:"La Nuit au musée",year:2006,id:1593},
   {title:"The Square",year:2017,id:401246},
-  {title:"Breakfast at Tiffany's",year:1961,id:164},
+  {title:"Breakfast at Tiffany\'s",year:1961,id:164},
   {title:"Midnight Cowboy",year:1969,id:3116},
   {title:"Deliverance",year:1972,id:10669},
   {title:"The Conversation",year:1974,id:592},
@@ -18124,13 +18201,28 @@ const AVATARS=['🎬','🎥','🎭','🎞️','🏆','⭐','🎟️','🎪','�
   '🎩','🦸','🦹','🧙','🕵️','🤠','🥷','🧛','🤖','👽','🐉','🦄','🐺','🦅','🌈','❄️','🌊','🌋','🎭','🃏','🎲','🏴‍☠️','⚔️','🛸','🎠','🌺','🍿','📽️','🌍','🔭'];
 
 // ── TUTORIEL INTERACTIF ──
+// Pool de 7 questions démo — 1 tirée aléatoirement à chaque lancement
+const OB_DEMO_POOL=[
+  {q:'Qui a réalisé Pulp Fiction ?',ans:['Quentin Tarantino','Martin Scorsese','David Fincher','Joel Coen'],correct:0},
+  {q:'Dans quel film entend-on "E.T. phone home" ?',ans:['Star Wars','E.T.','Alien','Close Encounters'],correct:1},
+  {q:'Quel acteur joue Hannibal Lecter dans Le Silence des Agneaux ?',ans:['Gary Oldman','Anthony Hopkins','Jeremy Irons','John Malkovich'],correct:1},
+  {q:'En quelle année sort Le Parrain de Coppola ?',ans:['1969','1970','1972','1974'],correct:2},
+  {q:'Quel film a remporté la Palme d\'Or à Cannes en 2019 ?',ans:['Parasite','Joker','Once Upon a Time…','1917'],correct:0},
+  {q:'Qui compose la musique de la saga Star Wars ?',ans:['Hans Zimmer','Ennio Morricone','John Williams','Bernard Herrmann'],correct:2},
+  {q:'Qui réalise 2001 : L\'Odyssée de l\'espace ?',ans:['Ridley Scott','Steven Spielberg','Stanley Kubrick','George Lucas'],correct:2},
+];
+// Tirer 1 question aléatoire
+function _pickObDemos(){
+  return OB_DEMO_POOL[Math.floor(Math.random()*OB_DEMO_POOL.length)];
+}
+let _obDemo=_pickObDemos();
+
 const OB_STEPS=[
-  {icon:'🎬',title:'Bienvenue sur CinéQuiz !',desc:'Le quiz du 7ème art. 18 modes de jeu, 400+ questions, 273 répliques cultes et 10 niveaux de progression. Chaque mode explore le cinéma différemment.',demo:null,btn:'SUIVANT →'},
-  {icon:'⚡',title:'Le Multiplicateur',desc:'Réponds vite ! Moins de 6 secondes = x3 points. Entre 6 et 13 secondes = x2. Après 13s = x1. La rapidité fait toute la différence !',demo:null,btn:'SUIVANT →'},
-  {icon:'🔥',title:'Les Combos',desc:'Enchaîne les bonnes réponses sans erreur. Dès 3 bonnes réponses d\'affilée, un combo s\'active et multiplie encore tes points !',demo:null,btn:'ESSAIE UNE QUESTION !'},
-  {icon:'🎯',title:'Essaie toi-même',desc:'Quel film a remporté la Palme d\'Or à Cannes en 2019 ?',demo:{q:'Quel film a remporté la Palme d\'Or en 2019 ?',ans:['Parasite','Joker','Once Upon a Time','1917'],correct:0},btn:null},
-  {icon:'🌟',title:'Progression & Badges',desc:'Gagne de l\'XP à chaque partie pour passer de Figurant à Légende (10 niveaux). Débloque 40+ badges, personnalise ton thème et relève le Défi du Jour !',demo:null,btn:'SUIVANT →'},
-  {icon:'🏆',title:'C\'est parti !',desc:'Tes stats, tes badges et tes meilleurs scores sont sauvegardés automatiquement. Une anecdote ciné t\'attend chaque jour sur l\'accueil. Bonne chance !',demo:null,btn:'COMMENCER 🎬'},
+  {icon:'🎬',title:'Bienvenue sur CinéQuiz !',desc:'Le quiz du 7ème art. Swipe pour découvrir.',demo:null,btn:'SUIVANT →',extra:'welcome'},
+  {icon:'✨',title:'Ce qui t\'attend',desc:'',demo:null,btn:'SUIVANT →',extra:'features'},
+  {icon:'🎯',title:'Essaie toi-même !',desc:'Une vraie question pour te mettre dans l\'ambiance.',demo:true,btn:null},
+  {icon:'🌟',title:'Progression & Badges',desc:'Gagne de l\'XP à chaque partie pour monter jusqu\'au niveau Dieu du 7ème Art (20 niveaux). Débloque 120+ badges et personnalise ton thème !',demo:null,btn:'SUIVANT →'},
+  {icon:'🏆',title:'C\'est parti !',desc:'Tes stats et badges sont sauvegardés automatiquement. Une anecdote ciné t\'attend chaque jour. Bonne chance !',demo:null,btn:'COMMENCER 🎬'},
 ];
 let obStep=0;
 let obDemoAnswered=false;
@@ -18139,38 +18231,111 @@ function initOnboarding(){
   const s=ls();
   if(s.onboardingDone)return;
   obStep=0;obDemoAnswered=false;
+  _obDemo=_pickObDemos();
   document.getElementById('onboarding').classList.add('on');
-  renderObStep();
+  _obBuildSlider();
+  _obGoTo(0);
+  _obInitSwipe();
 }
 
-function renderObStep(){
-  const step=OB_STEPS[obStep];
-  const totalReal=OB_STEPS.length;
+function _obBuildSlider(){
+  const slider=document.getElementById('ob-slider');
+  if(!slider)return;
+  const track=document.createElement('div');
+  track.className='ob-slides-track';
+  track.id='ob-slides-track';
+  OB_STEPS.forEach((step,i)=>{
+    const demo=step.demo?_obDemo:null;
+    const slide=document.createElement('div');
+    slide.className='ob-slide';
+    let extraHtml='';
+    if(step.extra==='welcome'){
+      extraHtml=`<div class="ob-stats-row">
+        <div class="ob-stat"><span class="ob-stat-n">22</span><span class="ob-stat-l">Modes de jeu</span></div>
+        <div class="ob-stat"><span class="ob-stat-n">316+</span><span class="ob-stat-l">Questions</span></div>
+        <div class="ob-stat"><span class="ob-stat-n">120+</span><span class="ob-stat-l">Badges</span></div>
+        <div class="ob-stat"><span class="ob-stat-n">40+</span><span class="ob-stat-l">Easter eggs</span></div>
+      </div>`;
+    } else if(step.extra==='features'){
+      extraHtml=`<div class="ob-features">
+        <div class="ob-feature"><span class="ob-feat-icon">🎵</span><div><div class="ob-feat-title">Jukebox</div><div class="ob-feat-desc">40+ titres iconiques. Joue en musique.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🎴</span><div><div class="ob-feat-title">Hidden Movies</div><div class="ob-feat-desc">Gratte des cartes pour révéler des films cachés.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🔐</span><div><div class="ob-feat-title">3 Zones secrètes</div><div class="ob-feat-desc">Des salles cachées attendent d'être découvertes.</div></div></div>
+      </div>`;
+    }
+    slide.innerHTML=`
+      <span class="ob-icon">${step.icon}</span>
+      <div class="ob-title">${step.title}</div>
+      ${step.desc?`<div class="ob-desc">${step.desc}</div>`:''}
+      ${extraHtml}
+      ${demo?`<div class="ob-demo">
+        <div class="ob-demo-q">${demo.q}</div>
+        <div class="ob-demo-btns" id="ob-demo-btns-${i}">
+          ${demo.ans.map((a,ai)=>`<button class="ob-demo-btn" onclick="obAnswer(${ai},${demo.correct},${i})">${a}</button>`).join('')}
+        </div>
+      </div>`:''}
+    `;
+    track.appendChild(slide);
+  });
+  slider.innerHTML='';
+  slider.appendChild(track);
+}
+
+function _obGoTo(idx){
+  obStep=idx;
+  const track=document.getElementById('ob-slides-track');
+  if(track) track.style.transform=`translateX(-${idx*100}%)`;
   // Dots
   const dotsEl=document.getElementById('ob-dots');
-  dotsEl.innerHTML=OB_STEPS.map((_,i)=>`<div class="ob-dot${i===obStep?' on':''}"></div>`).join('');
-  document.getElementById('ob-icon').textContent=step.icon;
-  document.getElementById('ob-icon').style.animation='none';
-  setTimeout(()=>document.getElementById('ob-icon').style.animation='',10);
-  document.getElementById('ob-title').textContent=step.title;
-  document.getElementById('ob-desc').textContent=step.desc;
-  const demoEl=document.getElementById('ob-demo');
+  if(dotsEl) dotsEl.innerHTML=OB_STEPS.map((_,i)=>`<div class="ob-dot${i===idx?' on':''}"></div>`).join('');
+  // Next button
+  const step=OB_STEPS[idx];
   const nextBtn=document.getElementById('ob-next');
-  if(step.demo){
-    obDemoAnswered=false;
-    demoEl.style.display='block';
-    demoEl.innerHTML=`<div class="ob-demo-q">${step.demo.q}</div><div class="ob-demo-btns">${step.demo.ans.map((a,i)=>`<button class="ob-demo-btn" onclick="obAnswer(${i},${step.demo.correct})">${a}</button>`).join('')}</div>`;
-    if(nextBtn)nextBtn.style.display='none';
-  } else {
-    demoEl.style.display='none';
-    if(nextBtn){nextBtn.style.display='block';nextBtn.textContent=step.btn||'SUIVANT →';}
+  if(nextBtn){
+    const demo=step.demo?_obDemo:null;
+    if(demo && !_obStepAnswered[idx]){
+      nextBtn.style.display='none';
+    } else {
+      nextBtn.style.display='block';
+      nextBtn.textContent=step.btn||'SUIVANT →';
+    }
   }
 }
 
-function obAnswer(idx,correct){
-  if(obDemoAnswered)return;
-  obDemoAnswered=true;
-  const btns=document.querySelectorAll('.ob-demo-btn');
+let _obStepAnswered={};
+
+function _obInitSwipe(){
+  const card=document.querySelector('.ob-card');
+  if(!card)return;
+  let startX=0,startY=0,isDragging=false;
+  card.addEventListener('touchstart',e=>{
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    isDragging=true;
+  },{passive:true});
+  card.addEventListener('touchend',e=>{
+    if(!isDragging)return;
+    isDragging=false;
+    const dx=e.changedTouches[0].clientX-startX;
+    const dy=e.changedTouches[0].clientY-startY;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){
+      if(dx<0&&obStep<OB_STEPS.length-1){
+        const step=OB_STEPS[obStep];
+        const demo=step.demo?_obDemo:null;
+        if(demo&&!_obStepAnswered[obStep])return; // block swipe if unanswered
+        obNext();
+      } else if(dx>0&&obStep>0){
+        _obGoTo(obStep-1);
+      }
+    }
+  },{passive:true});
+}
+
+function obAnswer(idx,correct,slideIdx){
+  const btnsEl=document.getElementById('ob-demo-btns-'+slideIdx);
+  if(!btnsEl||_obStepAnswered[slideIdx])return;
+  _obStepAnswered[slideIdx]=true;
+  const btns=btnsEl.querySelectorAll('.ob-demo-btn');
   btns.forEach((b,i)=>{
     if(i===correct)b.classList.add('ob-ok');
     else if(i===idx&&idx!==correct)b.classList.add('ob-no');
@@ -18179,14 +18344,14 @@ function obAnswer(idx,correct){
   if(idx===correct)sndOk(3);else sndNo();
   setTimeout(()=>{
     const nb=document.getElementById('ob-next');
-    if(nb){nb.style.display='block';nb.textContent='SUPER ! SUIVANT →';}
-  },600);
+    if(nb){nb.style.display='block';nb.textContent=idx===correct?'SUPER ! SUIVANT →':'SUIVANT →';}
+  },500);
 }
 
 function obNext(){
   obStep++;
   if(obStep>=OB_STEPS.length){obSkip();return;}
-  renderObStep();
+  _obGoTo(obStep);
 }
 
 function obSkip(){
