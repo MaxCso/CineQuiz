@@ -25558,7 +25558,12 @@ if('serviceWorker' in navigator){
   function applyProgression(data) {
     if (!data) return;
     Object.keys(data).forEach(function(k) {
-      try { localStorage.setItem(k, data[k]); } catch(e) {}
+      try {
+        var v = data[k];
+        // Supabase JSONB parses inner JSON strings into objects — re-stringify them
+        if (v !== null && typeof v === 'object') v = JSON.stringify(v);
+        localStorage.setItem(k, v);
+      } catch(e) {}
     });
     // Refresh UI after applying
     if (typeof refHome === 'function') refHome();
@@ -25989,7 +25994,11 @@ if('serviceWorker' in navigator){
           var cloud = JSON.parse(cloudData['cq11'] || '{}');
           if ((cloud.xp || 0) > (local.xp || 0)) {
             Object.keys(cloudData).forEach(function(k) {
-              try { localStorage.setItem(k, cloudData[k]); } catch(e) {}
+              try {
+                var v = cloudData[k];
+                if (v !== null && typeof v === 'object') v = JSON.stringify(v);
+                localStorage.setItem(k, v);
+              } catch(e) {}
             });
             // Invalider le cache daily car hm_revealed vient de changer
             try { localStorage.removeItem('hm_daily_unlocked'); } catch(e) {}
