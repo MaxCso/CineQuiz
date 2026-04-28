@@ -13158,22 +13158,36 @@ function _hmvTouchEnd(e) {
 let _hmvRaf = null;
 let _hmvActive = false;
 let _hmvRunning = false;
+let _hmvLastFrame = 0;
+
+// Détection low-end une seule fois
+const _hmvLowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
+                   (window.screen.width <= 375 && window.screen.height <= 812);
 
 // Valeurs cibles (set par le doigt/souris)
 let _T = { rx:0, ry:0, o:0, s:1, mx:50, my:50, px:50, py:50, hyp:0 };
-// Valeurs courantes (interpolées par spring)
+// Valeurs courantes (interpolées)
 let _C = { rx:0, ry:0, o:0, s:1, mx:50, my:50, px:50, py:50, hyp:0 };
-// Vitesses spring
+// Vitesses spring (non utilisées en mode low-end)
 let _V = { rx:0, ry:0 };
 
-// Constantes spring
-const _STIFF = 0.16;   // raideur (plus doux = plus fluide sur mobile)
-const _DAMP  = 0.72;   // amortissement (plus haut = moins d'oscillation)
-const _LERP  = 0.25;   // lerp pour les vars non-spring
+// Constantes — allégées sur low-end
+const _STIFF = _hmvLowEnd ? 0.22  : 0.16;
+const _DAMP  = _hmvLowEnd ? 0.78  : 0.72;
+const _LERP  = _hmvLowEnd ? 0.30  : 0.25;
+const _FPS   = _hmvLowEnd ? 30    : 60;   // 30fps sur low-end
+const _FINT  = 1000 / _FPS;
 
-function _hmvTick() {
+function _hmvTick(now) {
   const poster = document.getElementById('hmv-poster');
   if (!poster) { _hmvRunning = false; return; }
+
+  // Throttle à 30fps sur low-end
+  if(_hmvLowEnd && now - _hmvLastFrame < _FINT){
+    _hmvRaf = requestAnimationFrame(_hmvTick);
+    return;
+  }
+  _hmvLastFrame = now;
 
   // Spring pour rotateX / rotateY
   _V.rx = (_V.rx + (_T.rx - _C.rx) * _STIFF) * _DAMP;
@@ -13190,7 +13204,6 @@ function _hmvTick() {
   _C.py  += (_T.py  - _C.py)  * _LERP;
   _C.hyp += (_T.hyp - _C.hyp) * _LERP;
 
-  // Appliquer via CSS vars — batch en une seule chaîne cssText pour perf
   const p = poster;
   const rx = _C.rx, ry = _C.ry;
   p.style.setProperty('--rx',   rx.toFixed(2)  + 'deg');
@@ -13203,9 +13216,9 @@ function _hmvTick() {
   p.style.setProperty('--posy', _C.py.toFixed(1) + '%');
   p.style.setProperty('--hyp',  _C.hyp.toFixed(3));
 
-  // Edge lights — seulement si actif (évite calculs inutiles)
+  // Edge lights + box-shadow — désactivés sur low-end (trop de calculs par frame)
   const eo = _C.o;
-  if (eo > 0.01) {
+  if (eo > 0.01 && !_hmvLowEnd) {
     const MAX_RX = 18, MAX_RY = 26;
     const tiltY = ry / MAX_RY;
     const tiltX = rx / MAX_RX;
@@ -13213,8 +13226,6 @@ function _hmvTick() {
     p.style.setProperty('--edge-r', (Math.max(0, -tiltY) * eo * 0.55).toFixed(3));
     p.style.setProperty('--edge-t', (Math.max(0, -tiltX) * eo * 0.42).toFixed(3));
     p.style.setProperty('--edge-b', (Math.max(0,  tiltX) * eo * 0.42).toFixed(3));
-
-    // Box-shadow simplifié — une seule ombre directionnelle
     const ox = (tiltY * 12).toFixed(1);
     const oy = (-tiltX * 8).toFixed(1);
     p.style.boxShadow = `${ox}px ${oy}px 48px rgba(0,0,0,.6), 0 0 20px rgba(168,85,247,${(eo * 0.25).toFixed(2)})`;
