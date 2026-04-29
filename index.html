@@ -13258,10 +13258,6 @@ let _hmvActive = false;
 let _hmvRunning = false;
 let _hmvLastFrame = 0;
 
-// Détection low-end une seule fois
-const _hmvLowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
-                   (window.screen.width <= 375 && window.screen.height <= 812);
-
 // Valeurs cibles (set par le doigt/souris)
 let _T = { rx:0, ry:0, o:0, s:1, mx:50, my:50, px:50, py:50, hyp:0 };
 // Valeurs courantes (interpolées)
@@ -13270,22 +13266,13 @@ let _C = { rx:0, ry:0, o:0, s:1, mx:50, my:50, px:50, py:50, hyp:0 };
 let _V = { rx:0, ry:0 };
 
 // Constantes — allégées sur low-end
-const _STIFF = _hmvLowEnd ? 0.22  : 0.16;
-const _DAMP  = _hmvLowEnd ? 0.78  : 0.72;
-const _LERP  = _hmvLowEnd ? 0.30  : 0.25;
-const _FPS   = _hmvLowEnd ? 30    : 60;   // 30fps sur low-end
-const _FINT  = 1000 / _FPS;
+const _STIFF = 0.16;
+const _DAMP  = 0.72;
+const _LERP  = 0.25;
 
 function _hmvTick(now) {
   const poster = document.getElementById('hmv-poster');
   if (!poster) { _hmvRunning = false; return; }
-
-  // Throttle à 30fps sur low-end
-  if(_hmvLowEnd && now - _hmvLastFrame < _FINT){
-    _hmvRaf = requestAnimationFrame(_hmvTick);
-    return;
-  }
-  _hmvLastFrame = now;
 
   // Spring pour rotateX / rotateY
   _V.rx = (_V.rx + (_T.rx - _C.rx) * _STIFF) * _DAMP;
@@ -13316,7 +13303,7 @@ function _hmvTick(now) {
 
   // Edge lights + box-shadow — désactivés sur low-end (trop de calculs par frame)
   const eo = _C.o;
-  if (eo > 0.01 && !_hmvLowEnd) {
+  if (eo > 0.01) {
     const MAX_RX = 18, MAX_RY = 26;
     const tiltY = ry / MAX_RY;
     const tiltX = rx / MAX_RX;
@@ -13857,10 +13844,6 @@ function _hmInitScratch(canvas, film, idx){
   const rect = wrap.getBoundingClientRect();
   const W   = Math.round(rect.width)  || window.innerWidth  || 375;
   const H   = Math.round(rect.height) || window.innerHeight || 600;
-  // Détection appareil peu puissant
-  const _isLowEnd = (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
-                    (window.screen.width <= 375 && window.screen.height <= 812);
-
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
   // ══ ARCHITECTURE SIMPLIFIÉE ══
@@ -13960,7 +13943,7 @@ function _hmInitScratch(canvas, film, idx){
   wrap.appendChild(shCanvas);
   _hmExtraCanvases.push(shCanvas);
   const shCtx = shCanvas.getContext('2d');
-  shCtx.scale(_isLowEnd ? 1 : DPR, _isLowEnd ? 1 : DPR);
+  shCtx.scale(DPR, DPR);
 
   const animShimmer2 = () => {
     shCtx.clearRect(0, 0, W, H);
@@ -14314,15 +14297,13 @@ function _hmReveal(film, idx, canvas){
   setTimeout(()=>{if(canvas.parentElement)canvas.remove();},380);
 
   // 3. Zoom + deflouttage de l'affiche (CSS pur, zéro DOM extra)
-  const _isLowEndRev=(navigator.deviceMemory&&navigator.deviceMemory<=3)||(window.screen.width<=375&&window.screen.height<=812);
   if(scratchUnder){
     const img=scratchUnder.querySelector('img');
     const poster=scratchUnder.querySelector('.hm-scratch-poster');
     if(img){
       requestAnimationFrame(()=>{ img.classList.add('revealed'); });
     }
-    // Shimmer désactivé sur appareils peu puissants
-    if(poster && !_isLowEndRev){
+    if(poster){
       poster.classList.add('revealing');
       setTimeout(()=>poster.classList.remove('revealing'), 3131);
     }
@@ -14350,30 +14331,22 @@ function _hmReveal(film, idx, canvas){
     const hmEl=document.getElementById('hm');
     if(hmEl)hmEl.style.overflow='hidden';
 
-    if(_isLowEndRev){
+    viewer.style.transition='none';
+    viewer.style.transform='translateY(40px) scale(0.96)';
+    viewer.style.opacity='0';
+    requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+      viewer.style.transition='opacity 0.45s cubic-bezier(.25,.46,.45,.94), transform 0.45s cubic-bezier(.34,1.2,.64,1)';
       viewer.style.opacity='1';
-      viewer.style.transform='';
-      // Holo différé sur low-end
-      setTimeout(()=>{ _hmvInitGestures(); _hmvInitHolo(); }, 300);
-    } else {
-      viewer.style.transition='none';
-      viewer.style.transform='translateY(40px) scale(0.96)';
-      viewer.style.opacity='0';
-      requestAnimationFrame(()=>{requestAnimationFrame(()=>{
-        viewer.style.transition='opacity 0.45s cubic-bezier(.25,.46,.45,.94), transform 0.45s cubic-bezier(.34,1.2,.64,1)';
-        viewer.style.opacity='1';
-        viewer.style.transform='translateY(0) scale(1)';
-        setTimeout(()=>{
-          viewer.style.transition='';
-          viewer.style.transform='';
-          viewer.style.opacity='';
-        },460);
-      });});
-      // Gestures immédiats, holo différé après animation
-      _hmvInitGestures();
-      setTimeout(()=>{ _hmvInitHolo(); }, 500);
-    }
-  }, _isLowEndRev ? 200 : 380);
+      viewer.style.transform='translateY(0) scale(1)';
+      setTimeout(()=>{
+        viewer.style.transition='';
+        viewer.style.transform='';
+        viewer.style.opacity='';
+      },460);
+    });});
+    _hmvInitGestures();
+    setTimeout(()=>{ _hmvInitHolo(); }, 500);
+  }, 380);
 }
 
 function _hmShowSheet(film, idx){
