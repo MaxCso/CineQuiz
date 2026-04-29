@@ -4788,9 +4788,9 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
   position:absolute;inset:0;
   border-radius:22px 22px 0 0;
   background:
-    radial-gradient(ellipse 120% 55% at 10% 0%,  color-mix(in srgb,var(--msh-color,transparent) 18%,transparent) 0%,transparent 60%),
-    radial-gradient(ellipse 90% 40% at 90% 10%,  color-mix(in srgb,var(--msh-color,transparent) 10%,transparent) 0%,transparent 55%),
-    radial-gradient(ellipse 80% 30% at 50% 20%,  color-mix(in srgb,var(--msh-color,transparent) 6%,transparent)  0%,transparent 60%);
+    radial-gradient(ellipse 120% 55% at 10% 0%,  color-mix(in srgb,var(--msh-color,transparent) 42%,transparent) 0%,transparent 60%),
+    radial-gradient(ellipse 90% 40% at 90% 10%,  color-mix(in srgb,var(--msh-color,transparent) 28%,transparent) 0%,transparent 55%),
+    radial-gradient(ellipse 80% 30% at 50% 20%,  color-mix(in srgb,var(--msh-color,transparent) 16%,transparent)  0%,transparent 60%);
   pointer-events:none;
   z-index:0;
   transition:background .3s;
@@ -4798,7 +4798,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgb
 }
 @keyframes mshGlowBreath{
   0%,100%{opacity:1;}
-  50%    {opacity:.55;}
+  50%    {opacity:.75;}
 }
 .msh>*{position:relative;z-index:1;}
 @keyframes modalGlowBreath{
@@ -14525,7 +14525,23 @@ function hmResetScratch(){
   if(!confirm('Re-cacher tous les films révélés ?'))return;
   _hmRevealed.clear();
   _hmSaveRevealed();
-  _hmRenderCard(_hmIdx);
+  // Supprimer le cache daily pour forcer un nouveau tirage de cartes
+  try{
+    localStorage.removeItem('hm_daily_unlocked');
+    localStorage.removeItem('hm_last_idx');
+    localStorage.removeItem('hm_last_tmdb_id');
+  }catch(e){}
+  // Reconstruire la liste et les cartes disponibles
+  _hmBuildList();
+  // Repasser sur l'onglet scratch et afficher la première carte disponible
+  hmSwitchTab('scratch');
+  const s=ls();const userLvl=Math.max(1,glv(s.xp));
+  const daily=window._hmDailyAvailable||new Set();
+  const firstUnrevealed=_hmFilms.findIndex((f,i)=>daily.has(i)&&f.lvl<=userLvl&&!_hmRevealed.has(i));
+  if(firstUnrevealed>=0){
+    _hmIdx=firstUnrevealed;
+    _hmRenderCard(_hmIdx);
+  }
 }
 
 async function _hmEnrichFiche(film, container){
@@ -15860,7 +15876,7 @@ function refProfile(){
 function openHelp(){
   document.getElementById('help-modal').classList.add('on');
   const sh=document.getElementById('help-sh');
-  if(sh)setupSwipeDown(sh,closeHelp);
+  if(sh){setupSwipeDown(sh,closeHelp);setupSwipeRight(sh,closeHelp);}
 }
 function closeHelp(e){if(!e||e.target===document.getElementById('help-modal'))document.getElementById('help-modal').classList.remove('on');}
 function openHMHelp(){
