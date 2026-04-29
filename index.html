@@ -3020,7 +3020,7 @@ body.theme-rose .splash-curtain-r .curtain-shimmer{background:linear-gradient(27
   transform:translateY(14px) scale(.97);
   transition:opacity .9s ease .2s, transform 1s cubic-bezier(.22,.68,0,1.1) .2s;
   pointer-events:none;
-  margin-top:22px;
+  margin-top:48px;
   padding:0 24px;
   text-align:center;
 }
@@ -3035,26 +3035,32 @@ body.theme-rose .splash-curtain-r .curtain-shimmer{background:linear-gradient(27
 }
 .splash-quote-inner{
   display:inline-block;
-  border:1px solid rgba(245,200,66,.3);
-  border-radius:12px;
-  padding:12px 20px;
+  position:relative;
+  padding:14px 22px;
   text-align:center;
-  background:rgba(0,0,0,.15);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
 }
-/* Cadre adapté au thème */
-body.theme-neon    .splash-quote-inner{border-color:rgba(196,102,255,.35);}
-body.theme-crimson .splash-quote-inner{border-color:rgba(255,58,92,.35);}
-body.theme-ocean   .splash-quote-inner{border-color:rgba(0,212,255,.35);}
-body.theme-sunset  .splash-quote-inner{border-color:rgba(255,140,56,.35);}
-body.theme-ice     .splash-quote-inner{border-color:rgba(200,238,255,.35);}
-body.theme-aurora  .splash-quote-inner{border-color:rgba(74,222,128,.35);}
-body.theme-galaxy  .splash-quote-inner{border-color:rgba(167,139,250,.35);}
-body.theme-emerald .splash-quote-inner{border-color:rgba(16,240,124,.35);}
-body.theme-inferno .splash-quote-inner{border-color:rgba(255,221,0,.35);}
-body.theme-matrix  .splash-quote-inner{border-color:rgba(136,255,0,.35);}
-body.theme-rose    .splash-quote-inner{border-color:rgba(255,170,221,.35);}
+/* Coins dorés */
+.splash-quote-inner::before,.splash-quote-inner::after{
+  content:'';
+  position:absolute;
+  width:14px;height:14px;
+  border-color:rgba(245,200,66,.55);
+  border-style:solid;
+}
+.splash-quote-inner::before{top:0;left:0;border-width:2px 0 0 2px;}
+.splash-quote-inner::after {bottom:0;right:0;border-width:0 2px 2px 0;}
+/* Coins adaptés au thème */
+body.theme-neon    .splash-quote-inner::before,body.theme-neon    .splash-quote-inner::after{border-color:rgba(196,102,255,.6);}
+body.theme-crimson .splash-quote-inner::before,body.theme-crimson .splash-quote-inner::after{border-color:rgba(255,58,92,.6);}
+body.theme-ocean   .splash-quote-inner::before,body.theme-ocean   .splash-quote-inner::after{border-color:rgba(0,212,255,.6);}
+body.theme-sunset  .splash-quote-inner::before,body.theme-sunset  .splash-quote-inner::after{border-color:rgba(255,140,56,.6);}
+body.theme-ice     .splash-quote-inner::before,body.theme-ice     .splash-quote-inner::after{border-color:rgba(200,238,255,.6);}
+body.theme-aurora  .splash-quote-inner::before,body.theme-aurora  .splash-quote-inner::after{border-color:rgba(74,222,128,.6);}
+body.theme-galaxy  .splash-quote-inner::before,body.theme-galaxy  .splash-quote-inner::after{border-color:rgba(167,139,250,.6);}
+body.theme-emerald .splash-quote-inner::before,body.theme-emerald .splash-quote-inner::after{border-color:rgba(16,240,124,.6);}
+body.theme-inferno .splash-quote-inner::before,body.theme-inferno .splash-quote-inner::after{border-color:rgba(255,221,0,.6);}
+body.theme-matrix  .splash-quote-inner::before,body.theme-matrix  .splash-quote-inner::after{border-color:rgba(136,255,0,.6);}
+body.theme-rose    .splash-quote-inner::before,body.theme-rose    .splash-quote-inner::after{border-color:rgba(255,170,221,.6);}
 #splash-quote-text{
   font-family:'DM Sans',sans-serif;
   font-size:16px;
@@ -13086,8 +13092,8 @@ function _hmvRender() {
       '<div id="hmv-info-tagline" style="display:none;"></div>' +
       (moodsHtml ? '<div class="hmv-info-moods">' + moodsHtml + '</div>' : '') +
       '<div class="hmv-info-details" id="hmv-info-details"><div style="font-size:10px;color:rgba(255,255,255,.2);padding:14px;text-align:center;letter-spacing:1px;">Chargement…</div></div>';
-    // Enrichir depuis TMDB
-    _hmEnrichFiche(film, ic);
+    // Enrichir depuis TMDB — différé pour ne pas concurrencer le rendu
+    setTimeout(()=>{ _hmEnrichFiche(film, ic); }, 600);
   }
 
   // Wishlist button state
@@ -13899,6 +13905,8 @@ function _hmRenderCard(idx){
 }
 
 function _hmInitScratch(canvas, film, idx){
+  // Afficher immédiatement un fond opaque pour éviter le délai visuel
+  canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:4;background:#c0b8d0;display:block;touch-action:none;';
   // Double RAF pour s'assurer que le layout est calculé après display:flex
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
   const wrap = canvas.parentElement;
@@ -14385,7 +14393,7 @@ function _hmReveal(film, idx, canvas){
   _hmSaveRevealed();
   _hmPlaySlideAudio(idx, _hmFilms);
 
-  // 6. Entrée du viewer
+  // 6. Entrée du viewer — opérations lourdes échelonnées
   setTimeout(()=>{
     _hmvList=[{idx,film}];
     _hmvIdx=0;_hmvInfoOpen=false;
@@ -14399,9 +14407,10 @@ function _hmReveal(film, idx, canvas){
     if(hmEl)hmEl.style.overflow='hidden';
 
     if(_isLowEndRev){
-      // Sur appareils peu puissants : pas d'animation d'entrée
       viewer.style.opacity='1';
       viewer.style.transform='';
+      // Holo différé sur low-end
+      setTimeout(()=>{ _hmvInitGestures(); _hmvInitHolo(); }, 300);
     } else {
       viewer.style.transition='none';
       viewer.style.transform='translateY(40px) scale(0.96)';
@@ -14416,10 +14425,10 @@ function _hmReveal(film, idx, canvas){
           viewer.style.opacity='';
         },460);
       });});
+      // Gestures immédiats, holo différé après animation
+      _hmvInitGestures();
+      setTimeout(()=>{ _hmvInitHolo(); }, 500);
     }
-
-    _hmvInitGestures();
-    _hmvInitHolo();
   }, _isLowEndRev ? 200 : 380);
 }
 
@@ -14449,8 +14458,8 @@ function _hmShowSheet(film, idx){
   sheet.ontouchstart=e=>{sy=e.touches[0].clientY;};
   sheet.ontouchend=e=>{if(e.changedTouches[0].clientY-sy>60)_hmCloseSheet();};
 
-  // Enrichir TMDB
-  _hmEnrichFiche(film, content);
+  // Enrichir TMDB — différé
+  setTimeout(()=>{ _hmEnrichFiche(film, content); }, 400);
   // Mettre à jour le compteur
   _hmUpdateTabCount();
   // Audio
