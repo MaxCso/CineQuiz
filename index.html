@@ -13103,20 +13103,22 @@ function _hmvRender() {
 
   // Skeleton loader
   let _skEl=document.getElementById('hmv-skeleton');
-  if(!_skEl){_skEl=document.createElement('div');_skEl.id='hmv-skeleton';_skEl.className='hmv-skeleton';img.parentNode.insertBefore(_skEl,img);}
-  _skEl.style.display='block';
-  img.style.opacity='0';img.style.transition='opacity .4s ease';
+  if(img){
+    if(!_skEl){_skEl=document.createElement('div');_skEl.id='hmv-skeleton';_skEl.className='hmv-skeleton';img.parentNode.insertBefore(_skEl,img);}
+    _skEl.style.display='block';
+    img.style.opacity='0';img.style.transition='opacity .4s ease';
+  }
 
   if (posterUrl) {
     // Encode local filenames for URL (handles accents)
     const safeUrl = posterUrl;
-    img.src = safeUrl;
-    img.style.display = 'block';
+    if(img){ img.src = safeUrl; img.style.display = 'block'; }
     if (ph) ph.style.display = 'none';
     if (bg) bg.style.backgroundImage = 'url(' + safeUrl + ')';
     const bg2e=document.getElementById('hmv-bg2');if(bg2e)bg2e.style.backgroundImage='url('+safeUrl+')';
     const bg2=document.getElementById('hmv-bg2');
     if(bg2) bg2.style.backgroundImage='url('+posterUrl+')';
+    if(img){
     img.onload = () => {
       _hmvApplyHaloColor(img);
       img.style.opacity='1';
@@ -13151,8 +13153,9 @@ function _hmvRender() {
           }).catch(()=>{ hideSkel(); });
       };
     }
+    } // end if(img)
   } else {
-    img.src = ''; img.style.display = 'none';
+    if(img){ img.src = ''; img.style.display = 'none'; }
     if (ph) { ph.style.display = 'flex'; ph.textContent = film.y || ''; }
     if (bg) bg.style.backgroundImage = 'none';
     // Pas d'affiche → on masque le skeleton pour éviter un second shimmer
@@ -14469,6 +14472,7 @@ function _hmReveal(film, idx, canvas){
     _hmvRender();
 
     const viewer=document.getElementById('hm-viewer');
+    if(!viewer)return;
     viewer.classList.add('on');
     document.body.classList.add('viewer-open');
     document.body.style.overflow='hidden';
@@ -19581,6 +19585,11 @@ function runSplash(){
     // Fade label when thumb advances
     const pct = x / maxX;
     if(label) label.style.opacity = Math.max(0, 1 - pct * 2.5);
+    // Trigger music early at 30%
+    if(pct >= 0.30 && !musicStarted){
+      musicStarted = true;
+      if(musOn) playMus();
+    }
     // Trigger at 85%
     if(pct >= 0.85 && !triggered){
       triggered = true;
@@ -19599,12 +19608,6 @@ function runSplash(){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
-    // iOS: prime the audio element in this direct user event so .play() is allowed later
-    if(!musicStarted){
-      musicStarted = true;
-      const t = typeof getTrack==='function' ? getTrack('home') : null;
-      if(t){ t.volume=0; t.play().catch(()=>{}); }
-    }
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
     thumb.style.animation = 'none';
