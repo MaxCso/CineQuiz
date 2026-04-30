@@ -19594,7 +19594,7 @@ function runSplash(){
     if(pct >= 0.85 && !triggered){
       triggered = true;
       sndSwipe();
-      if(musOn) playMus();
+      if(musOn && !musicStarted){ musicStarted = true; playMus(); }
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
@@ -19608,6 +19608,11 @@ function runSplash(){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
+    // iOS: prime the audio element in this direct user event so .play() is allowed later
+    if(!musicStarted){
+      const t = typeof getTrack==='function' ? getTrack('home') : null;
+      if(t){ t.volume=0; t.play().catch(()=>{}); }
+    }
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
     thumb.style.animation = 'none';
