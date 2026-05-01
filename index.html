@@ -19546,6 +19546,34 @@ function closeAvModal(e){
 }
 
 
+// ── SPLASH INTRO SOUND ──
+(function(){
+  var _introSounds = [
+    'Columbia.mp3',
+    'Dreamworks.mp3',
+    'Netflix.mp3',
+    'Paramount.mp3',
+    'Sony Pictures.mp3',
+    'Warner Bros.mp3',
+    'Apple.mp3'
+  ];
+
+  window.playIntroSound = function(){
+    // Pick a random intro sound
+    var file = _introSounds[Math.floor(Math.random() * _introSounds.length)];
+    var audio = new Audio(file);
+    audio.volume = 1.0;
+
+    function afterIntro(){
+      if(typeof musOn !== 'undefined' && musOn && typeof playMus === 'function') playMus();
+    }
+
+    audio.addEventListener('ended', afterIntro);
+    audio.addEventListener('error', afterIntro);
+    audio.play().catch(afterIntro);
+  };
+})();
+
 // ── SPLASH ──
 function runSplash(){
   const splash=document.getElementById('splash');
@@ -19629,16 +19657,13 @@ function runSplash(){
     // Fade label when thumb advances
     const pct = x / maxX;
     if(label) label.style.opacity = Math.max(0, 1 - pct * 2.5);
-    // Trigger music early at 30%
-    if(pct >= 0.30 && !musicStarted){
-      musicStarted = true;
-      if(musOn) playMus();
-    }
+    // (music no longer triggered early at 30% — handled after intro sound)
     // Trigger at 85%
     if(pct >= 0.85 && !triggered){
       triggered = true;
       sndSwipe();
-      if(musOn && !musicStarted){ musicStarted = true; playMus(); }
+      // Play random intro sound, then start game music when it ends
+      playIntroSound();
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
@@ -27704,6 +27729,5 @@ function hmReopenTuto() {
       </button>
     </div>
   </div>
-<script src="supabase-leaderboard.js"></script>
-    <script src="supabase-global.js"></script>
+
 </body></html>
