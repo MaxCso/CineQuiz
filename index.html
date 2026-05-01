@@ -19546,34 +19546,6 @@ function closeAvModal(e){
 }
 
 
-// ── SPLASH : son d'intro aléatoire puis musique du jeu ──
-function _playIntroThenMusic(){
-  var files = [
-    'Columbia.mp3',
-    'Dreamworks.mp3',
-    'Netflix.mp3',
-    'Paramount.mp3',
-    'Sony Pictures.mp3',
-    'Warner Bros.mp3',
-    'Apple.mp3'
-  ];
-  var file = files[Math.floor(Math.random() * files.length)];
-  var audio = new Audio(file);
-  audio.volume = 1.0;
-
-  // Stopper toute musique en cours (le priming iOS peut avoir démarré la piste à vol=0)
-  Object.values(window._musicCache || {}).forEach(function(t){
-    t.pause(); t.currentTime = 0;
-  });
-
-  function afterIntro(){
-    if(musOn && typeof playMus === 'function') playMus();
-  }
-  audio.addEventListener('ended', afterIntro);
-  audio.addEventListener('error', afterIntro);
-  audio.play().catch(afterIntro);
-}
-
 // ── SPLASH ──
 function runSplash(){
   const splash=document.getElementById('splash');
@@ -19661,8 +19633,19 @@ function runSplash(){
     if(pct >= 0.85 && !triggered){
       triggered = true;
       sndSwipe();
-      musicStarted = true; // block any stray playMus calls
-      _playIntroThenMusic(); // play random intro MP3, then game music
+      musicStarted = true;
+      // Jouer le son d'intro pré-primé, puis la musique du jeu
+      if(_introAudioPrimed){
+        _introAudioPrimed.currentTime = 0;
+        _introAudioPrimed.volume = 1.0;
+        Object.values(window._musicCache || {}).forEach(function(t){ t.pause(); t.currentTime = 0; });
+        function afterIntro(){ if(musOn) playMus(); }
+        _introAudioPrimed.addEventListener('ended', afterIntro, {once:true});
+        _introAudioPrimed.addEventListener('error', afterIntro, {once:true});
+        _introAudioPrimed.play().catch(function(){ afterIntro(); });
+      } else {
+        if(musOn) playMus();
+      }
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
@@ -19672,10 +19655,23 @@ function runSplash(){
   }
 
   var musicStarted = false;
+  var _introAudioPrimed = null;
+  var _introFiles = ['Columbia.mp3','Dreamworks.mp3','Netflix.mp3','Paramount.mp3','Sony Pictures.mp3','Warner Bros.mp3','Apple.mp3'];
   function onPointerDown(e){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
+    // iOS PWA : primer un audio dans cet event tactile direct pour autoriser .play() plus tard
+    if(!_introAudioPrimed){
+      var file = _introFiles[Math.floor(Math.random() * _introFiles.length)];
+      _introAudioPrimed = new Audio(file);
+      _introAudioPrimed.volume = 0;
+      _introAudioPrimed.play().then(function(){
+        _introAudioPrimed.pause();
+        _introAudioPrimed.currentTime = 0;
+        _introAudioPrimed.volume = 1.0;
+      }).catch(function(){});
+    }
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
     thumb.style.animation = 'none';
