@@ -19546,9 +19546,9 @@ function closeAvModal(e){
 }
 
 
-// ── SPLASH INTRO SOUND ──
-(function(){
-  var _introSounds = [
+// ── SPLASH : son d'intro aléatoire puis musique du jeu ──
+function _playIntroThenMusic(){
+  var files = [
     'Columbia.mp3',
     'Dreamworks.mp3',
     'Netflix.mp3',
@@ -19557,22 +19557,22 @@ function closeAvModal(e){
     'Warner Bros.mp3',
     'Apple.mp3'
   ];
+  var file = files[Math.floor(Math.random() * files.length)];
+  var audio = new Audio(file);
+  audio.volume = 1.0;
 
-  window.playIntroSound = function(){
-    // Pick a random intro sound
-    var file = _introSounds[Math.floor(Math.random() * _introSounds.length)];
-    var audio = new Audio(file);
-    audio.volume = 1.0;
+  // Stopper toute musique en cours (le priming iOS peut avoir démarré la piste à vol=0)
+  Object.values(window._musicCache || {}).forEach(function(t){
+    t.pause(); t.currentTime = 0;
+  });
 
-    function afterIntro(){
-      if(typeof musOn !== 'undefined' && musOn && typeof playMus === 'function') playMus();
-    }
-
-    audio.addEventListener('ended', afterIntro);
-    audio.addEventListener('error', afterIntro);
-    audio.play().catch(afterIntro);
-  };
-})();
+  function afterIntro(){
+    if(musOn && typeof playMus === 'function') playMus();
+  }
+  audio.addEventListener('ended', afterIntro);
+  audio.addEventListener('error', afterIntro);
+  audio.play().catch(afterIntro);
+}
 
 // ── SPLASH ──
 function runSplash(){
@@ -19657,13 +19657,12 @@ function runSplash(){
     // Fade label when thumb advances
     const pct = x / maxX;
     if(label) label.style.opacity = Math.max(0, 1 - pct * 2.5);
-    // (music no longer triggered early at 30% — handled after intro sound)
     // Trigger at 85%
     if(pct >= 0.85 && !triggered){
       triggered = true;
       sndSwipe();
-      // Play random intro sound, then start game music when it ends
-      playIntroSound();
+      musicStarted = true; // block any stray playMus calls
+      _playIntroThenMusic(); // play random intro MP3, then game music
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
@@ -19677,11 +19676,6 @@ function runSplash(){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
-    // iOS: prime the audio element in this direct user event so .play() is allowed later
-    if(!musicStarted){
-      const t = typeof getTrack==='function' ? getTrack('home') : null;
-      if(t){ t.volume=0; t.play().catch(()=>{}); }
-    }
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
     thumb.style.animation = 'none';
