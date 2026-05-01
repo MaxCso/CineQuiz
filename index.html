@@ -19634,29 +19634,23 @@ function runSplash(){
       triggered = true;
       sndSwipe();
       musicStarted = true;
+      // Jouer le son d'intro pré-primé, puis la musique du jeu
+      if(_introAudioPrimed){
+        _introAudioPrimed.currentTime = 0;
+        _introAudioPrimed.volume = 1.0;
+        Object.values(window._musicCache || {}).forEach(function(t){ t.pause(); t.currentTime = 0; });
+        function afterIntro(){ if(musOn) playMus(); }
+        _introAudioPrimed.addEventListener('ended', afterIntro, {once:true});
+        _introAudioPrimed.addEventListener('error', afterIntro, {once:true});
+        _introAudioPrimed.play().catch(function(){ afterIntro(); });
+      } else {
+        if(musOn) playMus();
+      }
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
       track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
-      setTimeout(()=>{
-        thumb.style.transition = '';
-        // Jouer le son d'intro pré-primé, attendre sa fin, PUIS lancer startSequence + musique
-        if(_introAudioPrimed){
-          _introAudioPrimed.currentTime = 0;
-          _introAudioPrimed.volume = 1.0;
-          Object.values(window._musicCache || {}).forEach(function(t){ t.pause(); t.currentTime = 0; });
-          function afterIntro(){
-            if(musOn) playMus();
-            startSequence();
-          }
-          _introAudioPrimed.addEventListener('ended', afterIntro, {once:true});
-          _introAudioPrimed.addEventListener('error', afterIntro, {once:true});
-          _introAudioPrimed.play().catch(function(){ afterIntro(); });
-        } else {
-          if(musOn) playMus();
-          startSequence();
-        }
-      }, 150);
+      setTimeout(()=>{ thumb.style.transition = ''; startSequence(); }, 150);
     }
   }
 
