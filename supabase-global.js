@@ -384,11 +384,16 @@
     if (!section) {
       section = document.createElement('div');
       section.id = 'profile-ldr-section';
-      section.style.cssText = 'padding:0 16px 16px;';
+      section.style.cssText = 'padding:0;';
 
       // Insérer à la fin du profil (avant la dernière div fermante)
       const scrollEl = profile.querySelector('.prof-scroll') || profile;
-      scrollEl.appendChild(section);
+      const cocteau = document.getElementById('profile-cocteau-quote');
+      if (cocteau && cocteau.parentNode === scrollEl) {
+        scrollEl.insertBefore(section, cocteau);
+      } else {
+        scrollEl.appendChild(section);
+      }
     }
 
     section.innerHTML = `
@@ -494,7 +499,7 @@
     btn.id = 'home-ldr-btn';
     btn.onclick = () => window.openLdrScreen();
     btn.style.cssText = `
-      margin: 0 16px 12px;
+      margin: 0 0 9px;
       background: rgba(255,255,255,.03);
       border: 1px solid rgba(255,255,255,.07);
       border-radius: 18px;
