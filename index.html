@@ -1150,8 +1150,8 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .jk-row-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
 .jk-row-label{font-size:9px;color:rgba(255,255,255,.28);margin-top:1px;letter-spacing:.3px;}
 .jk-unlock-hint{font-size:9px;color:rgba(255,255,255,.28);margin-top:2px;letter-spacing:.2px;font-style:italic;}
-.jk-row.locked{opacity:.4;cursor:default;}
-.jk-row.locked:active{background:none;}
+.jk-row.locked{opacity:.45;cursor:pointer;}
+.jk-row.locked:active{background:rgba(255,255,255,.05);}
 .jk-row-lock{width:28px;height:28px;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;}
 .jk-row-lock svg{width:11px;height:11px;color:rgba(255,255,255,.4);}
 .jk-eq{display:flex;align-items:flex-end;gap:2px;height:14px;flex-shrink:0;padding-right:2px;}
@@ -1309,7 +1309,8 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .jk-row.active{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08);}
 .jk-row.active .jk-row-name{color:var(--gold);}
 .jk-row.active .jk-row-icon{border-color:rgba(245,200,66,.35);}
-.jk-row.locked{opacity:.45;}
+.jk-row.locked{opacity:.45;cursor:pointer;}
+.jk-row.locked:active{background:rgba(255,255,255,.05);}
 .jk-row-icon{
   width:40px;height:40px;border-radius:12px;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
@@ -7158,6 +7159,29 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     </div>
   </div>
 
+  <!-- MODALE JUKEBOX VERROUILLÉ -->
+  <div class="mode-info-over" id="jk-lock-modal" onclick="if(event.target===this)closeJkLockModal()">
+    <div class="mode-info-sh" id="jk-lock-sh" style="--mi-color:var(--gold);">
+      <div class="mode-info-accent" style="background:linear-gradient(90deg,#f5c842,#e8a800);"></div>
+      <div class="mode-info-hdl"></div>
+      <div class="mode-info-head">
+        <div class="mode-info-icon" id="jk-lock-icon" style="font-size:26px;background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.35);">🎵</div>
+        <div>
+          <div class="mode-info-title" id="jk-lock-title" style="color:rgba(255,255,255,.85);">Titre</div>
+          <div class="mode-info-sub">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            VERROUILLÉ
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;color:rgba(255,255,255,.38);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;">Condition de déblocage</div>
+        <div id="jk-lock-hint" style="font-size:15px;font-weight:600;color:rgba(255,255,255,.82);line-height:1.4;"></div>
+      </div>
+      <button onclick="closeJkLockModal()" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:rgba(255,255,255,.5);cursor:pointer;">OK, JE JOUE POUR DÉBLOQUER</button>
+    </div>
+  </div>
+
   <!-- MODALE DÉFI DU JOUR -->
   <div class="mode-info-over" id="daily-modal" onclick="if(event.target===this)closeDailyModal()">
     <div class="mode-info-sh" id="daily-modal-sh">
@@ -12300,6 +12324,20 @@ function openLockModal(m){
   setupSwipeDown(document.getElementById('mode-lock-sh'),closeLockModal);
 }
 function closeLockModal(){document.getElementById('mode-lock-modal').classList.remove('on');}
+
+function openJkLockModal(k){
+  const info=MUSIC_LABELS[k]||{icon:'🎵',label:k};
+  const track=MUSIC_TRACK_NAMES[k]||MUSIC_FILES[k]||k;
+  const u=TRACK_UNLOCK[k];
+  const hint=u&&u.hint?u.hint:'Condition inconnue';
+  document.getElementById('jk-lock-icon').textContent=info.icon;
+  document.getElementById('jk-lock-title').textContent=track;
+  document.getElementById('jk-lock-hint').textContent=hint;
+  const modal=document.getElementById('jk-lock-modal');
+  modal.classList.add('on');
+  setupSwipeDown(document.getElementById('jk-lock-sh'),closeJkLockModal);
+}
+function closeJkLockModal(){document.getElementById('jk-lock-modal').classList.remove('on');}
 
 function renderUnlockBadge(m){
   // Afficher un toast de déblocage
@@ -21199,7 +21237,7 @@ function buildJkPlaylist(){
     const hint=u&&u.hint?u.hint:'';
     const eq=active&&isPlaying&&unlocked?`<div class="jk-eq"><div class="jk-eq-bar"></div><div class="jk-eq-bar"></div><div class="jk-eq-bar"></div></div>`:'';
     if(!unlocked){
-      return`<div class="jk-row locked">
+      return`<div class="jk-row locked" onclick="openJkLockModal('${k}')" style="cursor:pointer;">
         <div class="jk-row-icon">${info.icon}</div>
         <div class="jk-row-info">
           <div class="jk-row-name">${track}</div>
