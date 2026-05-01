@@ -19554,8 +19554,9 @@ function runSplash(){
   const quoteEl=document.getElementById('splash-quote');
   if(!splash)return;
 
-  function startSequence(){
-    // Audio already triggered in swipe handler
+  function startSequence(splashDuration){
+    // splashDuration : durée en ms avant de fermer le splash (défaut 3500)
+    var closeDelay = (typeof splashDuration === 'number' && splashDuration > 0) ? splashDuration : 3500;
 
     // ── Message de retour après absence ──
     try {
@@ -19588,7 +19589,7 @@ function runSplash(){
       if(quoteEl) quoteEl.classList.add('reveal');
     }, 450);
 
-    // Fade out après ouverture complète du rideau (5s) + marge
+    // Fade out une fois que le son d'intro est terminé (ou après closeDelay ms)
     setTimeout(()=>{
       splash.classList.add('out');
       setTimeout(()=>{
@@ -19599,7 +19600,7 @@ function runSplash(){
         allAnimated.forEach(el=>{ el.style.animation='none'; });
         if(window._stopNeuroSplash)window._stopNeuroSplash();
       },700);
-    },3500);
+    }, closeDelay);
   }
 
   // Logo visible dès le départ
@@ -19634,23 +19635,50 @@ function runSplash(){
       triggered = true;
       sndSwipe();
       musicStarted = true;
-      // Jouer le son d'intro pré-primé, puis la musique du jeu
-      if(_introAudioPrimed){
-        _introAudioPrimed.currentTime = 0;
-        _introAudioPrimed.volume = 1.0;
-        Object.values(window._musicCache || {}).forEach(function(t){ t.pause(); t.currentTime = 0; });
-        function afterIntro(){ if(musOn) playMus(); }
-        _introAudioPrimed.addEventListener('ended', afterIntro, {once:true});
-        _introAudioPrimed.addEventListener('error', afterIntro, {once:true});
-        _introAudioPrimed.play().catch(function(){ afterIntro(); });
-      } else {
-        if(musOn) playMus();
-      }
       // Snap to end
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
       track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
-      setTimeout(()=>{ thumb.style.transition = ''; startSequence(); }, 150);
+      setTimeout(function(){
+        thumb.style.transition = '';
+        // Jouer le son d'intro pré-primé jusqu'à la fin, puis lancer la musique du jeu
+        if(_introAudioPrimed){
+          _introAudioPrimed.currentTime = 0;
+          _introAudioPrimed.volume = 1.0;
+          Object.values(window._musicCache || {}).forEach(function(t){ t.pause(); t.currentTime = 0; });
+          var _introFinished = false;
+          function afterIntro(){
+            if(_introFinished) return;
+            _introFinished = true;
+            if(musOn) playMus();
+          }
+          _introAudioPrimed.addEventListener('ended', afterIntro, {once:true});
+          _introAudioPrimed.addEventListener('error', afterIntro, {once:true});
+          _introAudioPrimed.play().then(function(){
+            // Démarrer la séquence splash en synchronisant avec la durée du son
+            // On attend que le son soit terminé (ou max 8s) avant de fermer le splash
+            var introDuration = _introAudioPrimed.duration;
+            // Si la durée est connue, adapter le timing du splash
+            if(introDuration && isFinite(introDuration)){
+              var splashDelay = Math.max(3500, introDuration * 1000 + 200);
+              startSequence(splashDelay);
+            } else {
+              // Durée inconnue : lancer le splash normalement,
+              // et attendre l'event ended pour la musique
+              startSequence(3500);
+              // Fallback : si ended ne se déclenche pas dans 10s, lancer la musique quand même
+              var _fallback = setTimeout(afterIntro, 10000);
+              _introAudioPrimed.addEventListener('ended', function(){ clearTimeout(_fallback); }, {once:true});
+            }
+          }).catch(function(){
+            afterIntro();
+            startSequence(3500);
+          });
+        } else {
+          if(musOn) playMus();
+          startSequence(3500);
+        }
+      }, 150);
     }
   }
 
