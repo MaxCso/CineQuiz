@@ -575,10 +575,114 @@
     };
   }
 
+  /* ══════════════════════════════════════════
+     PATCH openAccountModal — pseudo éditable
+  ══════════════════════════════════════════ */
+
+  function patchAccountModal() {
+    if (typeof window.openAccountModal !== 'function') { setTimeout(patchAccountModal, 200); return; }
+    const _orig = window.openAccountModal;
+    window.openAccountModal = function () {
+      _orig.apply(this, arguments);
+      // Attendre que la modal soit dans le DOM
+      setTimeout(_upgradePseudoField, 80);
+    };
+  }
+
+  function _upgradePseudoField() {
+    const modal = document.getElementById('account-modal');
+    if (!modal) return;
+    // Trouver la card PSEUDO (premier enfant de la liste)
+    const pseudoCard = modal.querySelector('[style*="PSEUDO"]')?.closest('[style*="border-radius:14px"]')
+      || modal.querySelector('div[style*="border:1px solid rgba(255,255,255,.07)"]');
+    if (!pseudoCard || pseudoCard.dataset.upgraded) return;
+    pseudoCard.dataset.upgraded = 'true';
+
+    const s = ls();
+    const currentPseudo = s.pseudo || '';
+
+    pseudoCard.innerHTML = `
+      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.5px;margin-bottom:8px;">PSEUDO</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input
+          id="account-pseudo-input"
+          type="text"
+          value="${currentPseudo.replace(/"/g,'&quot;')}"
+          maxlength="20"
+          placeholder="Ton pseudo…"
+          style="
+            flex:1;background:transparent;border:none;outline:none;
+            font-size:15px;font-weight:600;color:rgba(255,255,255,.85);
+            font-family:inherit;padding:0;
+          "
+        />
+        <button id="account-pseudo-save" onclick="savePseudoFromModal()" style="
+          background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.25);
+          border-radius:9px;padding:5px 12px;color:var(--gold);
+          font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;
+          cursor:pointer;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;
+        ">SAUVER</button>
+      </div>
+      <div id="account-pseudo-counter" style="font-size:9px;color:rgba(255,255,255,.2);margin-top:5px;text-align:right;">
+        ${currentPseudo.length}/20
+      </div>`;
+
+    const input = document.getElementById('account-pseudo-input');
+    const saveBtn = document.getElementById('account-pseudo-save');
+    const counter = document.getElementById('account-pseudo-counter');
+
+    input.addEventListener('input', () => {
+      const v = input.value.trim();
+      counter.textContent = input.value.length + '/20';
+      const changed = v && v !== currentPseudo;
+      saveBtn.style.opacity = changed ? '1' : '0';
+      saveBtn.style.pointerEvents = changed ? 'auto' : 'none';
+    });
+
+    // Focus à la fin du texte
+    input.focus();
+    input.setSelectionRange(currentPseudo.length, currentPseudo.length);
+  }
+
+  window.savePseudoFromModal = async function () {
+    const input = document.getElementById('account-pseudo-input');
+    const saveBtn = document.getElementById('account-pseudo-save');
+    const fb = document.getElementById('account-modal-feedback');
+    if (!input) return;
+
+    const newPseudo = input.value.trim();
+    if (!newPseudo || newPseudo.length < 2) {
+      if (fb) { fb.textContent = '⚠️ Pseudo trop court (2 caractères minimum)'; fb.style.display='block'; fb.style.color='#e8344a'; fb.style.background='rgba(232,52,74,.08)'; fb.style.borderColor='rgba(232,52,74,.2)'; setTimeout(()=>fb.style.display='none',3000); }
+      return;
+    }
+
+    // Sauvegarder en localStorage
+    try {
+      const raw = localStorage.getItem('cq11');
+      const data = raw ? JSON.parse(raw) : {};
+      data.pseudo = newPseudo;
+      localStorage.setItem('cq11', JSON.stringify(data));
+    } catch(e) {}
+
+    // Masquer le bouton
+    if (saveBtn) { saveBtn.style.opacity='0'; saveBtn.style.pointerEvents='none'; }
+
+    // Feedback
+    if (fb) { fb.textContent = '✓ Pseudo mis à jour !'; fb.style.display='block'; fb.style.color='#2ecc71'; fb.style.background='rgba(46,204,113,.08)'; fb.style.borderColor='rgba(46,204,113,.2)'; setTimeout(()=>fb.style.display='none',3000); }
+
+    // Mettre à jour dans Supabase si le pseudo a changé (renommer les scores)
+    // On recharge juste la section profil si elle existe
+    setTimeout(() => {
+      const profileSection = document.getElementById('profile-ldr-section');
+      if (profileSection) injectProfileLeaderboard();
+    }, 500);
+  };
+
   /* ── Init ── */
   function init() {
     patchShowResult();
     patchGoProfile();
+    patchAccountModal();
     // Bouton accueil : injecter quand le DOM est stable
     setTimeout(injectHomeButton, 800);
   }
