@@ -134,6 +134,9 @@
     } catch { return []; }
   }
 
+  // Exposer pour usage externe (modale mode info dans index.html)
+  window._sbFetchMode = sbFetchMode;
+
   /* ── Fetch tous les modes pour le classement par mode ── */
   async function sbFetchAllModes() {
     try {
