@@ -561,9 +561,11 @@
       const pseudo = s.pseudo || null;
       if (!pseudo) return;
 
-      const currentScore = window.score || 0;
-      const currentMode  = window.selMode || 'quiz';
-      const gainedXp     = xp || 0;
+      // Lire les valeurs capturées par showResult() au moment de l'appel
+      // (window.score et window.selMode ne sont pas accessibles car déclarés en let)
+      const currentScore = window._cqLastScore || 0;
+      const currentMode  = window._cqLastMode  || 'quiz';
+      const gainedXp     = window._cqLastXp    || xp || 0;
 
       // Soumettre en arrière-plan (sans bloquer l'UI)
       setTimeout(async () => {
