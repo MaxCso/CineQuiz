@@ -337,15 +337,27 @@
     createLeaderboardScreen();
     const el = document.getElementById('global-ldr-screen');
     if (el) {
+      // go() met display:none sur tous les .scr — on doit le remettre avant classList.add('on')
+      el.style.display = '';
+      el.style.opacity = '';
+      el.style.pointerEvents = '';
       el.classList.add('on');
       _currentTab = 'global';
-      switchLdrTab('global');
+      switchLdrTab('global'); // recharge toujours le contenu
     }
   };
 
   window.closeLdrScreen = function () {
     const el = document.getElementById('global-ldr-screen');
-    if (el) el.classList.remove('on');
+    if (el) {
+      el.classList.remove('on');
+      el.style.display = 'none';
+    }
+    // Retourner à l'écran d'où on venait (profil ou accueil)
+    if (typeof window.go === 'function') {
+      const prev = document.querySelector('.scr.on');
+      if (!prev) window.go('profile');
+    }
   };
 
   window.switchLdrTab = function (tab) {
