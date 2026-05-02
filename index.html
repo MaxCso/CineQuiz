@@ -2589,8 +2589,8 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   height:100%;
 }
 .iris-blade{
-  transform-box:fill-box;
-  transform-origin:50% 50%;
+  transform-box:view-box;
+  transform-origin:400px 400px;
   will-change:transform,opacity;
 }
 /* ── (rideaux supprimés — remplacés par iris) ── */
@@ -19743,8 +19743,13 @@ function runSplash(){
 
     // Toutes les lames bougent exactement en même temps — synchronisé comme un objectif
     blades.forEach(b => {
+      const idx = parseInt(b.dataset.idx || '0');
+      const angleRad = ((360 / 10) * idx + (360 / 10) * 0.5) * Math.PI / 180; // angle moyen de la lame
+      const pushDist = 900; // distance de sortie en unités SVG (largement hors écran)
+      const tx = Math.cos(angleRad) * pushDist;
+      const ty = Math.sin(angleRad) * pushDist;
       b.style.transition = `transform ${easeDur}ms cubic-bezier(.5,0,.15,1) 0ms, opacity ${Math.round(dur*0.35)}ms ease ${fadeAt}ms`;
-      b.style.transform  = `rotate(${rotDeg}deg)`;
+      b.style.transform  = `rotate(${rotDeg}deg) translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
       b.style.opacity    = '0';
     });
   }
