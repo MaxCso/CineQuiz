@@ -7108,6 +7108,8 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       </div>
       <div class="mode-info-desc" id="mode-info-desc">Description du mode.</div>
       <div class="mode-info-tips" id="mode-info-tips"></div>
+      <!-- Mini classement du mode -->
+      <div id="mode-info-ldr" style="margin-bottom:14px;"></div>
       <!-- Sélecteur sous-mode entraînement -->
       <div id="training-submode-wrap" style="display:none;margin-bottom:14px;">
         <div style="font-size:9px;color:rgba(245,200,66,.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Choisir un mode</div>
@@ -12377,6 +12379,8 @@ function openModeInfo(m,el){
   over.classList.add('on');
   // Swipe vers le bas pour fermer
   setupSwipeDown(sh,closeModeInfo);
+  // Charger le mini classement du mode
+  _loadModeLdr(m);
 }
 function setQCount(n,el){
   TOTAL=n;
@@ -12385,6 +12389,64 @@ function setQCount(n,el){
 }
 function closeModeInfo(){
   document.getElementById('mode-info-modal').classList.remove('on');
+}
+
+async function _loadModeLdr(mode){
+  const el=document.getElementById('mode-info-ldr');
+  if(!el)return;
+
+  // Skeleton
+  el.innerHTML=`
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px 13px;">
+      <div style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">🏆 Meilleurs joueurs</div>
+      <div style="animation:_sqPulse 1.2s ease-in-out infinite;">
+        ${[1,2,3].map(()=>`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+          <div style="width:16px;height:12px;background:rgba(255,255,255,.07);border-radius:3px;flex-shrink:0;"></div>
+          <div style="flex:1;height:11px;background:rgba(255,255,255,.07);border-radius:3px;"></div>
+          <div style="width:36px;height:14px;background:rgba(255,255,255,.07);border-radius:3px;"></div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+
+  // Fetch depuis Supabase via sbFetchMode (exposé par supabase-global.js)
+  let board=[];
+  try{
+    if(typeof window._sbFetchMode==='function'){
+      board=await window._sbFetchMode(mode,5);
+    }
+  }catch{}
+
+  const s=ls();
+  const myPseudo=s.pseudo||null;
+  const medals=['🥇','🥈','🥉'];
+  const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
+
+  if(!board.length){
+    el.innerHTML=`
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px 13px;text-align:center;">
+        <div style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🏆 Meilleurs joueurs</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.25);">Sois le premier à jouer ce mode !</div>
+      </div>`;
+    return;
+  }
+
+  const myRank=myPseudo?board.findIndex(e=>e.pseudo===myPseudo)+1:0;
+
+  el.innerHTML=`
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px 13px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;">🏆 Meilleurs joueurs</span>
+        ${myRank?`<span style="font-size:9px;font-weight:700;color:rgba(245,200,66,.7);">Tu es ${myRank}${myRank===1?'er':'ème'}</span>`:''}
+      </div>
+      ${board.map((e,i)=>{
+        const isMe=myPseudo&&e.pseudo===myPseudo;
+        return`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;${i<board.length-1?'border-bottom:1px solid rgba(255,255,255,.04);':''}${isMe?'background:rgba(245,200,66,.04);border-radius:8px;padding:5px 5px;margin:0 -5px;':''}">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${rankColors[i]||'rgba(255,255,255,.25)'};width:18px;text-align:center;flex-shrink:0;">${medals[i]||(i+1)}</span>
+          <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${isMe?'font-weight:700;color:rgba(255,255,255,.9);':'color:rgba(255,255,255,.5);'}">${e.pseudo}${isMe?' ◀':''}</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;${isMe?'color:var(--gold);':'color:rgba(255,255,255,.4);'}">${e.best_score.toLocaleString()}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 function launchFromInfo(){
   closeModeInfo();
