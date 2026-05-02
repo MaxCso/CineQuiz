@@ -2499,6 +2499,17 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 #splash-bg{
   position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;
 }
+/* orbes animées */
+@keyframes orbeFloat1{
+  0%,100%{transform:translate(0,0) scale(1);}
+  30%    {transform:translate(3%,4%) scale(1.06);}
+  60%    {transform:translate(-4%,2%) scale(.96);}
+}
+@keyframes orbeFloat2{
+  0%,100%{transform:translate(0,0) scale(1);}
+  25%    {transform:translate(-3%,-5%) scale(1.04);}
+  65%    {transform:translate(4%,-2%) scale(.97);}
+}
 #splash-bg::before{
   content:'';position:absolute;inset:-30%;width:160%;height:160%;
   background:
@@ -2506,6 +2517,7 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
     radial-gradient(ellipse 55% 45% at 68% 65%, rgba(20,60,180,.45) 0%, transparent 55%),
     radial-gradient(ellipse 50% 42% at 22% 70%, rgba(140,20,80,.38) 0%, transparent 54%),
     radial-gradient(ellipse 45% 35% at 72% 18%, rgba(170,80,10,.32) 0%, transparent 50%);
+  animation:orbeFloat1 14s ease-in-out infinite;
 }
 #splash-bg::after{
   content:'';position:absolute;inset:-20%;width:140%;height:140%;
@@ -2513,7 +2525,20 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
     radial-gradient(ellipse 40% 32% at 58% 42%, rgba(190,105,15,.18) 0%, transparent 50%),
     radial-gradient(ellipse 46% 37% at 28% 52%, rgba(10,55,150,.15) 0%, transparent 52%),
     radial-gradient(ellipse 80% 70% at 50% 50%, transparent 25%, rgba(0,0,0,.45) 100%);
+  animation:orbeFloat2 18s ease-in-out infinite;
 }
+/* canvas film effect par-dessus les orbes */
+#splash-canvas{
+  position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;
+}
+#splash-film-ref{
+  position:absolute;bottom:18px;left:0;right:0;
+  text-align:center;z-index:5;pointer-events:none;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,255,.18);font-family:'DM Sans',sans-serif;
+  opacity:0;transition:opacity 1.4s ease;
+}
+#splash.curtain-open #splash-film-ref{opacity:1;}
 
 /* ── Agitation rapide des orbes à l'ouverture du rideau ── */
 #splash-bg-anim{
@@ -2563,42 +2588,133 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   100%{opacity:0;}
 }
 
-#splash.curtain-open #splash-bg-anim,
-#splash.iris-open #splash-bg-anim{
+#splash.curtain-open #splash-bg-anim{
   animation:bgJoltFade 4.2s ease forwards;
 }
-#splash.curtain-open #splash-bg-anim::before,
-#splash.iris-open #splash-bg-anim::before{
+#splash.curtain-open #splash-bg-anim::before{
   animation:orbeJolt 4.2s cubic-bezier(.22,.68,0,1) forwards;
 }
-#splash.curtain-open #splash-bg-anim::after,
-#splash.iris-open #splash-bg-anim::after{
+#splash.curtain-open #splash-bg-anim::after{
   animation:orbeJolt2 4.2s cubic-bezier(.22,.68,0,1) .06s forwards;
 }
 
-/* ── IRIS DIAPHRAGME ── */
-#splash-iris{
-  position:absolute;inset:0;
-  z-index:3;
+/* ── RIDEAU CINÉMA — V4 : Velours plissé ── */
+.splash-curtain{
+  position:absolute;inset:0;z-index:1;
+  display:flex;
   pointer-events:none;
 }
-#splash-iris svg{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-}
-.iris-blade{
-  transform-box:view-box;
-  transform-origin:400px 400px;
-  will-change:transform,opacity;
-}
-/* ── (rideaux supprimés — remplacés par iris) ── */
-.splash-curtain{display:none;}
-.splash-curtain-l,.splash-curtain-r{display:none;}
 
-/* ── (styles rideaux retirés) ── */
-.splash-logo-wrap{position:relative;z-index:4;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
+.splash-curtain-seam{
+  position:absolute;
+  top:0;bottom:0;
+  left:calc(50% - 1px);
+  width:2px;
+  background:transparent;
+  box-shadow:0 0 25px 18px rgba(0,0,0,.6);
+  pointer-events:none;
+  z-index:10;
+  transition:opacity .4s ease;
+}
+.splash-curtain.open .splash-curtain-seam{opacity:0;}
+.splash-curtain-l,.splash-curtain-r{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  transition:none;
+}
+
+/* Plis : alternance lumière/ombre simulant le velours drapé */
+.splash-curtain-l{
+  transform-origin:left center;
+  background:
+    linear-gradient(90deg, transparent 88%, rgba(0,0,0,.7) 100%),
+    linear-gradient(90deg, rgba(80,30,20,.18) 0%, transparent 18%),
+    repeating-linear-gradient(90deg,
+      rgba(0,0,0,.0)   0px,
+      rgba(0,0,0,.28)  6px,
+      rgba(60,10,10,.08) 12px,
+      rgba(0,0,0,.0)   22px,
+      rgba(0,0,0,.22)  30px,
+      rgba(0,0,0,.0)   42px,
+      rgba(20,5,5,.15) 50px,
+      rgba(0,0,0,.32)  56px,
+      rgba(0,0,0,.0)   70px,
+      rgba(0,0,0,.18)  80px,
+      rgba(0,0,0,.0)   96px,
+      rgba(0,0,0,.26)  104px,
+      rgba(0,0,0,.0)   118px,
+      rgba(30,8,8,.12) 128px,
+      rgba(0,0,0,.28)  136px,
+      rgba(0,0,0,.0)   152px
+    ),
+    linear-gradient(90deg,
+      rgb(18,5,8) 0%,
+      rgb(28,8,12) 30%,
+      rgb(22,6,10) 60%,
+      rgb(15,4,7) 100%
+    );
+  box-shadow:12px 0 50px rgba(0,0,0,.9), inset -40px 0 50px rgba(0,0,0,.85);
+}
+.splash-curtain-r{
+  transform-origin:right center;
+  background:
+    linear-gradient(270deg, transparent 88%, rgba(0,0,0,.7) 100%),
+    linear-gradient(270deg, rgba(80,30,20,.18) 0%, transparent 18%),
+    repeating-linear-gradient(270deg,
+      rgba(0,0,0,.0)   0px,
+      rgba(0,0,0,.28)  6px,
+      rgba(60,10,10,.08) 12px,
+      rgba(0,0,0,.0)   22px,
+      rgba(0,0,0,.22)  30px,
+      rgba(0,0,0,.0)   42px,
+      rgba(20,5,5,.15) 50px,
+      rgba(0,0,0,.32)  56px,
+      rgba(0,0,0,.0)   70px,
+      rgba(0,0,0,.18)  80px,
+      rgba(0,0,0,.0)   96px,
+      rgba(0,0,0,.26)  104px,
+      rgba(0,0,0,.0)   118px,
+      rgba(30,8,8,.12) 128px,
+      rgba(0,0,0,.28)  136px,
+      rgba(0,0,0,.0)   152px
+    ),
+    linear-gradient(270deg,
+      rgb(18,5,8) 0%,
+      rgb(28,8,12) 30%,
+      rgb(22,6,10) 60%,
+      rgb(15,4,7) 100%
+    );
+  box-shadow:-12px 0 50px rgba(0,0,0,.9), inset 40px 0 50px rgba(0,0,0,.85);
+}
+
+/* Liseré retiré */
+
+/* Ombre bord intérieur */
+
+.splash-curtain.open .splash-curtain-l{
+  animation:curtainOpenL 4.2s cubic-bezier(.4,.0,.6,1) forwards;
+}
+.splash-curtain.open .splash-curtain-r{
+  animation:curtainOpenR 4.2s cubic-bezier(.4,.0,.6,1) forwards;
+}
+@keyframes curtainOpenL{
+  0%  {transform:translateX(0);}
+  78% {transform:translateX(-104%);}
+  87% {transform:translateX(-97%);}
+  93% {transform:translateX(-102%);}
+  97% {transform:translateX(-99%);}
+  100%{transform:translateX(-100%);}
+}
+@keyframes curtainOpenR{
+  0%  {transform:translateX(0);}
+  78% {transform:translateX(104%);}
+  87% {transform:translateX(97%);}
+  93% {transform:translateX(102%);}
+  97% {transform:translateX(99%);}
+  100%{transform:translateX(100%);}
+}
+.splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
 .splash-logo{
   font-family:'Bebas Neue',sans-serif;font-size:85px;letter-spacing:5px;
@@ -2828,8 +2944,7 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
   transition:opacity .8s ease .7s, transform .5s ease;
 }
 #splash.ready .splash-credit{opacity:1;}
-#splash.curtain-open .splash-credit,
-#splash.iris-open .splash-credit{opacity:0;transform:translateY(8px);transition:opacity .4s ease, transform .4s ease;}
+#splash.curtain-open .splash-credit{opacity:0;transform:translateY(8px);transition:opacity .4s ease, transform .4s ease;}
 
 @keyframes tapPulse{0%,100%{opacity:.3;}50%{opacity:.8;}}
 
@@ -6742,106 +6857,6 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
   user-select: none;
   -webkit-touch-callout: none;
 }
-
-/* ── Jukebox : layout 2 colonnes en paysage mobile ── */
-#jk-landscape-body{
-  display: contents; /* transparent en portrait — les enfants se comportent comme directs */
-}
-@media(orientation:landscape) and (max-width:932px) and (max-height:500px){
-  #jukebox{
-    padding: max(10px,env(safe-area-inset-top)) 14px 0;
-    flex-direction: column;
-    gap: 0;
-  }
-  #jukebox .jk-topbar{
-    margin-bottom: 6px;
-    flex-shrink: 0;
-  }
-  /* Wrapper 2 colonnes */
-  #jk-landscape-body{
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-    gap: 14px;
-    min-height: 0;
-    overflow: hidden;
-  }
-  /* Colonne gauche : player */
-  #jukebox .jk-hero{
-    width: 200px;
-    flex-shrink: 0;
-    padding: 4px 0 8px;
-    gap: 6px;
-    align-self: flex-start;
-  }
-  #jukebox .jk-hero .jk-icon{
-    width: 58px;
-    height: 58px;
-    font-size: 28px;
-    border-radius: 16px;
-    animation: none;
-  }
-  #jukebox .jk-hero .jk-track{ font-size: 14px; letter-spacing: 1px; }
-  #jukebox .jk-hero .jk-mode{ font-size: 9px; }
-  #jukebox .jk-hero .jk-btn{ width: 34px; height: 34px; }
-  #jukebox .jk-hero .jk-btn.main{ width: 44px; height: 44px; }
-  #jukebox .jk-hero .jk-btn svg{ width: 13px; height: 13px; }
-  #jukebox .jk-hero .jk-btn.main svg{ width: 17px; height: 17px; }
-  #jukebox .jk-hero .jk-controls{ gap: 8px; margin-top: 4px; }
-  #jukebox .jk-hero .jk-times{ font-size: 8px; }
-  #jukebox .jk-konami-dots{ display: none; }
-  /* Colonne droite : playlist / vidéos */
-  #jk-music-section,
-  #jk-video-section{
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column;
-    min-height: 0;
-    min-width: 0;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
-  }
-  #jk-music-section[style*="display:none"],
-  #jk-video-section[style*="display:none"]{
-    display: none !important;
-  }
-}
-
-/* ── Landscape blocker (hors zones vidéo) ── */
-#landscape-blocker{
-  display:none;
-  position:fixed;inset:0;z-index:99999;
-  background:#0a0a0f;
-  flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:20px;
-  pointer-events:all;
-}
-#landscape-blocker .lb-icon{
-  font-size:52px;
-  animation:lbSpin 1.6s ease-in-out infinite alternate;
-}
-@keyframes lbSpin{
-  0%  {transform:rotate(-15deg);}
-  100%{transform:rotate(15deg);}
-}
-#landscape-blocker .lb-text{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:22px;
-  letter-spacing:2px;
-  color:var(--gold);
-  text-align:center;
-  line-height:1.3;
-}
-#landscape-blocker .lb-sub{
-  font-size:13px;
-  color:var(--mt);
-  text-align:center;
-}
-@media(orientation:landscape) and (max-width:768px){
-  body:not(.video-active) #landscape-blocker{
-    display:flex;
-  }
-}
 </style>
 </head>
 <body>
@@ -7118,8 +7133,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       </div>
       <div class="mode-info-desc" id="mode-info-desc">Description du mode.</div>
       <div class="mode-info-tips" id="mode-info-tips"></div>
-      <!-- Mini classement du mode -->
-      <div id="mode-info-ldr" style="margin-bottom:14px;"></div>
       <!-- Sélecteur sous-mode entraînement -->
       <div id="training-submode-wrap" style="display:none;margin-bottom:14px;">
         <div style="font-size:9px;color:rgba(245,200,66,.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Choisir un mode</div>
@@ -7416,13 +7429,18 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   <!-- SPLASH SCREEN -->
   <div id="splash">
     <div id="splash-bg"></div>
+    <canvas id="splash-canvas"></canvas>
+    <div id="splash-film-ref"></div>
 
     <!-- Flash projecteur au moment de l'ouverture du rideau -->
     <div id="splash-flash"></div>
     <div id="splash-bg-anim"></div>
 
-    <!-- Iris diaphragme (remplace les rideaux) -->
-    <div id="splash-iris"></div>
+    <div class="splash-curtain" id="splash-curtain">
+      <div class="splash-curtain-l"></div>
+      <div class="splash-curtain-r"></div>
+      <div class="splash-curtain-seam"></div>
+    </div>
     <div class="splash-logo-wrap" id="splash-logo">
       <div class="splash-logo-container">
         <div class="splash-logo">CinéQuiz</div>
@@ -7803,7 +7821,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       <div class="jk-title" id="jk-title-tap">🎵 JUKEBOX</div>
       <div style="width:40px;"></div>
     </div>
-    <div id="jk-landscape-body">
     <div class="jk-hero">
 <span class="jk-icon" id="jk-icon" aria-hidden="true">🎵</span>
       <!-- Indicateur de progression Konami (invisible jusqu'au 1er tap) -->
@@ -7925,7 +7942,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div class="jk-vid-list" id="jk-vid-list"></div>
       </div>
     </div>
-    </div><!-- /#jk-landscape-body -->
   </div>
 
 
@@ -12388,8 +12404,6 @@ function openModeInfo(m,el){
   over.classList.add('on');
   // Swipe vers le bas pour fermer
   setupSwipeDown(sh,closeModeInfo);
-  // Charger le mini classement du mode
-  _loadModeLdr(m);
 }
 function setQCount(n,el){
   TOTAL=n;
@@ -12398,64 +12412,6 @@ function setQCount(n,el){
 }
 function closeModeInfo(){
   document.getElementById('mode-info-modal').classList.remove('on');
-}
-
-async function _loadModeLdr(mode){
-  const el=document.getElementById('mode-info-ldr');
-  if(!el)return;
-
-  // Skeleton
-  el.innerHTML=`
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px 13px;">
-      <div style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">🏆 Meilleurs joueurs</div>
-      <div style="animation:_sqPulse 1.2s ease-in-out infinite;">
-        ${[1,2,3].map(()=>`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-          <div style="width:16px;height:12px;background:rgba(255,255,255,.07);border-radius:3px;flex-shrink:0;"></div>
-          <div style="flex:1;height:11px;background:rgba(255,255,255,.07);border-radius:3px;"></div>
-          <div style="width:36px;height:14px;background:rgba(255,255,255,.07);border-radius:3px;"></div>
-        </div>`).join('')}
-      </div>
-    </div>`;
-
-  // Fetch depuis Supabase via sbFetchMode (exposé par supabase-global.js)
-  let board=[];
-  try{
-    if(typeof window._sbFetchMode==='function'){
-      board=await window._sbFetchMode(mode,5);
-    }
-  }catch{}
-
-  const s=ls();
-  const myPseudo=s.pseudo||null;
-  const medals=['🥇','🥈','🥉'];
-  const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
-
-  if(!board.length){
-    el.innerHTML=`
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px 13px;text-align:center;">
-        <div style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">🏆 Meilleurs joueurs</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.25);">Sois le premier à jouer ce mode !</div>
-      </div>`;
-    return;
-  }
-
-  const myRank=myPseudo?board.findIndex(e=>e.pseudo===myPseudo)+1:0;
-
-  el.innerHTML=`
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:11px 13px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <span style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase;">🏆 Meilleurs joueurs</span>
-        ${myRank?`<span style="font-size:9px;font-weight:700;color:rgba(245,200,66,.7);">Tu es ${myRank}${myRank===1?'er':'ème'}</span>`:''}
-      </div>
-      ${board.map((e,i)=>{
-        const isMe=myPseudo&&e.pseudo===myPseudo;
-        return`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;${i<board.length-1?'border-bottom:1px solid rgba(255,255,255,.04);':''}${isMe?'background:rgba(245,200,66,.04);border-radius:8px;padding:5px 5px;margin:0 -5px;':''}">
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:${rankColors[i]||'rgba(255,255,255,.25)'};width:18px;text-align:center;flex-shrink:0;">${medals[i]||(i+1)}</span>
-          <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${isMe?'font-weight:700;color:rgba(255,255,255,.9);':'color:rgba(255,255,255,.5);'}">${e.pseudo}${isMe?' ◀':''}</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;${isMe?'color:var(--gold);':'color:rgba(255,255,255,.4);'}">${e.best_score.toLocaleString()}</span>
-        </div>`;
-      }).join('')}
-    </div>`;
 }
 function launchFromInfo(){
   closeModeInfo();
@@ -18479,10 +18435,6 @@ function _buildMissed(){
 }
 
 function showResult(s,xp){
-  // Exposer score et selMode sur window pour supabase-global.js
-  window._cqLastScore = score;
-  window._cqLastMode  = selMode;
-  window._cqLastXp    = xp || 0;
   // Persister le mode pour le retrouver à l'accueil
   try{localStorage.setItem('cq_last_mode',selMode);}catch(e){}
 
@@ -19659,102 +19611,283 @@ function closeAvModal(e){
 
 
 // ── SPLASH ──
+// ── SPLASH FILM EFFECTS ──
+(function(){
+  const EFFECTS = [
+    {
+      name:'Matrix',
+      ref:'The Matrix \u2014 Wachowski, 1999',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.55';
+        const cols=Math.floor(W/14);
+        const drops=Array.from({length:cols},()=>Math.random()*-40|0);
+        const chars='\u30A2\u30A4\u30A6\u30A8\u30AA\u30AB\u30AD\u30AF\u30B1\u30B3\u30B5\u30B7\u30B9\u30BB\u30BD\u30BF\u30C1\u30C4\u30C6\u30C8\u30CA\u30CB\u30CC\u30CD\u30CE\u30CF\u30D2\u30D5\u30D8\u30DB\u30DE\u30DF\u30E0\u30E1\u30E2\u30E4\u30E6\u30E8\u30E9\u30EA\u30EB\u30EC\u30ED\u30EF\u30F2\u30F30123456789';
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.1)';
+          ctx.fillRect(0,0,W,H);
+          ctx.font='13px monospace';
+          for(let i=0;i<cols;i++){
+            const c=chars[Math.random()*chars.length|0];
+            const x=i*14, y=drops[i]*14;
+            const bright=drops[i]<1;
+            ctx.fillStyle=bright?'#b0ffb0':'rgba(0,'+(140+Math.random()*80|0)+',0,0.85)';
+            ctx.fillText(c,x,y);
+            if(y>H && Math.random()>0.975) drops[i]=0;
+            else drops[i]++;
+          }
+          requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'2001',
+      ref:'2001: A Space Odyssey \u2014 Kubrick, 1968',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.7';
+        let t=0;
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.08)';
+          ctx.fillRect(0,0,W,H);
+          const cx=W/2,cy=H/2;
+          const rays=120;
+          for(let i=0;i<rays;i++){
+            const a=(i/rays)*Math.PI*2+t*0.3;
+            const spd=1+((i*17)%5)*0.4;
+            const len=((t*spd*80+i*300)%H)*1.1;
+            const hue=(i/rays*360+t*60)%360;
+            const sat=60+((i*7)%40);
+            ctx.strokeStyle=`hsla(${hue},${sat}%,70%,0.35)`;
+            ctx.lineWidth=1.2;
+            ctx.beginPath();
+            ctx.moveTo(cx,cy);
+            ctx.lineTo(cx+Math.cos(a)*len,cy+Math.sin(a)*len);
+            ctx.stroke();
+          }
+          const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.75);
+          vg.addColorStop(0,'rgba(0,0,0,0)');
+          vg.addColorStop(1,'rgba(0,0,0,0.65)');
+          ctx.fillStyle=vg;
+          ctx.fillRect(0,0,W,H);
+          t+=0.012;
+          requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Blade Runner',
+      ref:'Blade Runner \u2014 Ridley Scott, 1982',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.65';
+        const drops=Array.from({length:120},()=>({
+          x:Math.random()*W,y:Math.random()*H,
+          len:Math.random()*80+30,spd:Math.random()*4+6,op:Math.random()*0.4+0.1
+        }));
+        const neons=[
+          {x:W*0.2,color:'rgba(220,60,60,',w:60},
+          {x:W*0.6,color:'rgba(60,100,220,',w:80},
+          {x:W*0.85,color:'rgba(200,40,120,',w:45}
+        ];
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.18)';
+          ctx.fillRect(0,0,W,H);
+          ctx.lineWidth=1;
+          for(const d of drops){
+            ctx.strokeStyle=`rgba(160,200,255,${d.op})`;
+            ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-2,d.y+d.len);ctx.stroke();
+            d.y+=d.spd;
+            if(d.y>H+d.len){d.y=-d.len;d.x=Math.random()*W;}
+          }
+          for(const n of neons){
+            const rg=ctx.createRadialGradient(n.x,H,0,n.x,H,n.w);
+            rg.addColorStop(0,n.color+'0.2)');rg.addColorStop(1,n.color+'0)');
+            ctx.fillStyle=rg;ctx.fillRect(n.x-n.w,H-60,n.w*2,60);
+          }
+          requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Star Wars',
+      ref:'Star Wars \u2014 George Lucas, 1977',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.7';
+        const cx=W/2,cy=H/2;
+        const stars=Array.from({length:200},()=>({
+          angle:Math.random()*Math.PI*2,dist:Math.random()*Math.hypot(W,H)*0.5,
+          spd:Math.random()*2+1,size:Math.random()*1.5+0.5
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.15)';
+          ctx.fillRect(0,0,W,H);
+          for(const s of stars){
+            s.dist+=s.spd*(1+s.dist/200*0.06);
+            const x=cx+Math.cos(s.angle)*s.dist, y=cy+Math.sin(s.angle)*s.dist;
+            const stretch=Math.min(s.spd*s.dist*0.012,18);
+            const x0=cx+Math.cos(s.angle)*(s.dist-stretch), y0=cy+Math.sin(s.angle)*(s.dist-stretch);
+            const op=Math.min(s.dist/100,1);
+            ctx.strokeStyle=`rgba(255,255,255,${op*0.85})`;
+            ctx.lineWidth=s.size*(1+s.dist/300);
+            ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x,y);ctx.stroke();
+            if(x<-10||x>W+10||y<-10||y>H+10){s.dist=Math.random()*30;s.angle=Math.random()*Math.PI*2;s.spd=Math.random()*2+1;}
+          }
+          const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,80);
+          cg.addColorStop(0,'rgba(220,220,255,0.12)');cg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=cg;ctx.fillRect(0,0,W,H);
+          requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Interstellar',
+      ref:'Interstellar \u2014 Christopher Nolan, 2014',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.72';
+        let t=0;
+        const cx=W/2,cy=H/2,R=Math.min(W,H)*0.28;
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.12)';
+          ctx.fillRect(0,0,W,H);
+          for(let r=0;r<8;r++){
+            const rr=R*(0.7+r*0.12),op=0.18-r*0.018,hue=30+r*8;
+            ctx.strokeStyle=`hsla(${hue},80%,70%,${op})`;
+            ctx.lineWidth=3-r*0.25;
+            ctx.beginPath();ctx.ellipse(cx,cy,rr,rr*0.32,t*0.04+r*0.1,0,Math.PI*2);ctx.stroke();
+          }
+          const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*0.65);
+          bg.addColorStop(0,'rgba(0,0,0,1)');bg.addColorStop(0.7,'rgba(0,0,0,0.95)');bg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=bg;ctx.beginPath();ctx.arc(cx,cy,R*0.65,0,Math.PI*2);ctx.fill();
+          for(let i=0;i<3;i++){
+            const a=t*0.5+i*2.1,px=cx+Math.cos(a)*R*0.72,py=cy+Math.sin(a)*R*0.22;
+            const pg=ctx.createRadialGradient(px,py,0,px,py,16);
+            pg.addColorStop(0,'rgba(255,200,100,0.3)');pg.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=pg;ctx.fillRect(px-20,py-20,40,40);
+          }
+          ctx.fillStyle='rgba(255,255,255,0.6)';
+          for(let i=0;i<30;i++){
+            const sa=(i/30)*Math.PI*2+t*0.01,sd=R*1.6+Math.sin(i*5)*R*0.4;
+            ctx.beginPath();ctx.arc(cx+Math.cos(sa)*sd,cy+Math.sin(sa)*sd*0.5,0.8,0,Math.PI*2);ctx.fill();
+          }
+          t+=0.015;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Tron',
+      ref:'Tron \u2014 Steven Lisberger, 1982',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.6';
+        let t=0;
+        const vp={x:W/2,y:H/2};
+        const cycles=[
+          {x:W*0.3,y:H*0.6,dx:2,dy:0,color:'rgba(0,220,255,',trail:[]},
+          {x:W*0.7,y:H*0.65,dx:-2,dy:0,color:'rgba(255,80,0,',trail:[]}
+        ];
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.12)';
+          ctx.fillRect(0,0,W,H);
+          const horizon=H*0.5,prog=((t*20)%80)/80;
+          for(let i=0;i<=10;i++){
+            const fx=W*i/10;
+            ctx.strokeStyle=`rgba(0,180,255,${0.06+0.04*(i%2)})`;
+            ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(fx,horizon);ctx.lineTo(vp.x+(fx-vp.x)*0.08,H+20);ctx.stroke();
+          }
+          for(let j=0;j<=8;j++){
+            const p=((j/8)+prog)%1,y=horizon+p*(H-horizon+20),spread=(p*0.92+0.08);
+            ctx.strokeStyle=`rgba(0,180,255,${0.07*(1-p)})`;
+            ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(vp.x-(W*0.5)*spread,y);ctx.lineTo(vp.x+(W*0.5)*spread,y);ctx.stroke();
+          }
+          for(const c of cycles){
+            c.trail.push({x:c.x,y:c.y});
+            if(c.trail.length>60)c.trail.shift();
+            c.x+=c.dx;c.y+=c.dy;
+            if(c.x<0||c.x>W){c.dx*=-1;c.dy=Math.random()>0.5?1.5:-1.5;}
+            if(c.y<horizon||c.y>H){c.dy*=-1;c.dx=Math.random()>0.5?2:-2;}
+            for(let i=1;i<c.trail.length;i++){
+              ctx.strokeStyle=c.color+(i/c.trail.length*0.55)+')';
+              ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(c.trail[i-1].x,c.trail[i-1].y);ctx.lineTo(c.trail[i].x,c.trail[i].y);ctx.stroke();
+            }
+            const hg=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,10);
+            hg.addColorStop(0,c.color+'0.8)');hg.addColorStop(1,c.color+'0)');
+            ctx.fillStyle=hg;ctx.fillRect(c.x-12,c.y-12,24,24);
+          }
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Psycho',
+      ref:'Psycho \u2014 Alfred Hitchcock, 1960',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.5';
+        let t=0;
+        const lines=Array.from({length:60},(_,i)=>({
+          y:i*(H/60),phase:Math.random()*Math.PI*2,amp:Math.random()*8+2,spd:Math.random()*2+0.5,thick:Math.random()>0.85?2:0.8
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(0,0,W,H);
+          for(const l of lines){
+            const shake=Math.sin(t*l.spd+l.phase)*l.amp;
+            const bw=120+Math.random()*100|0;
+            ctx.strokeStyle=`rgba(${bw},${bw},${bw},0.55)`;
+            ctx.lineWidth=l.thick;ctx.beginPath();ctx.moveTo(0,l.y+shake);
+            for(let s=1;s<=12;s++){ctx.lineTo((s/12)*W,l.y+shake+(Math.random()-0.5)*l.amp*0.6);}
+            ctx.stroke();l.y+=0.15;if(l.y>H+2)l.y=-2;
+          }
+          if(Math.random()>0.85){
+            const sx=Math.random()*W;
+            ctx.strokeStyle=`rgba(200,200,200,${Math.random()*0.4+0.1})`;
+            ctx.lineWidth=Math.random()*1.5+0.5;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx+Math.random()*4-2,H);ctx.stroke();
+          }
+          t+=0.04;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    }
+  ];
+
+  window._runSplashEffect = function(){
+    const cv=document.getElementById('splash-canvas');
+    const refEl=document.getElementById('splash-film-ref');
+    if(!cv)return;
+    cv.width=cv.offsetWidth||390;
+    cv.height=cv.offsetHeight||844;
+    const ctx=cv.getContext('2d');
+    const stop={v:false};
+    let idx;
+    try{
+      const last=parseInt(sessionStorage.getItem('_splashFx')||'-1');
+      do{idx=Math.random()*EFFECTS.length|0;}while(idx===last&&EFFECTS.length>1);
+      sessionStorage.setItem('_splashFx',idx);
+    }catch(e){idx=Math.random()*EFFECTS.length|0;}
+    const fx=EFFECTS[idx];
+    if(refEl){refEl.textContent=fx.ref;}
+    fx.run(cv,ctx,cv.width,cv.height,stop);
+    window._stopSplashEffect=()=>{stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
+  };
+})();
+
 function runSplash(){
   const splash=document.getElementById('splash');
   const logo=document.getElementById('splash-logo');
+  const curtain=document.getElementById('splash-curtain');
   const quoteEl=document.getElementById('splash-quote');
-  const irisWrap=document.getElementById('splash-iris');
   if(!splash)return;
 
-  // ── Iris diaphragme ──
-  // Géométrie identique au prototype validé :
-  // - viewBox fixe 800×800, preserveAspectRatio slice = centrage parfait
-  // - Lames = secteurs depuis le centre (400,400)
-  // - transform-origin = centre SVG = ouverture depuis le milieu exact
-  // - Toutes les lames tournent simultanément du même angle
-  (function buildIris(){
-    const N       = 10;   // 10 lames comme dans le proto validé
-    const cx      = 400, cy = 400;
-    const R_outer = 760;  // rayon extérieur — couvre l'écran jusqu'aux coins
-    const R_hole  = 18;   // petit trou central
-    const sweep   = (360 / N) * 1.22; // chevauchement pour fermeture sans trou
-
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg   = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 800 800');
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice'); // centre + couvre tout
-    svg.setAttribute('xmlns', svgNS);
-
-    const defs = document.createElementNS(svgNS, 'defs');
-    const grad = document.createElementNS(svgNS, 'radialGradient');
-    grad.setAttribute('id', 'irisGrad');
-    grad.setAttribute('gradientUnits', 'userSpaceOnUse');
-    grad.setAttribute('cx', '400'); grad.setAttribute('cy', '400');
-    grad.setAttribute('r',  '420');
-    const s1 = document.createElementNS(svgNS, 'stop');
-    s1.setAttribute('offset', '0%');   s1.setAttribute('stop-color', '#0e0b1e'); s1.setAttribute('stop-opacity', '0.88');
-    const s2 = document.createElementNS(svgNS, 'stop');
-    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', '#06060f'); s2.setAttribute('stop-opacity', '0.48');
-    grad.appendChild(s1); grad.appendChild(s2);
-    defs.appendChild(grad);
-    svg.appendChild(defs);
-
-    for (let i = 0; i < N; i++) {
-      const angleDeg = (360 / N) * i;
-      const angleRad = angleDeg * Math.PI / 180;
-      const sweepRad = sweep   * Math.PI / 180;
-      const steps    = 18;
-      const pts      = [];
-
-      // Arc extérieur
-      for (let s = 0; s <= steps; s++) {
-        const a = angleRad + sweepRad * s / steps;
-        pts.push([cx + R_outer * Math.cos(a), cy + R_outer * Math.sin(a)]);
-      }
-      // Arc intérieur (trou central, sens inverse)
-      for (let s = steps; s >= 0; s--) {
-        const a = angleRad + sweepRad * s / steps;
-        pts.push([cx + R_hole * Math.cos(a), cy + R_hole * Math.sin(a)]);
-      }
-      const d = pts.map((p, idx) =>
-        (idx === 0 ? 'M' : 'L') + p[0].toFixed(2) + ',' + p[1].toFixed(2)
-      ).join(' ') + 'Z';
-
-      const path = document.createElementNS(svgNS, 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('fill', 'url(#irisGrad)');
-      path.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-      path.setAttribute('stroke-width', '0.8');
-      path.classList.add('iris-blade');
-      path.dataset.idx = String(i);
-      svg.appendChild(path);
-    }
-    irisWrap.appendChild(svg);
-  })();
-
-  function openIris(duration){
-    const blades  = irisWrap.querySelectorAll('.iris-blade');
-    const dur     = Math.max(1200, Math.min(duration || 3500, 8000));
-    const rotDeg  = 360 / 10; // 1 lame = 36° — dégage la zone adjacente
-    const easeDur = Math.round(dur * 0.75);
-    const fadeAt  = Math.round(easeDur * 0.5); // fade commence à mi-rotation
-
-    splash.classList.add('iris-open');
-
-    // Toutes les lames bougent exactement en même temps — synchronisé comme un objectif
-    blades.forEach(b => {
-      const idx = parseInt(b.dataset.idx || '0');
-      const angleRad = ((360 / 10) * idx + (360 / 10) * 0.5) * Math.PI / 180; // angle moyen de la lame
-      const pushDist = 900; // distance de sortie en unités SVG (largement hors écran)
-      const tx = Math.cos(angleRad) * pushDist;
-      const ty = Math.sin(angleRad) * pushDist;
-      b.style.transition = `transform ${easeDur}ms cubic-bezier(.5,0,.15,1) 0ms, opacity ${Math.round(dur*0.35)}ms ease ${fadeAt}ms`;
-      b.style.transform  = `rotate(${rotDeg}deg) translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
-      b.style.opacity    = '0';
-    });
-  }
-
   function startSequence(splashDuration){
+    // splashDuration : durée en ms avant de fermer le splash (défaut 3500)
     var closeDelay = (typeof splashDuration === 'number' && splashDuration > 0) ? splashDuration : 3500;
 
     // ── Message de retour après absence ──
@@ -19772,33 +19905,42 @@ function runSplash(){
       }
     } catch(e){}
 
-    // Iris s'ouvre — calé sur la durée du son d'intro
-    openIris(closeDelay);
+    // 0ms — Logo apparaît
+    setTimeout(()=>{logo.classList.add('show');},50);
 
-    // Masquer le swipe
+    // 0ms — Rideau s'ouvre immédiatement au tap
+    curtain.classList.add('open');
+    splash.classList.add('curtain-open');
+
+
+    // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
     if(tapEl) tapEl.classList.add('hidden');
-
-    // Citation apparaît quand l'iris est à mi-ouverture
+    // Citation apparaît quand le rideau est à mi-chemin
     setTimeout(()=>{
       if(quoteEl) quoteEl.classList.add('reveal');
-    }, Math.min(closeDelay*0.35, 1400));
+    }, 450);
 
-    // Fade out du splash en fin de son
+    // Fade out une fois que le son d'intro est terminé (ou après closeDelay ms)
     setTimeout(()=>{
       splash.classList.add('out');
       setTimeout(()=>{
         splash.style.display='none';
+        // Stop all CSS animations on splash to free GPU memory
         splash.style.animation='none';
         const allAnimated=splash.querySelectorAll('*');
         allAnimated.forEach(el=>{ el.style.animation='none'; });
         if(window._stopNeuroSplash)window._stopNeuroSplash();
+        if(window._stopSplashEffect)window._stopSplashEffect();
       },700);
     }, closeDelay);
   }
 
   // Logo visible dès le départ
   setTimeout(()=>{logo.classList.add('show');splash.classList.add('ready');},300);
+
+  // Effet film en fond
+  if(window._runSplashEffect) window._runSplashEffect();
 
   // ── Swipe to unlock ──
   const thumb = document.getElementById('splash-swipe-thumb');
@@ -19878,25 +20020,7 @@ function runSplash(){
 
   var musicStarted = false;
   var _introAudioPrimed = null;
-  var _introFiles = [
-    '20th century fox 5s.mp3',
-    '20th century fox 7s.mp3',
-    'Apple.mp3',
-    'Columbia.mp3',
-    'Dreamworks.mp3',
-    'HBO.mp3',
-    'Netflix.mp3',
-    'New Line.mp3',
-    'Paramount.mp3',
-    'Sony Columbia.mp3',
-    'Sony Pictures.mp3',
-    'Universal.mp3',
-    'Universal2.mp3',
-    'Walt Disney Pictures.mp3',
-    'Warner Bros.mp3',
-    'WB.mp3',
-    'WB2.mp3',
-  ];
+  var _introFiles = ['Columbia.mp3','Dreamworks.mp3','Netflix.mp3','Paramount.mp3','Sony Pictures.mp3','Warner Bros.mp3','Apple.mp3'];
   function onPointerDown(e){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
@@ -27962,32 +28086,4 @@ function hmReopenTuto() {
   </div>
 <script src="supabase-leaderboard.js"></script>
   <script src="supabase-global.js"></script>
-
-  <!-- ── LANDSCAPE BLOCKER ── -->
-  <div id="landscape-blocker" aria-hidden="true">
-    <div class="lb-icon">📱</div>
-    <div class="lb-text">TOURNEZ VOTRE TÉLÉPHONE</div>
-    <div class="lb-sub">CinéQuiz est optimisé en mode portrait</div>
-  </div>
-
-  <script>
-  // Sync body.video-active avec le système d'orientation existant
-  (function(){
-    var _origUnlock = window._videoOrientationUnlock;
-    var _origLock   = window._videoOrientationLock;
-    // Patch après chargement complet (les fonctions sont définies plus haut)
-    window.addEventListener('load', function(){
-      var origUnlock = window._videoOrientationUnlock;
-      var origLock   = window._videoOrientationLock;
-      window._videoOrientationUnlock = function(zone){
-        document.body.classList.add('video-active');
-        if(origUnlock) origUnlock(zone);
-      };
-      window._videoOrientationLock = function(){
-        document.body.classList.remove('video-active');
-        if(origLock) origLock();
-      };
-    });
-  })();
-  </script>
 </body></html>
