@@ -6902,6 +6902,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       </div>
       <div class="tbr">
         <div class="ibtn" onclick="openHelp()" title="Comment jouer ?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></div>
+        <div class="ibtn" onclick="openSplashPreview()" title="Aperçu du splash"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z" fill="currentColor" stroke="none"/><path d="M8 21h8M12 17v4"/></svg></div>
         <div class="ibtn" id="btn-music" onclick="openJukebox()" title="Jukebox" style="position:relative;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span id="jk-new-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#ff4d6d;border:1.5px solid var(--bg);"></span></div>
         <div class="ibtn" id="btn-profile" onclick="goProfile()" style="position:relative;">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -7536,6 +7537,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       }
       if(window._splashEffectName){setQuote();}
       else{window._onSplashEffectReady=setQuote;}
+      window._splashFilmQuotes=FILM_QUOTES;
     })();
     </script>
     <script>
@@ -20860,53 +20862,81 @@ function closeAvModal(e){
       run(cv,ctx,W,H,stop){
         cv.style.opacity='0.68';
         let t=0;
-        // Laser grid
-        const lasers=Array.from({length:8},(_,i)=>({
-          y:H*0.2+i*(H*0.6/7),
-          phase:Math.random()*Math.PI*2,
-          triggered:false, triggerTime:0
+        const cx=W/2;
+        // Lasers en diagonale
+        const lasers=Array.from({length:6},(_,i)=>({
+          y0:H*(0.18+i*0.11), y1:H*(0.26+i*0.11),
+          phase:i*0.9, spd:0.15+i*0.03,
+          triggered:false, flashTime:0
         }));
-        // Particules de poussière
-        const dust=Array.from({length:40},()=>({
+        // Silhouette en rappel — descend progressivement
+        let ropeY=-60;
+        // Particules poussière
+        const dust=Array.from({length:35},()=>({
           x:Math.random()*W,y:Math.random()*H,
-          vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.2,
-          r:Math.random()*1.5+0.3,op:Math.random()*0.25+0.05
+          vx:(Math.random()-0.5)*0.25,vy:Math.random()*0.4+0.1,
+          r:Math.random()*1.5+0.3,op:Math.random()*0.2+0.04
         }));
         function frame(){
           if(stop.v)return;
-          ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(0,0,W,H);
-          // Fond sombre vert nuit
-          const bg=ctx.createLinearGradient(0,0,0,H);
-          bg.addColorStop(0,'rgba(0,8,4,0.08)');bg.addColorStop(1,'rgba(0,4,2,0.12)');
-          ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-          // Lasers
+          ctx.fillStyle='rgba(0,0,0,0.16)';ctx.fillRect(0,0,W,H);
+          ctx.fillStyle='rgba(0,6,2,0.07)';ctx.fillRect(0,0,W,H);
+          // Compte à rebours LED rouge
+          const countdown=Math.max(0,17-Math.floor(t*0.8));
+          const cdStr=String(countdown).padStart(2,'0');
+          ctx.font='bold 28px monospace';
+          ctx.fillStyle=`rgba(200,15,10,${0.55+Math.sin(t*6)*0.15})`;
+          ctx.fillText(cdStr,cx-18,52);
+          ctx.strokeStyle='rgba(200,15,10,0.18)';ctx.lineWidth=1;
+          ctx.strokeRect(cx-28,26,56,30);
+          // Lasers diagonaux
           for(const l of lasers){
-            const wave=Math.sin(t*0.8+l.phase)*3;
-            const op=0.18+Math.sin(t*1.2+l.phase)*0.06;
-            ctx.beginPath();ctx.moveTo(0,l.y+wave);ctx.lineTo(W,l.y+wave);
-            ctx.strokeStyle=`rgba(220,30,30,${op})`;ctx.lineWidth=0.8;ctx.stroke();
-            // Halo laser
-            ctx.beginPath();ctx.moveTo(0,l.y+wave);ctx.lineTo(W,l.y+wave);
-            ctx.strokeStyle=`rgba(255,60,60,${op*0.3})`;ctx.lineWidth=3;ctx.stroke();
+            const offset=Math.sin(t*l.spd+l.phase)*H*0.03;
+            const ly0=l.y0+offset, ly1=l.y1+offset;
+            // Flash si silhouette croise le laser
+            const laserAtCenter=ly0+(ly1-ly0)*0.5;
+            if(ropeY>laserAtCenter-10&&ropeY<laserAtCenter+10&&!l.triggered){
+              l.triggered=true;l.flashTime=1.0;
+            }
+            if(l.flashTime>0){
+              l.flashTime-=0.035;
+              ctx.fillStyle=`rgba(255,30,10,${l.flashTime*0.10})`;
+              ctx.fillRect(0,0,W,H);
+            }
+            const op=l.triggered?0.06:0.22+Math.sin(t*3+l.phase)*0.06;
+            ctx.save();
+            ctx.shadowColor='rgba(220,20,10,0.5)';ctx.shadowBlur=6;
+            ctx.strokeStyle=`rgba(220,20,10,${op})`;ctx.lineWidth=1.5;
+            ctx.beginPath();ctx.moveTo(0,ly0);ctx.lineTo(W,ly1);ctx.stroke();
+            ctx.strokeStyle=`rgba(255,80,60,${op*0.35})`;ctx.lineWidth=5;
+            ctx.beginPath();ctx.moveTo(0,ly0);ctx.lineTo(W,ly1);ctx.stroke();
+            ctx.restore();
+          }
+          // Corde
+          ctx.strokeStyle='rgba(160,150,120,0.40)';ctx.lineWidth=1.2;
+          ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx+Math.sin(t*0.4)*6,ropeY+60);ctx.stroke();
+          // Silhouette descend
+          ropeY=Math.min(H*0.52,ropeY+0.5);
+          if(ropeY>-20){
+            ctx.save();ctx.globalAlpha=0.80;ctx.fillStyle='rgba(4,3,2,0.92)';
+            ctx.beginPath();ctx.ellipse(cx,ropeY-16,6,7,0,0,Math.PI*2);ctx.fill();
+            ctx.save();ctx.translate(cx,ropeY);ctx.rotate(Math.PI*0.1);
+            ctx.fillRect(-5,-8,10,20);ctx.restore();
+            ctx.strokeStyle='rgba(4,3,2,0.9)';ctx.lineWidth=3;
+            ctx.beginPath();ctx.moveTo(cx-4,ropeY+10);ctx.lineTo(cx-18,ropeY+2);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(cx+4,ropeY+10);ctx.lineTo(cx+18,ropeY+2);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(cx-5,ropeY+2);ctx.lineTo(cx-20,ropeY-8);ctx.stroke();
+            ctx.restore();
           }
           // Poussière
           for(const d of dust){
             d.x+=d.vx;d.y+=d.vy;
-            if(d.x<0)d.x=W;if(d.x>W)d.x=0;if(d.y<0)d.y=H;if(d.y>H)d.y=0;
+            if(d.y>H+2){d.y=-2;d.x=Math.random()*W;}
             ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-            ctx.fillStyle=`rgba(200,200,180,${d.op})`;ctx.fill();
+            ctx.fillStyle=`rgba(180,165,130,${d.op})`;ctx.fill();
           }
-          // Silhouette en rappel
-          const rx=W*0.5,ry=H*0.35+Math.sin(t*0.4)*H*0.02;
-          ctx.save();ctx.globalAlpha=0.7;
-          ctx.fillStyle='rgba(0,0,0,0.9)';
-          ctx.beginPath();ctx.ellipse(rx,ry-18,5,7,0,0,Math.PI*2);ctx.fill();
-          ctx.fillRect(rx-4,ry-11,8,16);
-          ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=2;
-          ctx.beginPath();ctx.moveTo(rx,ry-18);ctx.lineTo(rx,H*0.1);ctx.stroke();
-          ctx.restore();
-          const vg=ctx.createRadialGradient(W/2,H/2,H*0.1,W/2,H/2,H*0.8);
-          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,4,0,0.70)');
+          const vg=ctx.createRadialGradient(cx,H/2,H*0.1,cx,H/2,H*0.85);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,3,1,0.72)');
           ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
           t+=0.016;requestAnimationFrame(frame);
         }
@@ -22186,6 +22216,9 @@ function closeAvModal(e){
     fx.run(cv,ctx,cv.width,cv.height,stop);
     window._stopSplashEffect=()=>{stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
   };
+  // Exposer pour la preview
+  window.EFFECTS=EFFECTS;
+  window.SPLASH_MUSIC=SPLASH_MUSIC;
 })();
 
 function runSplash(){
@@ -30502,4 +30535,191 @@ function hmReopenTuto() {
   </div>
 <script src="supabase-leaderboard.js"></script>
   <script src="supabase-global.js"></script>
+<!-- ── SPLASH PREVIEW MODAL ── -->
+<div id="splash-preview-modal" style="display:none;position:fixed;inset:0;z-index:99990;background:#000;flex-direction:column;">
+  <!-- Vue grille -->
+  <div id="spm-grid-view" style="display:flex;flex-direction:column;height:100%;background:#08070f;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;flex-shrink:0;">
+      <div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;">Aperçu du splash</div>
+      <div onclick="closeSplashPreview()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:rgba(255,255,255,.6);">✕</div>
+    </div>
+    <div id="spm-grid" style="overflow-y:auto;padding:4px 12px 32px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;flex:1;"></div>
+  </div>
+  <!-- Vue effet plein écran -->
+  <div id="spm-effect-view" style="display:none;position:relative;width:100%;height:100%;background:#000;">
+    <canvas id="spm-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+    <!-- Citation -->
+    <div id="spm-quote" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;text-align:center;pointer-events:none;opacity:0;transition:opacity 1s ease 0.5s;">
+      <div id="spm-quote-text" style="font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:17px;color:rgba(255,255,255,.82);line-height:1.6;margin-bottom:10px;"></div>
+      <div id="spm-quote-attr" style="font-family:'DM Sans',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);"></div>
+    </div>
+    <!-- Ref film -->
+    <div id="spm-ref" style="position:absolute;bottom:60px;left:0;right:0;text-align:center;font-family:'DM Sans',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.22);pointer-events:none;"></div>
+    <!-- Bouton fermer -->
+    <div onclick="closeSplashEffectView()" style="position:absolute;top:18px;right:18px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:rgba(255,255,255,.7);z-index:10;">✕</div>
+    <!-- Musique en cours -->
+    <div id="spm-music-icon" style="position:absolute;top:20px;left:18px;font-size:18px;opacity:0;transition:opacity 0.8s;">🎵</div>
+  </div>
+</div>
+
+<style>
+#spm-grid::-webkit-scrollbar{width:3px;}
+#spm-grid::-webkit-scrollbar-track{background:transparent;}
+#spm-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.spm-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  padding:14px 12px;
+  cursor:pointer;
+  transition:background .15s, border-color .15s, transform .1s;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.spm-card:active{background:rgba(255,255,255,.09);transform:scale(.97);}
+.spm-card-name{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,.78);margin-bottom:3px;line-height:1.3;}
+.spm-card-year{font-family:'DM Sans',sans-serif;font-size:10px;color:rgba(255,255,255,.28);letter-spacing:.5px;}
+.spm-card-dot{width:8px;height:8px;border-radius:50%;margin-bottom:8px;flex-shrink:0;}
+</style>
+
+<script>
+(function(){
+  // Couleurs par genre/ambiance
+  var COLORS={
+    'Matrix':'#22c55e','2001':'#818cf8','Blade Runner':'#f97316','Star Wars':'#fbbf24',
+    'Interstellar':'#60a5fa','Tron':'#06b6d4','Psycho':'#6b7280','Vertigo':'#a855f7',
+    'Apocalypse Now':'#ef4444','Le Grand Bleu':'#38bdf8','Metropolis':'#d4b483',
+    'Alien':'#4ade80','Amélie':'#f472b6','American Beauty':'#f43f5e',
+    'Tree of Life':'#818cf8','Her':'#fb923c','Drive':'#e879f9','Taxi Driver':'#f59e0b',
+    'Magnolia':'#86efac','Spider-Man':'#ef4444','Batman':'#a78bfa','James Bond':'#d4b483',
+    'Mission Impossible':'#ef4444','Avatar':'#34d399','Les Évadés':'#94a3b8',
+    'Le Parrain':'#b45309','Le Seigneur des Anneaux':'#f59e0b','Pulp Fiction':'#f97316',
+    'Forrest Gump':'#86efac','Fight Club':'#f87171','Inception':'#60a5fa',
+    'Les Affranchis':'#fbbf24','Terminator':'#ef4444','Gladiator':'#d97706',
+    'WALL·E':'#fcd34d','Heat':'#60a5fa','Jurassic Park':'#4ade80','Nemo':'#38bdf8',
+    'Les Dents de la Mer':'#3b82f6','Stand by Me':'#fde68a','Avengers':'#ef4444',
+    'Harry Potter':'#c084fc','Indiana Jones':'#d97706','Retour vers le Futur':'#818cf8'
+  };
+  var YEARS={
+    'Matrix':'1999','2001':'1968','Blade Runner':'1982','Star Wars':'1977',
+    'Interstellar':'2014','Tron':'1982','Psycho':'1960','Vertigo':'1958',
+    'Apocalypse Now':'1979','Le Grand Bleu':'1988','Metropolis':'1927',
+    'Alien':'1979','Amélie':'2001','American Beauty':'1999','Tree of Life':'2011',
+    'Her':'2013','Drive':'2011','Taxi Driver':'1976','Magnolia':'1999',
+    'Spider-Man':'2018','Batman':'1989','James Bond':'1962',
+    'Mission Impossible':'1996','Avatar':'2009','Les Évadés':'1994',
+    'Le Parrain':'1972','Le Seigneur des Anneaux':'2001','Pulp Fiction':'1994',
+    'Forrest Gump':'1994','Fight Club':'1999','Inception':'2010',
+    'Les Affranchis':'1990','Terminator':'1984','Gladiator':'2000',
+    'WALL·E':'2008','Heat':'1995','Jurassic Park':'1993','Nemo':'2003',
+    'Les Dents de la Mer':'1975','Stand by Me':'1986','Avengers':'2019',
+    'Harry Potter':'2001','Indiana Jones':'1981','Retour vers le Futur':'1985'
+  };
+
+  var _previewStop={v:false};
+  var _previewAudio=null;
+
+  window.openSplashPreview=function(){
+    var modal=document.getElementById('splash-preview-modal');
+    modal.style.display='flex';
+    // Bloquer le scroll du body
+    document.body.style.overflow='hidden';
+    // Remplir la grille
+    var grid=document.getElementById('spm-grid');
+    if(grid.children.length===0 && window.EFFECTS){
+      window.EFFECTS.forEach(function(fx){
+        var card=document.createElement('div');
+        card.className='spm-card';
+        var color=COLORS[fx.name]||'#6b7280';
+        card.innerHTML='<div class="spm-card-dot" style="background:'+color+';box-shadow:0 0 8px '+color+'66;"></div>'
+          +'<div class="spm-card-name">'+fx.name+'</div>'
+          +'<div class="spm-card-year">'+(YEARS[fx.name]||'')+'</div>';
+        card.addEventListener('click',function(){openSplashEffectView(fx);});
+        grid.appendChild(card);
+      });
+    }
+    // Afficher la vue grille
+    document.getElementById('spm-grid-view').style.display='flex';
+    document.getElementById('spm-effect-view').style.display='none';
+  };
+
+  window.closeSplashPreview=function(){
+    closeSplashEffectView();
+    document.getElementById('splash-preview-modal').style.display='none';
+    document.body.style.overflow='';
+  };
+
+  window.openSplashEffectView=function(fx){
+    _previewStop.v=true;
+    if(_previewAudio){_previewAudio.pause();_previewAudio.currentTime=0;_previewAudio=null;}
+    setTimeout(function(){
+      _previewStop={v:false};
+      document.getElementById('spm-grid-view').style.display='none';
+      var view=document.getElementById('spm-effect-view');
+      view.style.display='block';
+      // Canvas
+      var cv=document.getElementById('spm-canvas');
+      cv.width=window.innerWidth;cv.height=window.innerHeight;
+      var ctx=cv.getContext('2d');
+      ctx.clearRect(0,0,cv.width,cv.height);
+      // Lancer l'effet
+      fx.run(cv,ctx,cv.width,cv.height,_previewStop);
+      // Ref
+      document.getElementById('spm-ref').textContent=fx.ref||'';
+      // Citation
+      var FILM_QUOTES=window._splashFilmQuotes||{};
+      var q=FILM_QUOTES[fx.name];
+      var qText=document.getElementById('spm-quote-text');
+      var qAttr=document.getElementById('spm-quote-attr');
+      var qBox=document.getElementById('spm-quote');
+      qBox.style.opacity='0';
+      if(q){
+        qText.textContent='« '+q.t+' »';
+        qAttr.textContent='— '+q.a;
+        setTimeout(function(){qBox.style.opacity='1';},400);
+      }
+      // Musique
+      var MUSIC=window.SPLASH_MUSIC||{};
+      var file=MUSIC[fx.name];
+      var musicIcon=document.getElementById('spm-music-icon');
+      musicIcon.style.opacity='0';
+      if(file){
+        _previewAudio=new Audio(file);
+        _previewAudio.volume=0;
+        _previewAudio.play().then(function(){
+          musicIcon.style.opacity='1';
+          var steps=30,step=0;
+          var fi=setInterval(function(){
+            step++;
+            _previewAudio.volume=Math.min(1,step/steps);
+            if(step>=steps)clearInterval(fi);
+          },800/steps);
+        }).catch(function(){});
+      }
+    },30);
+  };
+
+  window.closeSplashEffectView=function(){
+    _previewStop.v=true;
+    if(_previewAudio){
+      var a=_previewAudio,v=a.volume,st=0,tot=15;
+      var fo=setInterval(function(){st++;a.volume=Math.max(0,v*(1-st/tot));if(st>=tot){clearInterval(fo);a.pause();a.currentTime=0;}},400/tot);
+      _previewAudio=null;
+    }
+    var cv=document.getElementById('spm-canvas');
+    var ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);
+    document.getElementById('spm-effect-view').style.display='none';
+    document.getElementById('spm-grid-view').style.display='flex';
+    document.getElementById('spm-quote').style.opacity='0';
+    document.getElementById('spm-music-icon').style.opacity='0';
+  };
+
+  // Exposer les citations pour la preview
+  // Lire depuis le script inline existant après chargement
+  document.addEventListener('DOMContentLoaded',function(){
+    // Récupérer EFFECTS depuis la portée globale si dispo
+    // (ils sont définis dans runSplash, on les expose ici)
+  });
+})();
+</script>
 </body></html>
