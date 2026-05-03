@@ -20713,7 +20713,6 @@ function runSplash(){
     (function(){
       // Récupérer l'audio déjà lancé depuis le handler swipe (iOS PWA)
       var aud = _splashAudioPlaying || _splashAudioPrimed;
-       + ' vol=' + (aud?aud.volume:'n/a'));
       if(!aud){
         var filmName = window._splashEffectName || '';
         var filmFile = SPLASH_MUSIC[filmName];
@@ -20736,11 +20735,10 @@ function runSplash(){
       }
 
       if(!aud.paused){
-        // Déjà en lecture (lancé dans le handler swipe) — juste fade-in
-        
+        // Déjà en lecture — rembobiner et fade-in
+        aud.currentTime = 0;
         doFadeIn();
       } else {
-        ');
         aud.currentTime = 0;
         aud.volume = 0;
         aud.play().then(function(){ doFadeIn(); }).catch(function(){
@@ -20853,28 +20851,19 @@ function runSplash(){
   var _splashAudioPlaying = null;
   function onPointerDown(e){
     if(triggered) return;
-    _initAC(); // iOS: AudioContext must be created in direct user event
+    _initAC();
     if(_ac && _ac.state === 'suspended') _ac.resume();
-    // Primer la musique film dès le premier touch
-    // On connecte immédiatement à l'AudioContext — contourne le switch silencieux iOS
+    // Lancer le primer silencieusement et le LAISSER JOUER — ne jamais pause()
+    // Au swipe on monte juste le volume — aucun second play() nécessaire
     if(!_splashAudioPrimed){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
       if(filmFile){
         _splashAudioPrimed = new Audio(filmFile);
         _splashAudioPrimed.volume = 0;
-        try {
-          if(_ac && _ac.state !== 'closed'){
-            var _primerSrc = _ac.createMediaElementSource(_splashAudioPrimed);
-            _primerSrc.connect(_ac.destination);
-          }
-        } catch(e){}
-        _splashAudioPrimed.play().then(function(){
-          requestAnimationFrame(function(){
-            _splashAudioPrimed.pause();
-            _splashAudioPrimed.currentTime = 0;
-          });
-        }).catch(function(){});
+        _splashAudioPrimed.play().catch(function(){});
+        // Marquer comme playing dès maintenant — sera réutilisé dans startSequence
+        _splashAudioPlaying = _splashAudioPrimed;
       }
     }
     dragging = true;
@@ -20891,15 +20880,10 @@ function runSplash(){
     if(!dragging) return;
     dragging = false;
     if(triggered){
-      // Réutiliser EXACTEMENT l'objet Audio du primer — iOS bloque tout new Audio() ici
-      if(!_splashAudioPlaying){
-        var aud = _splashAudioPrimed;
-        if(aud){
-          aud.currentTime = 0;
-          aud.volume = 0;
-          aud.play().catch(function(){});
-          _splashAudioPlaying = aud;
-        }
+      // L'audio joue déjà depuis onPointerDown à volume=0
+      // Juste rembobiner au début — startSequence fera le fade-in
+      if(_splashAudioPlaying){
+        _splashAudioPlaying.currentTime = 0;
       }
       return;
     }
