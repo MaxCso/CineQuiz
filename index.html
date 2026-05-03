@@ -21186,7 +21186,24 @@ function _jkPlayKey(key,idx){
 }
 
 function _stopJkAudio(){if(window._jkAudio){window._jkAudio.pause();window._jkAudio=null;}_stopProgInterval();}
-function _startProgInterval(){_stopProgInterval();_jkProgInt=setInterval(()=>{updateProgressBars();},800);}
+function _startProgInterval(){
+  _stopProgInterval();
+  _jkProgInt=setInterval(()=>{
+    updateProgressBars();
+    // Fallback pour iOS écran éteint : l'event 'ended' n'est pas déclenché
+    const a=window._jkAudio;
+    if(a&&!a.paused&&a.duration&&isFinite(a.duration)&&a.duration>0){
+      if(a.currentTime>=a.duration-0.8&&!a._nextPending){
+        a._nextPending=true;
+        playerNext();
+      }
+    }
+    // Reset le flag si la piste a changé
+    if(window._jkAudio&&window._jkAudio._nextPending&&window._jkAudio.currentTime<a.duration-1){
+      window._jkAudio._nextPending=false;
+    }
+  },800);
+}
 function _stopProgInterval(){if(_jkProgInt){clearInterval(_jkProgInt);_jkProgInt=null;}}
 
 function playerPlayPause(){
@@ -21587,6 +21604,7 @@ function _jkCrossfade(newKey,newIdx){
     if(oldAudio)oldAudio.pause();
     newAudio.volume=0.55;
   }
+  newAudio._nextPending=false;
   newAudio.addEventListener('ended',()=>{if(window._jkAudio===newAudio)playerNext();});
   updateMiniPlayer();updateJukeboxDisplay();buildJkPlaylist();_startProgInterval();
 }
