@@ -2517,7 +2517,6 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
     radial-gradient(ellipse 55% 45% at 68% 65%, rgba(20,60,180,.45) 0%, transparent 55%),
     radial-gradient(ellipse 50% 42% at 22% 70%, rgba(140,20,80,.38) 0%, transparent 54%),
     radial-gradient(ellipse 45% 35% at 72% 18%, rgba(170,80,10,.32) 0%, transparent 50%);
-  animation:orbeFloat1 14s ease-in-out infinite;
 }
 #splash-bg::after{
   content:'';position:absolute;inset:-20%;width:140%;height:140%;
@@ -2525,7 +2524,6 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
     radial-gradient(ellipse 40% 32% at 58% 42%, rgba(190,105,15,.18) 0%, transparent 50%),
     radial-gradient(ellipse 46% 37% at 28% 52%, rgba(10,55,150,.15) 0%, transparent 52%),
     radial-gradient(ellipse 80% 70% at 50% 50%, transparent 25%, rgba(0,0,0,.45) 100%);
-  animation:orbeFloat2 18s ease-in-out infinite;
 }
 /* canvas film effect par-dessus les orbes */
 #splash-canvas{
@@ -19855,6 +19853,765 @@ function closeAvModal(e){
         }
         frame();
       }
+    },
+    {
+      name:'Vertigo',
+      ref:'Vertigo \u2014 Alfred Hitchcock, 1958',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.65';
+        let t=0;
+        const cx=W/2,cy=H/2;
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.10)';ctx.fillRect(0,0,W,H);
+          const rings=40;
+          for(let i=0;i<rings;i++){
+            const phase=t*0.7+i*0.22;
+            const r=((i/rings)*Math.min(W,H)*0.72+((t*55+i*8)%(Math.min(W,H)*0.72)));
+            const op=0.28-i*0.005;
+            const hue=320+i*4;
+            ctx.strokeStyle=`hsla(${hue},65%,62%,${Math.max(op,0.04)})`;
+            ctx.lineWidth=1.2;
+            ctx.beginPath();
+            const pts=120;
+            for(let j=0;j<=pts;j++){
+              const a=(j/pts)*Math.PI*2;
+              const wobble=Math.sin(a*3+phase)*4;
+              const rx=cx+Math.cos(a)*(r+wobble);
+              const ry=cy+Math.sin(a)*(r+wobble)*0.92;
+              j===0?ctx.moveTo(rx,ry):ctx.lineTo(rx,ry);
+            }
+            ctx.closePath();ctx.stroke();
+          }
+          // Vignette centrale
+          const vg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.min(W,H)*0.55);
+          vg.addColorStop(0,'rgba(40,0,30,0.55)');vg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.018;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Apocalypse Now',
+      ref:'Apocalypse Now \u2014 Coppola, 1979',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.68';
+        let t=0;
+        // Particules de braise
+        const embers=Array.from({length:90},()=>({
+          x:Math.random()*W, y:H+Math.random()*60,
+          vx:(Math.random()-0.5)*0.8, vy:-(Math.random()*1.4+0.6),
+          size:Math.random()*2.2+0.6, life:Math.random(),
+          hue:10+Math.random()*30
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.13)';ctx.fillRect(0,0,W,H);
+          // Horizon embrasé
+          const horizon=H*0.58;
+          const hg=ctx.createLinearGradient(0,horizon-80,0,H);
+          hg.addColorStop(0,'rgba(0,0,0,0)');
+          hg.addColorStop(0.4,`rgba(180,${60+Math.sin(t*0.6)*20|0},0,0.18)`);
+          hg.addColorStop(1,`rgba(220,${80+Math.sin(t*0.4)*25|0},0,0.30)`);
+          ctx.fillStyle=hg;ctx.fillRect(0,horizon-80,W,H-(horizon-80));
+          // Hélico — silhouette simple
+          const hx=W*0.5+Math.sin(t*0.35)*W*0.22;
+          const hy=H*0.34+Math.sin(t*0.22)*H*0.04;
+          ctx.save();ctx.translate(hx,hy);
+          ctx.fillStyle='rgba(0,0,0,0.75)';
+          ctx.fillRect(-22,-5,44,9); // corps
+          ctx.fillRect(-4,-12,8,14); // cabine
+          ctx.fillRect(22,-3,28,2); // queue
+          // Rotor
+          const rotAngle=t*8;
+          ctx.strokeStyle='rgba(0,0,0,0.65)';ctx.lineWidth=1.5;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(rotAngle)*30,Math.sin(rotAngle)*3-8);
+          ctx.lineTo(Math.cos(rotAngle+Math.PI)*30,Math.sin(rotAngle+Math.PI)*3-8);
+          ctx.stroke();
+          ctx.restore();
+          // Braises
+          for(const e of embers){
+            e.x+=e.vx+Math.sin(t+e.life*10)*0.3;
+            e.y+=e.vy;e.life-=0.004;
+            if(e.life<=0||e.y<-10){
+              e.x=Math.random()*W;e.y=H+10;
+              e.vy=-(Math.random()*1.4+0.6);e.life=0.8+Math.random()*0.2;
+            }
+            const op=e.life*0.75;
+            ctx.beginPath();
+            ctx.arc(e.x,e.y,e.size,0,Math.PI*2);
+            ctx.fillStyle=`hsla(${e.hue},90%,62%,${op})`;
+            ctx.fill();
+          }
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Le Grand Bleu',
+      ref:'Le Grand Bleu \u2014 Luc Besson, 1988',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.70';
+        let t=0;
+        const bubbles=Array.from({length:55},()=>({
+          x:Math.random()*W, y:Math.random()*H+H,
+          r:Math.random()*5+2, spd:Math.random()*0.7+0.25,
+          wobble:Math.random()*Math.PI*2, wfreq:Math.random()*0.04+0.01,
+          op:Math.random()*0.35+0.12
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,6,24,0.15)';ctx.fillRect(0,0,W,H);
+          // Faisceaux lumineux sous l'eau
+          for(let i=0;i<5;i++){
+            const bx=W*(0.1+i*0.2)+Math.sin(t*0.3+i)*W*0.06;
+            const bg=ctx.createLinearGradient(bx,0,bx+30,H);
+            bg.addColorStop(0,`rgba(30,140,220,${0.07+Math.sin(t*0.5+i)*0.03})`);
+            bg.addColorStop(1,'rgba(0,20,80,0)');
+            ctx.fillStyle=bg;
+            ctx.beginPath();
+            ctx.moveTo(bx-10,0);ctx.lineTo(bx+10,0);
+            ctx.lineTo(bx+60,H);ctx.lineTo(bx-30,H);
+            ctx.closePath();ctx.fill();
+          }
+          // Bulles
+          for(const b of bubbles){
+            b.y-=b.spd;b.x+=Math.sin(t*b.wfreq*60+b.wobble)*0.35;
+            if(b.y<-b.r*2){b.y=H+b.r;b.x=Math.random()*W;}
+            ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+            ctx.strokeStyle=`rgba(120,200,255,${b.op})`;
+            ctx.lineWidth=0.9;ctx.stroke();
+            // Reflet
+            ctx.beginPath();ctx.arc(b.x-b.r*0.28,b.y-b.r*0.3,b.r*0.28,0,Math.PI*2);
+            ctx.fillStyle=`rgba(200,235,255,${b.op*0.55})`;ctx.fill();
+          }
+          // Vignette bleue profonde
+          const vg=ctx.createRadialGradient(W/2,H*0.4,H*0.1,W/2,H*0.5,H*0.75);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,5,30,0.55)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Metropolis',
+      ref:'Metropolis \u2014 Fritz Lang, 1927',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.60';
+        let t=0;
+        // Étincelles
+        const sparks=Array.from({length:60},()=>({
+          x:W*0.5,y:H*0.55,
+          vx:(Math.random()-0.5)*5,vy:-(Math.random()*5+1),
+          life:Math.random(), decay:Math.random()*0.015+0.008,
+          size:Math.random()*2+0.5
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
+          // Silhouette ville Art Déco — gris/sépia
+          const bldgs=[
+            {x:0,w:50,h:H*0.55},{x:55,w:30,h:H*0.42},{x:90,w:70,h:H*0.62},
+            {x:165,w:40,h:H*0.50},{x:210,w:80,h:H*0.70},{x:295,w:35,h:H*0.48},
+            {x:335,w:55,h:H*0.58}
+          ];
+          for(const b of bldgs){
+            ctx.fillStyle='rgba(20,18,14,0.90)';
+            ctx.fillRect(b.x,H-b.h,b.w,b.h);
+            // Fenêtres
+            const cols=Math.floor(b.w/10),rows=Math.floor(b.h/14);
+            for(let r=1;r<rows;r++) for(let c=0;c<cols;c++){
+              const lit=Math.sin(t*0.4+b.x+r*c)*0.5+0.5>0.55;
+              if(lit){
+                ctx.fillStyle=`rgba(${200+Math.random()*30|0},${160+Math.random()*20|0},80,0.55)`;
+                ctx.fillRect(b.x+c*10+2,H-b.h+r*14,5,7);
+              }
+            }
+          }
+          // Faisceau de projecteur
+          const beamX=W*0.5+Math.sin(t*0.28)*W*0.25;
+          const bg=ctx.createConicalGradient?null:null;
+          ctx.save();ctx.globalAlpha=0.07+Math.sin(t*0.4)*0.025;
+          ctx.fillStyle='rgba(220,200,130,1)';
+          ctx.beginPath();ctx.moveTo(beamX,H*0.0);
+          ctx.lineTo(beamX-W*0.18,H*0.65);ctx.lineTo(beamX+W*0.18,H*0.65);
+          ctx.closePath();ctx.fill();ctx.restore();
+          // Étincelles
+          for(const s of sparks){
+            s.x+=s.vx;s.y+=s.vy;s.vy+=0.12;s.life-=s.decay;
+            if(s.life<=0){
+              s.x=W*0.42+Math.random()*W*0.16;s.y=H*0.52+Math.random()*H*0.06;
+              s.vx=(Math.random()-0.5)*5;s.vy=-(Math.random()*5+1);
+              s.life=0.7+Math.random()*0.3;
+            }
+            const op=s.life*0.85;
+            const bw=180+Math.random()*70|0;
+            ctx.beginPath();ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+            ctx.fillStyle=`rgba(${bw},${bw*0.82|0},${bw*0.4|0},${op})`;ctx.fill();
+          }
+          // Grain film — lignes horizontales légères
+          for(let i=0;i<3;i++){
+            const gy=Math.random()*H;
+            ctx.strokeStyle=`rgba(180,170,140,${Math.random()*0.06})`;
+            ctx.lineWidth=Math.random()*2+0.5;
+            ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();
+          }
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Alien',
+      ref:'Alien \u2014 Ridley Scott, 1979',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.62';
+        let t=0;
+        // Lignes de scan radar
+        const blips=Array.from({length:8},()=>({
+          angle:Math.random()*Math.PI*2,
+          dist:Math.random()*0.85, life:0
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
+          const cx=W/2,cy=H/2,R=Math.min(W,H)*0.38;
+          // Cercles concentriques radar
+          for(let i=1;i<=4;i++){
+            const r=R*i/4;
+            ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+            ctx.strokeStyle=`rgba(0,${120+i*20},0,${0.18+i*0.04})`;
+            ctx.lineWidth=0.8;ctx.stroke();
+          }
+          // Croix de visée
+          ctx.strokeStyle='rgba(0,160,0,0.18)';ctx.lineWidth=0.8;
+          ctx.beginPath();ctx.moveTo(cx-R,cy);ctx.lineTo(cx+R,cy);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx,cy+R);ctx.stroke();
+          // Balayage radar
+          const sweep=t*1.2;
+          const trailLen=Math.PI*0.55;
+          for(let s=0;s<40;s++){
+            const a=sweep-s*(trailLen/40);
+            const op=Math.max(0,(1-s/40)*0.35);
+            ctx.strokeStyle=`rgba(0,${140+s*2|0},0,${op})`;
+            ctx.lineWidth=2.5-s*0.04;
+            ctx.beginPath();ctx.moveTo(cx,cy);
+            ctx.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);ctx.stroke();
+          }
+          // Blips
+          for(const b of blips){
+            const da=sweep%(Math.PI*2);
+            const ba=b.angle%(Math.PI*2);
+            const diff=(da-ba+Math.PI*2)%(Math.PI*2);
+            if(diff<0.08) b.life=1;
+            b.life*=0.97;
+            if(b.life>0.05){
+              const bx=cx+Math.cos(b.angle)*R*b.dist;
+              const by=cy+Math.sin(b.angle)*R*b.dist;
+              ctx.beginPath();ctx.arc(bx,by,3+b.life*3,0,Math.PI*2);
+              ctx.fillStyle=`rgba(0,255,80,${b.life*0.85})`;ctx.fill();
+              ctx.beginPath();ctx.arc(bx,by,6+b.life*8,0,Math.PI*2);
+              ctx.strokeStyle=`rgba(0,200,60,${b.life*0.25})`;ctx.lineWidth=1;ctx.stroke();
+            }
+          }
+          // Vignette sombre
+          const vg=ctx.createRadialGradient(cx,cy,R*0.5,cx,cy,R*1.5);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.75)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Amélie',
+      ref:'Le Fabuleux Destin d\u2019Am\u00e9lie Poulain \u2014 Jeunet, 2001',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.70';
+        let t=0;
+        // Particules colorées — ambiance chaleureuse
+        const particles=Array.from({length:70},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          vx:(Math.random()-0.5)*0.55, vy:-(Math.random()*0.6+0.2),
+          r:Math.random()*4+1.5,
+          hue:[28,45,355,120,200][Math.random()*5|0]+(Math.random()*20-10),
+          op:Math.random()*0.55+0.2, phase:Math.random()*Math.PI*2
+        }));
+        // Petits coeurs flottants
+        const hearts=Array.from({length:12},()=>({
+          x:Math.random()*W, y:Math.random()*H+H*0.3,
+          size:Math.random()*8+4, spd:Math.random()*0.4+0.15,
+          op:Math.random()*0.3+0.1, phase:Math.random()*Math.PI*2
+        }));
+        function drawHeart(x,y,s,op){
+          ctx.save();ctx.translate(x,y);ctx.scale(s/10,s/10);
+          ctx.beginPath();
+          ctx.moveTo(0,-2);
+          ctx.bezierCurveTo(5,-7,10,-2,0,6);
+          ctx.bezierCurveTo(-10,-2,-5,-7,0,-2);
+          ctx.fillStyle=`rgba(230,80,80,${op})`;ctx.fill();ctx.restore();
+        }
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(8,5,2,0.15)';ctx.fillRect(0,0,W,H);
+          // Lumière chaude centrale
+          const lg=ctx.createRadialGradient(W*0.5,H*0.45,20,W*0.5,H*0.45,W*0.6);
+          lg.addColorStop(0,`rgba(${200+Math.sin(t*0.5)*20|0},140,40,0.07)`);
+          lg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=lg;ctx.fillRect(0,0,W,H);
+          // Particules
+          for(const p of particles){
+            p.x+=p.vx+Math.sin(t*0.5+p.phase)*0.2;
+            p.y+=p.vy;
+            if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}
+            ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+            ctx.fillStyle=`hsla(${p.hue},75%,62%,${p.op})`;ctx.fill();
+          }
+          // Coeurs
+          for(const h of hearts){
+            h.y-=h.spd;h.x+=Math.sin(t*0.4+h.phase)*0.4;
+            if(h.y<-20){h.y=H+20;h.x=Math.random()*W;}
+            drawHeart(h.x,h.y,h.size,h.op);
+          }
+          // Vignette dorée
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(10,5,0,0.50)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'American Beauty',
+      ref:'American Beauty \u2014 Sam Mendes, 1999',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.68';
+        let t=0;
+        // Pétales de rose
+        const petals=Array.from({length:38},()=>({
+          x:Math.random()*W, y:Math.random()*H*1.2-H*0.2,
+          vx:(Math.random()-0.5)*0.55, vy:Math.random()*0.5+0.15,
+          rot:Math.random()*Math.PI*2, rotSpd:(Math.random()-0.5)*0.025,
+          w:Math.random()*16+8, h:Math.random()*8+5,
+          op:Math.random()*0.55+0.2,
+          hue:345+Math.random()*25-12
+        }));
+        function drawPetal(x,y,w,h,rot,op,hue){
+          ctx.save();ctx.translate(x,y);ctx.rotate(rot);
+          ctx.beginPath();
+          ctx.ellipse(0,0,w/2,h/2,0,0,Math.PI*2);
+          // Dégradé pétale
+          const pg=ctx.createRadialGradient(-w*0.1,-h*0.1,0,0,0,w*0.55);
+          pg.addColorStop(0,`hsla(${hue},80%,75%,${op})`);
+          pg.addColorStop(1,`hsla(${hue-10},70%,48%,${op*0.7})`);
+          ctx.fillStyle=pg;ctx.fill();
+          ctx.restore();
+        }
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(2,0,0,0.14)';ctx.fillRect(0,0,W,H);
+          // Lumière rouge diffuse
+          const rg=ctx.createRadialGradient(W*0.5,H*0.5,60,W*0.5,H*0.5,W*0.6);
+          rg.addColorStop(0,`rgba(160,${20+Math.sin(t*0.4)*10|0},30,0.08)`);
+          rg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+          // Pétales
+          for(const p of petals){
+            p.x+=p.vx+Math.sin(t*0.35+p.rot)*0.35;
+            p.y+=p.vy;p.rot+=p.rotSpd;
+            if(p.y>H+20){p.y=-20;p.x=Math.random()*W;}
+            drawPetal(p.x,p.y,p.w,p.h,p.rot,p.op,p.hue);
+          }
+          // Vignette rouge sombre
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.18,W/2,H/2,H*0.78);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(15,0,0,0.60)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Tree of Life',
+      ref:'The Tree of Life \u2014 Terrence Malick, 2011',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.72';
+        let t=0;
+        // Nébuleuse — nuages de particules cosmiques
+        const clouds=Array.from({length:180},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          vx:(Math.random()-0.5)*0.12, vy:(Math.random()-0.5)*0.12,
+          r:Math.random()*3+0.5,
+          hue:180+Math.random()*120,
+          op:Math.random()*0.4+0.08,
+          phase:Math.random()*Math.PI*2
+        }));
+        // Cellules / spores organiques
+        const cells=Array.from({length:18},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          r:Math.random()*18+6,
+          vx:(Math.random()-0.5)*0.2, vy:(Math.random()-0.5)*0.18,
+          hue:30+Math.random()*60,
+          op:Math.random()*0.12+0.04,
+          phase:Math.random()*Math.PI*2
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,4,0.12)';ctx.fillRect(0,0,W,H);
+          // Lueur nébuleuse centrale
+          const ng=ctx.createRadialGradient(W*0.5,H*0.42,20,W*0.5,H*0.42,W*0.7);
+          ng.addColorStop(0,`hsla(${220+Math.sin(t*0.15)*30},60%,30%,0.06)`);
+          ng.addColorStop(0.5,`hsla(${280+Math.sin(t*0.1)*20},50%,20%,0.04)`);
+          ng.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=ng;ctx.fillRect(0,0,W,H);
+          // Cellules organiques
+          for(const c of cells){
+            c.x+=c.vx+Math.sin(t*0.2+c.phase)*0.08;
+            c.y+=c.vy+Math.cos(t*0.15+c.phase)*0.08;
+            if(c.x<-c.r*2)c.x=W+c.r; if(c.x>W+c.r*2)c.x=-c.r;
+            if(c.y<-c.r*2)c.y=H+c.r; if(c.y>H+c.r*2)c.y=-c.r;
+            ctx.beginPath();ctx.arc(c.x,c.y,c.r*(1+Math.sin(t*0.3+c.phase)*0.08),0,Math.PI*2);
+            ctx.strokeStyle=`hsla(${c.hue},60%,65%,${c.op})`;
+            ctx.lineWidth=0.8;ctx.stroke();
+            // Noyau
+            ctx.beginPath();ctx.arc(c.x,c.y,c.r*0.28,0,Math.PI*2);
+            ctx.fillStyle=`hsla(${c.hue},70%,80%,${c.op*0.6})`;ctx.fill();
+          }
+          // Particules cosmiques
+          for(const p of clouds){
+            p.x+=p.vx+Math.sin(t*0.08+p.phase)*0.05;
+            p.y+=p.vy+Math.cos(t*0.06+p.phase)*0.05;
+            if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+            if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+            const pulse=1+Math.sin(t*0.5+p.phase)*0.2;
+            ctx.beginPath();ctx.arc(p.x,p.y,p.r*pulse,0,Math.PI*2);
+            ctx.fillStyle=`hsla(${p.hue+t*2},55%,72%,${p.op})`;ctx.fill();
+          }
+          // Vignette spatiale
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.8);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,8,0.65)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Her',
+      ref:'Her \u2014 Spike Jonze, 2013',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.68';
+        let t=0;
+        // Ondes sonores / voix
+        const waves=Array.from({length:7},(_,i)=>({
+          phase:i*Math.PI*0.28, freq:0.012+i*0.002,
+          amp:18+i*8, spd:0.8+i*0.15,
+          hue:18+i*10, op:0.18-i*0.018
+        }));
+        // Particules lumineuses dorées
+        const motes=Array.from({length:55},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          vx:(Math.random()-0.5)*0.3, vy:-(Math.random()*0.25+0.05),
+          r:Math.random()*2.5+0.5,
+          op:Math.random()*0.4+0.1,
+          phase:Math.random()*Math.PI*2
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(8,4,2,0.14)';ctx.fillRect(0,0,W,H);
+          // Lumière chaude diffuse — Los Angeles
+          const lg=ctx.createRadialGradient(W*0.5,H*0.38,30,W*0.5,H*0.38,W*0.65);
+          lg.addColorStop(0,`rgba(${230+Math.sin(t*0.3)*15|0},${140+Math.sin(t*0.2)*10|0},60,0.10)`);
+          lg.addColorStop(0.6,`rgba(180,80,20,0.04)`);
+          lg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=lg;ctx.fillRect(0,0,W,H);
+          // Ondes sonores horizontales
+          for(const w of waves){
+            ctx.beginPath();
+            for(let x=0;x<=W;x+=3){
+              const y=H*0.5+Math.sin(x*w.freq+t*w.spd+w.phase)*w.amp
+                      +Math.sin(x*w.freq*1.7+t*w.spd*0.6+w.phase)*w.amp*0.4;
+              x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+            }
+            ctx.strokeStyle=`hsla(${w.hue},75%,72%,${w.op+Math.sin(t*0.4+w.phase)*0.04})`;
+            ctx.lineWidth=1.2;ctx.stroke();
+          }
+          // Motes de lumière
+          for(const m of motes){
+            m.x+=m.vx+Math.sin(t*0.3+m.phase)*0.15;
+            m.y+=m.vy;
+            if(m.y<-5){m.y=H+5;m.x=Math.random()*W;}
+            ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+            ctx.fillStyle=`rgba(255,${170+Math.random()*40|0},80,${m.op})`;ctx.fill();
+          }
+          // Vignette dorée chaude
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(12,5,0,0.55)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Drive',
+      ref:'Drive \u2014 Nicolas Winding Refn, 2011',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.68';
+        let t=0;
+        // Pluie fine
+        const rain=Array.from({length:100},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          len:Math.random()*18+8, spd:Math.random()*5+8,
+          op:Math.random()*0.2+0.05
+        }));
+        // Reflets néon sur bitume — bandes horizontales
+        const neons=[
+          {y:H*0.72, color:'rgba(255,30,120,', w:W*0.4, x:W*0.3},
+          {y:H*0.78, color:'rgba(200,30,200,', w:W*0.25, x:W*0.15},
+          {y:H*0.82, color:'rgba(255,60,180,', w:W*0.3, x:W*0.55}
+        ];
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.16)';ctx.fillRect(0,0,W,H);
+          // Lueur néon rose/violet diffuse
+          const pg=ctx.createRadialGradient(W*0.5,H*0.65,10,W*0.5,H*0.65,W*0.6);
+          pg.addColorStop(0,`rgba(200,20,120,${0.08+Math.sin(t*0.5)*0.02})`);
+          pg.addColorStop(0.5,'rgba(120,0,160,0.04)');
+          pg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=pg;ctx.fillRect(0,0,W,H);
+          // Reflets bitume
+          for(const n of neons){
+            const flicker=0.7+Math.sin(t*3.5+n.x)*0.3;
+            const rg=ctx.createLinearGradient(n.x-n.w/2,n.y,n.x+n.w/2,n.y);
+            rg.addColorStop(0,n.color+'0)');
+            rg.addColorStop(0.5,n.color+(0.18*flicker)+')');
+            rg.addColorStop(1,n.color+'0)');
+            ctx.fillStyle=rg;
+            ctx.fillRect(n.x-n.w/2,n.y,n.w,6);
+          }
+          // Pluie
+          ctx.lineWidth=0.8;
+          for(const d of rain){
+            d.y+=d.spd;d.x-=0.5;
+            if(d.y>H+d.len){d.y=-d.len;d.x=Math.random()*W;}
+            ctx.strokeStyle=`rgba(160,190,220,${d.op})`;
+            ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-2,d.y+d.len);ctx.stroke();
+          }
+          // Vignette
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.8);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,0,10,0.65)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Taxi Driver',
+      ref:'Taxi Driver \u2014 Martin Scorsese, 1976',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.62';
+        let t=0;
+        // Vapeur des bouches d'égout
+        const steams=Array.from({length:8},(_,i)=>({
+          x:W*(0.1+i*0.12), y:H,
+          particles:Array.from({length:12},()=>({
+            ox:(Math.random()-0.5)*30, oy:0,
+            vx:(Math.random()-0.5)*0.4, vy:-(Math.random()*0.8+0.3),
+            life:Math.random(), r:Math.random()*12+6, op:0
+          }))
+        }));
+        // Néons rouge/jaune NYC
+        const signs=[
+          {x:W*0.15,y:H*0.4,color:'rgba(220,30,30,',flicker:2.1},
+          {x:W*0.72,y:H*0.35,color:'rgba(220,180,0,',flicker:3.4},
+          {x:W*0.45,y:H*0.52,color:'rgba(200,40,20,',flicker:1.7}
+        ];
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
+          // Lueur ambre NYC
+          const ag=ctx.createRadialGradient(W*0.5,H*0.5,20,W*0.5,H*0.5,W*0.7);
+          ag.addColorStop(0,`rgba(180,${80+Math.sin(t*0.3)*15|0},10,0.07)`);
+          ag.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
+          // Néons qui clignotent
+          for(const s of signs){
+            const fl=0.5+Math.sin(t*s.flicker)*0.5;
+            const sg=ctx.createRadialGradient(s.x,s.y,2,s.x,s.y,40);
+            sg.addColorStop(0,s.color+(0.35*fl)+')');
+            sg.addColorStop(1,s.color+'0)');
+            ctx.fillStyle=sg;ctx.fillRect(s.x-42,s.y-42,84,84);
+          }
+          // Vapeur
+          for(const st of steams){
+            for(const p of st.particles){
+              p.ox+=p.vx;p.oy+=p.vy;p.life-=0.006;
+              if(p.life<=0){
+                p.ox=(Math.random()-0.5)*20;p.oy=0;
+                p.vx=(Math.random()-0.5)*0.4;p.vy=-(Math.random()*0.8+0.3);
+                p.life=0.6+Math.random()*0.4;p.r=Math.random()*12+6;
+              }
+              const op=p.life*0.12;
+              const sg=ctx.createRadialGradient(st.x+p.ox,st.y+p.oy,0,st.x+p.ox,st.y+p.oy,p.r*(1-p.life*0.3));
+              sg.addColorStop(0,`rgba(200,185,160,${op})`);
+              sg.addColorStop(1,'rgba(200,185,160,0)');
+              ctx.fillStyle=sg;ctx.fillRect(st.x+p.ox-p.r,st.y+p.oy-p.r,p.r*2,p.r*2);
+            }
+          }
+          // Vignette sombre ambrée
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.12,W/2,H/2,H*0.8);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(8,3,0,0.70)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Magnolia',
+      ref:'Magnolia \u2014 Paul Thomas Anderson, 1999',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.65';
+        let t=0;
+        // Grenouilles qui tombent
+        const frogs=Array.from({length:28},()=>({
+          x:Math.random()*W, y:Math.random()*H*1.5-H*0.5,
+          spd:Math.random()*2.5+1.2,
+          size:Math.random()*10+5,
+          rot:Math.random()*Math.PI*2,
+          rotSpd:(Math.random()-0.5)*0.06,
+          op:Math.random()*0.5+0.2
+        }));
+        function drawFrog(x,y,s,rot,op){
+          ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=op;
+          // Corps
+          ctx.beginPath();ctx.ellipse(0,0,s*0.7,s*0.5,0,0,Math.PI*2);
+          ctx.fillStyle='rgba(60,140,60,0.85)';ctx.fill();
+          // Yeux
+          ctx.beginPath();ctx.arc(-s*0.28,-s*0.28,s*0.2,0,Math.PI*2);
+          ctx.fillStyle='rgba(80,160,80,0.9)';ctx.fill();
+          ctx.beginPath();ctx.arc(s*0.28,-s*0.28,s*0.2,0,Math.PI*2);
+          ctx.fillStyle='rgba(80,160,80,0.9)';ctx.fill();
+          ctx.beginPath();ctx.arc(-s*0.28,-s*0.28,s*0.09,0,Math.PI*2);
+          ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fill();
+          ctx.beginPath();ctx.arc(s*0.28,-s*0.28,s*0.09,0,Math.PI*2);
+          ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fill();
+          // Pattes
+          ctx.strokeStyle='rgba(50,120,50,0.75)';ctx.lineWidth=s*0.12;
+          ctx.beginPath();ctx.moveTo(-s*0.6,s*0.1);ctx.lineTo(-s*1.1,s*0.5);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(s*0.6,s*0.1);ctx.lineTo(s*1.1,s*0.5);ctx.stroke();
+          ctx.restore();
+        }
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,2,0,0.15)';ctx.fillRect(0,0,W,H);
+          // Lueur verte diffuse — ambiance orage
+          const sg=ctx.createRadialGradient(W*0.5,H*0.3,20,W*0.5,H*0.3,W*0.65);
+          sg.addColorStop(0,`rgba(20,${80+Math.sin(t*0.4)*20|0},10,0.07)`);
+          sg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);
+          // Pluie légère
+          ctx.lineWidth=0.6;
+          for(let i=0;i<30;i++){
+            const rx=(Math.sin(i*137.5+t*50)*W+W)%W;
+            const ry=(t*180+i*H/30)%H;
+            ctx.strokeStyle=`rgba(100,160,100,0.12)`;
+            ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx-1,ry+12);ctx.stroke();
+          }
+          // Grenouilles
+          for(const f of frogs){
+            f.y+=f.spd;f.rot+=f.rotSpd;
+            if(f.y>H+f.size*2){f.y=-f.size*2;f.x=Math.random()*W;}
+            drawFrog(f.x,f.y,f.size,f.rot,f.op);
+          }
+          // Vignette sombre
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.8);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,5,0,0.65)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'Spider-Man',
+      ref:'Spider-Man: Into the Spider-Verse \u2014 Persichetti, 2018',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.68';
+        let t=0;
+        const cx=W/2,cy=H*0.38;
+        // Toile — rayons depuis centre
+        const spokes=24;
+        const rings=10;
+        // Points de toile qui ondulent
+        function webPoint(spoke,ring){
+          const a=(spoke/spokes)*Math.PI*2;
+          const r=(ring/rings)*Math.min(W,H)*0.55;
+          const wobble=Math.sin(t*1.2+spoke*0.5+ring*0.3)*2.5;
+          return{x:cx+Math.cos(a)*(r+wobble),y:cy+Math.sin(a)*(r+wobble)*0.85};
+        }
+        // Particules style demi-ton
+        const dots=Array.from({length:60},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          r:Math.random()*2+0.5,
+          hue:Math.random()>0.5?350:200,
+          op:Math.random()*0.35+0.08,
+          vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.14)';ctx.fillRect(0,0,W,H);
+          // Lueur rouge/bleu spider-verse
+          const rg=ctx.createRadialGradient(W*0.3,H*0.3,10,W*0.3,H*0.3,W*0.55);
+          rg.addColorStop(0,`rgba(200,10,30,${0.07+Math.sin(t*0.5)*0.02})`);
+          rg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+          const bg=ctx.createRadialGradient(W*0.7,H*0.5,10,W*0.7,H*0.5,W*0.5);
+          bg.addColorStop(0,`rgba(10,80,200,${0.06+Math.cos(t*0.4)*0.02})`);
+          bg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+          // Toile
+          ctx.lineWidth=0.7;
+          // Rayons
+          for(let s=0;s<spokes;s++){
+            const p0={x:cx,y:cy};
+            const p1=webPoint(s,rings);
+            ctx.strokeStyle=`rgba(200,200,220,0.14)`;
+            ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.stroke();
+          }
+          // Anneaux
+          for(let r=1;r<=rings;r++){
+            ctx.beginPath();
+            for(let s=0;s<=spokes;s++){
+              const p=webPoint(s%spokes,r);
+              s===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle=`rgba(200,200,220,${0.18-r*0.012})`;ctx.stroke();
+          }
+          // Demi-tons
+          for(const d of dots){
+            d.x+=d.vx;d.y+=d.vy;
+            if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+            if(d.y<0)d.y=H;if(d.y>H)d.y=0;
+            ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+            ctx.fillStyle=`hsla(${d.hue},80%,65%,${d.op})`;ctx.fill();
+          }
+          // Vignette
+          const vg=ctx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.8);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,5,0.65)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
     }
   ];
 
@@ -19874,6 +20631,7 @@ function closeAvModal(e){
     }catch(e){idx=Math.random()*EFFECTS.length|0;}
     const fx=EFFECTS[idx];
     if(refEl){refEl.textContent=fx.ref;}
+    window._splashEffectName=fx.name;
     fx.run(cv,ctx,cv.width,cv.height,stop);
     window._stopSplashEffect=()=>{stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
   };
@@ -19912,6 +20670,28 @@ function runSplash(){
     curtain.classList.add('open');
     splash.classList.add('curtain-open');
 
+    // ── Musique du film — fade-in au rideau ──
+    (function(){
+      var aud = _splashAudioPrimed;
+      if(!aud){
+        var filmName = window._splashEffectName || '';
+        var filmFile = SPLASH_MUSIC[filmName];
+        if(filmFile){ aud = new Audio(filmFile); }
+      }
+      if(!aud) return;
+      _splashAudioPlaying = aud;
+      aud.currentTime = 0;
+      aud.volume = 0;
+      aud.play().catch(function(){});
+      // Fade-in sur 800ms
+      var fadeDur = 800, steps = 30, step = 0;
+      var fadeIn = setInterval(function(){
+        step++;
+        aud.volume = Math.min(1, step / steps);
+        if(step >= steps) clearInterval(fadeIn);
+      }, fadeDur / steps);
+    })();
+
 
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
@@ -19923,6 +20703,17 @@ function runSplash(){
 
     // Fade out une fois que le son d'intro est terminé (ou après closeDelay ms)
     setTimeout(()=>{
+      // Fade-out musique film sur 600ms
+      if(_splashAudioPlaying){
+        var aud = _splashAudioPlaying;
+        var vol = aud.volume;
+        var steps = 20, step = 0;
+        var fadeOut = setInterval(function(){
+          step++;
+          aud.volume = Math.max(0, vol * (1 - step / steps));
+          if(step >= steps){ clearInterval(fadeOut); aud.pause(); aud.currentTime = 0; _splashAudioPlaying = null; }
+        }, 600 / steps);
+      }
       splash.classList.add('out');
       setTimeout(()=>{
         splash.style.display='none';
@@ -19977,43 +20768,9 @@ function runSplash(){
       track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
       setTimeout(function(){
         thumb.style.transition = '';
-        // Jouer le son d'intro pré-primé jusqu'à la fin, puis lancer la musique du jeu
-        if(_introAudioPrimed){
-          _introAudioPrimed.currentTime = 0;
-          _introAudioPrimed.volume = 1.0;
-          Object.values(window._musicCache || {}).forEach(function(t){ t.pause(); t.currentTime = 0; });
-          var _introFinished = false;
-          function afterIntro(){
-            if(_introFinished) return;
-            _introFinished = true;
-            if(musOn) playMus();
-          }
-          _introAudioPrimed.addEventListener('ended', afterIntro, {once:true});
-          _introAudioPrimed.addEventListener('error', afterIntro, {once:true});
-          _introAudioPrimed.play().then(function(){
-            // Démarrer la séquence splash en synchronisant avec la durée du son
-            // On attend que le son soit terminé (ou max 8s) avant de fermer le splash
-            var introDuration = _introAudioPrimed.duration;
-            // Si la durée est connue, adapter le timing du splash
-            if(introDuration && isFinite(introDuration)){
-              var splashDelay = Math.max(3500, introDuration * 1000 + 200);
-              startSequence(splashDelay);
-            } else {
-              // Durée inconnue : lancer le splash normalement,
-              // et attendre l'event ended pour la musique
-              startSequence(3500);
-              // Fallback : si ended ne se déclenche pas dans 10s, lancer la musique quand même
-              var _fallback = setTimeout(afterIntro, 10000);
-              _introAudioPrimed.addEventListener('ended', function(){ clearTimeout(_fallback); }, {once:true});
-            }
-          }).catch(function(){
-            afterIntro();
-            startSequence(3500);
-          });
-        } else {
-          if(musOn) playMus();
-          startSequence(3500);
-        }
+        // Lancer directement la séquence — la musique film démarre dans startSequence au rideau
+        if(musOn) playMus();
+        startSequence(3500);
       }, 150);
     }
   }
@@ -20021,6 +20778,33 @@ function runSplash(){
   var musicStarted = false;
   var _introAudioPrimed = null;
   var _introFiles = ['Columbia.mp3','Dreamworks.mp3','Netflix.mp3','Paramount.mp3','Sony Pictures.mp3','Warner Bros.mp3','Apple.mp3'];
+
+  // ── Map effet → fichier MP3 film ──
+  var SPLASH_MUSIC = {
+    'Matrix':          'Matrix.mp3',
+    '2001':            '2001.mp3',
+    'Blade Runner':    'Blade Runner.mp3',
+    'Star Wars':       'Star Wars.mp3',
+    'Interstellar':    'Interstellar.mp3',
+    'Tron':            'Tron.mp3',
+    'Psycho':          'Psychose.mp3',
+    'Vertigo':         'Vertigo.mp3',
+    'Apocalypse Now':  'Apocalypse Now.mp3',
+    'Le Grand Bleu':   'Le Grand Bleu.mp3',
+    'Metropolis':      'Metropolis.mp3',
+    'Alien':           'Alien.mp3',
+    'Amélie':          'Amelie Poulain.mp3',
+    'American Beauty': 'American Beauty.mp3',
+    'Tree of Life':    'The Tree of Life.mp3',
+    'Her':             'Her.mp3',
+    'Drive':           'Drive.mp3',
+    'Taxi Driver':     'Taxi Driver.mp3',
+    'Magnolia':        'Magnolia.mp3',
+    'Spider-Man':      'Spider-Man.mp3'
+  };
+
+  var _splashAudioPrimed = null;
+  var _splashAudioPlaying = null;
   function onPointerDown(e){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
@@ -20035,6 +20819,19 @@ function runSplash(){
         _introAudioPrimed.currentTime = 0;
         _introAudioPrimed.volume = 1.0;
       }).catch(function(){});
+    }
+    // Primer aussi la musique film pour iOS
+    if(!_splashAudioPrimed){
+      var filmName = window._splashEffectName || '';
+      var filmFile = SPLASH_MUSIC[filmName];
+      if(filmFile){
+        _splashAudioPrimed = new Audio(filmFile);
+        _splashAudioPrimed.volume = 0;
+        _splashAudioPrimed.play().then(function(){
+          _splashAudioPrimed.pause();
+          _splashAudioPrimed.currentTime = 0;
+        }).catch(function(){});
+      }
     }
     dragging = true;
     startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
