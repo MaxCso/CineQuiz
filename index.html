@@ -20723,6 +20723,8 @@ function runSplash(){
         allAnimated.forEach(el=>{ el.style.animation='none'; });
         if(window._stopNeuroSplash)window._stopNeuroSplash();
         if(window._stopSplashEffect)window._stopSplashEffect();
+        // Lancer la musique d'accueil maintenant que le splash est fermé
+        if(musOn) playMus();
       },700);
     }, closeDelay);
   }
@@ -20768,8 +20770,7 @@ function runSplash(){
       track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
       setTimeout(function(){
         thumb.style.transition = '';
-        // Lancer directement la séquence — la musique film démarre dans startSequence au rideau
-        if(musOn) playMus();
+        // Lancer la séquence — playMus() sera appelé après la fermeture du splash
         startSequence(3500);
       }, 150);
     }
@@ -20777,7 +20778,6 @@ function runSplash(){
 
   var musicStarted = false;
   var _introAudioPrimed = null;
-  var _introFiles = ['Columbia.mp3','Dreamworks.mp3','Netflix.mp3','Paramount.mp3','Sony Pictures.mp3','Warner Bros.mp3','Apple.mp3'];
 
   // ── Map effet → fichier MP3 film ──
   var SPLASH_MUSIC = {
@@ -20809,23 +20809,13 @@ function runSplash(){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
-    // iOS PWA : primer un audio dans cet event tactile direct pour autoriser .play() plus tard
-    if(!_introAudioPrimed){
-      var file = _introFiles[Math.floor(Math.random() * _introFiles.length)];
-      _introAudioPrimed = new Audio(file);
-      _introAudioPrimed.volume = 0;
-      _introAudioPrimed.play().then(function(){
-        _introAudioPrimed.pause();
-        _introAudioPrimed.currentTime = 0;
-        _introAudioPrimed.volume = 1.0;
-      }).catch(function(){});
-    }
-    // Primer aussi la musique film pour iOS
+    // Primer la musique film dès le premier touch (débloque l'audio iOS)
     if(!_splashAudioPrimed){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
       if(filmFile){
         _splashAudioPrimed = new Audio(filmFile);
+        _introAudioPrimed = _splashAudioPrimed; // alias pour compatibilité
         _splashAudioPrimed.volume = 0;
         _splashAudioPrimed.play().then(function(){
           _splashAudioPrimed.pause();
