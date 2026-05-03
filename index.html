@@ -2538,16 +2538,19 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 #splash.curtain-open #splash-film-ref{opacity:1;}
 #splash-skip{
-  position:absolute;bottom:28px;left:0;right:0;
+  position:absolute;bottom:0;left:0;right:0;
   text-align:center;z-index:10;
   font-size:9px;letter-spacing:3px;text-transform:uppercase;
   color:rgba(255,255,255,.22);font-family:'DM Sans',sans-serif;
   opacity:0;transition:opacity 1.2s ease;
   cursor:pointer;user-select:none;
   pointer-events:none;
-  padding:20px 0;
+  /* Grande zone de tap : tout le bas de l'écran */
+  padding:40px 0 50px;
 }
 #splash-skip.visible{opacity:1;pointer-events:auto;}
+/* Bloquer tous les taps sur le splash quand le rideau est ouvert */
+#splash.curtain-open{pointer-events:all;}
 
 /* ── Agitation rapide des orbes à l'ouverture du rideau ── */
 #splash-bg-anim{
@@ -7471,28 +7474,46 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     </div>
     <script>
     (function(){
-      var quotes=[
+      var FILM_QUOTES={
+        'Matrix':         {t:"You take the red pill — you stay in Wonderland.",a:"The Matrix"},
+        '2001':           {t:"The most terrifying fact about the universe is not that it is hostile but that it is indifferent.",a:"Stanley Kubrick"},
+        'Blade Runner':   {t:"All those moments will be lost in time, like tears in rain.",a:"Blade Runner"},
+        'Star Wars':      {t:"The Force will be with you. Always.",a:"Star Wars"},
+        'Interstellar':   {t:"We used to look up at the sky and wonder at our place in the stars.",a:"Interstellar"},
+        'Tron':           {t:"On the other side of the screen, it all looks so easy.",a:"Tron"},
+        'Psycho':         {t:"We all go a little mad sometimes.",a:"Psycho"},
+        'Vertigo':        {t:"Only one is a wanderer; two together are always going somewhere.",a:"Vertigo"},
+        'Apocalypse Now': {t:"L'horreur… l'horreur…",a:"Apocalypse Now"},
+        'Le Grand Bleu':  {t:"Il faut aller au fond des choses… comme dans la mer.",a:"Le Grand Bleu"},
+        'Metropolis':     {t:"Le médiateur entre la tête et les mains doit être le cœur.",a:"Metropolis"},
+        'Alien':          {t:"Dans l'espace, personne ne vous entendra crier.",a:"Alien"},
+        'Amélie':         {t:"Sans toi, les émotions que j'éprouve, je les éprouve à moitié.",a:"Amélie Poulain"},
+        'American Beauty':{t:"Look closer.",a:"American Beauty"},
+        'Tree of Life':   {t:"There are two ways through life: the way of nature, and the way of grace.",a:"The Tree of Life"},
+        'Her':            {t:"The past is just a story we tell ourselves.",a:"Her"},
+        'Drive':          {t:"Si tu conduis, tu conduis. Tu ne fais pas autre chose.",a:"Drive"},
+        'Taxi Driver':    {t:"One day a real rain will come and wash all this scum off the streets.",a:"Taxi Driver"},
+        'Magnolia':       {t:"We may be through with the past, but the past ain't through with us.",a:"Magnolia"},
+        'Spider-Man':     {t:"With great power comes great responsibility.",a:"Spider-Man"},
+        'Batman':         {t:"Je suis Batman.",a:"Batman"},
+        'James Bond':     {t:"Bond. James Bond.",a:"James Bond"}
+      };
+      var fallback=[
         {t:"Un film est un rêve qu'on partage.",a:"Jean-Luc Godard"},
         {t:"Every frame a painting.",a:"Tony Zhou"},
-        {t:"I'll make him an offer he can't refuse.",a:"Le Parrain"},
-        {t:"You talkin' to me?",a:"Taxi Driver"},
-        {t:"Here's looking at you, kid.",a:"Casablanca"},
-        {t:"I am your father.",a:"Star Wars"},
-        {t:"Why so serious?",a:"The Dark Knight"},
-        {t:"I'll be back.",a:"Terminator"},
         {t:"Le cinéma substitue à notre regard un monde qui s'accorde à nos désirs.",a:"André Bazin"},
-        {t:"Cinema is a mirror by which we often see ourselves.",a:"Martin Scorsese"},
-        {t:"I see dead people.",a:"Sixième Sens"},
-        {t:"You can't handle the truth!",a:"A Few Good Men"},
-        {t:"Life is like a box of chocolates.",a:"Forrest Gump"},
-        {t:"After all, tomorrow is another day.",a:"Autant en emporte le vent"},
-        {t:"Frankly, my dear, I don't give a damn.",a:"Autant en emporte le vent"},
+        {t:"Cinema is a mirror by which we often see ourselves.",a:"Martin Scorsese"}
       ];
-      var q=quotes[Math.floor(Math.random()*quotes.length)];
-      var txt=document.getElementById('splash-quote-text');
-      if(txt){
-        txt.innerHTML='<div class="splash-quote-inner">'+'« '+q.t+' »'+(q.a?'<span id="splash-quote-attr">— '+q.a+'</span>':'')+'</div>';
+      function setQuote(){
+        var name=window._splashEffectName||'';
+        var q=FILM_QUOTES[name]||fallback[Math.floor(Math.random()*fallback.length)];
+        var txt=document.getElementById('splash-quote-text');
+        if(txt){
+          txt.innerHTML='<div class="splash-quote-inner">« '+q.t+' »'+(q.a?'<span id="splash-quote-attr">— '+q.a+'</span>':'')+'</div>';
+        }
       }
+      if(window._splashEffectName){setQuote();}
+      else{window._onSplashEffectReady=setQuote;}
     })();
     </script>
     <script>
@@ -20624,6 +20645,192 @@ function closeAvModal(e){
         }
         frame();
       }
+    },
+    {
+      name:'Batman',
+      ref:'Batman \u2014 Tim Burton, 1989',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.68';
+        let t=0;
+        const cx=W/2,cy=H/2;
+        // Chauve-souris qui volent
+        const bats=Array.from({length:14},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          vx:(Math.random()-0.5)*1.4, vy:(Math.random()-0.5)*1.1,
+          size:Math.random()*10+5,
+          phase:Math.random()*Math.PI*2, flapSpd:Math.random()*4+3,
+          op:Math.random()*0.45+0.15
+        }));
+        // Silhouette Gotham Art Déco
+        const bldgs=[
+          {x:0,   w:45, h:H*0.52, spires:[{ox:22,h:28}]},
+          {x:50,  w:30, h:H*0.38, spires:[]},
+          {x:85,  w:60, h:H*0.65, spires:[{ox:30,h:40},{ox:10,h:20}]},
+          {x:150, w:35, h:H*0.44, spires:[{ox:17,h:22}]},
+          {x:190, w:75, h:H*0.72, spires:[{ox:37,h:50},{ox:15,h:25},{ox:58,h:18}]},
+          {x:270, w:40, h:H*0.55, spires:[{ox:20,h:30}]},
+          {x:315, w:55, h:H*0.48, spires:[{ox:27,h:22}]},
+          {x:375, w:40, h:H*0.60, spires:[{ox:20,h:35}]}
+        ];
+        function drawBat(x,y,s,phase,op){
+          ctx.save();ctx.translate(x,y);ctx.globalAlpha=op;
+          const flap=Math.sin(phase)*0.6;
+          ctx.beginPath();
+          // Aile gauche
+          ctx.moveTo(0,0);
+          ctx.bezierCurveTo(-s,-s*flap,-s*2.2,-s*0.3,-s*2.5,s*0.2);
+          ctx.bezierCurveTo(-s*2,-s*0.1,-s*1.2,s*0.5,-s*0.3,s*0.4);
+          // Aile droite
+          ctx.bezierCurveTo(s*0.3,s*0.5,s*1.2,s*0.1,s*2,s*0.2) ;
+          ctx.bezierCurveTo(s*2.2,-s*0.3,s,s*-flap,0,0);
+          ctx.fillStyle='rgba(10,8,18,0.9)';ctx.fill();
+          // Corps
+          ctx.beginPath();ctx.ellipse(0,s*0.1,s*0.3,s*0.45,0,0,Math.PI*2);
+          ctx.fillStyle='rgba(15,12,25,0.95)';ctx.fill();
+          ctx.restore();
+        }
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(2,1,8,0.16)';ctx.fillRect(0,0,W,H);
+          // Halo jaune — Bat-Signal
+          const bsg=ctx.createRadialGradient(cx,H*0.38,5,cx,H*0.38,W*0.35);
+          bsg.addColorStop(0,`rgba(230,190,20,${0.10+Math.sin(t*0.4)*0.03})`);
+          bsg.addColorStop(0.4,`rgba(180,130,0,0.04)`);
+          bsg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=bsg;ctx.fillRect(0,0,W,H);
+          // Silhouette Gotham
+          for(const b of bldgs){
+            ctx.fillStyle='rgba(8,6,16,0.92)';
+            ctx.fillRect(b.x,H-b.h,b.w,b.h);
+            // Fenêtres jaunes
+            const cols=Math.floor(b.w/9),rows=Math.floor(b.h/12);
+            for(let r=1;r<rows-1;r++) for(let c=0;c<cols;c++){
+              if(Math.sin(b.x*0.3+r*c+t*0.2)>0.3){
+                ctx.fillStyle=`rgba(200,160,50,${0.3+Math.random()*0.1})`;
+                ctx.fillRect(b.x+c*9+2,H-b.h+r*12,5,6);
+              }
+            }
+            // Flèches Art Déco
+            for(const sp of b.spires){
+              ctx.fillStyle='rgba(8,6,16,0.95)';
+              ctx.beginPath();
+              ctx.moveTo(b.x+sp.ox-4,H-b.h);
+              ctx.lineTo(b.x+sp.ox,H-b.h-sp.h);
+              ctx.lineTo(b.x+sp.ox+4,H-b.h);
+              ctx.fill();
+            }
+          }
+          // Chauve-souris
+          for(const bat of bats){
+            bat.x+=bat.vx;bat.y+=bat.vy;
+            bat.phase+=0.08;
+            if(bat.x<-40)bat.x=W+40; if(bat.x>W+40)bat.x=-40;
+            if(bat.y<-20)bat.y=H+20; if(bat.y>H+20)bat.y=-20;
+            drawBat(bat.x,bat.y,bat.size,bat.phase,bat.op);
+          }
+          // Vignette violette sombre
+          const vg=ctx.createRadialGradient(cx,cy,H*0.15,cx,cy,H*0.85);
+          vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(4,0,12,0.72)');
+          ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
+    },
+    {
+      name:'James Bond',
+      ref:'James Bond \u2014 Eon Productions, 1962\u2013',
+      run(cv,ctx,W,H,stop){
+        cv.style.opacity='0.70';
+        let t=0;
+        const cx=W/2,cy=H/2;
+        // Gun barrel — cercle qui s'ouvre
+        let barrelOpen=0; // 0→1
+        // Sang qui coule
+        const bloodDrops=[];
+        let bloodStarted=false;
+        // Particules dorées — générique Bond
+        const particles=Array.from({length:60},()=>({
+          x:Math.random()*W, y:Math.random()*H,
+          vx:(Math.random()-0.5)*0.5, vy:-(Math.random()*0.8+0.2),
+          r:Math.random()*2+0.5,
+          op:Math.random()*0.4+0.1,
+          hue:40+Math.random()*20
+        }));
+        function frame(){
+          if(stop.v)return;
+          ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
+          // Ouverture progressive du gun barrel
+          if(barrelOpen<1) barrelOpen=Math.min(1,barrelOpen+0.012);
+          const maxR=Math.hypot(W,H)*0.6;
+          const r=barrelOpen*maxR;
+          // Fond noir avec trou circulaire (gun barrel)
+          ctx.save();
+          ctx.beginPath();ctx.rect(0,0,W,H);
+          ctx.arc(cx,cy,r,0,Math.PI*2,true);
+          ctx.fillStyle='rgba(0,0,0,0.85)';ctx.fill();
+          ctx.restore();
+          // Anneau du canon
+          ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+          ctx.strokeStyle=`rgba(180,150,80,${0.6*(1-barrelOpen*0.5)})`;
+          ctx.lineWidth=3;ctx.stroke();
+          // Particules dorées (visible dans le cercle)
+          ctx.save();
+          ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+          for(const p of particles){
+            p.x+=p.vx;p.y+=p.vy;
+            if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}
+            ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+            ctx.fillStyle=`hsla(${p.hue},80%,65%,${p.op})`;ctx.fill();
+          }
+          ctx.restore();
+          // Silhouette Bond qui marche (simple) au centre
+          if(barrelOpen>0.3){
+            const bx=cx+Math.sin(t*0.5)*W*0.06;
+            const by=cy+Math.sin(t*0.3)*H*0.02;
+            const op=Math.min(1,(barrelOpen-0.3)/0.4);
+            ctx.save();ctx.globalAlpha=op*0.85;ctx.translate(bx,by);
+            // Corps
+            ctx.fillStyle='#000';
+            ctx.beginPath();ctx.ellipse(0,-18,5,8,0,0,Math.PI*2);ctx.fill(); // tête
+            ctx.fillRect(-4,-10,8,18); // torse
+            ctx.fillRect(-6,8,5,14);ctx.fillRect(1,8,5,14); // jambes
+            // Bras avec pistolet
+            ctx.fillRect(-10,-8,10,4); // bras gauche
+            ctx.fillRect(-14,-9,5,3); // pistolet
+            ctx.restore();
+            // Tir : coup de feu
+            if(Math.sin(t*2)>0.92){
+              ctx.save();ctx.globalAlpha=op*0.6;
+              const fg=ctx.createRadialGradient(bx-14,by-9,0,bx-14,by-9,12);
+              fg.addColorStop(0,'rgba(255,220,50,0.9)');fg.addColorStop(1,'rgba(255,100,0,0)');
+              ctx.fillStyle=fg;ctx.fillRect(bx-26,by-21,24,24);
+              ctx.restore();
+            }
+          }
+          // Sang qui coule depuis le haut quand le barrel est ouvert
+          if(barrelOpen>0.7 && !bloodStarted){
+            bloodStarted=true;
+            bloodDrops.push({x:cx,y:0,vy:3,w:6});
+          }
+          for(const d of bloodDrops){
+            d.y+=d.vy;d.vy*=1.02;
+            const bg=ctx.createLinearGradient(d.x,0,d.x,d.y);
+            bg.addColorStop(0,'rgba(180,0,0,0.85)');
+            bg.addColorStop(1,'rgba(120,0,0,0.60)');
+            ctx.fillStyle=bg;
+            ctx.beginPath();
+            ctx.moveTo(d.x-d.w/2,0);ctx.lineTo(d.x+d.w/2,0);
+            ctx.lineTo(d.x+d.w*0.3,d.y);ctx.lineTo(d.x-d.w*0.3,d.y);
+            ctx.closePath();ctx.fill();
+            // Goutte au bout
+            ctx.beginPath();ctx.arc(d.x,d.y,d.w*0.5,0,Math.PI*2);
+            ctx.fillStyle='rgba(160,0,0,0.75)';ctx.fill();
+          }
+          t+=0.016;requestAnimationFrame(frame);
+        }
+        frame();
+      }
     }
   ];
 
@@ -20644,6 +20851,7 @@ function closeAvModal(e){
     const fx=EFFECTS[idx];
     if(refEl){refEl.textContent=fx.ref;}
     window._splashEffectName=fx.name;
+    if(window._onSplashEffectReady){window._onSplashEffectReady();window._onSplashEffectReady=null;}
     fx.run(cv,ctx,cv.width,cv.height,stop);
     window._stopSplashEffect=()=>{stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
   };
@@ -20844,7 +21052,9 @@ function runSplash(){
     'Drive':           'Drive.mp3',
     'Taxi Driver':     'Taxi Driver.mp3',
     'Magnolia':        'Magnolia.mp3',
-    'Spider-Man':      'Spider-Man.mp3'
+    'Spider-Man':      'Spider-Man.mp3',
+    'Batman':          'Batman.mp3',
+    'James Bond':      'James Bond.mp3'
   };
 
   var _splashAudioPrimed = null;
