@@ -21342,57 +21342,116 @@ function closeAvModal(e){
    name:'Fight Club',
    ref:'Fight Club \u2014 David Fincher, 1999',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.65';
+    cv.style.opacity='0.72';
     let t=0;
-
-    const impacts=Array.from({length:6},()=>({
-     x:Math.random()*W,y:Math.random()*H,
-     r:0,maxR:Math.random()*60+30,spd:Math.random()*2+1,
-     op:Math.random()*0.3+0.1,active:false,timer:Math.random()*200
+    const cx=W/2,cy=H/2;
+    // Subliminal frames — mots qui flashent
+    const subliminal=['CONSUME','OBEY','SLEEP','COMPLY','BUY'];
+    let subTimer=0,subWord='',subAlpha=0;
+    // Impacts de boxe
+    const impacts=Array.from({length:4},()=>({
+     x:cx,y:cy*0.9,r:0,maxR:Math.random()*80+40,
+     spd:Math.random()*3+2,op:0,active:false,timer:Math.floor(Math.random()*120+60)
     }));
-
+    // Silhouettes
+    const fighters=[
+     {x:cx-40,y:cy*0.88,punchDir:1,phase:0},
+     {x:cx+40,y:cy*0.88,punchDir:-1,phase:Math.PI}
+    ];
+    function drawFighter(x,y,dir,phase){
+     const punch=Math.max(0,Math.sin(phase))*22;
+     ctx.save();ctx.globalAlpha=0.82;
+     ctx.fillStyle='rgba(5,3,3,0.95)';
+     // Tête
+     ctx.beginPath();ctx.ellipse(x,y-28,7,9,0,0,Math.PI*2);ctx.fill();
+     // Corps
+     ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(phase)*0.08);
+     ctx.fillRect(-7,-18,14,24);ctx.restore();
+     // Jambes
+     ctx.fillRect(x-9,y+6,7,16);ctx.fillRect(x+2,y+6,7,16);
+     // Bras actif — poing en avant
+     ctx.strokeStyle='rgba(5,3,3,0.95)';ctx.lineWidth=4;
+     ctx.beginPath();
+     ctx.moveTo(x+dir*6,y-10);
+     ctx.lineTo(x+dir*(24+punch),y-16);ctx.stroke();
+     ctx.beginPath();ctx.arc(x+dir*(26+punch),y-17,5,0,Math.PI*2);
+     ctx.fillStyle='rgba(5,3,3,0.95)';ctx.fill();
+     // Bras défensif
+     ctx.beginPath();ctx.moveTo(x-dir*6,y-10);ctx.lineTo(x-dir*16,y-22);ctx.stroke();
+     ctx.restore();
+    }
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(3,2,2,0.17)';ctx.fillRect(0,0,W,H);
-
-     const rg=ctx.createLinearGradient(0,0,W,H);
-     rg.addColorStop(0,`rgba(50,20,15,0.08)`);rg.addColorStop(1,'rgba(30,10,8,0.10)');
-     ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
-
+     // Fond très sombre — persistance rétinienne Fincher
+     ctx.fillStyle='rgba(2,1,1,0.20)';ctx.fillRect(0,0,W,H);
+     // Teinte rouge désaturée
+     ctx.fillStyle='rgba(30,8,8,0.06)';ctx.fillRect(0,0,W,H);
+     // Sol de ring / cercle
+     ctx.beginPath();ctx.arc(cx,cy*0.95,W*0.38,0,Math.PI*2);
+     ctx.strokeStyle='rgba(60,30,30,0.18)';ctx.lineWidth=1;ctx.stroke();
+     ctx.beginPath();ctx.arc(cx,cy*0.95,W*0.22,0,Math.PI*2);
+     ctx.strokeStyle='rgba(50,25,25,0.10)';ctx.lineWidth=1;ctx.stroke();
+     // Impacts
+     fighters.forEach(f=>{ f.phase+=0.06; });
      for(const imp of impacts){
       imp.timer--;
-      if(imp.timer<=0&&!imp.active){imp.active=true;imp.r=0;imp.x=Math.random()*W;imp.y=Math.random()*H;}
+      if(imp.timer<=0&&!imp.active){
+       imp.active=true;imp.r=0;
+       imp.x=cx+(Math.random()-0.5)*60;imp.y=cy*0.85+(Math.random()-0.5)*40;
+       imp.op=0.7;imp.timer=4;
+      }
       if(imp.active){
-       imp.r+=imp.spd;
-       if(imp.r>=imp.maxR){imp.active=false;imp.timer=Math.random()*180+60;imp.r=0;}
+       imp.r+=imp.spd;imp.op*=0.88;
+       if(imp.r>=imp.maxR||imp.op<0.02){imp.active=false;imp.timer=Math.floor(Math.random()*100+50);}
        const ig=ctx.createRadialGradient(imp.x,imp.y,0,imp.x,imp.y,imp.r);
-       ig.addColorStop(0,`rgba(200,50,30,${imp.op*(1-imp.r/imp.maxR)})`);
+       ig.addColorStop(0,`rgba(230,80,40,${imp.op})`);
+       ig.addColorStop(0.4,`rgba(180,30,10,${imp.op*0.4})`);
        ig.addColorStop(1,'rgba(0,0,0,0)');
        ctx.fillStyle=ig;ctx.fillRect(imp.x-imp.r,imp.y-imp.r,imp.r*2,imp.r*2);
       }
      }
-
-     [[W*0.38,H*0.45,'rgba(4,2,2,0.9)'],[W*0.62,H*0.45,'rgba(6,3,2,0.85)']].forEach(([sx,sy,col])=>{
-      ctx.save();ctx.globalAlpha=0.7;ctx.fillStyle=col;
-      ctx.beginPath();ctx.ellipse(sx,sy-20,7,9,0,0,Math.PI*2);ctx.fill();
-      ctx.fillRect(sx-6,sy-11,12,22);
-      ctx.fillRect(sx-8,sy+11,7,14);ctx.fillRect(sx+1,sy+11,7,14);
-      ctx.restore();
-     });
-
-     if(Math.random()>0.85){
+     // Silhouettes
+     fighters.forEach(f=>drawFighter(f.x,f.y,f.punchDir,f.phase));
+     // Grain chimique dense — style Fincher
+     for(let i=0;i<80;i++){
+      const gx=Math.random()*W,gy=Math.random()*H;
+      const gv=160+Math.random()*80|0;
+      ctx.fillStyle=`rgba(${gv},${gv*0.82|0},${gv*0.78|0},${Math.random()*0.07})`;
+      ctx.fillRect(gx,gy,Math.random()*2+1,1);
+     }
+     // Glitch horizontal — décalage de bandes
+     if(Math.random()>0.82){
       const gy=Math.random()*H;
-      const shift=Math.random()*20-10;
-      const slice=ctx.getImageData(0,gy,W,Math.random()*8+2);
-      ctx.putImageData(slice,shift,gy);
+      const gh=Math.random()*6+1;
+      const shift=(Math.random()-0.5)*30;
+      try{
+       const slice=ctx.getImageData(0,gy,W,gh);
+       ctx.putImageData(slice,shift,gy);
+      }catch(e){}
      }
-
-     for(let i=0;i<40;i++){
-      ctx.fillStyle=`rgba(${180+Math.random()*75|0},${160+Math.random()*60|0},${155+Math.random()*55|0},${Math.random()*0.05})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*3+1,2);
+     // Ligne de scan verticale
+     if(Math.random()>0.92){
+      const lx=Math.random()*W;
+      ctx.strokeStyle=`rgba(220,200,180,${Math.random()*0.08})`;
+      ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(lx,0);ctx.lineTo(lx,H);ctx.stroke();
      }
-     const vg=ctx.createRadialGradient(W/2,H/2,H*0.1,W/2,H/2,H*0.8);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(8,2,2,0.72)');
+     // Texte subliminal — flash très bref
+     subTimer--;
+     if(subTimer<=0){
+      subTimer=Math.floor(Math.random()*180+60);
+      subWord=subliminal[Math.floor(Math.random()*subliminal.length)];
+      subAlpha=0.55;
+     }
+     if(subAlpha>0){
+      ctx.font=`bold ${28+Math.random()*8|0}px 'DM Sans',sans-serif`;
+      ctx.fillStyle=`rgba(220,200,180,${subAlpha})`;
+      ctx.fillText(subWord,cx-ctx.measureText(subWord).width/2,cy*0.45);
+      subAlpha*=0.72; // disparaît en ~3 frames
+      if(subAlpha<0.01)subAlpha=0;
+     }
+     // Vignette très agressive
+     const vg=ctx.createRadialGradient(cx,cy,H*0.08,cx,cy,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(10,2,2,0.85)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
      t+=0.016;requestAnimationFrame(frame);
     }
