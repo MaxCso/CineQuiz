@@ -20671,6 +20671,32 @@ function runSplash(){
     splash.classList.add('curtain-open');
 
     // ── Musique du film — fade-in au rideau ──
+    var _splashClosed = false;
+    function closeSplash(){
+      if(_splashClosed) return;
+      _splashClosed = true;
+      // Fade-out musique film sur 600ms
+      if(_splashAudioPlaying){
+        var a = _splashAudioPlaying;
+        var v = a.volume, st = 0, tot = 20;
+        var fo = setInterval(function(){
+          st++;
+          a.volume = Math.max(0, v * (1 - st / tot));
+          if(st >= tot){ clearInterval(fo); a.pause(); a.currentTime = 0; _splashAudioPlaying = null; }
+        }, 600 / tot);
+      }
+      splash.classList.add('out');
+      setTimeout(()=>{
+        splash.style.display='none';
+        splash.style.animation='none';
+        splash.querySelectorAll('*').forEach(el=>{ el.style.animation='none'; });
+        if(window._stopNeuroSplash)window._stopNeuroSplash();
+        if(window._stopSplashEffect)window._stopSplashEffect();
+        // Lancer la musique d'accueil une fois le splash fermé
+        if(musOn) playMus();
+      }, 700);
+    }
+
     (function(){
       var aud = _splashAudioPrimed;
       if(!aud){
@@ -20678,29 +20704,32 @@ function runSplash(){
         var filmFile = SPLASH_MUSIC[filmName];
         if(filmFile){ aud = new Audio(filmFile); }
       }
-      if(!aud) return;
+      // Fallback sans audio : fermer après closeDelay
+      if(!aud){ setTimeout(closeSplash, closeDelay); return; }
+
       _splashAudioPlaying = aud;
       aud.currentTime = 0;
       aud.volume = 0;
-      aud.play().catch(function(){});
-      // Fade-in sur 800ms
-      var fadeDur = 800, steps = 30, step = 0;
-      var fadeIn = setInterval(function(){
-        step++;
-        aud.volume = Math.min(1, step / steps);
-        if(step >= steps) clearInterval(fadeIn);
-      }, fadeDur / steps);
-      // Caler closeDelay sur la durée réelle de l'audio (≈17s)
-      function applyDuration(){
-        var dur = aud.duration;
-        if(dur && isFinite(dur)){
-          closeDelay = Math.max(closeDelay, Math.round(dur * 1000) + 300);
-        }
-      }
-      if(aud.readyState >= 1){ applyDuration(); }
-      else { aud.addEventListener('loadedmetadata', applyDuration, {once:true}); }
-    })();
+      // Fermer le splash à la fin de la musique
+      aud.addEventListener('ended', closeSplash, {once:true});
+      // Fallback : si l'audio ne démarre pas dans 20s, fermer quand même
+      var _fallback = setTimeout(closeSplash, 20000);
+      aud.addEventListener('ended', function(){ clearTimeout(_fallback); }, {once:true});
 
+      aud.play().then(function(){
+        // Fade-in sur 800ms
+        var fadeDur = 800, steps = 30, step = 0;
+        var fadeIn = setInterval(function(){
+          step++;
+          aud.volume = Math.min(1, step / steps);
+          if(step >= steps) clearInterval(fadeIn);
+        }, fadeDur / steps);
+      }).catch(function(){
+        // Audio bloqué — fermer après closeDelay
+        clearTimeout(_fallback);
+        setTimeout(closeSplash, closeDelay);
+      });
+    })();
 
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
@@ -20709,33 +20738,6 @@ function runSplash(){
     setTimeout(()=>{
       if(quoteEl) quoteEl.classList.add('reveal');
     }, 450);
-
-    // Fade out une fois que le son d'intro est terminé (ou après closeDelay ms)
-    setTimeout(()=>{
-      // Fade-out musique film sur 600ms
-      if(_splashAudioPlaying){
-        var aud = _splashAudioPlaying;
-        var vol = aud.volume;
-        var steps = 20, step = 0;
-        var fadeOut = setInterval(function(){
-          step++;
-          aud.volume = Math.max(0, vol * (1 - step / steps));
-          if(step >= steps){ clearInterval(fadeOut); aud.pause(); aud.currentTime = 0; _splashAudioPlaying = null; }
-        }, 600 / steps);
-      }
-      splash.classList.add('out');
-      setTimeout(()=>{
-        splash.style.display='none';
-        // Stop all CSS animations on splash to free GPU memory
-        splash.style.animation='none';
-        const allAnimated=splash.querySelectorAll('*');
-        allAnimated.forEach(el=>{ el.style.animation='none'; });
-        if(window._stopNeuroSplash)window._stopNeuroSplash();
-        if(window._stopSplashEffect)window._stopSplashEffect();
-        // Lancer la musique d'accueil maintenant que le splash est fermé
-        if(musOn) playMus();
-      },700);
-    }, closeDelay);
   }
 
   // Logo visible dès le départ
