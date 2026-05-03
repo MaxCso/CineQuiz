@@ -20675,7 +20675,6 @@ function runSplash(){
     function closeSplash(){
       if(_splashClosed) return;
       _splashClosed = true;
-      // Fade-out musique film sur 600ms
       if(_splashAudioPlaying){
         var a = _splashAudioPlaying;
         var v = a.volume, st = 0, tot = 20;
@@ -20692,43 +20691,45 @@ function runSplash(){
         splash.querySelectorAll('*').forEach(el=>{ el.style.animation='none'; });
         if(window._stopNeuroSplash)window._stopNeuroSplash();
         if(window._stopSplashEffect)window._stopSplashEffect();
-        // Lancer la musique d'accueil une fois le splash fermé
         if(musOn) playMus();
       }, 700);
     }
 
     (function(){
-      var aud = _splashAudioPrimed;
+      // Récupérer l'audio déjà lancé depuis le handler swipe (iOS PWA)
+      var aud = _splashAudioPlaying || _splashAudioPrimed;
       if(!aud){
         var filmName = window._splashEffectName || '';
         var filmFile = SPLASH_MUSIC[filmName];
         if(filmFile){ aud = new Audio(filmFile); }
       }
-      // Fallback sans audio : fermer après closeDelay
       if(!aud){ setTimeout(closeSplash, closeDelay); return; }
 
       _splashAudioPlaying = aud;
-      aud.currentTime = 0;
-      aud.volume = 0;
-      // Fermer le splash à la fin de la musique
       aud.addEventListener('ended', closeSplash, {once:true});
-      // Fallback : si l'audio ne démarre pas dans 20s, fermer quand même
       var _fallback = setTimeout(closeSplash, 20000);
       aud.addEventListener('ended', function(){ clearTimeout(_fallback); }, {once:true});
 
-      aud.play().then(function(){
-        // Fade-in sur 800ms
+      function doFadeIn(){
         var fadeDur = 800, steps = 30, step = 0;
         var fadeIn = setInterval(function(){
           step++;
           aud.volume = Math.min(1, step / steps);
           if(step >= steps) clearInterval(fadeIn);
         }, fadeDur / steps);
-      }).catch(function(){
-        // Audio bloqué — fermer après closeDelay
-        clearTimeout(_fallback);
-        setTimeout(closeSplash, closeDelay);
-      });
+      }
+
+      if(!aud.paused){
+        // Déjà en lecture (lancé dans le handler swipe) — juste fade-in
+        doFadeIn();
+      } else {
+        aud.currentTime = 0;
+        aud.volume = 0;
+        aud.play().then(doFadeIn).catch(function(){
+          clearTimeout(_fallback);
+          setTimeout(closeSplash, closeDelay);
+        });
+      }
     })();
 
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
@@ -20779,6 +20780,14 @@ function runSplash(){
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
       track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
+      // iOS PWA : lancer le play() ICI dans le contexte du geste utilisateur
+      // (pas dans startSequence appelé 150ms plus tard — trop tard pour iOS)
+      if(_splashAudioPrimed){
+        _splashAudioPrimed.currentTime = 0;
+        _splashAudioPrimed.volume = 0;
+        _splashAudioPrimed.play().catch(function(){});
+        _splashAudioPlaying = _splashAudioPrimed;
+      }
       setTimeout(function(){
         thumb.style.transition = '';
         // Lancer la séquence — playMus() sera appelé après la fermeture du splash
@@ -20821,16 +20830,19 @@ function runSplash(){
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
     // Primer la musique film dès le premier touch (débloque l'audio iOS)
+    // Ne pas faire pause() immédiatement — laisser jouer 1 frame à vol=0
+    // sinon iOS annule le déblocage et le vrai play() est silencieusement bloqué
     if(!_splashAudioPrimed){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
       if(filmFile){
         _splashAudioPrimed = new Audio(filmFile);
-        _introAudioPrimed = _splashAudioPrimed; // alias pour compatibilité
         _splashAudioPrimed.volume = 0;
         _splashAudioPrimed.play().then(function(){
-          _splashAudioPrimed.pause();
-          _splashAudioPrimed.currentTime = 0;
+          requestAnimationFrame(function(){
+            _splashAudioPrimed.pause();
+            _splashAudioPrimed.currentTime = 0;
+          });
         }).catch(function(){});
       }
     }
