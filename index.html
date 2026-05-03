@@ -20690,6 +20690,15 @@ function runSplash(){
         aud.volume = Math.min(1, step / steps);
         if(step >= steps) clearInterval(fadeIn);
       }, fadeDur / steps);
+      // Caler closeDelay sur la durée réelle de l'audio (≈17s)
+      function applyDuration(){
+        var dur = aud.duration;
+        if(dur && isFinite(dur)){
+          closeDelay = Math.max(closeDelay, Math.round(dur * 1000) + 300);
+        }
+      }
+      if(aud.readyState >= 1){ applyDuration(); }
+      else { aud.addEventListener('loadedmetadata', applyDuration, {once:true}); }
     })();
 
 
