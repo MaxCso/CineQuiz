@@ -20713,6 +20713,7 @@ function runSplash(){
     (function(){
       // Récupérer l'audio déjà lancé depuis le handler swipe (iOS PWA)
       var aud = _splashAudioPlaying || _splashAudioPrimed;
+      _dbg('SEQ: aud=' + !!aud + ' paused=' + (aud?aud.paused:'n/a') + ' vol=' + (aud?aud.volume:'n/a'));
       if(!aud){
         var filmName = window._splashEffectName || '';
         var filmFile = SPLASH_MUSIC[filmName];
@@ -20736,11 +20737,14 @@ function runSplash(){
 
       if(!aud.paused){
         // Déjà en lecture (lancé dans le handler swipe) — juste fade-in
+        _dbg('SEQ: already playing, fadeIn');
         doFadeIn();
       } else {
+        _dbg('SEQ: paused, calling play()');
         aud.currentTime = 0;
         aud.volume = 0;
-        aud.play().then(doFadeIn).catch(function(){
+        aud.play().then(function(){ _dbg('SEQ play() OK'); doFadeIn(); }).catch(function(e){
+          _dbg('SEQ play() ERR: ' + e.message);
           clearTimeout(_fallback);
           setTimeout(closeSplash, closeDelay);
         });
@@ -20848,10 +20852,24 @@ function runSplash(){
 
   var _splashAudioPrimed = null;
   var _splashAudioPlaying = null;
+
+  // ── Debug log visible à l'écran ──
+  function _dbg(msg){
+    var d = document.getElementById('_splashDbg');
+    if(!d){
+      d = document.createElement('div');
+      d.id = '_splashDbg';
+      d.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:99999;font-size:10px;color:#0f0;background:rgba(0,0,0,.8);padding:6px;border-radius:4px;pointer-events:none;white-space:pre-wrap;';
+      document.body.appendChild(d);
+    }
+    d.textContent += '\n' + msg;
+    console.log('[SPLASH]', msg);
+  }
   function onPointerDown(e){
     if(triggered) return;
     _initAC(); // iOS: AudioContext must be created in direct user event
     if(_ac && _ac.state === 'suspended') _ac.resume();
+    _dbg('DOWN: effectName=' + (window._splashEffectName||'?') + ' primed=' + !!_splashAudioPrimed);
     // Primer la musique film dès le premier touch (débloque l'audio iOS)
     // Ne pas faire pause() immédiatement — laisser jouer 1 frame à vol=0
     // sinon iOS annule le déblocage et le vrai play() est silencieusement bloqué
@@ -20862,11 +20880,12 @@ function runSplash(){
         _splashAudioPrimed = new Audio(filmFile);
         _splashAudioPrimed.volume = 0;
         _splashAudioPrimed.play().then(function(){
+          _dbg('PRIMER OK: ' + filmFile);
           requestAnimationFrame(function(){
             _splashAudioPrimed.pause();
             _splashAudioPrimed.currentTime = 0;
           });
-        }).catch(function(){});
+        }).catch(function(e){ _dbg('PRIMER ERR: ' + e.message); });
       }
     }
     dragging = true;
@@ -20885,14 +20904,16 @@ function runSplash(){
     if(triggered){
       // iOS PWA : play() ici dans l'event tactile actif (touchend)
       // Toujours créer un Audio frais — le primer peut être dans un état incertain
+      _dbg('UP triggered: playing=' + !!_splashAudioPlaying + ' effectName=' + (window._splashEffectName||'?'));
       if(!_splashAudioPlaying){
         var filmName = window._splashEffectName || '';
         var filmFile = SPLASH_MUSIC[filmName];
+        _dbg('UP filmFile=' + filmFile);
         if(filmFile){
           var aud = new Audio(filmFile);
           aud.currentTime = 0;
           aud.volume = 0;
-          aud.play().catch(function(){});
+          aud.play().then(function(){ _dbg('UP play() OK'); }).catch(function(e){ _dbg('UP play() ERR: ' + e.message); });
           _splashAudioPlaying = aud;
         }
       }
