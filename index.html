@@ -2538,14 +2538,16 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 #splash.curtain-open #splash-film-ref{opacity:1;}
 #splash-skip{
-  position:absolute;bottom:42px;left:0;right:0;
-  text-align:center;z-index:6;
+  position:absolute;bottom:28px;left:0;right:0;
+  text-align:center;z-index:10;
   font-size:9px;letter-spacing:3px;text-transform:uppercase;
   color:rgba(255,255,255,.22);font-family:'DM Sans',sans-serif;
   opacity:0;transition:opacity 1.2s ease;
   cursor:pointer;user-select:none;
+  pointer-events:none;
+  padding:20px 0;
 }
-#splash-skip.visible{opacity:1;}
+#splash-skip.visible{opacity:1;pointer-events:auto;}
 
 /* ── Agitation rapide des orbes à l'ouverture du rideau ── */
 #splash-bg-anim{
@@ -20881,12 +20883,13 @@ function runSplash(){
     if(!dragging) return;
     dragging = false;
     if(triggered){
-      // iOS PWA : play() ici — onPointerUp est un event tactile actif
+      // iOS PWA : play() ici dans l'event tactile actif (touchend)
+      // Toujours créer un Audio frais — le primer peut être dans un état incertain
       if(!_splashAudioPlaying){
         var filmName = window._splashEffectName || '';
         var filmFile = SPLASH_MUSIC[filmName];
         if(filmFile){
-          var aud = _splashAudioPrimed || new Audio(filmFile);
+          var aud = new Audio(filmFile);
           aud.currentTime = 0;
           aud.volume = 0;
           aud.play().catch(function(){});
