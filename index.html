@@ -20780,17 +20780,9 @@ function runSplash(){
       thumb.style.transition = 'transform .15s ease';
       thumb.style.transform = 'translateX(' + maxX + 'px)';
       track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
-      // iOS PWA : lancer le play() ICI dans le contexte du geste utilisateur
-      // (pas dans startSequence appelé 150ms plus tard — trop tard pour iOS)
-      if(_splashAudioPrimed){
-        _splashAudioPrimed.currentTime = 0;
-        _splashAudioPrimed.volume = 0;
-        _splashAudioPrimed.play().catch(function(){});
-        _splashAudioPlaying = _splashAudioPrimed;
-      }
+      // play() sera lancé dans onPointerUp (event actif iOS)
       setTimeout(function(){
         thumb.style.transition = '';
-        // Lancer la séquence — playMus() sera appelé après la fermeture du splash
         startSequence(3500);
       }, 150);
     }
@@ -20860,6 +20852,18 @@ function runSplash(){
     if(!dragging) return;
     dragging = false;
     if(triggered){
+      // iOS PWA : play() ici — onPointerUp est un event tactile actif
+      if(!_splashAudioPlaying){
+        var filmName = window._splashEffectName || '';
+        var filmFile = SPLASH_MUSIC[filmName];
+        if(filmFile){
+          var aud = _splashAudioPrimed || new Audio(filmFile);
+          aud.currentTime = 0;
+          aud.volume = 0;
+          aud.play().catch(function(){});
+          _splashAudioPlaying = aud;
+        }
+      }
       return;
     }
     if(!triggered){
