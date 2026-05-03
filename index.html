@@ -2537,6 +2537,15 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   opacity:0;transition:opacity 1.4s ease;
 }
 #splash.curtain-open #splash-film-ref{opacity:1;}
+#splash-skip{
+  position:absolute;bottom:42px;left:0;right:0;
+  text-align:center;z-index:6;
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,255,.22);font-family:'DM Sans',sans-serif;
+  opacity:0;transition:opacity 1.2s ease;
+  cursor:pointer;user-select:none;
+}
+#splash-skip.visible{opacity:1;}
 
 /* ── Agitation rapide des orbes à l'ouverture du rideau ── */
 #splash-bg-anim{
@@ -7429,6 +7438,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     <div id="splash-bg"></div>
     <canvas id="splash-canvas"></canvas>
     <div id="splash-film-ref"></div>
+    <div id="splash-skip">Appuyer pour passer</div>
 
     <!-- Flash projecteur au moment de l'ouverture du rideau -->
     <div id="splash-flash"></div>
@@ -20675,6 +20685,9 @@ function runSplash(){
     function closeSplash(){
       if(_splashClosed) return;
       _splashClosed = true;
+      clearTimeout(skipTimeout);
+      var skipEl = document.getElementById('splash-skip');
+      if(skipEl) skipEl.classList.remove('visible');
       if(_splashAudioPlaying){
         var a = _splashAudioPlaying;
         var v = a.volume, st = 0, tot = 20;
@@ -20739,6 +20752,22 @@ function runSplash(){
     setTimeout(()=>{
       if(quoteEl) quoteEl.classList.add('reveal');
     }, 450);
+
+    // "Appuyer pour passer" — apparaît 5s après l'ouverture du rideau
+    const skipEl = document.getElementById('splash-skip');
+    var skipTimeout = setTimeout(()=>{
+      if(skipEl) skipEl.classList.add('visible');
+    }, 5000);
+    if(skipEl){
+      function onSkipTap(){
+        if(_splashClosed) return;
+        skipEl.removeEventListener('touchstart', onSkipTap);
+        skipEl.removeEventListener('click', onSkipTap);
+        closeSplash();
+      }
+      skipEl.addEventListener('touchstart', onSkipTap, {passive:true});
+      skipEl.addEventListener('click', onSkipTap);
+    }
   }
 
   // Logo visible dès le départ
