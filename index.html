@@ -7147,6 +7147,10 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       </div>
       <div class="mode-info-desc" id="mode-info-desc">Description du mode.</div>
       <div class="mode-info-tips" id="mode-info-tips"></div>
+      <!-- Classement du mode -->
+      <div id="mode-info-lb" style="display:none;margin-bottom:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 14px;">
+        <div id="mode-info-lb-inner"></div>
+      </div>
       <!-- Sélecteur sous-mode entraînement -->
       <div id="training-submode-wrap" style="display:none;margin-bottom:14px;">
         <div style="font-size:9px;color:rgba(245,200,66,.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Choisir un mode</div>
@@ -12497,6 +12501,38 @@ function openModeInfo(m,el){
   over.classList.add('on');
   // Swipe vers le bas pour fermer
   setupSwipeDown(sh,closeModeInfo);
+  // Classement Supabase du mode
+  const lbWrap=document.getElementById('mode-info-lb');
+  const lbInner=document.getElementById('mode-info-lb-inner');
+  if(lbWrap&&lbInner){
+    // Skeleton pendant le chargement
+    lbWrap.style.display='block';
+    lbInner.innerHTML=`<div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">🏆 Classement mondial</div>`
+      +[1,2,3].map(()=>`<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);"><div style="width:18px;height:13px;background:rgba(255,255,255,.07);border-radius:3px;flex-shrink:0;"></div><div style="flex:1;height:11px;background:rgba(255,255,255,.07);border-radius:3px;"></div><div style="width:32px;height:15px;background:rgba(255,255,255,.07);border-radius:3px;"></div></div>`).join('');
+    // Charger depuis Supabase
+    if(typeof window._sbFetchMode==='function'){
+      window._sbFetchMode(m,10).then(function(board){
+        if(!board||!board.length){lbWrap.style.display='none';return;}
+        const pseudo=(ls().pseudo)||null;
+        const myRank=pseudo?board.findIndex(e=>e.pseudo===pseudo)+1:0;
+        const totalPlayers=board.length;
+        lbInner.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;">🏆 Classement mondial</span>
+          ${myRank?`<span style="font-size:9px;color:rgba(245,200,66,.7);font-weight:700;">Tu es ${myRank}${myRank===1?'er':'ème'} · ${totalPlayers} joueur${totalPlayers>1?'s':''}</span>`:''}
+        </div>`
+        +board.slice(0,5).map(function(e,i){
+          const isMe=pseudo&&e.pseudo===pseudo;
+          const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+          const rankColor=i===0?'#f5c842':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,.25)';
+          return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;${i<Math.min(board.length-1,4)?'border-bottom:1px solid rgba(255,255,255,.05);':''}${isMe?'background:rgba(245,200,66,.04);border-radius:8px;padding:6px 4px;margin:0 -4px;':''}">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:${rankColor};width:20px;text-align:center;flex-shrink:0;">${medal||(i+1)}</span>
+            <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${isMe?'font-weight:700;color:rgba(255,255,255,.9);':'color:rgba(255,255,255,.5);'}">${e.pseudo}${isMe?' ◀':''}</span>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:17px;${isMe?'color:'+info.color+';':'color:rgba(255,255,255,.45);'}">${e.best_score}</span>
+          </div>`;
+        }).join('');
+      }).catch(function(){lbWrap.style.display='none';});
+    } else {lbWrap.style.display='none';}
+  }
 }
 function setQCount(n,el){
   TOTAL=n;
