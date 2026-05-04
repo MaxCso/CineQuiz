@@ -21866,25 +21866,23 @@ function closeAvModal(e){
      const countdown=Math.max(0,17-Math.floor(cycleT));
      const cdStr=String(countdown).padStart(2,'0');
      const cdY=H*0.14;
-     /* cadre du compteur */
+     ctx.save();
      ctx.strokeStyle=`rgba(200,15,10,${0.35+Math.sin(t*4)*0.1})`;ctx.lineWidth=1.5;
      ctx.strokeRect(cx-38,cdY-22,76,44);
-     ctx.strokeStyle=`rgba(200,15,10,0.12)`;ctx.lineWidth=0.5;
+     ctx.strokeStyle='rgba(200,15,10,0.12)';ctx.lineWidth=0.5;
      ctx.strokeRect(cx-35,cdY-19,70,38);
-     /* séparateur vertical */
-     ctx.strokeStyle=`rgba(200,15,10,0.20)`;ctx.lineWidth=1;
+     ctx.strokeStyle='rgba(200,15,10,0.20)';ctx.lineWidth=1;
      ctx.beginPath();ctx.moveTo(cx,cdY-22);ctx.lineTo(cx,cdY+22);ctx.stroke();
-     /* chiffres */
-     ctx.font=`bold ${H*0.055}px monospace`;
+     ctx.font=`bold ${Math.floor(H*0.055)}px monospace`;
      ctx.textAlign='center';ctx.textBaseline='middle';
      ctx.fillStyle=`rgba(220,18,10,${0.75+Math.sin(t*6)*0.18})`;
-     ctx.shadowColor='rgba(220,20,10,0.6)';ctx.shadowBlur=12;
+     ctx.shadowColor='rgba(220,20,10,0.6)';ctx.shadowBlur=10;
      ctx.fillText(cdStr[0],cx-18,cdY);
      ctx.fillText(cdStr[1],cx+18,cdY);
-     ctx.shadowBlur=0;
-     /* petits points de coin */
+     ctx.restore();
+     ctx.fillStyle='rgba(200,15,10,0.5)';
      [[cx-38,cdY-22],[cx+38,cdY-22],[cx-38,cdY+22],[cx+38,cdY+22]].forEach(([px,py])=>{
-      ctx.fillStyle='rgba(200,15,10,0.5)';ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
      });
 
      /* ── Lasers ── */
@@ -21911,8 +21909,8 @@ function closeAvModal(e){
 
      /* ── Mèche en boucle ── */
      fuseProgress=((t*0.045)%1.2>1)?0:Math.min(1,(t*0.045)%1.2);
-     const fuseIdx=Math.floor(fuseProgress*(fusePoints.length-1));
-     const braisePt=fusePoints[fuseIdx];
+     const fuseIdx=Math.max(0,Math.min(fusePoints.length-1,Math.floor(fuseProgress*(fusePoints.length-1))));
+     const braisePt=fusePoints[fuseIdx]||fusePoints[0];
 
      /* partie consumée (gris cendré) */
      if(fuseIdx>0){
