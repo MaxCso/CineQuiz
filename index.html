@@ -20225,10 +20225,10 @@ function closeAvModal(e){
      {x:W*0.75,y:H*0.76,dx:-2.0,dy:0, color:[255,80,10],  trail:[],turnTimer:0,turnInterval:80+Math.random()*70},
     ];
 
-    /* ── Disque lumineux — positionné dans la moitié basse ── */
+    /* ── Disque lumineux — petit, en bas à droite ── */
     const disc={
-     x:W*0.5, y:H*0.72,
-     R:Math.min(W,H)*0.10,
+     x:W*0.78, y:H*0.80,
+     R:Math.min(W,H)*0.065,
      angle:0, wobble:0
     };
 
@@ -20659,44 +20659,180 @@ function closeAvModal(e){
    name:'Le Grand Bleu',
    ref:'Le Grand Bleu \u2014 Luc Besson, 1988',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.70';
+    cv.style.opacity='0.74';
     let t=0;
-    const bubbles=Array.from({length:55},()=>({
-     x:Math.random()*W, y:Math.random()*H+H,
-     r:Math.random()*5+2, spd:Math.random()*0.7+0.25,
-     wobble:Math.random()*Math.PI*2, wfreq:Math.random()*0.04+0.01,
-     op:Math.random()*0.35+0.12
+
+    /* ── Surface de l'eau (pré-dessinée) ── */
+    const surfC=document.createElement('canvas');
+    surfC.width=W; surfC.height=60;
+    const sx=surfC.getContext('2d');
+    const sg=sx.createLinearGradient(0,0,0,60);
+    sg.addColorStop(0,'rgba(80,160,220,0.35)');
+    sg.addColorStop(1,'rgba(0,0,0,0)');
+    sx.fillStyle=sg; sx.fillRect(0,0,W,60);
+
+    /* ── Bulles ── */
+    const bubbles=Array.from({length:65},()=>({
+     x:Math.random()*W, y:Math.random()*H+H*0.3,
+     r:Math.random()*4+0.8,
+     spd:Math.random()*0.5+0.15,
+     wobble:Math.random()*Math.PI*2,
+     wfreq:Math.random()*0.03+0.008,
+     op:Math.random()*0.3+0.08,
+     trail:[]
     }));
+
+    /* ── Dauphins (2, silhouettes pré-dessinées) ── */
+    const dolphins=[
+     {x:-120, y:H*0.28, spd:1.4, amp:22, phase:0,    scale:1},
+     {x:-280, y:H*0.38, spd:1.0, amp:16, phase:1.8,  scale:0.72},
+    ];
+
+    function drawDolphin(ctx,x,y,sc,flip){
+     ctx.save();ctx.translate(x,y);ctx.scale(flip?-sc:sc,sc);
+     ctx.fillStyle='rgba(8,20,45,0.82)';
+     /* corps */
+     ctx.beginPath();
+     ctx.moveTo(0,0);
+     ctx.bezierCurveTo(20,-8, 55,-10, 80,0);
+     ctx.bezierCurveTo(55,10, 20,8, 0,0);
+     ctx.closePath();ctx.fill();
+     /* nageoire dorsale */
+     ctx.beginPath();
+     ctx.moveTo(35,-8);
+     ctx.quadraticCurveTo(42,-22,52,-10);
+     ctx.lineTo(35,-8);ctx.closePath();ctx.fill();
+     /* queue */
+     ctx.beginPath();
+     ctx.moveTo(76,-2);
+     ctx.quadraticCurveTo(90,-14,96,-8);
+     ctx.quadraticCurveTo(90,0,96,8);
+     ctx.quadraticCurveTo(90,14,76,2);
+     ctx.closePath();ctx.fill();
+     /* nageoire pectorale */
+     ctx.beginPath();
+     ctx.moveTo(25,2);
+     ctx.quadraticCurveTo(32,14,20,12);
+     ctx.closePath();ctx.fill();
+     /* œil */
+     ctx.fillStyle='rgba(40,80,140,0.9)';
+     ctx.beginPath();ctx.arc(14,-1,2.5,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle='rgba(200,230,255,0.7)';
+     ctx.beginPath();ctx.arc(13.2,-1.5,0.8,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+    }
+
+    /* ── Plongeur (silhouette simple) ── */
+    function drawDiver(x,y){
+     ctx.save();ctx.translate(x,y);
+     ctx.fillStyle='rgba(5,15,35,0.75)';
+     /* corps */
+     ctx.beginPath();ctx.ellipse(0,0,7,14,0.2,0,Math.PI*2);ctx.fill();
+     /* tête + masque */
+     ctx.beginPath();ctx.ellipse(0,-17,6,7,0,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle='rgba(20,60,120,0.55)';
+     ctx.beginPath();ctx.ellipse(0,-17,5,5,0,0,Math.PI*2);ctx.fill();
+     /* bras */
+     ctx.strokeStyle='rgba(5,15,35,0.75)';ctx.lineWidth=4;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-7,-5);ctx.quadraticCurveTo(-20,5,-18,15);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(7,-5);ctx.quadraticCurveTo(20,5,18,15);ctx.stroke();
+     /* jambes + palmes */
+     ctx.beginPath();ctx.moveTo(-4,13);ctx.quadraticCurveTo(-6,28,-10,35);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(4,13);ctx.quadraticCurveTo(6,28,10,35);ctx.stroke();
+     ctx.fillStyle='rgba(5,15,35,0.75)';
+     ctx.beginPath();ctx.ellipse(-12,37,8,3,-0.3,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(12,37,8,3,0.3,0,Math.PI*2);ctx.fill();
+     /* bouée de bulles */
+     for(let i=0;i<3;i++){
+      const bx=-8+i*4, by=-22-i*6;
+      ctx.fillStyle=`rgba(120,200,255,${0.3-i*0.08})`;
+      ctx.beginPath();ctx.arc(bx+Math.sin(t*2+i)*1.5,by,2-i*0.3,0,Math.PI*2);ctx.fill();
+     }
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(0,6,24,0.15)';ctx.fillRect(0,0,W,H);
 
-     for(let i=0;i<5;i++){
-      const bx=W*(0.1+i*0.2)+Math.sin(t*0.3+i)*W*0.06;
-      const bg=ctx.createLinearGradient(bx,0,bx+30,H);
-      bg.addColorStop(0,`rgba(30,140,220,${0.07+Math.sin(t*0.5+i)*0.03})`);
-      bg.addColorStop(1,'rgba(0,20,80,0)');
-      ctx.fillStyle=bg;
+     /* fond océan profond */
+     ctx.fillStyle='rgba(0,8,28,0.20)';ctx.fillRect(0,0,W,H);
+
+     /* gradient de profondeur */
+     const depth=ctx.createLinearGradient(0,0,0,H);
+     depth.addColorStop(0,'rgba(0,40,100,0.25)');
+     depth.addColorStop(0.35,'rgba(0,20,70,0.20)');
+     depth.addColorStop(0.7,'rgba(0,8,35,0.18)');
+     depth.addColorStop(1,'rgba(0,2,12,0.22)');
+     ctx.fillStyle=depth;ctx.fillRect(0,0,W,H);
+
+     /* rayons lumineux depuis la surface */
+     const nRays=7;
+     for(let i=0;i<nRays;i++){
+      const rx=W*(0.1+i*0.14)+Math.sin(t*0.25+i*0.7)*W*0.04;
+      const rw=W*0.06+Math.sin(t*0.4+i)*W*0.02;
+      const rAlpha=0.04+Math.sin(t*0.5+i*0.8)*0.025;
+      const rg=ctx.createLinearGradient(rx,0,rx,H*0.85);
+      rg.addColorStop(0,`rgba(80,170,240,${rAlpha*2})`);
+      rg.addColorStop(0.3,`rgba(40,120,200,${rAlpha})`);
+      rg.addColorStop(1,'rgba(0,20,80,0)');
+      ctx.fillStyle=rg;
       ctx.beginPath();
-      ctx.moveTo(bx-10,0);ctx.lineTo(bx+10,0);
-      ctx.lineTo(bx+60,H);ctx.lineTo(bx-30,H);
+      ctx.moveTo(rx-rw*0.3,0);ctx.lineTo(rx+rw*0.3,0);
+      ctx.lineTo(rx+rw*1.8,H*0.85);ctx.lineTo(rx-rw*1.5,H*0.85);
       ctx.closePath();ctx.fill();
      }
 
-     for(const b of bubbles){
-      b.y-=b.spd;b.x+=Math.sin(t*b.wfreq*60+b.wobble)*0.35;
-      if(b.y<-b.r*2){b.y=H+b.r;b.x=Math.random()*W;}
-      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(120,200,255,${b.op})`;
-      ctx.lineWidth=0.9;ctx.stroke();
+     /* surface de l'eau ondulante */
+     const surfY=H*0.05;
+     ctx.save();
+     ctx.beginPath();
+     ctx.moveTo(0,surfY);
+     for(let x=0;x<=W;x+=8){
+      const y=surfY+Math.sin(x*0.03+t*1.2)*3+Math.sin(x*0.07+t*0.8)*1.5;
+      ctx.lineTo(x,y);
+     }
+     ctx.lineTo(W,0);ctx.lineTo(0,0);ctx.closePath();
+     const wg=ctx.createLinearGradient(0,surfY-5,0,surfY+15);
+     wg.addColorStop(0,'rgba(100,190,255,0.40)');
+     wg.addColorStop(1,'rgba(50,130,220,0)');
+     ctx.fillStyle=wg;ctx.fill();
+     ctx.restore();
 
-      ctx.beginPath();ctx.arc(b.x-b.r*0.28,b.y-b.r*0.3,b.r*0.28,0,Math.PI*2);
-      ctx.fillStyle=`rgba(200,235,255,${b.op*0.55})`;ctx.fill();
+     /* dauphins */
+     for(const d of dolphins){
+      d.x+=d.spd;
+      if(d.x>W+120)d.x=-120;
+      const dy=d.y+Math.sin(t*0.9+d.phase)*d.amp;
+      /* halo subtil */
+      const dhalo=ctx.createRadialGradient(d.x+45*d.scale,dy,5,d.x+45*d.scale,dy,55*d.scale);
+      dhalo.addColorStop(0,`rgba(20,80,180,${0.06*d.scale})`);
+      dhalo.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=dhalo;ctx.fillRect(d.x-20,dy-60*d.scale,140*d.scale,120*d.scale);
+      drawDolphin(ctx,d.x,dy,d.scale,false);
      }
 
-     const vg=ctx.createRadialGradient(W/2,H*0.4,H*0.1,W/2,H*0.5,H*0.75);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,5,30,0.55)');
+     /* plongeur central qui descend lentement */
+     const diverY=H*0.30+Math.sin(t*0.3)*H*0.04;
+     const diverX=W*0.5+Math.sin(t*0.18)*W*0.06;
+     drawDiver(diverX,diverY);
+
+     /* bulles */
+     for(const b of bubbles){
+      b.y-=b.spd;b.x+=Math.sin(t*b.wfreq*60+b.wobble)*0.3;
+      if(b.y<-b.r*2){b.y=H+b.r;b.x=Math.random()*W;}
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(130,210,255,${b.op})`;
+      ctx.lineWidth=0.7;ctx.stroke();
+      ctx.fillStyle=`rgba(200,240,255,${b.op*0.35})`;ctx.fill();
+     }
+
+     /* vignette */
+     const vg=ctx.createRadialGradient(W/2,H*0.42,H*0.06,W/2,H*0.48,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.5,'rgba(0,5,22,0.22)');
+     vg.addColorStop(1,'rgba(0,3,15,0.90)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
