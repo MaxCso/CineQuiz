@@ -21861,8 +21861,9 @@ function closeAvModal(e){
      ctx.fillStyle='rgba(0,0,0,0.16)';ctx.fillRect(0,0,W,H);
      ctx.fillStyle='rgba(0,6,2,0.07)';ctx.fillRect(0,0,W,H);
 
-     /* ── Compteur décompte (bien centré, pas trop haut) ── */
-     const countdown=Math.max(0,17-Math.floor(t*0.8));
+     /* ── Compteur décompte en boucle ── */
+     const cycleT=(t*0.8)%18;
+     const countdown=Math.max(0,17-Math.floor(cycleT));
      const cdStr=String(countdown).padStart(2,'0');
      const cdY=H*0.14;
      /* cadre du compteur */
@@ -21908,8 +21909,8 @@ function closeAvModal(e){
       ctx.restore();
      }
 
-     /* ── Mèche ── */
-     fuseProgress=Math.min(1,(fuseProgress+0.0018));
+     /* ── Mèche en boucle ── */
+     fuseProgress=((t*0.045)%1.2>1)?0:Math.min(1,(t*0.045)%1.2);
      const fuseIdx=Math.floor(fuseProgress*(fusePoints.length-1));
      const braisePt=fusePoints[fuseIdx];
 
@@ -21953,19 +21954,20 @@ function closeAvModal(e){
       }
      }
 
-     /* ── Corde de descente ── */
+     /* ── Corde de descente en boucle ── */
+     const ropeProgress=(t*0.5)%1;
+     const ropeYCurrent=H*(-0.1)+ropeProgress*H*0.65;
      ctx.strokeStyle='rgba(160,150,120,0.38)';ctx.lineWidth=1.2;
-     ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx+Math.sin(t*0.4)*6,ropeY+60);ctx.stroke();
-     ropeY=Math.min(H*0.52,ropeY+0.5);
-     if(ropeY>-20){
+     ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx+Math.sin(t*0.4)*6,ropeYCurrent+60);ctx.stroke();
+     if(ropeYCurrent>-20){
       ctx.save();ctx.globalAlpha=0.78;ctx.fillStyle='rgba(4,3,2,0.92)';
-      ctx.beginPath();ctx.ellipse(cx,ropeY-16,6,7,0,0,Math.PI*2);ctx.fill();
-      ctx.save();ctx.translate(cx,ropeY);ctx.rotate(Math.PI*0.1);
+      ctx.beginPath();ctx.ellipse(cx,ropeYCurrent-16,6,7,0,0,Math.PI*2);ctx.fill();
+      ctx.save();ctx.translate(cx,ropeYCurrent);ctx.rotate(Math.PI*0.1);
       ctx.fillRect(-5,-8,10,20);ctx.restore();
       ctx.strokeStyle='rgba(4,3,2,0.9)';ctx.lineWidth=3;
-      ctx.beginPath();ctx.moveTo(cx-4,ropeY+10);ctx.lineTo(cx-18,ropeY+2);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(cx+4,ropeY+10);ctx.lineTo(cx+18,ropeY+2);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(cx-5,ropeY+2);ctx.lineTo(cx-20,ropeY-8);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx-4,ropeYCurrent+10);ctx.lineTo(cx-18,ropeYCurrent+2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx+4,ropeYCurrent+10);ctx.lineTo(cx+18,ropeYCurrent+2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx-5,ropeYCurrent+2);ctx.lineTo(cx-20,ropeYCurrent-8);ctx.stroke();
       ctx.restore();
      }
 
