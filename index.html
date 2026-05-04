@@ -7495,7 +7495,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     <script>
     (function(){
       var FILM_QUOTES={
-        'Matrix':         {t:"You take the red pill — you stay in Wonderland.",a:"The Matrix"},
+        'Matrix':         {t:"Tu prends la pilule rouge — tu restes au pays des merveilles.",a:"The Matrix"},
         '2001':           {t:"The most terrifying fact about the universe is not that it is hostile but that it is indifferent.",a:"Stanley Kubrick"},
         'Blade Runner':   {t:"All those moments will be lost in time, like tears in rain.",a:"Blade Runner"},
         'Star Wars':      {t:"The Force will be with you. Always.",a:"Star Wars"},
@@ -19736,34 +19736,161 @@ function closeAvModal(e){
    name:'2001',
    ref:'2001: A Space Odyssey \u2014 Kubrick, 1968',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.7';
+    cv.style.opacity='0.74';
     let t=0;
+    const cx=W/2, cy=H/2;
+
+    /* ── Étoiles fixes (pré-calculées) ── */
+    const stars=Array.from({length:280},()=>({
+     x:Math.random()*W, y:Math.random()*H,
+     r:Math.random()*1.4+0.2,
+     op:Math.random()*0.7+0.2,
+     twinkle:Math.random()*Math.PI*2,
+     tfreq:Math.random()*0.04+0.01
+    }));
+
+    /* ── Jupiter (planète rayée) — pré-dessinée ── */
+    const jupR=W*0.28;
+    const jupX=W*0.72, jupY=H*0.28;
+    const jupC=document.createElement('canvas');
+    jupC.width=jupR*2+40; jupC.height=jupR*2+40;
+    const jx=jupC.getContext('2d');
+    const jcx=jupR+20, jcy=jupR+20;
+    /* halo atmosphérique */
+    const jAtm=jx.createRadialGradient(jcx,jcy,jupR*0.85,jcx,jcy,jupR*1.35);
+    jAtm.addColorStop(0,'rgba(180,120,60,0.22)');
+    jAtm.addColorStop(1,'rgba(0,0,0,0)');
+    jx.fillStyle=jAtm; jx.fillRect(0,0,jupC.width,jupC.height);
+    /* disque */
+    jx.save(); jx.beginPath(); jx.arc(jcx,jcy,jupR,0,Math.PI*2); jx.clip();
+    /* fond beige-orangé */
+    const jBase=jx.createRadialGradient(jcx-jupR*0.25,jcy-jupR*0.25,0,jcx,jcy,jupR);
+    jBase.addColorStop(0,'rgba(220,185,130,1)');
+    jBase.addColorStop(0.5,'rgba(195,150,95,1)');
+    jBase.addColorStop(1,'rgba(140,90,50,1)');
+    jx.fillStyle=jBase; jx.fillRect(0,0,jupC.width,jupC.height);
+    /* bandes nuageuses */
+    const bands=[
+     {y:-0.55,h:0.10,c:'rgba(160,90,45,0.75)'},
+     {y:-0.38,h:0.07,c:'rgba(230,200,155,0.6)'},
+     {y:-0.22,h:0.12,c:'rgba(145,80,40,0.8)'},
+     {y:-0.05,h:0.08,c:'rgba(210,175,120,0.55)'},
+     {y: 0.08,h:0.14,c:'rgba(130,70,35,0.85)'},
+     {y: 0.28,h:0.09,c:'rgba(225,190,140,0.5)'},
+     {y: 0.42,h:0.11,c:'rgba(155,95,50,0.75)'},
+    ];
+    for(const b of bands){
+      jx.fillStyle=b.c;
+      jx.fillRect(0,jcy+b.y*jupR,jupC.width,b.h*jupR*2);
+    }
+    /* grande tache rouge */
+    jx.save();
+    jx.translate(jcx-jupR*0.1, jcy+jupR*0.12);
+    jx.scale(1,0.55);
+    const grs=jx.createRadialGradient(0,0,0,0,0,jupR*0.22);
+    grs.addColorStop(0,'rgba(180,60,30,0.85)');
+    grs.addColorStop(0.5,'rgba(200,80,40,0.6)');
+    grs.addColorStop(1,'rgba(160,60,25,0)');
+    jx.fillStyle=grs; jx.beginPath(); jx.arc(0,0,jupR*0.22,0,Math.PI*2); jx.fill();
+    jx.restore();
+    /* reflet spéculaire */
+    const jSpec=jx.createRadialGradient(jcx-jupR*0.35,jcy-jupR*0.35,0,jcx-jupR*0.2,jcy-jupR*0.2,jupR*0.6);
+    jSpec.addColorStop(0,'rgba(255,245,225,0.22)');
+    jSpec.addColorStop(1,'rgba(255,245,225,0)');
+    jx.fillStyle=jSpec; jx.fillRect(0,0,jupC.width,jupC.height);
+    jx.restore();
+    /* bord sombre */
+    const jEdge=jx.createRadialGradient(jcx,jcy,jupR*0.78,jcx,jcy,jupR);
+    jEdge.addColorStop(0,'rgba(0,0,0,0)');
+    jEdge.addColorStop(1,'rgba(0,0,0,0.55)');
+    jx.fillStyle=jEdge; jx.beginPath(); jx.arc(jcx,jcy,jupR,0,Math.PI*2); jx.fill();
+
+    /* ── Monolithe (pré-dessiné) ── */
+    const monoW=W*0.09, monoH=H*0.30;
+    const monoX=W*0.5-monoW/2, monoY=H*0.54;
+    const monoC=document.createElement('canvas');
+    monoC.width=monoW+40; monoC.height=monoH+40;
+    const mx=monoC.getContext('2d');
+    /* reflet sur les faces */
+    const moFace=mx.createLinearGradient(10,0,monoW+10,0);
+    moFace.addColorStop(0,'rgba(2,2,3,1)');
+    moFace.addColorStop(0.35,'rgba(18,18,22,1)');
+    moFace.addColorStop(0.55,'rgba(28,28,35,1)');
+    moFace.addColorStop(0.75,'rgba(12,12,16,1)');
+    moFace.addColorStop(1,'rgba(3,3,4,1)');
+    mx.fillStyle=moFace;
+    mx.fillRect(10,10,monoW,monoH);
+    /* liseré lumineux sur les arêtes */
+    mx.strokeStyle='rgba(120,140,180,0.18)'; mx.lineWidth=1;
+    mx.strokeRect(10,10,monoW,monoH);
+    mx.strokeStyle='rgba(160,180,220,0.08)'; mx.lineWidth=0.5;
+    mx.strokeRect(11,11,monoW-2,monoH-2);
+    /* ombre portée sous le monolithe */
+    const moShadow=mx.createLinearGradient(0,monoH+10,0,monoH+40);
+    moShadow.addColorStop(0,'rgba(0,0,0,0.4)');
+    moShadow.addColorStop(1,'rgba(0,0,0,0)');
+    mx.fillStyle=moShadow;
+    mx.beginPath();
+    mx.ellipse(monoW/2+10,monoH+14,monoW*0.6,8,0,0,Math.PI*2);
+    mx.fill();
+
+    /* ── Rayons du stargate (couleur) — dynamiques ── */
+    const RAYS=80;
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(0,0,0,0.08)';
-     ctx.fillRect(0,0,W,H);
-     const cx=W/2,cy=H/2;
-     const rays=120;
-     for(let i=0;i<rays;i++){
-      const a=(i/rays)*Math.PI*2+t*0.3;
-      const spd=1+((i*17)%5)*0.4;
-      const len=((t*spd*80+i*300)%H)*1.1;
-      const hue=(i/rays*360+t*60)%360;
-      const sat=60+((i*7)%40);
-      ctx.strokeStyle=`hsla(${hue},${sat}%,70%,0.35)`;
-      ctx.lineWidth=1.2;
+     /* fond espace */
+     ctx.fillStyle='rgba(0,0,2,0.22)'; ctx.fillRect(0,0,W,H);
+
+     /* étoiles scintillantes */
+     for(const s of stars){
+      s.twinkle+=s.tfreq;
+      const op=s.op*(0.6+Math.sin(s.twinkle)*0.4);
+      ctx.fillStyle=`rgba(255,255,255,${op})`;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+     }
+
+     /* Jupiter */
+     ctx.drawImage(jupC, jupX-jupR-20, jupY-jupR-20);
+
+     /* rayons stargate — depuis Jupiter */
+     const starGX=jupX, starGY=jupY;
+     for(let i=0;i<RAYS;i++){
+      const a=(i/RAYS)*Math.PI*2+t*0.18;
+      const spd=1+((i*13)%5)*0.35;
+      const len=((t*spd*55+i*200)%(Math.hypot(W,H)*0.9));
+      const hue=(i/RAYS*360+t*45)%360;
+      ctx.strokeStyle=`hsla(${hue},75%,65%,0.22)`;
+      ctx.lineWidth=0.9;
       ctx.beginPath();
-      ctx.moveTo(cx,cy);
-      ctx.lineTo(cx+Math.cos(a)*len,cy+Math.sin(a)*len);
+      ctx.moveTo(starGX,starGY);
+      ctx.lineTo(starGX+Math.cos(a)*len, starGY+Math.sin(a)*len);
       ctx.stroke();
      }
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.75);
+
+     /* halo de Jupiter */
+     const jHalo=ctx.createRadialGradient(jupX,jupY,jupR*0.5,jupX,jupY,jupR*2.2);
+     jHalo.addColorStop(0,`rgba(180,${120+Math.sin(t*0.4)*15|0},50,${0.08+Math.sin(t*0.6)*0.03})`);
+     jHalo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=jHalo; ctx.fillRect(0,0,W,H);
+
+     /* monolithe */
+     const moFloat=Math.sin(t*0.5)*3; /* légère lévitation */
+     ctx.drawImage(monoC, monoX-10, monoY+moFloat-10);
+     /* halo du monolithe (lueur bleue froide) */
+     const moHalo=ctx.createRadialGradient(W*0.5,monoY+monoH/2,10,W*0.5,monoY+monoH/2,monoW*3.5);
+     moHalo.addColorStop(0,`rgba(80,120,200,${0.08+Math.sin(t*1.2)*0.04})`);
+     moHalo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=moHalo; ctx.fillRect(0,0,W,H);
+
+     /* vignette */
+     const vg=ctx.createRadialGradient(cx,cy,H*0.08,cx,cy,H*0.88);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(1,'rgba(0,0,0,0.65)');
-     ctx.fillStyle=vg;
-     ctx.fillRect(0,0,W,H);
-     t+=0.012;
-     requestAnimationFrame(frame);
+     vg.addColorStop(0.6,'rgba(0,0,2,0.25)');
+     vg.addColorStop(1,'rgba(0,0,2,0.92)');
+     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+
+     t+=0.014; requestAnimationFrame(frame);
     }
     frame();
    }
