@@ -17156,9 +17156,23 @@ function loadQ(){
           <div class="comp-poster-overlay"></div>
           <div class="comp-title">${q.title}<span class="comp-year">${q.year}</span></div>
         </div>
-        <div class="comp-hint">🎵 ${q.hint}</div>
+        <div class="comp-hint" id="comp-hint-box">🎵 <span id="comp-hint-txt"></span></div>
       </div>`;
-    q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+    // Nettoyer le hint : supprimer le nom du compositeur s'il y apparaît (leak potentiel)
+    (function(){
+      const raw = q.hint||'';
+      const compName = (q.compositeur||'').toLowerCase();
+      // Supprimer "NomCompositeur — " ou "NomCompositeur - " en début de hint
+      let clean = raw.replace(/^[^—–-]*[—–-]+\s*/,'').trim();
+      // Supprimer si le nom du compositeur apparaît directement dans le hint
+      if(compName && clean.toLowerCase().includes(compName)){
+        // Garder uniquement la partie après le tiret
+        const parts = clean.split(/[—–]/);
+        clean = (parts[parts.length-1]||clean).trim();
+      }
+      const el = document.getElementById('comp-hint-txt');
+      if(el) el.textContent = clean || raw;
+    })();    q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
     startTimer();
 
   } else if(q.type==='vraifaux'){
