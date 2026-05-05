@@ -24386,25 +24386,24 @@ function closeAvModal(e){
     const _jpPath7=new Path2D("M490.9 243.829C491.289 243.076 491.815 241.32 492.068 239.926C492.729 236.283 494.057 233.903 496.344 232.261L498.33 230.834L498.139 233.477C497.901 236.761 494.901 243.015 492.257 245.74L490.478 247.573L490.335 246.385C490.257 245.732 490.511 244.582 490.9 243.829Z");
     const _jpSVGSize=632;
     function drawTRex(x,y,targetSize,op){
-     // targetSize = taille en px du rendu (la silhouette occupe ~80% de cet espace)
-     const sc=targetSize/_jpSVGSize;
+     // Le T-Rex occupe environ x:0-528, y:92-400 dans le viewBox 632x632
+     // On recadre sur cette zone pour centrer la silhouette
+     const trexW=528, trexH=310, trexX=0, trexY=92;
+     const sc=targetSize/Math.max(trexW,trexH);
      ctx.save();
-     // Centrer : origine SVG en haut gauche du carré, on veut centrer sur (x,y)
-     ctx.translate(x - targetSize*0.5, y - targetSize*0.5);
+     ctx.translate(x - trexW*sc*0.5, y - trexH*sc*0.5);
      ctx.scale(sc, sc);
+     ctx.translate(-trexX, -trexY);
      ctx.globalAlpha=op;
-     // Clip rectangle du SVG
-     ctx.beginPath();ctx.rect(0,0,_jpSVGSize,_jpSVGSize);ctx.clip();
-     // Silhouette noire/vert très sombre
-     ctx.fillStyle='rgba(4,10,4,0.97)';
+     // Clip sur la zone du T-Rex uniquement
+     ctx.beginPath();ctx.rect(trexX,trexY,trexW,trexH+50);ctx.clip();
+     // Path 0 = silhouette noire → vert lumineux pour contraste sur fond sombre
+     ctx.fillStyle='rgba(60,160,55,0.88)';
      ctx.fill(_jpPath0);
-     ctx.fill(_jpPath1);
-     ctx.fill(_jpPath2);
-     ctx.fill(_jpPath3);
-     ctx.fill(_jpPath4);
-     ctx.fill(_jpPath5);
-     ctx.fill(_jpPath6);
-     ctx.fill(_jpPath7);
+     // Paths 1-7 = détails (dents/œil) en rouge dans le logo → vert sombre par-dessus
+     ctx.fillStyle='rgba(20,80,18,0.95)';
+     ctx.fill(_jpPath1);ctx.fill(_jpPath2);ctx.fill(_jpPath3);ctx.fill(_jpPath4);
+     ctx.fill(_jpPath5);ctx.fill(_jpPath6);ctx.fill(_jpPath7);
      ctx.restore();
     }
     function frame(){
@@ -24483,7 +24482,7 @@ function closeAvModal(e){
      // ── T-Rex ──
      // Légère oscillation de la marche
      const trexBob=Math.sin(t*(stepInterval/60)*2)*3;
-     drawTRex(cx+W*0.08, H*0.78+trexBob - W*0.55, W*0.72, 0.88);
+     drawTRex(cx+W*0.05, H*0.72, W*0.85, 0.82+Math.sin(t*0.4)*0.06);
 
      // ── Pluie ──
      for(const d of rain){
