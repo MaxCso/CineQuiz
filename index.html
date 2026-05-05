@@ -21292,12 +21292,55 @@ function closeAvModal(e){
      {cx:W*0.82,cy:H*0.86,rx:50,ry:8, color:[220,20,110]},
     ];
 
-    // ── Voiture vue de derrière (style années 80, Ryan Gosling vibes) ──
+    // ── Voiture vue de derrière (Chevrolet Malibu) ──
     const carW=W*0.62, carH=H*0.18;
     const carX=W/2, carY=H*0.80;
 
+    // Fumée d'échappement
+    const exhaustPuffs=Array.from({length:28},()=>({
+     x:0,y:0,vx:-(Math.random()*1.2+0.4),vy:-(Math.random()*0.6+0.1),
+     r:Math.random()*8+4,life:Math.random(),decay:Math.random()*0.008+0.004,
+     op:Math.random()*0.18+0.05
+    }));
+    // Particules d'eau projetées (éclaboussures roues)
+    const waterSprays=Array.from({length:40},()=>({
+     x:0,y:0,vx:(Math.random()-0.5)*3,vy:-(Math.random()*2+0.5),
+     life:Math.random(),decay:Math.random()*0.025+0.015,
+     r:Math.random()*2+0.5,side:Math.random()<0.5?-1:1
+    }));
+    // Lignes de vitesse
+    const speedLines=Array.from({length:22},(_,i)=>({
+     y:H*0.55+Math.random()*H*0.40,
+     len:Math.random()*W*0.18+W*0.06,
+     x:Math.random()*W,
+     spd:Math.random()*8+6,
+     op:Math.random()*0.12+0.03,
+     w:Math.random()*1.2+0.3
+    }));
+
+    // Positions des pots d'échappement (sous la voiture, côté gauche)
+    const exhaustX=()=> carX - carW*0.30;
+    const exhaustY=()=> carY + carH*0.32;
+
     function drawCar(x,y){
-     ctx.save();ctx.translate(x,y);
+     // Vibration à la vitesse
+     const vib=Math.sin(t*42)*0.8+Math.sin(t*67)*0.4;
+     ctx.save();ctx.translate(x,y+vib);
+
+     // Motion blur : ghost semi-transparent légèrement décalé à gauche
+     ctx.save();ctx.globalAlpha=0.08;ctx.translate(-W*0.012,0);
+     _drawCarBody();
+     ctx.restore();
+     ctx.save();ctx.globalAlpha=0.05;ctx.translate(-W*0.022,0);
+     _drawCarBody();
+     ctx.restore();
+
+     // Voiture principale
+     _drawCarBody();
+     ctx.restore();
+    }
+
+    function _drawCarBody(){
      const cw=carW, ch=carH;
      const hw=cw/2;
      const pulse=0.88+Math.sin(t*1.6)*0.12;
@@ -21462,8 +21505,7 @@ function closeAvModal(e){
      ctx.fillStyle='rgba(12,8,20,0.98)';
      ctx.beginPath();ctx.roundRect(-hw*0.96,pcY+pcH,cw*0.96,ch*0.10,[0,0,4,4]);ctx.fill();
 
-     ctx.restore();
-    }
+    } // fin _drawCarBody
 
     function frame(){
      if(stop.v)return;
@@ -21485,6 +21527,56 @@ function closeAvModal(e){
       ctx.fillStyle=pg;ctx.beginPath();ctx.ellipse(p.cx,p.cy,p.rx,p.ry,0,0,Math.PI*2);ctx.fill();
       for(let r=0;r<3;r++){const rr=((r/3+t*0.35)%1);ctx.strokeStyle=`rgba(${p.color},${0.07*(1-rr)})`;ctx.lineWidth=0.5;ctx.beginPath();ctx.ellipse(p.cx,p.cy,p.rx*rr,p.ry*rr,0,0,Math.PI*2);ctx.stroke();}
      }
+
+     // ── Lignes de vitesse horizontales (motion blur de la route) ──
+     ctx.save();
+     for(const sl of speedLines){
+      sl.x-=sl.spd;
+      if(sl.x+sl.len<0) sl.x=W+sl.len*0.5;
+      const slg=ctx.createLinearGradient(sl.x,sl.y,sl.x+sl.len,sl.y);
+      slg.addColorStop(0,'rgba(180,160,210,0)');
+      slg.addColorStop(0.3,`rgba(180,160,210,${sl.op})`);
+      slg.addColorStop(0.7,`rgba(180,160,210,${sl.op})`);
+      slg.addColorStop(1,'rgba(180,160,210,0)');
+      ctx.strokeStyle=slg;ctx.lineWidth=sl.w;
+      ctx.beginPath();ctx.moveTo(sl.x,sl.y);ctx.lineTo(sl.x+sl.len,sl.y);ctx.stroke();
+     }
+     ctx.restore();
+
+     // ── Fumée d'échappement ──
+     const ex=exhaustX(), ey=exhaustY();
+     for(const p of exhaustPuffs){
+      if(p.x===0&&p.y===0){p.x=ex+(Math.random()-0.5)*8;p.y=ey;}
+      p.x+=p.vx;p.y+=p.vy+Math.sin(t*2+p.r)*0.15;p.life-=p.decay;
+      if(p.life<=0){
+       p.x=ex+(Math.random()-0.5)*10;p.y=ey;
+       p.vx=-(Math.random()*1.2+0.4);p.vy=-(Math.random()*0.5+0.1);
+       p.r=Math.random()*8+4;p.life=0.7+Math.random()*0.3;
+       p.op=Math.random()*0.18+0.05;
+      }
+      const grow=1+( 1-p.life)*2.5;
+      const sg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*grow);
+      sg.addColorStop(0,`rgba(200,185,210,${p.op*p.life*1.4})`);
+      sg.addColorStop(1,'rgba(180,165,195,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(p.x,p.y,p.r*grow,0,Math.PI*2);ctx.fill();
+     }
+
+     // ── Éclaboussures eau sous les roues ──
+     const lwx=carX-carW*0.42, rwx=carX+carW*0.42, wy=carY+carH*0.28;
+     for(const p of waterSprays){
+      const bx=p.side<0?lwx:rwx;
+      if(p.x===0&&p.y===0){p.x=bx+(Math.random()-0.5)*12;p.y=wy;}
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=p.decay;
+      if(p.life<=0){
+       p.x=bx+(Math.random()-0.5)*14;p.y=wy;
+       p.vx=(Math.random()-0.5)*3;p.vy=-(Math.random()*2+0.5);
+       p.life=0.5+Math.random()*0.5;p.r=Math.random()*2+0.5;
+      }
+      ctx.globalAlpha=p.life*0.45;
+      ctx.fillStyle='rgba(160,175,210,0.7)';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+     }
+     ctx.globalAlpha=1;
 
      // Voiture
      drawCar(carX, carY);
