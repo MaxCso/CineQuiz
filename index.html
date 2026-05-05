@@ -22140,11 +22140,11 @@ function closeAvModal(e){
     }
 
     // ── Séquence barrel (cercle avec Bond dedans) ──
-    function drawBarrel(openProgress){
+    function drawBarrel(openProgress, bx, by){
      const maxR=Math.hypot(W,H)*0.62;
      const r=openProgress*maxR;
 
-     // Masque circulaire : fond noir autour
+     // 1. Fond noir autour du cercle (masque)
      ctx.save();
      ctx.beginPath();
      ctx.rect(0,0,W,H);
@@ -22154,23 +22154,29 @@ function closeAvModal(e){
      ctx.restore();
 
      if(r>2){
-      // Halo intérieur du cercle
+      // 2. Bond visible à l'intérieur du cercle (clipé)
+      if(bx!==undefined){
+       ctx.save();
+       ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+       drawBond(bx,by,true,false);
+       ctx.restore();
+      }
+
+      // 3. Halo intérieur
       const halo=ctx.createRadialGradient(cx,cy,r*0.75,cx,cy,r);
       halo.addColorStop(0,'rgba(0,0,0,0)');
-      halo.addColorStop(1,`rgba(${15+openProgress*8|0},${8+openProgress*4|0},${25+openProgress*10|0},0.5)`);
+      halo.addColorStop(1,`rgba(${15+openProgress*8|0},${8+openProgress*4|0},${25+openProgress*10|0},0.4)`);
       ctx.save();
       ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
       ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
       ctx.restore();
 
-      // Anneau du canon (chrome)
+      // 4. Anneau du canon (chrome) — disparaît quand ouvert
       const ringOp=Math.max(0,1-openProgress*1.4);
       if(ringOp>0){
-       // Anneau épais externe
        ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
        ctx.strokeStyle=`rgba(60,55,70,${ringOp*0.9})`;
        ctx.lineWidth=14;ctx.stroke();
-       // Reflet chrome
        const chromeG=ctx.createLinearGradient(cx-r,cy-r,cx+r,cy+r);
        chromeG.addColorStop(0,`rgba(140,130,160,${ringOp*0.6})`);
        chromeG.addColorStop(0.4,`rgba(220,210,240,${ringOp*0.8})`);
@@ -22266,34 +22272,24 @@ function closeAvModal(e){
       if(shootTimer>72){ phase=2; phaseTimer=0; }
      }
 
-     // ── PHASE 2 : Barrel s'ouvre lentement ──
+     // ── PHASE 2 : Barrel s'ouvre — Bond visible DANS le cercle ──
      else if(phase===2){
-      drawBond(bondX,bondY,true,true);
       barrelOpen=Math.min(1,barrelOpen+0.007);
-      drawBarrel(barrelOpen);
-
-      // Sang qui commence à couler quand le barrel est à moitié ouvert
-      if(barrelOpen>0.45 && !bloodStarted){
-       bloodStarted=true; bloodY=0;
-      }
+      drawBarrel(barrelOpen, bondX, bondY);
+      if(barrelOpen>0.45 && !bloodStarted){ bloodStarted=true; bloodY=0; }
       if(bloodStarted){
-       // Accélération progressive du sang
-       const spd=2+bloodY*0.015;
-       bloodY=Math.min(H*1.1, bloodY+spd);
+       bloodY=Math.min(H*1.1, bloodY+(2+bloodY*0.014));
        _drawBlood(bloodY);
       }
       if(barrelOpen>=1){ phase=3; phaseTimer=0; }
      }
 
-     // ── PHASE 3 : Barrel ouvert, sang descend jusqu'en bas ──
+     // ── PHASE 3 : Barrel plein ouvert — sang descend jusqu'en bas ──
      else if(phase===3){
-      drawBond(bondX,bondY,true,true);
-      drawBarrel(1.0);
-      // Sang continue sa descente
+      drawBarrel(1.0, bondX, bondY);
       bloodY=Math.min(H*1.1, bloodY+(2+bloodY*0.01));
       _drawBlood(bloodY);
-      // Quand le sang a atteint le bas, on attend un moment puis on repart
-      if(bloodY>=H*1.0 && phaseTimer>120){
+      if(bloodY>=H && phaseTimer>90){
        phase=0; bondX=-W*0.1; shootTimer=0; barrelOpen=0;
        bloodStarted=false; bloodY=0; muzzleFlash=0; phaseTimer=0;
       }
