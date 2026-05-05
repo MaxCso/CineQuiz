@@ -67,8 +67,6 @@
   async function sbSubmitGlobal(pseudo, xpGained, totalXp) {
     if (!pseudo) return;
     try {
-      // On upsert : si le pseudo existe, on additionne le XP et on incrémente les parties
-      // Supabase ne supporte pas l'incrément natif via REST, on fetch d'abord l'existant
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/global_scores?pseudo=eq.${encodeURIComponent(pseudo)}&select=total_xp,total_games`,
         { headers: sbHeaders() }
@@ -79,11 +77,24 @@
       const newXp    = (prev?.total_xp    || 0) + xpGained;
       const newGames = (prev?.total_games || 0) + 1;
 
-      await fetch(`${SUPABASE_URL}/rest/v1/global_scores`, {
-        method: 'POST',
-        headers: sbHeaders(),
-        body: JSON.stringify({ pseudo, total_xp: newXp, total_games: newGames, updated_at: new Date().toISOString() })
-      });
+      if (prev) {
+        // Enregistrement existant : PATCH pour incrémenter
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/global_scores?pseudo=eq.${encodeURIComponent(pseudo)}`,
+          {
+            method: 'PATCH',
+            headers: sbHeaders(),
+            body: JSON.stringify({ total_xp: newXp, total_games: newGames, updated_at: new Date().toISOString() })
+          }
+        );
+      } else {
+        // Nouvel utilisateur : insertion
+        await fetch(`${SUPABASE_URL}/rest/v1/global_scores`, {
+          method: 'POST',
+          headers: sbHeaders(),
+          body: JSON.stringify({ pseudo, total_xp: newXp, total_games: newGames, updated_at: new Date().toISOString() })
+        });
+      }
     } catch (e) {
       console.warn('[CQ Global] Erreur global_scores :', e);
     }
@@ -93,20 +104,33 @@
   async function sbSubmitMode(pseudo, mode, score) {
     if (!pseudo || !mode || score <= 0) return;
     try {
-      // Vérifier le score actuel pour ne soumettre que si meilleur
+      // Vérifier le score actuel
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/mode_scores?pseudo=eq.${encodeURIComponent(pseudo)}&mode=eq.${encodeURIComponent(mode)}&select=best_score`,
         { headers: sbHeaders() }
       );
       const existing = res.ok ? await res.json() : [];
       const prev = existing[0];
-      if (prev && prev.best_score >= score) return; // pas meilleur, on n'écrase pas
 
-      await fetch(`${SUPABASE_URL}/rest/v1/mode_scores`, {
-        method: 'POST',
-        headers: sbHeaders(),
-        body: JSON.stringify({ pseudo, mode, best_score: score, updated_at: new Date().toISOString() })
-      });
+      if (prev) {
+        // Enregistrement existant : mettre à jour seulement si le nouveau score est meilleur
+        if (prev.best_score >= score) return;
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/mode_scores?pseudo=eq.${encodeURIComponent(pseudo)}&mode=eq.${encodeURIComponent(mode)}`,
+          {
+            method: 'PATCH',
+            headers: sbHeaders(),
+            body: JSON.stringify({ best_score: score, updated_at: new Date().toISOString() })
+          }
+        );
+      } else {
+        // Aucun enregistrement existant : insertion simple
+        await fetch(`${SUPABASE_URL}/rest/v1/mode_scores`, {
+          method: 'POST',
+          headers: sbHeaders(),
+          body: JSON.stringify({ pseudo, mode, best_score: score, updated_at: new Date().toISOString() })
+        });
+      }
     } catch (e) {
       console.warn('[CQ Global] Erreur mode_scores :', e);
     }
