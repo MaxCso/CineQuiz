@@ -21298,140 +21298,169 @@ function closeAvModal(e){
 
     function drawCar(x,y){
      ctx.save();ctx.translate(x,y);
-
      const cw=carW, ch=carH;
      const hw=cw/2;
+     const pulse=0.88+Math.sin(t*1.6)*0.12;
 
-     // --- Reflet de la voiture sur la route mouillée ---
-     ctx.save();ctx.scale(1,-1);ctx.translate(0,-ch*0.1);ctx.globalAlpha=0.18;
-     ctx.fillStyle='rgba(15,10,25,0.9)';
-     ctx.beginPath();ctx.roundRect(-hw,0,cw,ch*0.5,4);ctx.fill();
-     // Reflet feux arrière
-     const refLG=ctx.createRadialGradient(-hw*0.72,ch*0.08,0,-hw*0.72,ch*0.08,cw*0.12);
-     refLG.addColorStop(0,`rgba(255,30,30,0.5)`);refLG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=refLG;ctx.fillRect(-hw,0,cw*0.25,ch*0.4);
-     const refRG=ctx.createRadialGradient(hw*0.72,ch*0.08,0,hw*0.72,ch*0.08,cw*0.12);
-     refRG.addColorStop(0,`rgba(255,30,30,0.5)`);refRG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=refRG;ctx.fillRect(hw*0.5,0,cw*0.25,ch*0.4);
+     // ── Reflet sur l'asphalte mouillé ──
+     ctx.save();ctx.translate(0,ch*0.22);ctx.scale(1,-0.28);ctx.globalAlpha=0.15;
+     ctx.filter='blur(2px)';
+     ctx.fillStyle='rgba(20,14,30,1)';
+     ctx.beginPath();ctx.roundRect(-hw*0.96,0,cw*0.96,ch*0.65,4);ctx.fill();
+     // Reflet feux
+     [-hw*0.82,-hw*0.68,hw*0.68,hw*0.82].forEach(fx=>{
+      const rg=ctx.createRadialGradient(fx,ch*0.12,0,fx,ch*0.12,cw*0.10);
+      rg.addColorStop(0,'rgba(255,20,0,0.7)');rg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=rg;ctx.beginPath();ctx.arc(fx,ch*0.12,cw*0.10,0,Math.PI*2);ctx.fill();
+     });
+     ctx.filter='none';
      ctx.restore();
 
-     // --- Carrosserie principale ---
-     // Bas (bas de caisse)
-     ctx.fillStyle='rgba(18,14,24,0.97)';
-     ctx.beginPath();ctx.roundRect(-hw, -ch*0.12, cw, ch*0.30, [0,0,6,6]);ctx.fill();
-
-     // Toit arrondi (coupé sport)
-     ctx.fillStyle='rgba(22,16,30,0.98)';
+     // ── Toit fastback (fuyant vers l'arrière, large) ──
+     ctx.fillStyle='rgba(16,12,22,0.98)';
      ctx.beginPath();
-     ctx.moveTo(-hw*0.90, -ch*0.12);
-     ctx.bezierCurveTo(-hw*0.75, -ch*0.90, -hw*0.30, -ch*1.05, 0, -ch*1.08);
-     ctx.bezierCurveTo(hw*0.30,  -ch*1.05,  hw*0.75, -ch*0.90, hw*0.90, -ch*0.12);
+     ctx.moveTo(-hw*0.82,-ch*0.15);
+     // Montée progressive du toit côté gauche
+     ctx.bezierCurveTo(-hw*0.72,-ch*1.05,-hw*0.28,-ch*1.18,0,-ch*1.20);
+     // Toit côté droit
+     ctx.bezierCurveTo(hw*0.28,-ch*1.18,hw*0.72,-ch*1.05,hw*0.82,-ch*0.15);
      ctx.closePath();ctx.fill();
 
-     // Vitre arrière (rectangle légèrement teinté)
-     ctx.fillStyle='rgba(80,120,180,0.12)';
+     // Reflet néon rose sur le toit
+     ctx.save();ctx.globalAlpha=0.14;
+     const roofNeon=ctx.createLinearGradient(-hw*0.5,-ch*1.10,hw*0.5,-ch*1.10);
+     roofNeon.addColorStop(0,'rgba(220,20,110,0)');
+     roofNeon.addColorStop(0.5,'rgba(220,20,110,0.9)');
+     roofNeon.addColorStop(1,'rgba(220,20,110,0)');
+     ctx.strokeStyle=roofNeon;ctx.lineWidth=2;
+     ctx.beginPath();ctx.moveTo(-hw*0.50,-ch*1.10);ctx.lineTo(hw*0.50,-ch*1.10);ctx.stroke();
+     ctx.restore();
+
+     // ── Vitre arrière (très inclinée, fastback) ──
+     ctx.fillStyle='rgba(60,90,140,0.10)';
      ctx.beginPath();
-     ctx.moveTo(-hw*0.48, -ch*0.14);
-     ctx.bezierCurveTo(-hw*0.38, -ch*0.78, -hw*0.15, -ch*0.92, 0, -ch*0.94);
-     ctx.bezierCurveTo( hw*0.15, -ch*0.92,  hw*0.38, -ch*0.78, hw*0.48, -ch*0.14);
+     ctx.moveTo(-hw*0.58,-ch*0.16);
+     ctx.bezierCurveTo(-hw*0.46,-ch*0.88,-hw*0.18,-ch*1.04,0,-ch*1.06);
+     ctx.bezierCurveTo(hw*0.18,-ch*1.04,hw*0.46,-ch*0.88,hw*0.58,-ch*0.16);
      ctx.closePath();ctx.fill();
-     ctx.strokeStyle='rgba(100,140,200,0.14)';ctx.lineWidth=1;ctx.stroke();
+     ctx.strokeStyle='rgba(80,110,180,0.12)';ctx.lineWidth=0.8;ctx.stroke();
 
-     // Reflet toit (ligne lumineuse)
-     ctx.save();ctx.globalAlpha=0.18;
-     const roofRef=ctx.createLinearGradient(-hw*0.4,-ch*0.95,hw*0.4,-ch*0.95);
-     roofRef.addColorStop(0,'rgba(220,20,110,0)');
-     roofRef.addColorStop(0.5,'rgba(220,20,110,0.6)');
-     roofRef.addColorStop(1,'rgba(220,20,110,0)');
-     ctx.strokeStyle=roofRef;ctx.lineWidth=1.5;
-     ctx.beginPath();ctx.moveTo(-hw*0.40,-ch*0.95);ctx.lineTo(hw*0.40,-ch*0.95);ctx.stroke();
+     // ── Panneau arrière principal (large, plat) ──
+     ctx.fillStyle='rgba(18,13,26,0.98)';
+     ctx.beginPath();ctx.roundRect(-hw*0.96,-ch*0.16,cw*0.96,ch*0.28,[2,2,0,0]);ctx.fill();
+
+     // Ligne de style horizontale (caractéristique Malibu)
+     ctx.save();ctx.globalAlpha=0.30;
+     const styleLine=ctx.createLinearGradient(-hw*0.96,-ch*0.02,hw*0.96,-ch*0.02);
+     styleLine.addColorStop(0,'rgba(160,140,180,0)');
+     styleLine.addColorStop(0.2,'rgba(180,160,200,0.8)');
+     styleLine.addColorStop(0.5,'rgba(210,195,230,1)');
+     styleLine.addColorStop(0.8,'rgba(180,160,200,0.8)');
+     styleLine.addColorStop(1,'rgba(160,140,180,0)');
+     ctx.strokeStyle=styleLine;ctx.lineWidth=1.2;
+     ctx.beginPath();ctx.moveTo(-hw*0.94,-ch*0.02);ctx.lineTo(hw*0.94,-ch*0.02);ctx.stroke();
      ctx.restore();
 
-     // Montants (piliers B)
-     ctx.fillStyle='rgba(12,8,18,0.95)';
-     ctx.fillRect(-hw*0.52,-ch*0.14,hw*0.08,ch*0.10);
-     ctx.fillRect( hw*0.44,-ch*0.14,hw*0.08,ch*0.10);
+     // ── 4 feux ronds par côté (signature Malibu) ──
+     // Gauche : 2 feux ronds
+     const feuR=ch*0.125; // rayon feu
+     const feuY=-ch*0.06;
+     // Boîtier englobant gauche
+     ctx.fillStyle='rgba(10,4,8,0.95)';
+     ctx.beginPath();ctx.roundRect(-hw*0.96,feuY-feuR*1.3,feuR*5.2,feuR*2.6,feuR*0.4);ctx.fill();
+     ctx.strokeStyle='rgba(60,50,70,0.6)';ctx.lineWidth=0.8;ctx.stroke();
 
-     // Bande chrome (jonction toit/bas de caisse)
-     ctx.save();ctx.globalAlpha=0.35;
-     const chrome=ctx.createLinearGradient(-hw,0,hw,0);
-     chrome.addColorStop(0,'rgba(80,60,100,0)');
-     chrome.addColorStop(0.3,'rgba(180,160,200,0.7)');
-     chrome.addColorStop(0.5,'rgba(220,200,240,1)');
-     chrome.addColorStop(0.7,'rgba(180,160,200,0.7)');
-     chrome.addColorStop(1,'rgba(80,60,100,0)');
-     ctx.strokeStyle=chrome;ctx.lineWidth=1.2;
-     ctx.beginPath();ctx.moveTo(-hw*0.88,-ch*0.14);ctx.lineTo(hw*0.88,-ch*0.14);ctx.stroke();
+     // Feu gauche externe (plus grand, feu stop)
+     const fLextX=-hw*0.84;
+     const fLg=ctx.createRadialGradient(fLextX,feuY,0,fLextX,feuY,feuR*1.05);
+     fLg.addColorStop(0,`rgba(255,30,10,${pulse})`);
+     fLg.addColorStop(0.4,'rgba(220,10,0,0.90)');
+     fLg.addColorStop(0.75,'rgba(150,0,0,0.70)');
+     fLg.addColorStop(1,'rgba(50,0,0,0.20)');
+     ctx.fillStyle=fLg;ctx.beginPath();ctx.arc(fLextX,feuY,feuR,0,Math.PI*2);ctx.fill();
+     // Anneau chrome
+     ctx.strokeStyle=`rgba(180,160,200,0.55)`;ctx.lineWidth=1.2;
+     ctx.beginPath();ctx.arc(fLextX,feuY,feuR,0,Math.PI*2);ctx.stroke();
+
+     // Feu gauche interne (clignotant/position, orange/rouge)
+     const fLintX=-hw*0.84+feuR*2.4;
+     const fLi=ctx.createRadialGradient(fLintX,feuY,0,fLintX,feuY,feuR*0.9);
+     fLi.addColorStop(0,`rgba(255,60,10,${pulse*0.9})`);
+     fLi.addColorStop(0.5,'rgba(200,20,0,0.80)');
+     fLi.addColorStop(1,'rgba(80,0,0,0.15)');
+     ctx.fillStyle=fLi;ctx.beginPath();ctx.arc(fLintX,feuY,feuR*0.85,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle=`rgba(160,140,180,0.45)`;ctx.lineWidth=1;
+     ctx.beginPath();ctx.arc(fLintX,feuY,feuR*0.85,0,Math.PI*2);ctx.stroke();
+
+     // Boîtier englobant droit
+     ctx.fillStyle='rgba(10,4,8,0.95)';
+     ctx.beginPath();ctx.roundRect(hw*0.96-feuR*5.2,feuY-feuR*1.3,feuR*5.2,feuR*2.6,feuR*0.4);ctx.fill();
+     ctx.strokeStyle='rgba(60,50,70,0.6)';ctx.lineWidth=0.8;ctx.stroke();
+
+     // Feu droit externe
+     const fRextX=hw*0.84;
+     const fRg=ctx.createRadialGradient(fRextX,feuY,0,fRextX,feuY,feuR*1.05);
+     fRg.addColorStop(0,`rgba(255,30,10,${pulse})`);
+     fRg.addColorStop(0.4,'rgba(220,10,0,0.90)');
+     fRg.addColorStop(0.75,'rgba(150,0,0,0.70)');
+     fRg.addColorStop(1,'rgba(50,0,0,0.20)');
+     ctx.fillStyle=fRg;ctx.beginPath();ctx.arc(fRextX,feuY,feuR,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle=`rgba(180,160,200,0.55)`;ctx.lineWidth=1.2;
+     ctx.beginPath();ctx.arc(fRextX,feuY,feuR,0,Math.PI*2);ctx.stroke();
+
+     // Feu droit interne
+     const fRintX=hw*0.84-feuR*2.4;
+     const fRi=ctx.createRadialGradient(fRintX,feuY,0,fRintX,feuY,feuR*0.9);
+     fRi.addColorStop(0,`rgba(255,60,10,${pulse*0.9})`);
+     fRi.addColorStop(0.5,'rgba(200,20,0,0.80)');
+     fRi.addColorStop(1,'rgba(80,0,0,0.15)');
+     ctx.fillStyle=fRi;ctx.beginPath();ctx.arc(fRintX,feuY,feuR*0.85,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle=`rgba(160,140,180,0.45)`;ctx.lineWidth=1;
+     ctx.beginPath();ctx.arc(fRintX,feuY,feuR*0.85,0,Math.PI*2);ctx.stroke();
+
+     // Halos feux sur la route
+     [-hw*0.84,-hw*0.84+feuR*2.4,hw*0.84-feuR*2.4,hw*0.84].forEach(fx=>{
+      const hg=ctx.createRadialGradient(fx,ch*0.18,0,fx,ch*0.18,cw*0.20);
+      hg.addColorStop(0,`rgba(255,15,0,${0.14*pulse})`);hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.fillRect(fx-cw*0.20,0,cw*0.40,ch*0.50);
+     });
+
+     // ── Pare-chocs chromé imposant ──
+     // Corps du pare-chocs
+     const pcY=ch*0.12;
+     const pcH=ch*0.20;
+     ctx.fillStyle='rgba(22,18,30,0.97)';
+     ctx.beginPath();ctx.roundRect(-hw*0.98,pcY,cw*0.98,pcH,[2,2,5,5]);ctx.fill();
+
+     // Chrome en 3 bandes
+     ctx.save();ctx.globalAlpha=0.55;
+     const pc1=ctx.createLinearGradient(0,pcY,0,pcY+pcH);
+     pc1.addColorStop(0,'rgba(200,190,215,0.9)');
+     pc1.addColorStop(0.18,'rgba(240,235,250,1)');
+     pc1.addColorStop(0.45,'rgba(160,150,175,0.7)');
+     pc1.addColorStop(0.70,'rgba(220,215,235,0.85)');
+     pc1.addColorStop(1,'rgba(130,120,145,0.5)');
+     ctx.fillStyle=pc1;
+     ctx.beginPath();ctx.roundRect(-hw*0.97,pcY,cw*0.96,pcH,[2,2,4,4]);ctx.fill();
      ctx.restore();
 
-     // Pare-chocs arrière
-     ctx.fillStyle='rgba(25,18,35,0.96)';
-     ctx.beginPath();ctx.roundRect(-hw*0.92,-ch*0.02,cw*0.92,ch*0.16,[0,0,8,8]);ctx.fill();
-     // Liseré chrome pare-chocs
-     ctx.save();ctx.globalAlpha=0.25;
-     ctx.strokeStyle='rgba(200,180,220,0.8)';ctx.lineWidth=1;
-     ctx.beginPath();ctx.roundRect(-hw*0.92,-ch*0.02,cw*0.92,ch*0.16,[0,0,8,8]);ctx.stroke();
+     // Bout chromé sur les côtés (caractéristique)
+     ctx.save();ctx.globalAlpha=0.65;
+     ctx.fillStyle='rgba(215,205,230,0.90)';
+     ctx.beginPath();ctx.roundRect(-hw*0.99,pcY-ch*0.02,hw*0.12,pcH+ch*0.04,[3,0,0,3]);ctx.fill();
+     ctx.beginPath();ctx.roundRect(hw*0.87,pcY-ch*0.02,hw*0.12,pcH+ch*0.04,[0,3,3,0]);ctx.fill();
      ctx.restore();
 
-     // Plaque d'immatriculation
-     ctx.fillStyle='rgba(235,230,215,0.85)';
-     ctx.beginPath();ctx.roundRect(-hw*0.14,ch*0.06,hw*0.28,ch*0.09,2);ctx.fill();
-     ctx.fillStyle='rgba(10,8,20,0.8)';
-     ctx.font=`bold ${ch*0.065}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
-     ctx.fillText('DRIVE',0,ch*0.105);
+     // ── Plaque entre les feux ──
+     ctx.fillStyle='rgba(230,228,220,0.90)';
+     ctx.beginPath();ctx.roundRect(-hw*0.16,pcY+pcH*0.15,hw*0.32,pcH*0.65,2);ctx.fill();
+     ctx.fillStyle='rgba(8,6,18,0.85)';
+     ctx.font=`bold ${ch*0.058}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
+     ctx.fillText('MALIBU',0,pcY+pcH*0.50);
 
-     // ── Feux arrière gauche ──
-     const flPulse=0.85+Math.sin(t*1.8)*0.15;
-     // Boîtier
-     ctx.fillStyle='rgba(30,8,8,0.92)';
-     ctx.beginPath();ctx.roundRect(-hw*0.90,-ch*0.14,hw*0.30,ch*0.20,3);ctx.fill();
-     // Feu principal (rouge)
-     const flg=ctx.createRadialGradient(-hw*0.76,-ch*0.04,1,-hw*0.76,-ch*0.04,hw*0.15);
-     flg.addColorStop(0,`rgba(255,${20+Math.sin(t*1.2)*8|0},${10+Math.sin(t)*5|0},${flPulse})`);
-     flg.addColorStop(0.5,'rgba(200,15,5,0.85)');
-     flg.addColorStop(1,'rgba(120,5,0,0)');
-     ctx.fillStyle=flg;
-     ctx.beginPath();ctx.roundRect(-hw*0.90,-ch*0.14,hw*0.28,ch*0.20,3);ctx.fill();
-     // Halo feu gauche sur la route
-     const fhL=ctx.createRadialGradient(-hw*0.76,ch*0.05,0,-hw*0.76,ch*0.05,hw*0.55);
-     fhL.addColorStop(0,`rgba(255,20,5,${0.20*flPulse})`);
-     fhL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=fhL;ctx.fillRect(-hw,-ch*0.1,hw*0.8,ch*0.5);
-
-     // ── Feux arrière droit ──
-     ctx.fillStyle='rgba(30,8,8,0.92)';
-     ctx.beginPath();ctx.roundRect(hw*0.60,-ch*0.14,hw*0.30,ch*0.20,3);ctx.fill();
-     const frg=ctx.createRadialGradient(hw*0.76,-ch*0.04,1,hw*0.76,-ch*0.04,hw*0.15);
-     frg.addColorStop(0,`rgba(255,${20+Math.sin(t*1.2)*8|0},${10+Math.sin(t)*5|0},${flPulse})`);
-     frg.addColorStop(0.5,'rgba(200,15,5,0.85)');
-     frg.addColorStop(1,'rgba(120,5,0,0)');
-     ctx.fillStyle=frg;
-     ctx.beginPath();ctx.roundRect(hw*0.60,-ch*0.14,hw*0.28,ch*0.20,3);ctx.fill();
-     const fhR=ctx.createRadialGradient(hw*0.76,ch*0.05,0,hw*0.76,ch*0.05,hw*0.55);
-     fhR.addColorStop(0,`rgba(255,20,5,${0.20*flPulse})`);
-     fhR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=fhR;ctx.fillRect(hw*0.2,-ch*0.1,hw*0.8,ch*0.5);
-
-     // Feu de recul central (blanc, optionnel)
-     ctx.save();ctx.globalAlpha=0.25+Math.sin(t*0.5)*0.05;
-     ctx.fillStyle='rgba(200,220,255,0.6)';
-     ctx.beginPath();ctx.roundRect(-hw*0.08,ch*0.00,hw*0.16,ch*0.08,2);ctx.fill();
-     ctx.restore();
-
-     // Roues (arrondi bas)
-     ctx.fillStyle='rgba(10,6,16,0.95)';
-     ctx.beginPath();ctx.ellipse(-hw*0.68,ch*0.14,hw*0.20,ch*0.20,0,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.ellipse(hw*0.68,ch*0.14,hw*0.20,ch*0.20,0,0,Math.PI*2);ctx.fill();
-     // Jantes
-     ctx.strokeStyle='rgba(100,85,120,0.45)';ctx.lineWidth=2;
-     ctx.beginPath();ctx.arc(-hw*0.68,ch*0.14,hw*0.12,0,Math.PI*2);ctx.stroke();
-     ctx.beginPath();ctx.arc(hw*0.68,ch*0.14,hw*0.12,0,Math.PI*2);ctx.stroke();
-
-     // Exhaust / échappement (petite fumée)
-     ctx.save();ctx.globalAlpha=0.12+Math.sin(t*3)*0.05;
-     ctx.fillStyle='rgba(180,160,200,0.4)';
-     ctx.beginPath();ctx.ellipse(-hw*0.35,ch*0.22,hw*0.08,ch*0.06,0,0,Math.PI*2);ctx.fill();
-     ctx.restore();
+     // ── Bas de caisse ──
+     ctx.fillStyle='rgba(12,8,20,0.98)';
+     ctx.beginPath();ctx.roundRect(-hw*0.96,pcY+pcH,cw*0.96,ch*0.10,[0,0,4,4]);ctx.fill();
 
      ctx.restore();
     }
