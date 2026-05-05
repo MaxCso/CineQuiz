@@ -24392,75 +24392,141 @@ function closeAvModal(e){
     let t=0;
     const cx=W/2,cy=H/2;
 
-    let ballX=-60,ballY=H*0.72,ballRot=0;
+    // Boule qui roule en bas de l'écran, de gauche à droite
+    let ballX=-60, ballY=H*0.72, ballRot=0;
+    const ballR=20;
+    const laneY=ballY; // ligne de la piste
 
-    const pins=Array.from({length:10},(_,i)=>{
-     const row=Math.floor((-1+Math.sqrt(1+8*i))/2);
-     const col=i-(row*(row+1)/2);
-     return{
-      x:cx-20+col*22+row*(-11),
-      y:H*0.32-row*22,
-      fallen:false,fallTime:0,fallDir:(Math.random()-0.5)*2
-     };
-    });
+    // Les quilles sont dans la trajectoire de la boule, côté droit
+    // Formation bowling : triangle pointé vers la gauche (vers la boule)
+    // rangée 1 = 1 quille (la plus proche de la boule), rangée 4 = 4 quilles au fond
+    // rowSpacing : espacement horizontal, colSpacing : espacement vertical (décalage en Y)
+    const pinAnchorX=W*0.78; // centre horizontal de la formation
+    const rowSpacing=28;     // espacement entre rangées (axe X)
+    const colSpacing=20;     // espacement entre quilles dans une rangée (axe Y)
 
-    const rings=Array.from({length:5},(_,i)=>({r:30+i*40,hue:i*50,spd:0.3+i*0.1}));
+    // Configuration : row=0 est le pin de tête (face à la boule)
+    // row 0: 1 pin, row 1: 2 pins, row 2: 3 pins, row 3: 4 pins
+    const pinLayout=[
+     {row:0,col:0},
+     {row:1,col:-0.5},{row:1,col:0.5},
+     {row:2,col:-1},{row:2,col:0},{row:2,col:1},
+     {row:3,col:-1.5},{row:3,col:-0.5},{row:3,col:0.5},{row:3,col:1.5}
+    ];
+
+    const pins=pinLayout.map(({row,col})=>({
+     x: pinAnchorX + row*rowSpacing,
+     y: laneY + col*colSpacing,
+     fallen:false, fallTime:0, fallDir:(Math.random()-0.5)*2,
+     fallDelay: row*0.12 + Math.abs(col)*0.06
+    }));
+
+    // Lane lines (piste de bowling)
+    const laneLeft=cx-80, laneRight=W*0.92;
+
+    const rings=Array.from({length:4},(_,i)=>({r:20+i*28,hue:i*60,spd:0.25+i*0.08}));
+
     function frame(){
      if(stop.v)return;
      ctx.fillStyle='rgba(3,1,5,0.15)';ctx.fillRect(0,0,W,H);
 
-     const bg=ctx.createLinearGradient(0,H*0.5,0,H);
+     // Fond dégradé piste
+     const bg=ctx.createLinearGradient(0,H*0.55,0,H);
      bg.addColorStop(0,'rgba(0,0,0,0)');
-     bg.addColorStop(1,`rgba(${30+Math.sin(t*0.3)*8|0},15,40,0.15)`);
-     ctx.fillStyle=bg;ctx.fillRect(0,H*0.5,W,H*0.5);
+     bg.addColorStop(1,`rgba(${30+Math.sin(t*0.3)*8|0},15,40,0.18)`);
+     ctx.fillStyle=bg;ctx.fillRect(0,H*0.55,W,H*0.45);
 
-     ctx.strokeStyle='rgba(120,100,160,0.12)';ctx.lineWidth=1;
-     ctx.beginPath();ctx.moveTo(cx-80,H*0.5);ctx.lineTo(cx-80,H);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(cx+80,H*0.5);ctx.lineTo(cx+80,H);ctx.stroke();
-
-     for(const ring of rings){
-      const rr=ring.r*(1+Math.sin(t*ring.spd)*0.08);
-      ctx.beginPath();ctx.arc(cx,H*0.32,rr,0,Math.PI*2);
-      ctx.strokeStyle=`hsla(${ring.hue+t*20},60%,50%,${0.08-ring.r/300})`;
-      ctx.lineWidth=1;ctx.stroke();
+     // Lignes de piste horizontales (lane)
+     ctx.strokeStyle='rgba(120,100,160,0.10)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.moveTo(laneLeft,H*0.55);ctx.lineTo(laneLeft,H);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(laneRight,H*0.55);ctx.lineTo(laneRight,H);ctx.stroke();
+     // Ligne centrale de visée (dots)
+     for(let dy=H*0.6;dy<laneY-ballR-5;dy+=18){
+      ctx.beginPath();ctx.arc(cx,dy,1.5,0,Math.PI*2);
+      ctx.fillStyle='rgba(150,120,200,0.18)';ctx.fill();
      }
 
+     // Halos concentriques autour du pin de tête
+     const headPin=pins[0];
+     if(!headPin.fallen){
+      for(const ring of rings){
+       const rr=ring.r*(1+Math.sin(t*ring.spd)*0.06);
+       ctx.beginPath();ctx.arc(headPin.x,headPin.y,rr,0,Math.PI*2);
+       ctx.strokeStyle=`hsla(${ring.hue+t*18},55%,55%,${0.07-ring.r/500})`;
+       ctx.lineWidth=1;ctx.stroke();
+      }
+     }
+
+     // Quilles
      for(const p of pins){
       if(!p.fallen){
-
-       if(ballX>p.x-20&&ballX<p.x+20&&ballY<p.y+20){
+       // Détection collision avec la boule
+       const dx=ballX-p.x, dy=ballY-p.y;
+       if(Math.sqrt(dx*dx+dy*dy)<ballR+8){
         p.fallen=true;p.fallTime=1;
        }
       }
       if(p.fallen){
-       p.fallTime=Math.max(0,p.fallTime-0.04);
+       p.fallTime=Math.max(0,p.fallTime-0.035);
        ctx.save();ctx.translate(p.x,p.y);
-       ctx.rotate((1-p.fallTime)*Math.PI*0.5*p.fallDir);
-       ctx.fillStyle=`rgba(220,210,180,${0.5*p.fallTime+0.1})`;
-       ctx.beginPath();ctx.ellipse(0,0,4,10,0,0,Math.PI*2);ctx.fill();
+       const angle=(1-p.fallTime)*Math.PI*0.55*p.fallDir;
+       ctx.rotate(angle);
+       // Corps quille
+       ctx.fillStyle=`rgba(235,225,195,${0.45*p.fallTime+0.08})`;
+       ctx.beginPath();ctx.ellipse(0,0,4,11,0,0,Math.PI*2);ctx.fill();
+       // Bande rouge
+       ctx.fillStyle=`rgba(200,60,60,${0.55*p.fallTime+0.1})`;
+       ctx.beginPath();ctx.ellipse(0,-3,4,3,0,0,Math.PI*2);ctx.fill();
        ctx.restore();
       } else {
-       ctx.fillStyle='rgba(230,220,190,0.55)';
-       ctx.beginPath();ctx.ellipse(p.x,p.y,4,10,0,0,Math.PI*2);ctx.fill();
+       // Quille debout — corps blanc ivoire
+       ctx.fillStyle='rgba(235,225,195,0.60)';
+       ctx.beginPath();ctx.ellipse(p.x,p.y,4,11,0,0,Math.PI*2);ctx.fill();
+       // Bande rouge décorative
+       ctx.fillStyle='rgba(200,60,60,0.65)';
+       ctx.beginPath();ctx.ellipse(p.x,p.y-3,4,3,0,0,Math.PI*2);ctx.fill();
+       // Highlight
+       ctx.fillStyle='rgba(255,255,240,0.25)';
+       ctx.beginPath();ctx.ellipse(p.x-1.5,p.y-4,1.5,4,0,0,Math.PI*2);ctx.fill();
       }
      }
 
+     // Boule
      ballX+=3.5;ballRot+=0.12;
      if(ballX>W+60){
       ballX=-60;
       pins.forEach(p=>{p.fallen=false;p.fallTime=0;});
      }
-     const ballG=ctx.createRadialGradient(ballX-6,ballY-6,2,ballX,ballY,20);
-     ballG.addColorStop(0,'rgba(80,40,120,0.9)');ballG.addColorStop(1,'rgba(30,10,60,0.8)');
-     ctx.beginPath();ctx.arc(ballX,ballY,20,0,Math.PI*2);
-     ctx.fillStyle=ballG;ctx.fill();
 
-     ctx.save();ctx.translate(ballX,ballY);ctx.rotate(ballRot);
-     ctx.fillStyle='rgba(0,0,0,0.7)';
-     [[0,-10],[8,5],[-8,5]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(dx,dy,3,0,Math.PI*2);ctx.fill();});
+     // Ombre boule au sol
+     ctx.save();ctx.globalAlpha=0.25;
+     const shadowG=ctx.createRadialGradient(ballX,ballY+18,0,ballX,ballY+18,22);
+     shadowG.addColorStop(0,'rgba(0,0,0,0.7)');shadowG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=shadowG;ctx.beginPath();ctx.ellipse(ballX,ballY+18,22,8,0,0,Math.PI*2);ctx.fill();
      ctx.restore();
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.8);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,2,10,0.68)');
+
+     // Corps boule (violet sombre)
+     const ballG=ctx.createRadialGradient(ballX-7,ballY-7,2,ballX,ballY,ballR);
+     ballG.addColorStop(0,'rgba(100,55,160,0.95)');
+     ballG.addColorStop(0.5,'rgba(55,20,100,0.90)');
+     ballG.addColorStop(1,'rgba(20,5,50,0.85)');
+     ctx.beginPath();ctx.arc(ballX,ballY,ballR,0,Math.PI*2);
+     ctx.fillStyle=ballG;ctx.fill();
+     // Reflet
+     ctx.save();ctx.globalAlpha=0.22;
+     const refG=ctx.createRadialGradient(ballX-6,ballY-8,0,ballX-4,ballY-5,11);
+     refG.addColorStop(0,'rgba(220,200,255,1)');refG.addColorStop(1,'rgba(220,200,255,0)');
+     ctx.fillStyle=refG;ctx.beginPath();ctx.arc(ballX,ballY,ballR,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+     // Trous
+     ctx.save();ctx.translate(ballX,ballY);ctx.rotate(ballRot);
+     ctx.fillStyle='rgba(0,0,0,0.75)';
+     [[0,-10],[8,5],[-8,5]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(dx,dy,2.8,0,Math.PI*2);ctx.fill();});
+     ctx.restore();
+
+     // Vignette
+     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,2,10,0.70)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
      t+=0.016;requestAnimationFrame(frame);
     }
