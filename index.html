@@ -6759,22 +6759,36 @@ body.viewer-open *:not(#hm-viewer):not(#hm-viewer *){
 
 
 /* ── Forcer orientation portrait ── */
-/* ── Landscape mobile (téléphone en mode paysage) ── */
-@media screen and (orientation:landscape) and (max-height:500px) and (max-width:932px){
-  body{
-    align-items:center;
-    justify-content:flex-start;
-    overflow-x:auto;
-    overflow-y:hidden;
-  }
-  .wrap{
-    width:auto;
-    min-width:320px;
-    height:100dvh;
-    border-radius:0;
-    border:none;
-    box-shadow:none;
-    flex-shrink:0;
+/* ── Overlay de rotation — affiché en paysage sauf zones vidéo ── */
+#rotate-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:#060609;
+  z-index:999999;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;
+  pointer-events:all;
+}
+#rotate-overlay .rot-icon{
+  font-size:52px;
+  animation:rotSpin 1.8s ease-in-out infinite;
+}
+@keyframes rotSpin{
+  0%{transform:rotate(0deg);}
+  30%{transform:rotate(-90deg);}
+  70%{transform:rotate(-90deg);}
+  100%{transform:rotate(0deg);}
+}
+#rotate-overlay .rot-text{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:18px;letter-spacing:3px;
+  color:rgba(255,255,255,.55);
+  text-align:center;
+}
+@media screen and (orientation:landscape) and (max-height:500px){
+  body:not(.allow-landscape) #rotate-overlay{
+    display:flex;
   }
 }
 
@@ -13557,8 +13571,11 @@ function closeHMViewer() {
     const s=ls();const userLvl=Math.max(1,glv(s.xp));
     const daily = window._hmDailyAvailable || new Set();
     const next=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&daily.has(i)&&!_hmRevealed.has(i));
-    if(next>=0){_hmIdx=next;_hmRenderCard(_hmIdx);}
-    else{
+    // Vérifier que la carte trouvée est réellement débloquée avant de l'afficher
+    const nextFilm = next >= 0 ? _hmFilms[next] : null;
+    if(next>=0 && nextFilm && nextFilm.lvl<=userLvl && daily.has(next)){
+      _hmIdx=next;_hmRenderCard(_hmIdx);
+    } else {
       // Toutes les cartes du jour grattées → afficher le message
       const scratchWrap=document.getElementById('hm-scratch-wrap');
       const allScratched=_hmRevealed.size>=HM_DB.length;
@@ -13568,9 +13585,9 @@ function closeHMViewer() {
         scratchWrap.innerHTML=`
           <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:14px;text-align:center;">
             <div style="font-size:40px;">🎴</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Cartes du jour épuisées</div>
-            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Tu as gratté tes 10 cartes du jour.<br>Reviens demain pour de nouveaux films.</div>
-            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ 10 nouvelles cartes demain ✦</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Toutes tes cartes grattées !</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Reviens demain — tes nouvelles cartes<br>s'accumulent si tu ne les grattes pas.</div>
+            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ +10 cartes demain ✦</div>
             <button onclick="hmSwitchTab('collection')" style="margin-top:12px;padding:12px 24px;border-radius:20px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;">VOIR MA COLLECTION →</button>
           </div>`;
       }
@@ -13935,14 +13952,14 @@ function openHM(){
           </div>`;
       }
     } else {
-      // Cartes du jour toutes grattées → message reviens demain
+      // Toutes les cartes disponibles grattées → message reviens demain
       if(scratchWrap){
         scratchWrap.innerHTML=`
           <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:14px;text-align:center;">
             <div style="font-size:40px;">🎴</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Cartes du jour épuisées</div>
-            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Tu as gratté tes 10 cartes du jour.<br>Reviens demain pour de nouveaux films.</div>
-            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ 10 nouvelles cartes demain ✦</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Toutes tes cartes grattées !</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Reviens demain — tes nouvelles cartes<br>s'accumulent si tu ne les grattes pas.</div>
+            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ +10 cartes demain ✦</div>
             <button onclick="hmSwitchTab('collection')" style="margin-top:12px;padding:12px 24px;border-radius:20px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;">VOIR MA COLLECTION →</button>
           </div>`;
       }
@@ -13972,35 +13989,73 @@ function closeHM(){
 
 function _hmGetDailyUnlocked(allUnlocked, revealed){
   const MAX_PER_DAY = 10;
+  const MAX_PENDING = 30; // plafond d'accumulation (3 jours max)
   const today = new Date().toDateString();
   const storageKey = 'hm_daily_unlocked';
+  const dbSize = HM_DB.length;
 
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    const dbSize = HM_DB.length;
-    if(saved && saved.date === today && saved.dbSize === dbSize){
-      // Même jour et même DB — convertir les IDs TMDB sauvegardés en indices courants
-      if(saved.tmdbIds){
-        const todayIndices = saved.tmdbIds
-          .map(id => _hmFilms.findIndex(f => f.id === id))
-          .filter(i => i >= 0);
-        return new Set([...revealed, ...todayIndices]);
-      }
-      // Ancien format (indices directs) — invalider
+
+    // ── Cas 1 : cache valide du jour avec nouveau format (pendingTmdbIds) ──
+    if(saved && saved.lastDate === today && saved.dbSize === dbSize && saved.pendingTmdbIds){
+      const pendingIndices = saved.pendingTmdbIds
+        .map(id => _hmFilms.findIndex(f => f.id === id))
+        .filter(i => i >= 0);
+      return new Set([...revealed, ...pendingIndices]);
     }
-    // Nouveau jour ou cache invalide : piocher 7 cartes parmi non grattées
-    const pending = allUnlocked.filter(i => !revealed.has(i));
-    if(pending.length === 0) return new Set([...revealed]);
+
+    // ── Cas 2 : ancien format même jour (tmdbIds sans pendingTmdbIds) — migration ──
+    if(saved && saved.date === today && saved.dbSize === dbSize && saved.tmdbIds && !saved.pendingTmdbIds){
+      const pendingIndices = saved.tmdbIds
+        .map(id => _hmFilms.findIndex(f => f.id === id))
+        .filter(i => i >= 0);
+      // Migrer vers le nouveau format
+      const newPending = pendingIndices.map(i => _hmFilms[i]?.id).filter(Boolean);
+      localStorage.setItem(storageKey, JSON.stringify({lastDate: today, pendingTmdbIds: newPending, dbSize}));
+      return new Set([...revealed, ...pendingIndices]);
+    }
+
+    // ── Cas 3 : nouveau jour (ou premier lancement) ──
+    // Récupérer les cartes déjà en attente du stock précédent (non grattées)
+    let carryOverIds = [];
+    if(saved && saved.dbSize === dbSize){
+      const prevPending = saved.pendingTmdbIds || saved.tmdbIds || [];
+      // Garder uniquement celles qui n'ont pas encore été grattées
+      carryOverIds = prevPending.filter(id => {
+        const idx = _hmFilms.findIndex(f => f.id === id);
+        return idx >= 0 && !revealed.has(idx);
+      });
+    }
+
+    // Cartes disponibles non encore en attente et non grattées
+    const carryOverSet = new Set(carryOverIds);
+    const pending = allUnlocked.filter(i => {
+      const id = _hmFilms[i]?.id;
+      return !revealed.has(i) && !carryOverSet.has(id);
+    });
+
+    // Mélanger et prendre les nouvelles cartes du jour
     const shuffled = [...pending];
     for(let i = shuffled.length-1; i > 0; i--){
       const j = Math.floor(Math.random() * (i+1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    const todayBatch = shuffled.slice(0, MAX_PER_DAY);
-    // Sauvegarder les IDs TMDB (stables) plutôt que les indices (qui changent chaque jour)
-    const tmdbIds = todayBatch.map(i => _hmFilms[i]?.id).filter(Boolean);
-    localStorage.setItem(storageKey, JSON.stringify({date: today, tmdbIds, dbSize}));
-    return new Set([...revealed, ...todayBatch]);
+    // Espace disponible dans le stock après report des cartes précédentes
+    const slots = Math.max(0, MAX_PENDING - carryOverIds.length);
+    const newBatch = shuffled.slice(0, Math.min(MAX_PER_DAY, slots));
+    const newBatchIds = newBatch.map(i => _hmFilms[i]?.id).filter(Boolean);
+
+    // Stock final = report + nouvelles cartes du jour (plafonné)
+    const allPendingIds = [...carryOverIds, ...newBatchIds].slice(0, MAX_PENDING);
+
+    localStorage.setItem(storageKey, JSON.stringify({lastDate: today, pendingTmdbIds: allPendingIds, dbSize}));
+
+    const allPendingIndices = allPendingIds
+      .map(id => _hmFilms.findIndex(f => f.id === id))
+      .filter(i => i >= 0);
+
+    return new Set([...revealed, ...allPendingIndices]);
   } catch(e) {
     return new Set([...revealed, ...allUnlocked.slice(0, MAX_PER_DAY)]);
   }
@@ -14014,10 +14069,9 @@ function _hmBuildList(){
 
     // Invalider si :
     // 1. Taille DB changée
-    // 2. Ancien format sans tmdbIds
-    // 3. Le cache daily prétend avoir des cartes grattées mais la collection est vide (incohérence)
+    // 2. Ni tmdbIds ni pendingTmdbIds (format trop ancien)
     if(saved){
-      if(saved.dbSize !== HM_DB.length || !saved.tmdbIds){
+      if(saved.dbSize !== HM_DB.length || (!saved.tmdbIds && !saved.pendingTmdbIds)){
         localStorage.removeItem('hm_daily_unlocked');
         localStorage.removeItem('hm_last_idx');
         localStorage.removeItem('hm_last_tmdb_id');
@@ -14695,6 +14749,10 @@ function _hmReveal(film, idx, canvas){
   // Marquer comme révélé
   _hmRevealed.add(idx);
   _hmSaveRevealed();
+  // Recalculer les cartes disponibles du jour avec le nouveau état révélé
+  const s2=ls();const userLvl2=Math.max(1,glv(s2.xp));
+  const allUnlockedIdx2=_hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl2).map(({i})=>i);
+  window._hmDailyAvailable=_hmGetDailyUnlocked(allUnlockedIdx2,_hmRevealed);
   _hmPlaySlideAudio(idx, _hmFilms);
 
   // 6. Entrée du viewer — opérations lourdes échelonnées
@@ -18658,8 +18716,8 @@ function showResult(s,xp){
     else                 streakEl.textContent='📅 Joue chaque jour pour lancer ta série !';
   }
 
-  if(window._injectResultEasterFull) window._injectResultEasterFull(score, okCnt);
-  else if(window._injectResultEaster) window._injectResultEaster(score, okCnt);
+  if(window._injectResultEasterFull) window._injectResultEasterFull(score, okCnt, TOTAL);
+  else if(window._injectResultEaster) window._injectResultEaster(score, okCnt, TOTAL);
   go('result');
   const _rs2=document.querySelector('.r-scroll');if(_rs2)_rs2.scrollTop=0;
   setTimeout(buildResultChart,400);
@@ -27164,12 +27222,15 @@ function setupSwipeDown(el,onClose){
 }
 
 function setupSwipeRight(el,onClose){
-  let startX=0,startY=0,dragging=false;
+  const EDGE_ZONE=36; // px depuis le bord gauche pour activer le swipe
+  let startX=0,startY=0,dragging=false,active=false;
   el.addEventListener('touchstart',e=>{
-    startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=true;
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    active=startX<=EDGE_ZONE; // n'activer que depuis le bord gauche
+    dragging=true;
   },{passive:true});
   el.addEventListener('touchmove',e=>{
-    if(!dragging)return;
+    if(!dragging||!active)return;
     const dx=e.touches[0].clientX-startX;
     const dy=Math.abs(e.touches[0].clientY-startY);
     if(dx>0&&dx>dy){
@@ -27177,13 +27238,18 @@ function setupSwipeRight(el,onClose){
       el.style.transform=`translateX(${Math.min(dx*.55,100)}px)`;
       el.style.transition='none';
       el.style.opacity=Math.max(0.4,1-dx/300);
+    } else if(dy>dx+10){
+      // Scroll vertical détecté → désactiver pour ce geste
+      active=false;
+      el.style.transform='';el.style.opacity='';el.style.transition='';
     }
   },{passive:false});
   el.addEventListener('touchend',e=>{
     if(!dragging)return;dragging=false;
     const dx=e.changedTouches[0].clientX-startX;
     el.style.transform='';el.style.opacity='';el.style.transition='';
-    if(dx>80)onClose();
+    if(active&&dx>80)onClose();
+    active=false;
   },{passive:true});
 }
 
@@ -33943,6 +34009,7 @@ if('serviceWorker' in navigator){
     window.addEventListener('orientationchange', onOrientationChange);
 
     // Au démarrage : verrouiller portrait + activer le fallback CSS
+    document.body.classList.remove('allow-landscape');
     lockPortrait();
 
     // ── API publique ──
@@ -33950,12 +34017,14 @@ if('serviceWorker' in navigator){
     // Appelé quand on entre dans une zone vidéo (Cinetek vidéo ou HM onglet FILM)
     window._videoOrientationUnlock = function(zone){
       window._videoZoneActive = zone || 'jk';
+      document.body.classList.add('allow-landscape');
       unlockOrientation();
     };
 
     // Appelé quand on quitte une zone vidéo
     window._videoOrientationLock = function(){
       window._videoZoneActive = null;
+      document.body.classList.remove('allow-landscape');
       exitFullscreen();
       lockPortrait();
     };
@@ -34788,21 +34857,23 @@ if('serviceWorker' in navigator){
   // 2. Quit modal — nouvelle réplique à chaque ouverture (géré dans confirmQuit())
 
   // 3. Écran résultat — message enrichi selon le score
-  window._injectResultEaster = function(score, correct) {
+  window._injectResultEaster = function(score, correct, total) {
     var el = document.getElementById('r-easter');
     if (!el) return;
+    var t = (typeof total === 'number' && total > 0) ? total : 10;
+    var isPerfect = (correct === t);
     var msgs;
-    if (correct >= 10) {
+    if (isPerfect) {
       msgs = [
         "« You're a wizard, Harry. » — Parfait, comme toi.",
         "« There is no spoon. » — Et pour toi, aucun obstacle.",
         "« With great power comes great responsibility. » — Tu l'as, la puissance.",
         "Scorsese aurait applaudi. Debout.",
-        "10/10. Même les Academy Awards sont moins sélectifs.",
+        t + "/" + t + ". Même les Academy Awards sont moins sélectifs.",
         "Hitchcock aurait fait un film sur toi. Le héros, cette fois.",
         "Nolan t'aurait mis dans le générique. Consultant technique.",
       ];
-    } else if (correct >= 7) {
+    } else if (correct >= Math.ceil(t * 0.7)) {
       msgs = [
         "« Not all those who wander are lost. » — T'es sur la bonne voie.",
         "« To infinity and beyond. » — Presque.",
@@ -34812,7 +34883,7 @@ if('serviceWorker' in navigator){
         "Solid. Spielberg aurait dit 'On retourne ?'",
         "Pas mal, cinéphile. Lynch aurait dit que c'est une bonne chose.",
       ];
-    } else if (correct >= 4) {
+    } else if (correct >= Math.ceil(t * 0.4)) {
       msgs = [
         "« Houston, we have a problem. » — Mais rien d'insurmontable.",
         "Même Spielberg a eu des flops.",
@@ -34915,11 +34986,12 @@ if('serviceWorker' in navigator){
   // 8. Score parfait — vibration spéciale + toast bonus
   (function() {
     var _orig = window._injectResultEaster;
-    window._injectResultEasterFull = function(score, correct) {
-      if (typeof _orig === 'function') _orig(score, correct);
-      if (correct >= 10) {
+    window._injectResultEasterFull = function(score, correct, total) {
+      if (typeof _orig === 'function') _orig(score, correct, total);
+      var t = (typeof total === 'number' && total > 0) ? total : 10;
+      if (correct === t) {
         setTimeout(function() {
-          if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🏆', name: 'PERFECT — 10/10 !', sub: 'Score parfait. Tu rejoins le panthéon des cinéphiles.' });
+          if (typeof showBadgeToast === 'function') showBadgeToast({ icon: '🏆', name: 'PERFECT — ' + t + '/' + t + ' !', sub: 'Score parfait. Tu rejoins le panthéon des cinéphiles.' });
           if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 200]);
         }, 1200);
       }
@@ -35587,4 +35659,9 @@ function hmReopenTuto() {
   });
 })();
 </script>
+<!-- Overlay rotation portrait — bloqué en paysage sauf zones vidéo -->
+<div id="rotate-overlay">
+  <div class="rot-icon">📱</div>
+  <div class="rot-text">Tourne ton écran</div>
+</div>
 </body></html>
