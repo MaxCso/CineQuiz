@@ -26879,14 +26879,20 @@ function runSplash(){
       clearTimeout(skipTimeout);
       var skipEl = document.getElementById('splash-skip');
       if(skipEl) skipEl.classList.remove('visible');
+      // Si la musique est déjà terminée naturellement, pas de fade-out — on la libère directement
       if(_splashAudioPlaying){
         var a = _splashAudioPlaying;
-        var v = a.volume, st = 0, tot = 20;
-        var fo = setInterval(function(){
-          st++;
-          a.volume = Math.max(0, v * (1 - st / tot));
-          if(st >= tot){ clearInterval(fo); a.pause(); a.currentTime = 0; _splashAudioPlaying = null; }
-        }, 600 / tot);
+        if(a.ended){
+          a.currentTime = 0;
+          _splashAudioPlaying = null;
+        } else {
+          var v = a.volume, st = 0, tot = 20;
+          var fo = setInterval(function(){
+            st++;
+            a.volume = Math.max(0, v * (1 - st / tot));
+            if(st >= tot){ clearInterval(fo); a.pause(); a.currentTime = 0; _splashAudioPlaying = null; }
+          }, 600 / tot);
+        }
       }
       splash.classList.add('out');
       setTimeout(()=>{
@@ -26911,8 +26917,6 @@ function runSplash(){
 
       _splashAudioPlaying = aud;
       aud.addEventListener('ended', closeSplash, {once:true});
-      var _fallback = setTimeout(closeSplash, 20000);
-      aud.addEventListener('ended', function(){ clearTimeout(_fallback); }, {once:true});
 
       function doFadeIn(){
         var fadeDur = 800, steps = 30, step = 0;
