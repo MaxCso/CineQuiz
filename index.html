@@ -21769,42 +21769,20 @@ function closeAvModal(e){
      {x:375, w:40, h:H*0.60, spires:[{ox:20,h:35}]}
     ];
 
-    // Vrai logo Batman : ellipse ovale + silhouette chauve-souris découpée
-    function drawBatLogo(x,y,R,op){
-     ctx.save();ctx.translate(x,y);ctx.globalAlpha=op;
-     const rX=R*1.65,rY=R*0.95;
-     // Fond ellipse jaune/or
-     ctx.beginPath();ctx.ellipse(0,0,rX,rY,0,0,Math.PI*2);
-     ctx.fillStyle='rgba(245,195,20,1)';ctx.fill();
-     // Bordure ellipse noire
-     ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=R*0.08;ctx.stroke();
-     // Silhouette chauve-souris noire par-dessus
-     // Corps central
-     ctx.beginPath();
-     // Tête (oreilles pointues)
-     ctx.moveTo(-R*0.12,-R*0.72);
-     ctx.lineTo(-R*0.22,-R*0.38);
-     ctx.lineTo(-R*0.38,-R*0.28);
-     // Aile gauche
-     ctx.bezierCurveTo(-R*0.60,-R*0.22,-R*1.10,-R*0.05,-R*1.38,R*0.10);
-     ctx.bezierCurveTo(-R*1.22,R*0.05,-R*0.92,R*0.28,-R*0.68,R*0.20);
-     ctx.bezierCurveTo(-R*0.55,R*0.16,-R*0.45,R*0.28,-R*0.32,R*0.22);
-     // Corps bas gauche
-     ctx.bezierCurveTo(-R*0.26,R*0.38,-R*0.16,R*0.48,0,R*0.44);
-     // Corps bas droit (symétrie)
-     ctx.bezierCurveTo(R*0.16,R*0.48,R*0.26,R*0.38,R*0.32,R*0.22);
-     // Aile droite
-     ctx.bezierCurveTo(R*0.45,R*0.28,R*0.55,R*0.16,R*0.68,R*0.20);
-     ctx.bezierCurveTo(R*0.92,R*0.28,R*1.22,R*0.05,R*1.38,R*0.10);
-     ctx.bezierCurveTo(R*1.10,-R*0.05,R*0.60,-R*0.22,R*0.38,-R*0.28);
-     ctx.lineTo(R*0.22,-R*0.38);
-     ctx.lineTo(R*0.12,-R*0.72);
-     // Oreille droite
-     ctx.lineTo(R*0.08,-R*0.44);
-     ctx.lineTo(0,-R*0.30);
-     ctx.lineTo(-R*0.08,-R*0.44);
-     ctx.closePath();
-     ctx.fillStyle='rgba(0,0,0,1)';ctx.fill();
+    // Logo Batman exact depuis le SVG officiel (viewBox 122.13 x 69.89)
+    const SVG_W=122.13,SVG_H=69.89;
+    const svgEllipse=new Path2D('M121.06,35c0,18.71-26.86,33.88-60,33.88S1.06,53.66,1.06,35s26.87-33.89,60-33.89,60,15.17,60,33.89Z');
+    const svgBat=new Path2D('M51.72,24.46c-14.49,5.37-21.86-8-14.49-15.74-11.75,3-30.86,11.49-30.86,25.63,0,12.83,12.49,20.09,21.49,23.22-8.68-10.74,3.25-19.16,13.7-7.41C49.69,35.73,59.28,56.44,61,59.58h0c1.71-3.14,11.31-23.85,19.44-9.42,10.45-11.75,22.38-3.33,13.7,7.41,9-3.13,21.49-10.39,21.49-23.22,0-14.14-19.11-22.63-30.86-25.63,7.37,7.74,0,21.11-14.49,15.74-1.67-2-2.75-6.11-2.75-18.24-1.94,1.26-3.33,5.71-3.45,6a12,12,0,0,0-6.15,0c-.12-.32-1.51-4.77-3.45-6,0,12.13-1.08,16.25-2.75,18.24ZM122.13,35c0,9.76-6.93,18.56-18.12,24.88-11,6.22-26.2,10.06-42.95,10.06S29.13,66.05,18.12,59.83C6.92,53.51,0,44.71,0,35S6.92,16.39,18.12,10.07C29.13,3.85,44.32,0,61.06,0S93,3.85,104,10.07C115.2,16.39,122.13,25.18,122.13,35ZM103,58c10.52-5.94,17-14.09,17-23s-6.51-17.1-17-23c-10.7-6-25.52-9.78-41.91-9.78s-31.2,3.74-41.9,9.78C8.64,17.85,2.13,26,2.13,35S8.64,52,19.16,58c10.7,6.05,25.52,9.79,41.9,9.79S92.27,64,103,58Z');
+    function drawBatLogo(x,y,targetW,op){
+     const sc=targetW/SVG_W;
+     ctx.save();
+     ctx.translate(x-SVG_W*sc/2, y-SVG_H*sc/2);
+     ctx.scale(sc,sc);
+     ctx.globalAlpha=op;
+     ctx.fillStyle='#f7dd30';
+     ctx.fill(svgEllipse);
+     ctx.fillStyle='#000';
+     ctx.fill(svgBat);
      ctx.restore();
     }
 
@@ -21830,7 +21808,7 @@ function closeAvModal(e){
 
      sigAngle+=0.007;
      const sx=cx+Math.sin(sigAngle)*W*0.12;
-     const sy=H*0.30;
+     const sy=H*0.13;
 
      // Faisceau du bat-signal (cône de lumière depuis le bas)
      const beam=ctx.createLinearGradient(sx,H,sx,sy-W*0.18);
@@ -21854,9 +21832,9 @@ function closeAvModal(e){
      glow.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
 
-     // Vrai logo Batman dans le ciel
-     const logoR=W*0.115;
-     drawBatLogo(sx,sy,logoR,0.82+Math.sin(t*0.5)*0.06);
+     // Logo Batman SVG exact dans le ciel
+     const logoW=W*0.55;
+     drawBatLogo(sx,sy,logoW,0.88+Math.sin(t*0.5)*0.05);
 
      // Bâtiments Gotham
      for(const b of bldgs){
@@ -24755,34 +24733,20 @@ function closeAvModal(e){
      life:Math.random(),decay:Math.random()*0.015+0.008,
      hue:30+Math.random()*20
     }));
+    const _DK_SVG_W=122.13,_DK_SVG_H=69.89;
+    const _dkEllipse=new Path2D('M121.06,35c0,18.71-26.86,33.88-60,33.88S1.06,53.66,1.06,35s26.87-33.89,60-33.89,60,15.17,60,33.89Z');
+    const _dkBat=new Path2D('M51.72,24.46c-14.49,5.37-21.86-8-14.49-15.74-11.75,3-30.86,11.49-30.86,25.63,0,12.83,12.49,20.09,21.49,23.22-8.68-10.74,3.25-19.16,13.7-7.41C49.69,35.73,59.28,56.44,61,59.58h0c1.71-3.14,11.31-23.85,19.44-9.42,10.45-11.75,22.38-3.33,13.7,7.41,9-3.13,21.49-10.39,21.49-23.22,0-14.14-19.11-22.63-30.86-25.63,7.37,7.74,0,21.11-14.49,15.74-1.67-2-2.75-6.11-2.75-18.24-1.94,1.26-3.33,5.71-3.45,6a12,12,0,0,0-6.15,0c-.12-.32-1.51-4.77-3.45-6,0,12.13-1.08,16.25-2.75,18.24ZM122.13,35c0,9.76-6.93,18.56-18.12,24.88-11,6.22-26.2,10.06-42.95,10.06S29.13,66.05,18.12,59.83C6.92,53.51,0,44.71,0,35S6.92,16.39,18.12,10.07C29.13,3.85,44.32,0,61.06,0S93,3.85,104,10.07C115.2,16.39,122.13,25.18,122.13,35ZM103,58c10.52-5.94,17-14.09,17-23s-6.51-17.1-17-23c-10.7-6-25.52-9.78-41.91-9.78s-31.2,3.74-41.9,9.78C8.64,17.85,2.13,26,2.13,35S8.64,52,19.16,58c10.7,6.05,25.52,9.79,41.9,9.79S92.27,64,103,58Z');
     function drawBatSymbol(ctx,x,y,size,op){
-     ctx.save();ctx.translate(x,y);ctx.globalAlpha=op;
-     const R=size;
-     const rX=R*1.65,rY=R*0.95;
-     // Ellipse or (bat-signal)
-     ctx.beginPath();ctx.ellipse(0,0,rX,rY,0,0,Math.PI*2);
-     ctx.fillStyle='rgba(245,195,20,1)';ctx.fill();
-     ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=R*0.07;ctx.stroke();
-     // Silhouette noire de la chauve-souris
-     ctx.beginPath();
-     ctx.moveTo(-R*0.12,-R*0.72);
-     ctx.lineTo(-R*0.22,-R*0.38);
-     ctx.lineTo(-R*0.38,-R*0.28);
-     ctx.bezierCurveTo(-R*0.60,-R*0.22,-R*1.10,-R*0.05,-R*1.38,R*0.10);
-     ctx.bezierCurveTo(-R*1.22,R*0.05,-R*0.92,R*0.28,-R*0.68,R*0.20);
-     ctx.bezierCurveTo(-R*0.55,R*0.16,-R*0.45,R*0.28,-R*0.32,R*0.22);
-     ctx.bezierCurveTo(-R*0.26,R*0.38,-R*0.16,R*0.48,0,R*0.44);
-     ctx.bezierCurveTo(R*0.16,R*0.48,R*0.26,R*0.38,R*0.32,R*0.22);
-     ctx.bezierCurveTo(R*0.45,R*0.28,R*0.55,R*0.16,R*0.68,R*0.20);
-     ctx.bezierCurveTo(R*0.92,R*0.28,R*1.22,R*0.05,R*1.38,R*0.10);
-     ctx.bezierCurveTo(R*1.10,-R*0.05,R*0.60,-R*0.22,R*0.38,-R*0.28);
-     ctx.lineTo(R*0.22,-R*0.38);
-     ctx.lineTo(R*0.12,-R*0.72);
-     ctx.lineTo(R*0.08,-R*0.44);
-     ctx.lineTo(0,-R*0.30);
-     ctx.lineTo(-R*0.08,-R*0.44);
-     ctx.closePath();
-     ctx.fillStyle='rgba(0,0,0,1)';ctx.fill();
+     // size = largeur souhaitée
+     const sc=size/_DK_SVG_W;
+     ctx.save();
+     ctx.translate(x-_DK_SVG_W*sc/2, y-_DK_SVG_H*sc/2);
+     ctx.scale(sc,sc);
+     ctx.globalAlpha=op;
+     ctx.fillStyle='#f7dd30';
+     ctx.fill(_dkEllipse);
+     ctx.fillStyle='#000';
+     ctx.fill(_dkBat);
      ctx.restore();
     }
     function frame(){
@@ -24812,7 +24776,7 @@ function closeAvModal(e){
      ctx.fillStyle=beam;ctx.fill();
      ctx.restore();
 
-     drawBatSymbol(ctx,bsx,H*0.22,W*0.12,0.85+Math.sin(t*0.5)*0.06);
+     drawBatSymbol(ctx,bsx,H*0.22,W*0.50,0.85+Math.sin(t*0.5)*0.06);
 
      const bldgs=[{x:0,w:50,h:H*0.45},{x:55,w:35,h:H*0.35},{x:95,w:65,h:H*0.58},
       {x:165,w:45,h:H*0.42},{x:215,w:80,h:H*0.65},{x:300,w:40,h:H*0.50},{x:345,w:60,h:H*0.55}];
