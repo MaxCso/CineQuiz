@@ -22244,18 +22244,17 @@ function closeAvModal(e){
 
      phaseTimer++;
 
-     // ── PHASE 0 : Bond marche ──
+     // ── PHASE 0 : Bond marche de gauche à droite ──
      if(phase===0){
       bondX+=1.8;
       drawBond(bondX,bondY,false,false);
-      if(bondX>cx*0.92) phase=1;
+      if(bondX>cx*0.92){ phase=1; phaseTimer=0; }
      }
 
-     // ── PHASE 1 : Bond tire ──
+     // ── PHASE 1 : Bond se retourne et tire ──
      else if(phase===1){
       drawBond(bondX,bondY,true,true);
       shootTimer++;
-      // Flash au moment du tir
       if(shootTimer===8||shootTimer===9){
        muzzleFlash=1;
        ctx.fillStyle='rgba(255,230,120,0.12)';ctx.fillRect(0,0,W,H);
@@ -22264,66 +22263,64 @@ function closeAvModal(e){
        drawMuzzleFlash(bondX-H*0.085,bondY+H*0.035);
        muzzleFlash=Math.max(0,muzzleFlash-0.18);
       }
-      if(shootTimer>55) phase=2;
+      if(shootTimer>72){ phase=2; phaseTimer=0; }
      }
 
-     // ── PHASE 2 : Barrel s'ouvre ──
+     // ── PHASE 2 : Barrel s'ouvre lentement ──
      else if(phase===2){
-      // Bond reste visible au fond
       drawBond(bondX,bondY,true,true);
-      barrelOpen=Math.min(1,barrelOpen+0.009);
+      barrelOpen=Math.min(1,barrelOpen+0.007);
       drawBarrel(barrelOpen);
 
-      // Sang qui commence à couler
-      if(barrelOpen>0.55 && !bloodStarted){
-       bloodStarted=true;bloodY=0;
+      // Sang qui commence à couler quand le barrel est à moitié ouvert
+      if(barrelOpen>0.45 && !bloodStarted){
+       bloodStarted=true; bloodY=0;
       }
       if(bloodStarted){
-       bloodY=Math.min(H*0.82,bloodY+4+bloodY*0.018);
-       const bw=W*0.016;
-       const bg2=ctx.createLinearGradient(cx,0,cx,bloodY);
-       bg2.addColorStop(0,'rgba(180,0,0,0.92)');
-       bg2.addColorStop(0.6,'rgba(140,0,0,0.85)');
-       bg2.addColorStop(1,'rgba(100,0,0,0.70)');
-       ctx.fillStyle=bg2;
-       ctx.beginPath();
-       ctx.moveTo(cx-bw*0.5,0);ctx.lineTo(cx+bw*0.5,0);
-       ctx.lineTo(cx+bw*0.3,bloodY);ctx.lineTo(cx-bw*0.3,bloodY);
-       ctx.closePath();ctx.fill();
-       // Goutte en bas
-       ctx.beginPath();ctx.arc(cx,bloodY,bw*0.6,0,Math.PI*2);
-       ctx.fillStyle='rgba(160,0,0,0.80)';ctx.fill();
+       // Accélération progressive du sang
+       const spd=2+bloodY*0.015;
+       bloodY=Math.min(H*1.1, bloodY+spd);
+       _drawBlood(bloodY);
       }
-      if(barrelOpen>=1) phase=3;
+      if(barrelOpen>=1){ phase=3; phaseTimer=0; }
      }
 
-     // ── PHASE 3 : Loop final (barrel plein + sang) ──
+     // ── PHASE 3 : Barrel ouvert, sang descend jusqu'en bas ──
      else if(phase===3){
       drawBond(bondX,bondY,true,true);
       drawBarrel(1.0);
-      // Sang qui continue de couler vers le bas
-      bloodY=Math.min(H,bloodY+1.2);
-      const bw=W*0.016;
-      const bg3=ctx.createLinearGradient(cx,0,cx,bloodY);
-      bg3.addColorStop(0,'rgba(180,0,0,0.92)');
-      bg3.addColorStop(0.7,'rgba(140,0,0,0.85)');
-      bg3.addColorStop(1,'rgba(100,0,0,0.65)');
-      ctx.fillStyle=bg3;
-      ctx.beginPath();
-      ctx.moveTo(cx-bw*0.5,0);ctx.lineTo(cx+bw*0.5,0);
-      ctx.lineTo(cx+bw*0.3,bloodY);ctx.lineTo(cx-bw*0.3,bloodY);
-      ctx.closePath();ctx.fill();
-      ctx.beginPath();ctx.arc(cx,bloodY,bw*0.7,0,Math.PI*2);
-      ctx.fillStyle='rgba(160,0,0,0.80)';ctx.fill();
-      // Reset après une pause
-      if(phaseTimer>520){
-       phase=0;bondX=-W*0.1;shootTimer=0;barrelOpen=0;
-       bloodStarted=false;bloodY=0;muzzleFlash=0;phaseTimer=0;
+      // Sang continue sa descente
+      bloodY=Math.min(H*1.1, bloodY+(2+bloodY*0.01));
+      _drawBlood(bloodY);
+      // Quand le sang a atteint le bas, on attend un moment puis on repart
+      if(bloodY>=H*1.0 && phaseTimer>120){
+       phase=0; bondX=-W*0.1; shootTimer=0; barrelOpen=0;
+       bloodStarted=false; bloodY=0; muzzleFlash=0; phaseTimer=0;
       }
      }
 
      t+=0.016;requestAnimationFrame(frame);
     }
+
+    function _drawBlood(by){
+     const bw=W*0.016;
+     const bg=ctx.createLinearGradient(cx,0,cx,by);
+     bg.addColorStop(0,'rgba(190,0,0,0.95)');
+     bg.addColorStop(0.5,'rgba(150,0,0,0.88)');
+     bg.addColorStop(1,'rgba(110,0,0,0.72)');
+     ctx.fillStyle=bg;
+     ctx.beginPath();
+     ctx.moveTo(cx-bw*0.5,0);ctx.lineTo(cx+bw*0.5,0);
+     ctx.lineTo(cx+bw*0.35,by);ctx.lineTo(cx-bw*0.35,by);
+     ctx.closePath();ctx.fill();
+     // Goutte en bas
+     if(by<H*1.05){
+      const dropR=bw*0.7+Math.sin(t*4)*0.5;
+      ctx.beginPath();ctx.arc(cx,by,dropR,0,Math.PI*2);
+      ctx.fillStyle='rgba(170,0,0,0.85)';ctx.fill();
+     }
+    }
+
     frame();
    }
   },
