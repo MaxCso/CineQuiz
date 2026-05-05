@@ -21481,24 +21481,32 @@ function closeAvModal(e){
     cv.style.opacity='0.62';
     let t=0;
 
-    /* ── Vapeur (conservée) ── */
-    const steams=Array.from({length:8},(_,i)=>({
-     x:W*(0.1+i*0.12), y:H,
-     particles:Array.from({length:12},()=>({
-      ox:(Math.random()-0.5)*30, oy:0,
-      vx:(Math.random()-0.5)*0.4, vy:-(Math.random()*0.8+0.3),
-      life:Math.random(), r:Math.random()*12+6, op:0
+    // ── Ligne d'horizon et de trottoir ──
+    const horizonY = H*0.52;   // ligne d'horizon (bas des buildings)
+    const streetY  = H*0.78;   // trottoir / sol où roule le taxi
+    const taxiY    = streetY - H*0.075; // taxi posé sur le trottoir
+
+    /* ── Vapeur qui monte depuis les bouches d'égout ── */
+    const steams=Array.from({length:7},(_,i)=>({
+     x:W*(0.08+i*0.14), y:streetY,
+     particles:Array.from({length:10},()=>({
+      ox:(Math.random()-0.5)*20, oy:0,
+      vx:(Math.random()-0.5)*0.35, vy:-(Math.random()*0.9+0.4),
+      life:Math.random(), r:Math.random()*10+5
      }))
     }));
 
-    /* ── Immeubles avec fenêtres ── */
+    /* ── Immeubles : hauts, ancrés sur horizonY ── */
     const buildings=[
-     {x:0,      w:W*0.28, h:H*0.32, floors:6, cols:3},
-     {x:W*0.3,  w:W*0.18, h:H*0.24, floors:4, cols:2},
-     {x:W*0.5,  w:W*0.22, h:H*0.38, floors:7, cols:3},
-     {x:W*0.74, w:W*0.28, h:H*0.28, floors:5, cols:3},
+     {x:0,       w:W*0.22, h:H*0.48, floors:9,  cols:3},
+     {x:W*0.20,  w:W*0.14, h:H*0.36, floors:7,  cols:2},
+     {x:W*0.33,  w:W*0.10, h:H*0.52, floors:10, cols:2},
+     {x:W*0.42,  w:W*0.20, h:H*0.42, floors:8,  cols:3},
+     {x:W*0.61,  w:W*0.12, h:H*0.58, floors:11, cols:2},
+     {x:W*0.72,  w:W*0.16, h:H*0.38, floors:7,  cols:2},
+     {x:W*0.87,  w:W*0.15, h:H*0.46, floors:9,  cols:2},
     ];
-    /* état allumé/éteint de chaque fenêtre, mis à jour par timer */
+
     const winStates=buildings.map(b=>
      Array.from({length:b.floors*b.cols},()=>Math.random()<0.55)
     );
@@ -21511,53 +21519,45 @@ function closeAvModal(e){
      });
     },900);
 
-    /* ── Enseignes avec texte ── */
+    /* ── Enseignes : sur les immeubles, au-dessus de horizonY ── */
     const signs=[
-     {x:W*0.15,y:H*0.72,color:[220,30,30],  flicker:2.1, label:'HOTEL'},
-     {x:W*0.72,y:H*0.68,color:[220,170,0],  flicker:3.4, label:'BAR'},
-     {x:W*0.46,y:H*0.76,color:[200,40,20],  flicker:1.7, label:'OPEN 24H'},
+     {x:W*0.13, y:horizonY-H*0.08, color:[220,30,30],   flicker:2.1, label:'HOTEL'},
+     {x:W*0.75, y:horizonY-H*0.06, color:[220,170,0],   flicker:3.4, label:'BAR'},
+     {x:W*0.46, y:horizonY-H*0.04, color:[200,40,20],   flicker:1.7, label:'OPEN 24H'},
     ];
 
     /* ── Taxi ── */
-    let taxiX=-120;
-    const taxiY=H*0.86;
-    const taxiSpeed=1.4;
+    let taxiX=-160;
+    const taxiSpeed=1.5;
+
     function drawTaxi(x,y){
-     ctx.save();ctx.translate(x,y);ctx.scale(0.7,0.7);
-     /* carrosserie */
+     ctx.save();ctx.translate(x,y);
+     const s=0.82; ctx.scale(s,s);
      ctx.fillStyle='#f5c518';
      ctx.beginPath();ctx.roundRect(0,0,140,32,4);ctx.fill();
-     /* toit */
      ctx.fillStyle='#e8b500';
      ctx.beginPath();ctx.roundRect(18,-20,80,22,3);ctx.fill();
-     /* pare-brise */
      ctx.fillStyle='rgba(150,220,255,0.35)';
      ctx.beginPath();ctx.roundRect(22,-18,32,18,2);ctx.fill();
      ctx.beginPath();ctx.roundRect(60,-18,30,18,2);ctx.fill();
-     /* vitres latérales */
      ctx.fillStyle='rgba(100,160,220,0.3)';
      ctx.beginPath();ctx.roundRect(100,4,32,16,2);ctx.fill();
-     /* halo phares */
      const headGlow=ctx.createRadialGradient(144,14,0,144,14,42);
      headGlow.addColorStop(0,'rgba(255,255,180,0.55)');
      headGlow.addColorStop(1,'rgba(255,255,180,0)');
      ctx.fillStyle=headGlow;ctx.fillRect(110,-14,90,55);
      ctx.fillStyle='rgba(255,255,220,0.95)';
      ctx.beginPath();ctx.roundRect(136,8,8,8,2);ctx.fill();
-     /* feu arrière */
      ctx.fillStyle='rgba(200,0,0,0.8)';
      ctx.beginPath();ctx.roundRect(-4,8,6,8,1);ctx.fill();
-     /* roues */
      ctx.fillStyle='#222';
      ctx.beginPath();ctx.arc(22,34,10,0,Math.PI*2);ctx.fill();
      ctx.beginPath();ctx.arc(110,34,10,0,Math.PI*2);ctx.fill();
      ctx.fillStyle='#888';
      ctx.beginPath();ctx.arc(22,34,4,0,Math.PI*2);ctx.fill();
      ctx.beginPath();ctx.arc(110,34,4,0,Math.PI*2);ctx.fill();
-     /* reflet */
      const rg=ctx.createLinearGradient(0,44,0,80);
-     rg.addColorStop(0,'rgba(245,197,24,0.18)');
-     rg.addColorStop(1,'rgba(245,197,24,0)');
+     rg.addColorStop(0,'rgba(245,197,24,0.18)');rg.addColorStop(1,'rgba(245,197,24,0)');
      ctx.fillStyle=rg;
      ctx.beginPath();ctx.ellipse(70,54,72,18,0,0,Math.PI*2);ctx.fill();
      ctx.restore();
@@ -21565,55 +21565,34 @@ function closeAvModal(e){
 
     function drawBuildings(){
      buildings.forEach((b,bi)=>{
-      const bx=b.x, by=H-b.h, bw=b.w, bh=b.h;
-      /* silhouette */
-      const bg=ctx.createLinearGradient(bx,by,bx,by+bh);
-      bg.addColorStop(0,'#0d0a10');bg.addColorStop(1,'#06040a');
+      // Ancré sur horizonY (bas de l'immeuble = horizonY)
+      const bx=b.x, by=horizonY-b.h, bw=b.w, bh=b.h;
+      const bg=ctx.createLinearGradient(bx,by,bx,horizonY);
+      bg.addColorStop(0,'#0c0910');bg.addColorStop(1,'#070509');
       ctx.fillStyle=bg;ctx.fillRect(bx,by,bw,bh);
-      /* fenêtres */
-      const pw=bw/(b.cols+1)*0.55, ph=bh/(b.floors+1)*0.48;
+      // Ligne de toit
+      ctx.strokeStyle='rgba(60,50,80,0.4)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+bw,by);ctx.stroke();
+      // Fenêtres
+      const pw=bw/(b.cols+1)*0.52, ph=bh/(b.floors+1)*0.42;
       const gx=(bw-b.cols*pw)/(b.cols+1);
       const gy=(bh-b.floors*ph)/(b.floors+1);
-      b.floors-1>=0 && Array.from({length:b.floors}).forEach((_,fi)=>{
+      Array.from({length:b.floors}).forEach((_,fi)=>{
        Array.from({length:b.cols}).forEach((_,ci)=>{
         const idx=fi*b.cols+ci;
         const wx=bx+gx+(pw+gx)*ci;
         const wy=by+gy+(ph+gy)*fi;
         if(winStates[bi][idx]){
-         /* lumière fenêtre */
          const wc=['rgba(255,220,140,','rgba(200,230,255,','rgba(255,200,100,'][Math.abs(bi*7+fi*3+ci)%3];
-         ctx.fillStyle=wc+'0.82)';
-         ctx.fillRect(wx,wy,pw,ph);
-         /* halo doux autour */
-         const hg=ctx.createRadialGradient(wx+pw/2,wy+ph/2,0,wx+pw/2,wy+ph/2,pw*2.2);
-         hg.addColorStop(0,wc+'0.14)');hg.addColorStop(1,wc+'0)');
+         ctx.fillStyle=wc+'0.80)';ctx.fillRect(wx,wy,pw,ph);
+         const hg=ctx.createRadialGradient(wx+pw/2,wy+ph/2,0,wx+pw/2,wy+ph/2,pw*2.5);
+         hg.addColorStop(0,wc+'0.12)');hg.addColorStop(1,wc+'0)');
          ctx.fillStyle=hg;ctx.fillRect(wx-pw,wy-ph,pw*3,ph*3);
         } else {
-         ctx.fillStyle='rgba(10,8,15,0.9)';ctx.fillRect(wx,wy,pw,ph);
+         ctx.fillStyle='rgba(8,6,12,0.92)';ctx.fillRect(wx,wy,pw,ph);
         }
        });
       });
-     });
-    }
-
-    function drawReflections(){
-     /* bande asphalte mouillé */
-     const roadY=H*0.72;
-     ctx.save();
-     ctx.globalAlpha=0.22;
-     ctx.scale(1,-1);ctx.translate(0,-H*2+roadY*2);
-     /* reflet bâtiments flou simulé par étirement vertical */
-     ctx.globalAlpha=0.12;
-     drawBuildings();
-     ctx.restore();
-     /* reflets colorés des enseignes dans la rue */
-     signs.forEach(s=>{
-      const fl=0.35+Math.sin(t*s.flicker)*0.35;
-      const ry=H*0.82+(s.y-H*0.5)*0.08;
-      const rg=ctx.createRadialGradient(s.x,ry,2,s.x,ry,55);
-      rg.addColorStop(0,`rgba(${s.color},${0.28*fl})`);
-      rg.addColorStop(1,`rgba(${s.color},0)`);
-      ctx.fillStyle=rg;ctx.beginPath();ctx.ellipse(s.x,ry,50,12,0,0,Math.PI*2);ctx.fill();
      });
     }
 
@@ -21621,68 +21600,108 @@ function closeAvModal(e){
      if(stop.v)return;
      ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
 
-     /* halo ambiant orange */
-     const ag=ctx.createRadialGradient(W*0.5,H*0.5,20,W*0.5,H*0.5,W*0.7);
-     ag.addColorStop(0,`rgba(180,${80+Math.sin(t*0.3)*15|0},10,0.07)`);
+     // Ciel nocturne
+     const sky=ctx.createLinearGradient(0,0,0,horizonY);
+     sky.addColorStop(0,'rgba(2,1,6,0.92)');
+     sky.addColorStop(1,'rgba(10,4,16,0.85)');
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizonY);
+
+     // Halo ambiant orange bas
+     const ag=ctx.createRadialGradient(W*0.5,horizonY,20,W*0.5,horizonY,W*0.8);
+     ag.addColorStop(0,`rgba(180,${70+Math.sin(t*0.3)*12|0},8,0.10)`);
      ag.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
 
-     /* immeubles */
+     // Immeubles
      drawBuildings();
 
-     /* enseignes avec texte */
+     // Ligne d'horizon (base des immeubles)
+     ctx.strokeStyle='rgba(40,28,55,0.7)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.moveTo(0,horizonY);ctx.lineTo(W,horizonY);ctx.stroke();
+
+     // Enseignes sur les immeubles
      for(const s of signs){
       const fl=0.4+Math.sin(t*s.flicker)*0.6;
-      /* halo large */
-      const sg=ctx.createRadialGradient(s.x,s.y,3,s.x,s.y,60);
-      sg.addColorStop(0,`rgba(${s.color},${0.5*fl})`);
-      sg.addColorStop(0.5,`rgba(${s.color},${0.15*fl})`);
+      const sg=ctx.createRadialGradient(s.x,s.y,3,s.x,s.y,55);
+      sg.addColorStop(0,`rgba(${s.color},${0.55*fl})`);
+      sg.addColorStop(0.5,`rgba(${s.color},${0.18*fl})`);
       sg.addColorStop(1,`rgba(${s.color},0)`);
       ctx.fillStyle=sg;ctx.fillRect(s.x-62,s.y-62,124,124);
-      /* point lumineux */
       ctx.fillStyle=`rgba(${s.color},${0.9*fl})`;
       ctx.beginPath();ctx.arc(s.x,s.y,3,0,Math.PI*2);ctx.fill();
-      /* texte enseigne */
       ctx.save();
-      ctx.globalAlpha=0.75*fl;
+      ctx.globalAlpha=0.78*fl;
       ctx.fillStyle=`rgb(${s.color})`;
       ctx.font=`bold 11px 'Courier New',monospace`;
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.shadowColor=`rgb(${s.color})`;ctx.shadowBlur=8*fl;
-      ctx.fillText(s.label,s.x,s.y+18);
+      ctx.fillText(s.label,s.x,s.y+16);
       ctx.restore();
      }
 
-     /* reflets asphalte */
-     drawReflections();
+     // Rue (asphalte entre horizon et bas d'écran)
+     const streetG=ctx.createLinearGradient(0,horizonY,0,H);
+     streetG.addColorStop(0,'rgba(12,8,18,0.95)');
+     streetG.addColorStop(1,'rgba(6,4,10,0.98)');
+     ctx.fillStyle=streetG;ctx.fillRect(0,horizonY,W,H-horizonY);
 
-     /* vapeur */
+     // Trottoir
+     ctx.fillStyle='rgba(22,16,32,0.90)';
+     ctx.fillRect(0,streetY,W,H-streetY);
+     ctx.strokeStyle='rgba(45,35,60,0.5)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.moveTo(0,streetY);ctx.lineTo(W,streetY);ctx.stroke();
+
+     // Ligne blanche centrale de la route (pointillés)
+     ctx.setLineDash([W*0.06,W*0.04]);
+     ctx.strokeStyle=`rgba(200,185,140,${0.12+Math.sin(t*0.5)*0.02})`;
+     ctx.lineWidth=2;
+     const dashOffset=-(t*80)%(W*0.1);
+     ctx.lineDashOffset=dashOffset;
+     ctx.beginPath();ctx.moveTo(0,horizonY+(streetY-horizonY)*0.5);ctx.lineTo(W,horizonY+(streetY-horizonY)*0.5);ctx.stroke();
+     ctx.setLineDash([]);ctx.lineDashOffset=0;
+
+     // Reflets des enseignes sur l'asphalte mouillé
+     for(const s of signs){
+      const fl=0.3+Math.sin(t*s.flicker)*0.3;
+      const ry=streetY+H*0.04;
+      const rg2=ctx.createRadialGradient(s.x,ry,2,s.x,ry,60);
+      rg2.addColorStop(0,`rgba(${s.color},${0.22*fl})`);
+      rg2.addColorStop(1,`rgba(${s.color},0)`);
+      ctx.fillStyle=rg2;ctx.beginPath();ctx.ellipse(s.x,ry,52,10,0,0,Math.PI*2);ctx.fill();
+     }
+
+     // Halo phares taxi sur la route
+     const hx=taxiX+115*0.82,hy=taxiY+14*0.82;
+     const hg=ctx.createRadialGradient(hx,hy,0,hx+30,hy+10,90);
+     hg.addColorStop(0,'rgba(255,255,180,0.12)');hg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=hg;ctx.fillRect(hx-10,hy-20,140,50);
+
+     // Vapeur des égouts
      for(const st of steams){
       for(const p of st.particles){
-       p.ox+=p.vx;p.oy+=p.vy;p.life-=0.006;
+       p.ox+=p.vx;p.oy+=p.vy;p.life-=0.005;
        if(p.life<=0){
-        p.ox=(Math.random()-0.5)*20;p.oy=0;
-        p.vx=(Math.random()-0.5)*0.4;p.vy=-(Math.random()*0.8+0.3);
-        p.life=0.6+Math.random()*0.4;p.r=Math.random()*12+6;
+        p.ox=(Math.random()-0.5)*16;p.oy=0;
+        p.vx=(Math.random()-0.5)*0.35;p.vy=-(Math.random()*0.9+0.4);
+        p.life=0.6+Math.random()*0.4;p.r=Math.random()*10+5;
        }
-       const op=p.life*0.12;
+       const op=p.life*0.10;
        const sg=ctx.createRadialGradient(st.x+p.ox,st.y+p.oy,0,st.x+p.ox,st.y+p.oy,p.r*(1-p.life*0.3));
-       sg.addColorStop(0,`rgba(200,185,160,${op})`);
-       sg.addColorStop(1,'rgba(200,185,160,0)');
+       sg.addColorStop(0,`rgba(200,185,160,${op})`);sg.addColorStop(1,'rgba(200,185,160,0)');
        ctx.fillStyle=sg;ctx.fillRect(st.x+p.ox-p.r,st.y+p.oy-p.r,p.r*2,p.r*2);
       }
      }
 
-     /* taxi */
+     // Taxi
      taxiX+=taxiSpeed;
-     if(taxiX>W+200)taxiX=-200;
-     ctx.globalAlpha=0.88;
-     drawTaxi(taxiX,taxiY-36);
+     if(taxiX>W+180)taxiX=-180;
+     ctx.globalAlpha=0.92;
+     drawTaxi(taxiX,taxiY);
      ctx.globalAlpha=1;
 
-     /* vignette */
-     const vg=ctx.createRadialGradient(W/2,H/2,H*0.12,W/2,H/2,H*0.8);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(8,3,0,0.70)');
+     // Vignette
+     const vg=ctx.createRadialGradient(W/2,H*0.5,H*0.10,W/2,H*0.5,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(6,2,0,0.72)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
      t+=0.016;requestAnimationFrame(frame);
     }
@@ -22026,92 +22045,283 @@ function closeAvModal(e){
    name:'James Bond',
    ref:'James Bond \u2014 Eon Productions, 1962\u2013',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.70';
+    cv.style.opacity='0.92';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2, cy=H/2;
 
-    let barrelOpen=0; 
+    // ── États de la séquence ──
+    // 0: Bond marche de gauche à droite
+    // 1: Bond se retourne et tire
+    // 2: Canon s'ouvre (gun barrel)
+    // 3: Sang qui coule, loop
+    let phase=0;
+    let bondX=-W*0.1;
+    const bondY=cy*0.92;
+    let shootTimer=0;
+    let barrelOpen=0;
+    let bloodY=0, bloodStarted=false;
+    let muzzleFlash=0;
+    let phaseTimer=0;
 
-    const bloodDrops=[];
-    let bloodStarted=false;
-
-    const particles=Array.from({length:60},()=>({
+    // ── Particules dorées (ambiance) ──
+    const particles=Array.from({length:55},()=>({
      x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.5, vy:-(Math.random()*0.8+0.2),
-     r:Math.random()*2+0.5,
-     op:Math.random()*0.4+0.1,
-     hue:40+Math.random()*20
+     vx:(Math.random()-0.5)*0.4, vy:-(Math.random()*0.6+0.1),
+     r:Math.random()*1.8+0.3,
+     op:Math.random()*0.35+0.08,
+     hue:38+Math.random()*18
     }));
-    function frame(){
-     if(stop.v)return;
-     ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
 
-     if(barrelOpen<1) barrelOpen=Math.min(1,barrelOpen+0.012);
-     const maxR=Math.hypot(W,H)*0.6;
-     const r=barrelOpen*maxR;
+    // ── Silhouette Bond ──
+    function drawBond(x,y,facingLeft,shooting){
+     ctx.save();ctx.translate(x,y);
+     if(!facingLeft) ctx.scale(-1,1);
+     ctx.globalAlpha=0.92;
 
+     const h=H*0.14; // hauteur totale
+     const walkCycle=Math.sin(t*8)*0.12;
+
+     // Jambes
+     ctx.fillStyle='rgba(12,10,18,0.95)';
+     // Jambe arrière
+     ctx.save();ctx.rotate(shooting?0.1:walkCycle*0.8);
+     ctx.fillRect(-5,h*0.50,10,h*0.35);ctx.restore();
+     // Jambe avant
+     ctx.save();ctx.rotate(shooting?-0.05:-walkCycle*0.8);
+     ctx.fillRect(-5,h*0.50,10,h*0.35);ctx.restore();
+     // Chaussures
+     ctx.fillStyle='rgba(8,6,14,0.98)';
+     ctx.beginPath();ctx.ellipse(-4,h*0.85,7,3,0.1,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(4,h*0.85,7,3,-0.1,0,Math.PI*2);ctx.fill();
+
+     // Corps (smoking)
+     ctx.fillStyle='rgba(14,11,22,0.96)';
+     ctx.beginPath();ctx.roundRect(-11,h*0.22,22,h*0.32,[4,4,2,2]);ctx.fill();
+     // Chemise blanche (plastron)
+     ctx.fillStyle='rgba(230,225,215,0.55)';
+     ctx.beginPath();ctx.roundRect(-3,h*0.23,6,h*0.18,2);ctx.fill();
+     // Nœud pap
+     ctx.fillStyle='rgba(12,10,20,0.9)';
+     ctx.beginPath();ctx.moveTo(-3,h*0.24);ctx.lineTo(3,h*0.24);ctx.lineTo(0,h*0.30);ctx.closePath();ctx.fill();
+
+     // Bras / gun
+     if(shooting){
+      // Bras tendu horizontal avec gun
+      ctx.fillStyle='rgba(14,11,22,0.95)';
+      ctx.save();ctx.rotate(-0.15);
+      ctx.fillRect(-28,h*0.26,28,8);ctx.restore();
+      // Gun
+      ctx.fillStyle='rgba(8,6,14,0.98)';
+      ctx.save();ctx.rotate(-0.15);
+      ctx.beginPath();ctx.roundRect(-36,h*0.24,16,6,[2]);ctx.fill();
+      // Canon
+      ctx.fillRect(-44,h*0.25,10,4);
+      ctx.restore();
+     } else {
+      // Bras ballant en marchant
+      ctx.fillStyle='rgba(14,11,22,0.95)';
+      ctx.save();ctx.rotate(-walkCycle*0.5);
+      ctx.fillRect(-14,h*0.24,10,h*0.22);ctx.restore();
+      ctx.save();ctx.rotate(walkCycle*0.5);
+      ctx.fillRect(4,h*0.24,10,h*0.22);ctx.restore();
+     }
+
+     // Tête
+     ctx.fillStyle='rgba(195,165,130,0.92)';
+     ctx.beginPath();ctx.ellipse(0,h*0.10,9,11,0,0,Math.PI*2);ctx.fill();
+     // Cheveux
+     ctx.fillStyle='rgba(20,15,10,0.92)';
+     ctx.beginPath();ctx.ellipse(0,h*0.03,9,5,0,0,Math.PI*2);ctx.fill();
+     // Mâchoire ombre
+     ctx.fillStyle='rgba(160,130,100,0.35)';
+     ctx.beginPath();ctx.ellipse(2,h*0.14,5,4,0.2,0,Math.PI*2);ctx.fill();
+
+     ctx.restore();
+    }
+
+    // ── Séquence barrel (cercle avec Bond dedans) ──
+    function drawBarrel(openProgress){
+     const maxR=Math.hypot(W,H)*0.62;
+     const r=openProgress*maxR;
+
+     // Masque circulaire : fond noir autour
      ctx.save();
-     ctx.beginPath();ctx.rect(0,0,W,H);
+     ctx.beginPath();
+     ctx.rect(0,0,W,H);
      ctx.arc(cx,cy,r,0,Math.PI*2,true);
-     ctx.fillStyle='rgba(0,0,0,0.85)';ctx.fill();
+     ctx.fillStyle='rgba(0,0,0,0.96)';
+     ctx.fill();
      ctx.restore();
 
-     ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-     ctx.strokeStyle=`rgba(180,150,80,${0.6*(1-barrelOpen*0.5)})`;
-     ctx.lineWidth=3;ctx.stroke();
+     if(r>2){
+      // Halo intérieur du cercle
+      const halo=ctx.createRadialGradient(cx,cy,r*0.75,cx,cy,r);
+      halo.addColorStop(0,'rgba(0,0,0,0)');
+      halo.addColorStop(1,`rgba(${15+openProgress*8|0},${8+openProgress*4|0},${25+openProgress*10|0},0.5)`);
+      ctx.save();
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+      ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
+      ctx.restore();
 
-     ctx.save();
-     ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+      // Anneau du canon (chrome)
+      const ringOp=Math.max(0,1-openProgress*1.4);
+      if(ringOp>0){
+       // Anneau épais externe
+       ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+       ctx.strokeStyle=`rgba(60,55,70,${ringOp*0.9})`;
+       ctx.lineWidth=14;ctx.stroke();
+       // Reflet chrome
+       const chromeG=ctx.createLinearGradient(cx-r,cy-r,cx+r,cy+r);
+       chromeG.addColorStop(0,`rgba(140,130,160,${ringOp*0.6})`);
+       chromeG.addColorStop(0.4,`rgba(220,210,240,${ringOp*0.8})`);
+       chromeG.addColorStop(0.6,`rgba(80,75,90,${ringOp*0.5})`);
+       chromeG.addColorStop(1,`rgba(160,150,180,${ringOp*0.6})`);
+       ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+       ctx.strokeStyle=chromeG;ctx.lineWidth=6;ctx.stroke();
+       // Vis (détails du canon)
+       for(let i=0;i<8;i++){
+        const a=i*Math.PI/4+t*0.1;
+        const vx=cx+Math.cos(a)*(r-4),vy=cy+Math.sin(a)*(r-4);
+        ctx.beginPath();ctx.arc(vx,vy,2.5,0,Math.PI*2);
+        ctx.fillStyle=`rgba(100,95,115,${ringOp*0.7})`;ctx.fill();
+       }
+       // Rainures intérieures du canon
+       for(let i=0;i<6;i++){
+        const ra=r*0.92-i*3;
+        ctx.beginPath();ctx.arc(cx,cy,ra,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(30,25,40,${ringOp*(0.15-i*0.02)})`;
+        ctx.lineWidth=1;ctx.stroke();
+       }
+      }
+     }
+    }
+
+    // ── Flash du tir ──
+    function drawMuzzleFlash(x,y){
+     ctx.save();ctx.translate(x,y);ctx.rotate(-0.15);
+     // Étoile de flash
+     for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      const len=22+Math.random()*12;
+      const fg=ctx.createLinearGradient(0,0,Math.cos(a)*len,Math.sin(a)*len);
+      fg.addColorStop(0,'rgba(255,240,150,0.95)');
+      fg.addColorStop(1,'rgba(255,150,20,0)');
+      ctx.strokeStyle=fg;ctx.lineWidth=2+Math.random()*2;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*len,Math.sin(a)*len);ctx.stroke();
+     }
+     // Boule centrale
+     const cg=ctx.createRadialGradient(0,0,0,0,0,14);
+     cg.addColorStop(0,'rgba(255,255,200,1)');
+     cg.addColorStop(0.4,'rgba(255,200,50,0.9)');
+     cg.addColorStop(1,'rgba(255,100,0,0)');
+     ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.fill();
+     // Halo
+     ctx.globalAlpha=0.25;
+     ctx.fillStyle='rgba(255,220,100,0.3)';
+     ctx.beginPath();ctx.arc(0,0,35,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+    }
+
+    function frame(){
+     if(stop.v)return;
+
+     // Fond noir profond
+     ctx.fillStyle='rgba(0,0,0,0.20)';ctx.fillRect(0,0,W,H);
+
+     // Ambiance de fond (subtile)
+     const bg=ctx.createRadialGradient(cx,cy*0.7,20,cx,cy,W*0.7);
+     bg.addColorStop(0,`rgba(20,8,35,${0.06+Math.sin(t*0.3)*0.02})`);
+     bg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+     // Particules dorées
      for(const p of particles){
       p.x+=p.vx;p.y+=p.vy;
       if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${p.hue},80%,65%,${p.op})`;ctx.fill();
+      ctx.fillStyle=`hsla(${p.hue},75%,62%,${p.op})`;ctx.fill();
      }
-     ctx.restore();
 
-     if(barrelOpen>0.3){
-      const bx=cx+Math.sin(t*0.5)*W*0.06;
-      const by=cy+Math.sin(t*0.3)*H*0.02;
-      const op=Math.min(1,(barrelOpen-0.3)/0.4);
-      ctx.save();ctx.globalAlpha=op*0.85;ctx.translate(bx,by);
+     phaseTimer++;
 
-      ctx.fillStyle='#000';
-      ctx.beginPath();ctx.ellipse(0,-18,5,8,0,0,Math.PI*2);ctx.fill(); 
-      ctx.fillRect(-4,-10,8,18); 
-      ctx.fillRect(-6,8,5,14);ctx.fillRect(1,8,5,14); 
+     // ── PHASE 0 : Bond marche ──
+     if(phase===0){
+      bondX+=1.8;
+      drawBond(bondX,bondY,false,false);
+      if(bondX>cx*0.92) phase=1;
+     }
 
-      ctx.fillRect(-10,-8,10,4); 
-      ctx.fillRect(-14,-9,5,3); 
-      ctx.restore();
+     // ── PHASE 1 : Bond tire ──
+     else if(phase===1){
+      drawBond(bondX,bondY,true,true);
+      shootTimer++;
+      // Flash au moment du tir
+      if(shootTimer===8||shootTimer===9){
+       muzzleFlash=1;
+       ctx.fillStyle='rgba(255,230,120,0.12)';ctx.fillRect(0,0,W,H);
+      }
+      if(muzzleFlash>0){
+       drawMuzzleFlash(bondX-H*0.085,bondY+H*0.035);
+       muzzleFlash=Math.max(0,muzzleFlash-0.18);
+      }
+      if(shootTimer>55) phase=2;
+     }
 
-      if(Math.sin(t*2)>0.92){
-       ctx.save();ctx.globalAlpha=op*0.6;
-       const fg=ctx.createRadialGradient(bx-14,by-9,0,bx-14,by-9,12);
-       fg.addColorStop(0,'rgba(255,220,50,0.9)');fg.addColorStop(1,'rgba(255,100,0,0)');
-       ctx.fillStyle=fg;ctx.fillRect(bx-26,by-21,24,24);
-       ctx.restore();
+     // ── PHASE 2 : Barrel s'ouvre ──
+     else if(phase===2){
+      // Bond reste visible au fond
+      drawBond(bondX,bondY,true,true);
+      barrelOpen=Math.min(1,barrelOpen+0.009);
+      drawBarrel(barrelOpen);
+
+      // Sang qui commence à couler
+      if(barrelOpen>0.55 && !bloodStarted){
+       bloodStarted=true;bloodY=0;
+      }
+      if(bloodStarted){
+       bloodY=Math.min(H*0.82,bloodY+4+bloodY*0.018);
+       const bw=W*0.016;
+       const bg2=ctx.createLinearGradient(cx,0,cx,bloodY);
+       bg2.addColorStop(0,'rgba(180,0,0,0.92)');
+       bg2.addColorStop(0.6,'rgba(140,0,0,0.85)');
+       bg2.addColorStop(1,'rgba(100,0,0,0.70)');
+       ctx.fillStyle=bg2;
+       ctx.beginPath();
+       ctx.moveTo(cx-bw*0.5,0);ctx.lineTo(cx+bw*0.5,0);
+       ctx.lineTo(cx+bw*0.3,bloodY);ctx.lineTo(cx-bw*0.3,bloodY);
+       ctx.closePath();ctx.fill();
+       // Goutte en bas
+       ctx.beginPath();ctx.arc(cx,bloodY,bw*0.6,0,Math.PI*2);
+       ctx.fillStyle='rgba(160,0,0,0.80)';ctx.fill();
+      }
+      if(barrelOpen>=1) phase=3;
+     }
+
+     // ── PHASE 3 : Loop final (barrel plein + sang) ──
+     else if(phase===3){
+      drawBond(bondX,bondY,true,true);
+      drawBarrel(1.0);
+      // Sang qui continue de couler vers le bas
+      bloodY=Math.min(H,bloodY+1.2);
+      const bw=W*0.016;
+      const bg3=ctx.createLinearGradient(cx,0,cx,bloodY);
+      bg3.addColorStop(0,'rgba(180,0,0,0.92)');
+      bg3.addColorStop(0.7,'rgba(140,0,0,0.85)');
+      bg3.addColorStop(1,'rgba(100,0,0,0.65)');
+      ctx.fillStyle=bg3;
+      ctx.beginPath();
+      ctx.moveTo(cx-bw*0.5,0);ctx.lineTo(cx+bw*0.5,0);
+      ctx.lineTo(cx+bw*0.3,bloodY);ctx.lineTo(cx-bw*0.3,bloodY);
+      ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.arc(cx,bloodY,bw*0.7,0,Math.PI*2);
+      ctx.fillStyle='rgba(160,0,0,0.80)';ctx.fill();
+      // Reset après une pause
+      if(phaseTimer>520){
+       phase=0;bondX=-W*0.1;shootTimer=0;barrelOpen=0;
+       bloodStarted=false;bloodY=0;muzzleFlash=0;phaseTimer=0;
       }
      }
 
-     if(barrelOpen>0.7 && !bloodStarted){
-      bloodStarted=true;
-      bloodDrops.push({x:cx,y:0,vy:3,w:6});
-     }
-     for(const d of bloodDrops){
-      d.y+=d.vy;d.vy*=1.02;
-      const bg=ctx.createLinearGradient(d.x,0,d.x,d.y);
-      bg.addColorStop(0,'rgba(180,0,0,0.85)');
-      bg.addColorStop(1,'rgba(120,0,0,0.60)');
-      ctx.fillStyle=bg;
-      ctx.beginPath();
-      ctx.moveTo(d.x-d.w/2,0);ctx.lineTo(d.x+d.w/2,0);
-      ctx.lineTo(d.x+d.w*0.3,d.y);ctx.lineTo(d.x-d.w*0.3,d.y);
-      ctx.closePath();ctx.fill();
-
-      ctx.beginPath();ctx.arc(d.x,d.y,d.w*0.5,0,Math.PI*2);
-      ctx.fillStyle='rgba(160,0,0,0.75)';ctx.fill();
-     }
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
