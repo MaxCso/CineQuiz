@@ -21343,34 +21343,97 @@ function closeAvModal(e){
      ctx.filter='none';
      ctx.restore();
 
-     // ── Toit fastback (fuyant vers l'arrière, large) ──
-     ctx.fillStyle='rgba(16,12,22,0.98)';
+     // ── Toit fastback ──
+     // Forme du toit
      ctx.beginPath();
      ctx.moveTo(-hw*0.82,-ch*0.15);
-     // Montée progressive du toit côté gauche
      ctx.bezierCurveTo(-hw*0.72,-ch*1.05,-hw*0.28,-ch*1.18,0,-ch*1.20);
-     // Toit côté droit
      ctx.bezierCurveTo(hw*0.28,-ch*1.18,hw*0.72,-ch*1.05,hw*0.82,-ch*0.15);
-     ctx.closePath();ctx.fill();
+     ctx.closePath();
 
-     // Reflet néon rose sur le toit
-     ctx.save();ctx.globalAlpha=0.14;
-     const roofNeon=ctx.createLinearGradient(-hw*0.5,-ch*1.10,hw*0.5,-ch*1.10);
-     roofNeon.addColorStop(0,'rgba(220,20,110,0)');
-     roofNeon.addColorStop(0.5,'rgba(220,20,110,0.9)');
-     roofNeon.addColorStop(1,'rgba(220,20,110,0)');
-     ctx.strokeStyle=roofNeon;ctx.lineWidth=2;
-     ctx.beginPath();ctx.moveTo(-hw*0.50,-ch*1.10);ctx.lineTo(hw*0.50,-ch*1.10);ctx.stroke();
+     // Dégradé carrosserie : flancs sombres, sommet légèrement éclairé
+     const roofG=ctx.createLinearGradient(0,-ch*1.20,0,-ch*0.15);
+     roofG.addColorStop(0,'rgba(38,28,52,0.98)');
+     roofG.addColorStop(0.35,'rgba(28,20,40,0.99)');
+     roofG.addColorStop(1,'rgba(14,10,22,0.99)');
+     ctx.fillStyle=roofG;ctx.fill();
+
+     // Reflet latéral gauche (brillance carrosserie)
+     ctx.save();
+     ctx.beginPath();
+     ctx.moveTo(-hw*0.82,-ch*0.15);
+     ctx.bezierCurveTo(-hw*0.72,-ch*1.05,-hw*0.28,-ch*1.18,0,-ch*1.20);
+     ctx.bezierCurveTo(hw*0.28,-ch*1.18,hw*0.72,-ch*1.05,hw*0.82,-ch*0.15);
+     ctx.closePath();ctx.clip();
+     // Reflet gauche
+     const refLG=ctx.createLinearGradient(-hw*0.82,-ch*0.6,-hw*0.3,-ch*0.6);
+     refLG.addColorStop(0,'rgba(255,255,255,0)');
+     refLG.addColorStop(0.4,'rgba(255,255,255,0.06)');
+     refLG.addColorStop(1,'rgba(255,255,255,0)');
+     ctx.fillStyle=refLG;ctx.fillRect(-hw,-ch*1.25,hw,ch*1.15);
+     // Reflet droit
+     const refRG=ctx.createLinearGradient(hw*0.3,-ch*0.6,hw*0.82,-ch*0.6);
+     refRG.addColorStop(0,'rgba(255,255,255,0)');
+     refRG.addColorStop(0.6,'rgba(255,255,255,0.05)');
+     refRG.addColorStop(1,'rgba(255,255,255,0)');
+     ctx.fillStyle=refRG;ctx.fillRect(0,-ch*1.25,hw,ch*1.15);
+     // Reflet néon rose/bleu des rues sur le toit
+     const neonG=ctx.createLinearGradient(-hw*0.6,-ch*1.05,hw*0.6,-ch*1.05);
+     neonG.addColorStop(0,'rgba(140,0,200,0)');
+     neonG.addColorStop(0.3,'rgba(220,20,110,0.10)');
+     neonG.addColorStop(0.5,'rgba(180,20,180,0.14)');
+     neonG.addColorStop(0.7,'rgba(20,80,220,0.10)');
+     neonG.addColorStop(1,'rgba(140,0,200,0)');
+     ctx.fillStyle=neonG;ctx.fillRect(-hw,-ch*1.25,cw,ch*1.15);
      ctx.restore();
 
-     // ── Vitre arrière (très inclinée, fastback) ──
-     ctx.fillStyle='rgba(60,90,140,0.10)';
+     // Liseré chrome sur le bord supérieur du toit
+     ctx.save();ctx.globalAlpha=0.40;
+     const chromeEdge=ctx.createLinearGradient(-hw*0.6,-ch*1.18,hw*0.6,-ch*1.18);
+     chromeEdge.addColorStop(0,'rgba(180,165,200,0)');
+     chromeEdge.addColorStop(0.2,'rgba(220,205,240,0.9)');
+     chromeEdge.addColorStop(0.5,'rgba(245,235,255,1)');
+     chromeEdge.addColorStop(0.8,'rgba(220,205,240,0.9)');
+     chromeEdge.addColorStop(1,'rgba(180,165,200,0)');
+     ctx.strokeStyle=chromeEdge;ctx.lineWidth=1.5;
+     ctx.beginPath();
+     ctx.moveTo(-hw*0.60,-ch*1.18);
+     ctx.bezierCurveTo(-hw*0.28,-ch*1.20,hw*0.28,-ch*1.20,hw*0.60,-ch*1.18);
+     ctx.stroke();
+     ctx.restore();
+
+     // ── Vitre arrière (inclinée, reflet réaliste) ──
+     // Fond sombre de la vitre
+     ctx.fillStyle='rgba(15,20,35,0.82)';
      ctx.beginPath();
      ctx.moveTo(-hw*0.58,-ch*0.16);
      ctx.bezierCurveTo(-hw*0.46,-ch*0.88,-hw*0.18,-ch*1.04,0,-ch*1.06);
      ctx.bezierCurveTo(hw*0.18,-ch*1.04,hw*0.46,-ch*0.88,hw*0.58,-ch*0.16);
      ctx.closePath();ctx.fill();
-     ctx.strokeStyle='rgba(80,110,180,0.12)';ctx.lineWidth=0.8;ctx.stroke();
+
+     // Reflet diagonal sur la vitre (comme une lumière de rue)
+     ctx.save();
+     ctx.beginPath();
+     ctx.moveTo(-hw*0.58,-ch*0.16);
+     ctx.bezierCurveTo(-hw*0.46,-ch*0.88,-hw*0.18,-ch*1.04,0,-ch*1.06);
+     ctx.bezierCurveTo(hw*0.18,-ch*1.04,hw*0.46,-ch*0.88,hw*0.58,-ch*0.16);
+     ctx.closePath();ctx.clip();
+     const winRef=ctx.createLinearGradient(-hw*0.4,-ch*1.0,hw*0.1,-ch*0.2);
+     winRef.addColorStop(0,'rgba(180,200,255,0)');
+     winRef.addColorStop(0.3,'rgba(180,200,255,0.12)');
+     winRef.addColorStop(0.5,'rgba(220,230,255,0.18)');
+     winRef.addColorStop(0.7,'rgba(180,200,255,0.08)');
+     winRef.addColorStop(1,'rgba(180,200,255,0)');
+     ctx.fillStyle=winRef;ctx.fillRect(-hw,-ch*1.1,cw,ch);
+     ctx.restore();
+
+     // Contour fin de la vitre
+     ctx.strokeStyle='rgba(100,120,180,0.20)';ctx.lineWidth=0.8;
+     ctx.beginPath();
+     ctx.moveTo(-hw*0.58,-ch*0.16);
+     ctx.bezierCurveTo(-hw*0.46,-ch*0.88,-hw*0.18,-ch*1.04,0,-ch*1.06);
+     ctx.bezierCurveTo(hw*0.18,-ch*1.04,hw*0.46,-ch*0.88,hw*0.58,-ch*0.16);
+     ctx.closePath();ctx.stroke();
 
      // ── Panneau arrière principal (large, plat) ──
      ctx.fillStyle='rgba(18,13,26,0.98)';
