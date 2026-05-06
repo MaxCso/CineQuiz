@@ -12941,9 +12941,9 @@ function _hmRenderCollection() {
   const grid = document.getElementById('hm-collection-grid');
   if (!grid) return;
 
-  const s=ls();const userLvl=Math.max(1,glv(s.xp));
-  const unlockedIndices=_hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl).map(({i})=>i);
-  const allRevealed=unlockedIndices.length>0&&unlockedIndices.every(i=>_hmRevealed.has(i));
+  const s=ls();
+  const daily = window._hmDailyAvailable || new Set();
+  const allRevealed=_hmFilms.length>0&&_hmFilms.every((f,i)=>_hmRevealed.has(i));
 
   let revealedFilms = _hmSortFilms([..._hmRevealed]
     .map(idx => ({ idx, film: _hmFilms[idx] }))
@@ -13009,10 +13009,9 @@ function _hmRenderCollection() {
 
 function _hmBuildCollectionStats(films){
   if(!films.length) return '';
-  const s=ls();const userLvl=Math.max(1,glv(s.xp));
-  const unlocked=_hmFilms.filter(f=>f.lvl<=userLvl).length;
-  const totalDB=HM_DB.length; // total absolu de la DB
-  const scratched=films.length; // grattés
+  const totalDB=HM_DB.length;
+  const unlocked=totalDB; // toutes les cartes sont accessibles
+  const scratched=films.length;
 
   // Genres
   const gc={};films.forEach(f=>{if(f.g)gc[f.g]=(gc[f.g]||0)+1;});
@@ -13568,12 +13567,11 @@ function closeHMViewer() {
   if(infoEl)infoEl.classList.remove('open');
   // Si on est en onglet scratch, naviguer vers la prochaine non révélée
   if(document.getElementById('hm-tab-scratch').classList.contains('active')){
-    const s=ls();const userLvl=Math.max(1,glv(s.xp));
+    const s=ls();
     const daily = window._hmDailyAvailable || new Set();
-    const next=_hmFilms.findIndex((f,i)=>f.lvl<=userLvl&&daily.has(i)&&!_hmRevealed.has(i));
-    // Vérifier que la carte trouvée est réellement débloquée avant de l'afficher
+    const next=_hmFilms.findIndex((f,i)=>daily.has(i)&&!_hmRevealed.has(i));
     const nextFilm = next >= 0 ? _hmFilms[next] : null;
-    if(next>=0 && nextFilm && nextFilm.lvl<=userLvl && daily.has(next)){
+    if(next>=0 && nextFilm && daily.has(next)){
       _hmIdx=next;_hmRenderCard(_hmIdx);
     } else {
       // Toutes les cartes du jour grattées → afficher le message
@@ -13912,9 +13910,9 @@ function openHM(){
   // Première visite → carte tuto
   hmCheckFirstVisit();
 
-  const s=ls();const userLvl=Math.max(1,glv(s.xp));
+  const s=ls();
   const daily = window._hmDailyAvailable || new Set();
-  const firstUnrevealed=_hmFilms.findIndex((f,i)=>daily.has(i)&&f.lvl<=userLvl&&!_hmRevealed.has(i));
+  const firstUnrevealed=_hmFilms.findIndex((f,i)=>daily.has(i)&&!_hmRevealed.has(i));
 
   // Tenter de restaurer l'onglet précédent
   let savedTab='scratch';
@@ -13929,7 +13927,7 @@ function openHM(){
       if(savedTmdbId) savedIdx=_hmFilms.findIndex(f=>f.id===savedTmdbId);
       if(savedIdx<0) savedIdx=parseInt(localStorage.getItem('hm_last_idx')||'-1',10);
     }catch(e){}
-    const validSaved=savedIdx>=0&&savedIdx<_hmFilms.length&&_hmFilms[savedIdx]?.lvl<=userLvl&&daily.has(savedIdx)&&!_hmRevealed.has(savedIdx);
+    const validSaved=savedIdx>=0&&savedIdx<_hmFilms.length&&daily.has(savedIdx)&&!_hmRevealed.has(savedIdx);
     _hmIdx=validSaved?savedIdx:firstUnrevealed;
     _hmRenderCard(_hmIdx);
     if(savedTab!=='scratch') hmSwitchTab(savedTab);
@@ -14081,12 +14079,10 @@ function _hmBuildList(){
 
   const s=ls();
   // Niveau minimum 1 pour Hidden Movies — les 7 premières cartes sont toujours accessibles
-  const userLvl=Math.max(1, glv(s.xp));
   const userXP=s.xp||0;
-  // Stat débloqués
-  const unlocked=HM_DB.filter(f=>f.lvl<=userLvl).length;
+  // Toutes les cartes sont accessibles — afficher le total de la DB
   const unlockedEl=document.getElementById('hm-unlocked-count');
-  if(unlockedEl)unlockedEl.textContent=unlocked+' / '+HM_DB.length+' débloqués';
+  if(unlockedEl)unlockedEl.textContent=HM_DB.length+' / '+HM_DB.length+' accessibles';
   // Progress bar
   const{pct}=gxp(userXP);
   const fill=document.getElementById('hm-prog-fill');
@@ -14097,9 +14093,9 @@ function _hmBuildList(){
   const rng=()=>{hash=Math.imul(hash^hash>>>16,0x45d9f3b);hash=Math.imul(hash^hash>>>15,0x119de1f3);hash=hash^hash>>>16;return(hash>>>0)/0xffffffff;};
   _hmFilms=[...HM_DB].sort(()=>rng()-.5);
 
-  // ── Limite quotidienne : max 7 nouvelles cartes par jour ──
+  // ── Limite quotidienne : max 10 nouvelles cartes par jour (toutes accessibles) ──
   _hmLoadRevealed();
-  const allUnlockedIndices = _hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl).map(({i})=>i);
+  const allUnlockedIndices = _hmFilms.map((f,i)=>i); // toutes les cartes sont accessibles
   window._hmDailyAvailable = _hmGetDailyUnlocked(allUnlockedIndices, _hmRevealed);
 
   _hmUpdateTabCount();
@@ -14144,10 +14140,10 @@ function _hmRenderCard(idx){
   const s=ls();
   const userLvl=Math.max(1,glv(s.xp));
   const daily = window._hmDailyAvailable || new Set();
-  const isUnlocked=film.lvl<=userLvl && daily.has(idx);
+  const isUnlocked = daily.has(idx); // toutes les cartes daily sont accessibles
   const isRevealed=_hmRevealed.has(idx);
-  const unlockedCount=_hmFilms.filter((f,i)=>f.lvl<=userLvl&&daily.has(i)).length;
-  const remainingCount=_hmFilms.filter((f,i)=>f.lvl<=userLvl&&daily.has(i)&&!_hmRevealed.has(i)).length;
+  const unlockedCount=_hmFilms.filter((f,i)=>daily.has(i)).length;
+  const remainingCount=_hmFilms.filter((f,i)=>daily.has(i)&&!_hmRevealed.has(i)).length;
 
   // Compteur : cartes restantes à gratter parmi les débloquées
   const ctr=document.getElementById('hm-scratch-counter');
@@ -14189,17 +14185,25 @@ function _hmRenderCard(idx){
   if(backEl)backEl.style.display='none';
 
   if(!isUnlocked){
-    // Film verrouillé — afficher l'XP manquante précisément
-    const currentXP=s.xp||0;
-    const neededXP=LEVEL_XP[film.lvl];
-    const missingXP=Math.max(0,neededXP-currentXP);
-    under.innerHTML=`
-      <div class="hm-scratch-locked">
-        <svg class="hm-lock-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <div class="hm-lock-name">${LEVEL_NAMES[film.lvl]}</div>
-        <div class="hm-lock-xp">encore <span style="color:#c084fc;font-weight:700;">${missingXP} XP</span> à gagner</div>
-      </div>`;
-    hint.classList.add('hidden');
+    // Index invalide — chercher silencieusement la prochaine carte à gratter
+    const nextIdx = _hmFilms.findIndex((f,i) => i !== idx && daily.has(i) && !_hmRevealed.has(i));
+    if(nextIdx >= 0){
+      _hmIdx = nextIdx;
+      _hmRenderCard(nextIdx);
+    } else {
+      // Plus aucune carte disponible → message "toutes grattées"
+      const scratchWrap = document.getElementById('hm-scratch-wrap');
+      if(scratchWrap){
+        scratchWrap.innerHTML=`
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:14px;text-align:center;">
+            <div style="font-size:40px;">🎴</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(168,85,247,.8);">Toutes tes cartes grattées !</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.7;">Reviens demain — tes nouvelles cartes<br>s'accumulent si tu ne les grattes pas.</div>
+            <div style="margin-top:8px;font-size:10px;color:rgba(168,85,247,.4);letter-spacing:1px;">✦ +10 cartes demain ✦</div>
+            <button onclick="hmSwitchTab('collection')" style="margin-top:12px;padding:12px 24px;border-radius:20px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);color:#c084fc;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;">VOIR MA COLLECTION →</button>
+          </div>`;
+      }
+    }
     return;
   }
 
@@ -14750,9 +14754,8 @@ function _hmReveal(film, idx, canvas){
   _hmRevealed.add(idx);
   _hmSaveRevealed();
   // Recalculer les cartes disponibles du jour avec le nouveau état révélé
-  const s2=ls();const userLvl2=Math.max(1,glv(s2.xp));
-  const allUnlockedIdx2=_hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl2).map(({i})=>i);
-  window._hmDailyAvailable=_hmGetDailyUnlocked(allUnlockedIdx2,_hmRevealed);
+  const allIdx2 = _hmFilms.map((f,i)=>i);
+  window._hmDailyAvailable=_hmGetDailyUnlocked(allIdx2,_hmRevealed);
   _hmPlaySlideAudio(idx, _hmFilms);
 
   // 6. Entrée du viewer — opérations lourdes échelonnées
@@ -14831,17 +14834,13 @@ function _hmCloseSheet(){
 
 function hmNavigate(dir){
   _hmCloseSheet();
-  // Chercher la prochaine carte NON révélée dans la direction donnée
-  const s=ls();const userLvl=Math.max(1,glv(s.xp));
+  const daily = window._hmDailyAvailable || new Set();
   let next=_hmIdx+dir;
   while(next>=0&&next<_hmFilms.length){
-    const f=_hmFilms[next];
-    if(f&&f.lvl<=userLvl&&!_hmRevealed.has(next))break;
+    if(daily.has(next)&&!_hmRevealed.has(next))break;
     next+=dir;
   }
-  // Si on ne trouve plus de non-révélée, rester sur place ou aller à la limite
   if(next<0||next>=_hmFilms.length){
-    // Essai sans filtrer (verrouillées ok) pour ne pas bloquer
     next=Math.max(0,Math.min(_hmFilms.length-1,_hmIdx+dir));
   }
   _hmIdx=next;
@@ -14849,20 +14848,20 @@ function hmNavigate(dir){
 }
 
 function hmGoRandom(){
-  const s=ls();
-  const userLvl=Math.max(1,glv(s.xp));
-  const unlocked=_hmFilms.map((f,i)=>({f,i})).filter(({f})=>f.lvl<=userLvl);
-  if(!unlocked.length)return;
-  const pick=unlocked[Math.floor(Math.random()*unlocked.length)];
+  const daily = window._hmDailyAvailable || new Set();
+  const available=_hmFilms.map((f,i)=>i).filter(i=>daily.has(i));
+  if(!available.length)return;
+  const pickI=available[Math.floor(Math.random()*available.length)];
+  const pickF=_hmFilms[pickI];
   const btn=document.querySelector('.hm-random-btn');
   if(btn){btn.classList.remove('spinning');void btn.offsetWidth;btn.classList.add('spinning');}
-  _hmIdx=pick.i;
+  _hmIdx=pickI;
   _hmRenderCard(_hmIdx);
   // Forcer l'ouverture de la fiche même si non révélée
   setTimeout(()=>{
-    if(!_hmRevealed.has(pick.i)){
+    if(!_hmRevealed.has(pickI)){
       // Marquer révélé et montrer
-      _hmRevealed.add(pick.i);
+      _hmRevealed.add(pickI);
       _hmSaveRevealed();
       const canvas=document.getElementById('hm-scratch-canvas');
       if(canvas){canvas.style.opacity='0';setTimeout(()=>{canvas.style.display='none';},400);}
@@ -14871,7 +14870,7 @@ function hmGoRandom(){
       const img=document.getElementById('hm-scratch-img');
       if(img)img.classList.add('revealed');
     }
-    _hmShowSheet(pick.f, pick.i);
+    _hmShowSheet(pickF, pickI);
   },300);
 }
 
@@ -14889,9 +14888,8 @@ function hmResetScratch(){
   _hmBuildList();
   // Repasser sur l'onglet scratch et afficher la première carte disponible
   hmSwitchTab('scratch');
-  const s=ls();const userLvl=Math.max(1,glv(s.xp));
   const daily=window._hmDailyAvailable||new Set();
-  const firstUnrevealed=_hmFilms.findIndex((f,i)=>daily.has(i)&&f.lvl<=userLvl&&!_hmRevealed.has(i));
+  const firstUnrevealed=_hmFilms.findIndex((f,i)=>daily.has(i)&&!_hmRevealed.has(i));
   if(firstUnrevealed>=0){
     _hmIdx=firstUnrevealed;
     _hmRenderCard(_hmIdx);
@@ -15783,9 +15781,7 @@ function refHome(){
   // Stat Hidden Movies — niveau minimum 1 pour que les cartes soient toujours accessibles
   const hmStat=document.getElementById('hm-card-stat');
   if(hmStat){
-    const userLvl=Math.max(1, glv(s.xp));
-    const unlocked=HM_DB.filter(f=>f.lvl<=userLvl).length;
-    hmStat.textContent=`${unlocked} / ${HM_DB.length} films débloqués`;
+    hmStat.textContent=`${HM_DB.length} / ${HM_DB.length} films accessibles`;
   }
 }
 
@@ -16375,8 +16371,7 @@ function _hmRenderStats(){
   if(!el)return;
   const revealed=[..._hmRevealed].map(i=>_hmFilms[i]).filter(Boolean);
   const total=revealed.length;
-  const s=ls();const userLvl=Math.max(1,glv(s.xp));
-  const unlocked=_hmFilms.filter(f=>f.lvl<=userLvl).length;
+  const unlocked=_hmFilms.length; // toutes les cartes sont accessibles
 
   // Genres
   const genreCount={};
