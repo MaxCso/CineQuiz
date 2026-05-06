@@ -19978,7 +19978,7 @@ function closeAvModal(e){
     jx.fillStyle=jEdge; jx.beginPath(); jx.arc(jcx,jcy,jupR,0,Math.PI*2); jx.fill();
 
     /* ── Monolithe (pré-dessiné) ── */
-    const monoW=W*0.07, monoH=H*0.22;
+    const monoW=W*0.16, monoH=H*0.22;
     const monoX=W*0.5-monoW/2, monoY=H*0.66;
     const monoC=document.createElement('canvas');
     monoC.width=monoW+40; monoC.height=monoH+40;
@@ -20383,86 +20383,89 @@ function closeAvModal(e){
      gx.stroke();
     }
 
-    // ── Light cycles sur rails perspectifs ──
-    // Chaque cycle roule sur une ligne de fuite précise depuis l'horizon vers le bas
-    // laneT = position sur la lane (0=horizon, 1=bas de l'écran)
-    // trail = historique des positions pour le sillage persistant
-    const TRAIL_LEN = 280; // nombre de points conservés (long sillage)
+    // ── Light cycles — rail vertical + virage 90° horizontal ──
+    const TRAIL_LEN=280;
 
-    // Fonction utilitaire : position réelle (x,y) depuis la lane et laneT
-    function lanePos(laneX, laneT){
-     // laneX = position X en bas d'écran pour cette ligne de fuite
-     // laneT = 0 (horizon) → 1 (bas)
-     const ep = Math.pow(laneT, 1.7);
-     const y = horizon + ep * (H - horizon + 20);
-     // interpolation perspective : converge vers vp.x à horizon
-     const x = cx + (laneX - cx) * ep;
-     return {x, y};
+    function lanePos(laneX,laneT){
+     const ep=Math.pow(laneT,1.7);
+     const y=horizon+ep*(H-horizon+20);
+     const x=cx+(laneX-cx)*ep;
+     return {x,y};
+    }
+
+    function horizPos(turnLaneT,hProg){
+     const ep=Math.pow(turnLaneT,1.7);
+     const y=horizon+ep*(H-horizon+20);
+     const maxSpread=W*0.52*ep;
+     const x=cx-maxSpread+hProg*maxSpread*2;
+     return {x,y};
     }
 
     const cycles=[
-     // Cyan (allié) — lane gauche, part d'un peu avant l'horizon
-     {laneX: cx - W*0.38, laneT: 0.04, spd: 0.006, color:'0,220,255',  trail:[], delay:0,   fadeDelay:0},
-     // Orange (ennemi) — lane droite
-     {laneX: cx + W*0.30, laneT: 0.12, spd: 0.005, color:'255,100,20', trail:[], delay:90,  fadeDelay:0},
-     // Cyan 2 — lane centre-gauche
-     {laneX: cx - W*0.18, laneT: 0.08, spd: 0.004, color:'0,200,240',  trail:[], delay:160, fadeDelay:0},
-     // Orange 2 — lane centre-droite
-     {laneX: cx + W*0.48, laneT: 0.06, spd: 0.0035,color:'255,140,30', trail:[], delay:240, fadeDelay:0},
+     // Cyan — descend puis vire à gauche
+     {laneX:cx-W*0.38,laneT:0.04,spd:0.006,color:'0,220,255',
+      trail:[],delay:0,dir:'v',turnAt:0.55,turned:false,hProg:0.5,hDir:-1,hSpd:0.012,turnLaneT:0},
+     // Orange — descend puis vire à droite
+     {laneX:cx+W*0.30,laneT:0.12,spd:0.005,color:'255,100,20',
+      trail:[],delay:90,dir:'v',turnAt:0.65,turned:false,hProg:0.5,hDir:1,hSpd:0.010,turnLaneT:0},
+     // Cyan 2 — tout droit jusqu'en bas
+     {laneX:cx-W*0.18,laneT:0.08,spd:0.004,color:'0,200,240',
+      trail:[],delay:160,dir:'v',turnAt:999,turned:false,hProg:0,hDir:1,hSpd:0.009,turnLaneT:0},
+     // Orange 2 — descend puis vire à gauche
+     {laneX:cx+W*0.48,laneT:0.06,spd:0.0035,color:'255,140,30',
+      trail:[],delay:240,dir:'v',turnAt:0.50,turned:false,hProg:0.5,hDir:-1,hSpd:0.008,turnLaneT:0},
     ];
 
     function drawCycles(){
      for(const c of cycles){
-      // Décompte délai initial
       if(c.delay>0){c.delay--;continue;}
 
-      // Avancer le cycle
-      c.laneT+=c.spd;
-
-      // Quand il sort du bas : reset avec pause aléatoire
-      if(c.laneT>1.02){
-       c.laneT=0.02;
-       c.delay=Math.floor(Math.random()*120+60);
-       c.trail=[];
-       continue;
-      }
-
-      // Enregistrer position courante dans le trail
-      const pos=lanePos(c.laneX, c.laneT);
-      c.trail.push({...pos, t:c.laneT});
-      if(c.trail.length>TRAIL_LEN) c.trail.shift();
-
-      // Dessiner le sillage — dégradé opacity du plus ancien au plus récent
-      if(c.trail.length>2){
-       for(let i=1;i<c.trail.length;i++){
-        const prog=i/c.trail.length; // 0=ancien, 1=récent
-        const alpha=Math.pow(prog,1.8)*0.85;
-        const width=0.8+prog*3.5;
-        ctx.strokeStyle=`rgba(${c.color},${alpha})`;
-        ctx.lineWidth=width;ctx.lineCap='round';
-        ctx.beginPath();
-        ctx.moveTo(c.trail[i-1].x,c.trail[i-1].y);
-        ctx.lineTo(c.trail[i].x,c.trail[i].y);
-        ctx.stroke();
+      let pos;
+      if(c.dir==='v'){
+       c.laneT+=c.spd;
+       if(c.laneT>=c.turnAt&&!c.turned){
+        c.turned=true;c.dir='h';c.turnLaneT=c.laneT;
+       }
+       if(c.laneT>1.02){
+        c.laneT=0.02;c.dir='v';c.turned=false;
+        c.hProg=0.5;
+        c.delay=Math.floor(Math.random()*120+60);
+        c.trail=[];continue;
+       }
+       pos=lanePos(c.laneX,c.laneT);
+      } else {
+       c.hProg+=c.hDir*c.hSpd;
+       pos=horizPos(c.turnLaneT,c.hProg);
+       if(c.hProg<-0.05||c.hProg>1.05){
+        c.laneT=0.02;c.dir='v';c.turned=false;
+        c.hProg=0.5;
+        c.delay=Math.floor(Math.random()*80+40);
+        c.trail=[];continue;
        }
       }
 
-      // Tête lumineuse
-      const hg=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,14);
-      hg.addColorStop(0,`rgba(${c.color},1.0)`);
-      hg.addColorStop(0.4,`rgba(${c.color},0.5)`);
-      hg.addColorStop(1,`rgba(${c.color},0)`);
-      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(pos.x,pos.y,14,0,Math.PI*2);ctx.fill();
+      c.trail.push({...pos});
+      if(c.trail.length>TRAIL_LEN)c.trail.shift();
 
-      // Point central très brillant
-      ctx.fillStyle=`rgba(255,255,255,0.9)`;
-      ctx.beginPath();ctx.arc(pos.x,pos.y,2.5,0,Math.PI*2);ctx.fill();
+      if(c.trail.length>2){
+       for(let i=1;i<c.trail.length;i++){
+        const prog=i/c.trail.length;
+        ctx.strokeStyle=`rgba(${c.color},${Math.pow(prog,1.8)*0.85})`;
+        ctx.lineWidth=0.8+prog*3.5;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(c.trail[i-1].x,c.trail[i-1].y);ctx.lineTo(c.trail[i].x,c.trail[i].y);ctx.stroke();
+       }
+      }
+
+      const hg=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,14);
+      hg.addColorStop(0,`rgba(${c.color},1.0)`);hg.addColorStop(0.4,`rgba(${c.color},0.5)`);hg.addColorStop(1,`rgba(${c.color},0)`);
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(pos.x,pos.y,14,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.9)';ctx.beginPath();ctx.arc(pos.x,pos.y,2.5,0,Math.PI*2);ctx.fill();
      }
     }
 
-    // ── Disque identitaire — grand, centré, au milieu de la grille ──
+    // ── Disque identitaire — grand, centré, au-dessus du logo ──
     const discR=Math.min(W,H)*0.155;
-    const discX=cx, discY=horizon-discR*1.1;
+    const discX=cx, discY=H*0.12;
     let discAngle=0;
 
     // ── Particules de données ──
@@ -24897,61 +24900,243 @@ function closeAvModal(e){
    name:'Stand by Me',
    ref:'Stand by Me \u2014 Rob Reiner, 1986',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.68';
+    cv.style.opacity='0.74';
     let t=0;
+    const cx=W/2;
 
-    const fireflies=Array.from({length:25},()=>({
-     x:Math.random()*W,y:H*0.3+Math.random()*H*0.5,
-     vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.3,
-     phase:Math.random()*Math.PI*2,r:Math.random()*2+1,
-     hue:50+Math.random()*30
+    // ── Point de fuite des rails ──
+    const vpX=cx, vpY=H*0.42;
+    const railBaseSpread=W*0.30; // écartement des rails en bas
+
+    // ── Lucioles ──
+    const fireflies=Array.from({length:38},()=>({
+     x:Math.random()*W, y:H*0.45+Math.random()*H*0.45,
+     vx:(Math.random()-0.5)*0.45,
+     vy:(Math.random()-0.5)*0.25,
+     phase:Math.random()*Math.PI*2,
+     phaseSpd:Math.random()*0.06+0.03,
+     r:Math.random()*2.2+0.8,
+     hue:42+Math.random()*25
     }));
+
+    // ── Étoiles ──
+    const stars=Array.from({length:60},()=>({
+     x:Math.random()*W, y:Math.random()*vpY*0.9,
+     r:Math.random()*0.9+0.2,
+     op:Math.random()*0.5+0.15,
+     twinkle:Math.random()*Math.PI*2
+    }));
+
+    // ── 4 silhouettes de gamins sur les rails ──
+    // Positionnées en perspective sur les rails, espacées
+    const kids=[
+     {prog:0.88, offset:-0.05, h:26}, // le plus proche, légèrement à gauche du centre
+     {prog:0.82, offset: 0.04, h:23},
+     {prog:0.75, offset:-0.03, h:20},
+     {prog:0.68, offset: 0.05, h:17}, // le plus loin
+    ];
+
+    function railX(side, prog){
+     // side: -1 = rail gauche, +1 = rail droit
+     // prog: 0=horizon, 1=bas écran
+     const spread=4+railBaseSpread*prog;
+     return vpX + side * spread;
+    }
+
+    function drawRails(){
+     // ── Ballast (gravier sous les rails) ──
+     const ballastGrad=ctx.createLinearGradient(0,vpY,0,H);
+     ballastGrad.addColorStop(0,'rgba(40,30,20,0)');
+     ballastGrad.addColorStop(0.3,'rgba(35,28,18,0.55)');
+     ballastGrad.addColorStop(1,'rgba(28,22,14,0.80)');
+     ctx.fillStyle=ballastGrad;
+     ctx.beginPath();
+     ctx.moveTo(vpX-6,vpY);
+     ctx.lineTo(cx-railBaseSpread*1.5,H);
+     ctx.lineTo(cx+railBaseSpread*1.5,H);
+     ctx.lineTo(vpX+6,vpY);
+     ctx.closePath();ctx.fill();
+
+     // ── Traverses en bois ──
+     const nTies=22;
+     for(let i=1;i<=nTies;i++){
+      const prog=Math.pow(i/nTies,1.5);
+      const y=vpY+(H-vpY)*prog;
+      const xl=railX(-1,prog);
+      const xr=railX(1,prog);
+      const tieW=(xr-xl)*1.35;
+      const tieH=Math.max(2,prog*7);
+      const alpha=0.25+prog*0.45;
+      const dark=12+prog*18;
+      ctx.fillStyle=`rgba(${dark+8},${dark+4},${dark},${alpha})`;
+      ctx.fillRect(cx-tieW/2, y-tieH/2, tieW, tieH);
+      // Grain du bois (ligne centrale)
+      ctx.strokeStyle=`rgba(${dark+16},${dark+10},${dark+4},${alpha*0.4})`;
+      ctx.lineWidth=0.5;
+      ctx.beginPath();ctx.moveTo(cx-tieW/2,y);ctx.lineTo(cx+tieW/2,y);ctx.stroke();
+     }
+
+     // ── Rails (2 lignes métalliques) ──
+     for(const side of [-1,1]){
+      // Ombre portée du rail
+      ctx.strokeStyle='rgba(8,6,4,0.45)';
+      ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.moveTo(vpX+side*4,vpY);
+      ctx.lineTo(railX(side,1)+2,H);
+      ctx.stroke();
+
+      // Rail principal
+      const railGrad=ctx.createLinearGradient(0,vpY,0,H);
+      railGrad.addColorStop(0,'rgba(100,90,75,0.55)');
+      railGrad.addColorStop(0.3,'rgba(145,130,105,0.80)');
+      railGrad.addColorStop(0.7,'rgba(160,145,115,0.90)');
+      railGrad.addColorStop(1,'rgba(140,125,100,0.85)');
+      ctx.strokeStyle=railGrad;
+      ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.moveTo(vpX+side*4,vpY);
+      ctx.lineTo(railX(side,1),H);
+      ctx.stroke();
+
+      // Reflet sur le dessus du rail (ligne claire)
+      ctx.strokeStyle='rgba(220,210,185,0.28)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(vpX+side*4,vpY);
+      ctx.lineTo(railX(side,1),H);
+      ctx.stroke();
+     }
+    }
+
+    function drawForest(){
+     // Arbres de chaque côté des rails — silhouettes sombres
+     const treeY=H*0.62; // ligne du sol de la forêt
+     function drawTree(x,h,w){
+      ctx.fillStyle='rgba(4,8,3,0.82)';
+      // Tronc
+      ctx.fillRect(x-w*0.08,treeY-h*0.3,w*0.16,h*0.30);
+      // Feuillage (3 couches triangulaires)
+      for(let l=0;l<3;l++){
+       const ly=treeY-h*0.30-h*(0.25+l*0.22);
+       const lw=w*(0.85-l*0.2);
+       ctx.beginPath();
+       ctx.moveTo(x,ly-h*0.22);
+       ctx.lineTo(x+lw/2,ly);
+       ctx.lineTo(x-lw/2,ly);
+       ctx.closePath();ctx.fill();
+      }
+     }
+     // Forêt gauche
+     const leftTrees=[
+      {x:W*0.00,h:105,w:55},{x:W*0.06,h:130,w:65},{x:W*0.13,h:90,w:50},
+      {x:W*0.19,h:115,w:58},{x:W*0.03,h:80,w:42},{x:W*0.09,h:145,w:70},
+     ];
+     // Forêt droite
+     const rightTrees=[
+      {x:W*1.00,h:110,w:55},{x:W*0.94,h:125,w:62},{x:W*0.87,h:95,w:52},
+      {x:W*0.81,h:120,w:60},{x:W*0.97,h:85,w:45},{x:W*0.91,h:140,w:68},
+     ];
+     [...leftTrees,...rightTrees].forEach(tr=>drawTree(tr.x,tr.h,tr.w));
+    }
+
+    function drawKids(){
+     for(const k of kids){
+      const prog=k.prog;
+      const fy=vpY+(H-vpY)*Math.pow(prog,1.5); // Y en perspective
+      const fx=vpX+k.offset*(railBaseSpread*prog*1.8);
+      const sc=prog*0.9; // échelle perspective
+      const kh=k.h*sc;
+
+      ctx.save();ctx.translate(fx,fy);
+      ctx.fillStyle='rgba(4,3,2,0.90)';
+      // Jambes
+      ctx.fillRect(-2*sc,0,2*sc,kh*0.42);
+      ctx.fillRect(1*sc,0,2*sc,kh*0.42);
+      // Corps
+      ctx.beginPath();
+      ctx.ellipse(0,-kh*0.55,3.5*sc,kh*0.30,0,0,Math.PI*2);
+      ctx.fill();
+      // Tête
+      ctx.beginPath();ctx.arc(0,-kh*0.90,3*sc,0,Math.PI*2);ctx.fill();
+      // Bras balancés (selon t)
+      const swing=Math.sin(t*2+k.prog*8)*0.3*sc;
+      ctx.strokeStyle='rgba(4,3,2,0.90)';ctx.lineWidth=2*sc;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(-3*sc,-kh*0.62);ctx.lineTo(-6*sc-swing,-kh*0.32);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(3*sc,-kh*0.62);ctx.lineTo(6*sc+swing,-kh*0.32);ctx.stroke();
+      ctx.restore();
+     }
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(2,3,1,0.15)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(2,2,1,0.13)';ctx.fillRect(0,0,W,H);
 
-     const sky=ctx.createLinearGradient(0,0,0,H*0.6);
-     sky.addColorStop(0,`rgba(${20+Math.sin(t*0.1)*5|0},15,30,0.08)`);
-     sky.addColorStop(1,`rgba(${60+Math.sin(t*0.08)*8|0},40,20,0.06)`);
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.6);
+     // ── Ciel été Oregon — coucher de soleil chaud ──
+     const sky=ctx.createLinearGradient(0,0,0,vpY);
+     sky.addColorStop(0,`rgba(8,10,24,0.10)`);
+     sky.addColorStop(0.4,`rgba(${30+Math.sin(t*0.12)*4|0},20,40,0.08)`);
+     sky.addColorStop(0.75,`rgba(${80+Math.sin(t*0.1)*8|0},35,15,0.10)`);
+     sky.addColorStop(1,`rgba(${120+Math.sin(t*0.08)*10|0},50,10,0.12)`);
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,vpY);
 
-     const vx=W/2,vy=H*0.45;
-     const railSpread=W*0.18;
-     ctx.strokeStyle='rgba(100,85,60,0.35)';ctx.lineWidth=2;
-     ctx.beginPath();ctx.moveTo(vx-railSpread,H);ctx.lineTo(vx-4,vy);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(vx+railSpread,H);ctx.lineTo(vx+4,vy);ctx.stroke();
+     // Lueur d'horizon chaude (soleil qui descend)
+     const sunX=cx-W*0.12;
+     const sunGlow=ctx.createRadialGradient(sunX,vpY,0,sunX,vpY,W*0.55);
+     sunGlow.addColorStop(0,`rgba(${230+Math.sin(t*0.15)*10|0},${80+Math.sin(t*0.12)*8|0},15,${0.22+Math.sin(t*0.2)*0.04})`);
+     sunGlow.addColorStop(0.35,'rgba(160,45,5,0.08)');
+     sunGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunGlow;ctx.fillRect(0,0,W,H*0.75);
 
-     const steps=14;
-     for(let i=1;i<=steps;i++){
-      const prog=i/steps;
-      const y=vy+(H-vy)*prog;
-      const xspread=4+railSpread*prog;
-      const op=prog*0.30;
-      ctx.strokeStyle=`rgba(80,65,45,${op})`;ctx.lineWidth=1+prog*2;
-      ctx.beginPath();ctx.moveTo(vx-xspread,y);ctx.lineTo(vx+xspread,y);ctx.stroke();
+     // ── Étoiles (début de nuit) ──
+     for(const s of stars){
+      s.twinkle+=0.02;
+      const op=s.op*(0.6+Math.sin(s.twinkle)*0.4);
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(240,235,220,${op})`;ctx.fill();
      }
 
-     [W*0.32,W*0.41,W*0.52,W*0.61].forEach((sx,i)=>{
-      const sy=H*0.72+i*2;
-      ctx.save();ctx.globalAlpha=0.6;ctx.fillStyle='rgba(3,2,1,0.88)';
-      ctx.beginPath();ctx.ellipse(sx,sy-14,4,5,0,0,Math.PI*2);ctx.fill();
-      ctx.fillRect(sx-3,sy-9,6,13);
-      ctx.restore();
-     });
+     // ── Sol herbeux ──
+     const ground=ctx.createLinearGradient(0,vpY,0,H);
+     ground.addColorStop(0,`rgba(${20+Math.sin(t*0.1)*3|0},28,10,0.65)`);
+     ground.addColorStop(0.4,'rgba(12,18,6,0.80)');
+     ground.addColorStop(1,'rgba(5,8,2,0.90)');
+     ctx.fillStyle=ground;ctx.fillRect(0,vpY,W,H-vpY);
 
+     // ── Forêt ──
+     drawForest();
+
+     // ── Rails + traverses ──
+     drawRails();
+
+     // ── Gamins ──
+     drawKids();
+
+     // ── Lucioles ──
      for(const f of fireflies){
       f.x+=f.vx;f.y+=f.vy;
-      f.phase+=0.04;
-      if(f.x<0)f.x=W;if(f.x>W)f.x=0;if(f.y<H*0.3)f.y=H*0.8;if(f.y>H*0.85)f.y=H*0.3;
-      const glow=0.5+Math.sin(f.phase*3)*0.5;
+      f.phase+=f.phaseSpd;
+      if(f.x<0)f.x=W;if(f.x>W)f.x=0;
+      if(f.y<vpY*0.6)f.y=H*0.82;if(f.y>H*0.92)f.y=vpY*0.7;
+      const glow=0.5+Math.sin(f.phase*2.5)*0.5;
+      if(glow<0.1)continue; // clignotement — invisible par intermittence
+      // Halo externe
+      const hg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r*6);
+      hg.addColorStop(0,`hsla(${f.hue},90%,72%,${glow*0.18})`);
+      hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(f.x,f.y,f.r*6,0,Math.PI*2);ctx.fill();
+      // Corps lumineux
       ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${f.hue},90%,70%,${glow*0.65})`;ctx.fill();
-      ctx.beginPath();ctx.arc(f.x,f.y,f.r*3,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${f.hue},80%,60%,${glow*0.08})`;ctx.fill();
+      ctx.fillStyle=`hsla(${f.hue},95%,80%,${glow*0.90})`;ctx.fill();
      }
-     const vg=ctx.createRadialGradient(W/2,H/2,H*0.1,W/2,H/2,H*0.8);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(2,2,0,0.68)');
+
+     // Vignette
+     const vg=ctx.createRadialGradient(cx,H*0.55,H*0.05,cx,H*0.55,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.55,'rgba(1,2,0,0.15)');
+     vg.addColorStop(1,'rgba(1,3,0,0.78)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
@@ -25775,69 +25960,221 @@ function closeAvModal(e){
    name:'Rocky',
    ref:'Rocky \u2014 John G. Avildsen, 1976',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.68';
+    cv.style.opacity='0.72';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2;
 
-    const spotlights=Array.from({length:3},(_,i)=>({
-     x:W*(0.2+i*0.3),angle:Math.random()*Math.PI*2,spd:(Math.random()-0.5)*0.015
+    // ── Particules de buée (souffle dans le froid de l'aube) ──
+    const breath=Array.from({length:18},()=>({
+     x:cx+(Math.random()-0.5)*30,
+     y:H*0.38+Math.random()*20,
+     vx:(Math.random()-0.5)*0.4,
+     vy:-(Math.random()*0.6+0.2),
+     r:Math.random()*8+4,
+     life:Math.random(),
+     decay:Math.random()*0.006+0.003
     }));
 
-    const drops=Array.from({length:25},()=>({
-     x:Math.random()*W*0.4+W*0.3,y:H*0.2+Math.random()*H*0.4,
-     vy:Math.random()*2+1,op:Math.random()*0.4+0.15,r:Math.random()*2+0.8
+    // ── Étoiles (aube — presque disparues) ──
+    const stars=Array.from({length:40},()=>({
+     x:Math.random()*W, y:Math.random()*H*0.55,
+     r:Math.random()*0.9+0.2,
+     op:Math.random()*0.25+0.05
     }));
 
-    let punchPhase=0;
+    // ── Confettis / papiers de journal (ambiance Philly) ──
+    const debris=Array.from({length:12},()=>({
+     x:Math.random()*W, y:Math.random()*H,
+     vx:(Math.random()-0.5)*1.2,
+     vy:-(Math.random()*0.3+0.1),
+     rot:Math.random()*Math.PI*2,
+     rotSpd:(Math.random()-0.5)*0.08,
+     w:Math.random()*12+5, h:Math.random()*8+3,
+     op:Math.random()*0.12+0.04
+    }));
+
+    function drawSteps(){
+     // Marches du Philadelphia Museum of Art vues de face
+     // La silhouette se tient en haut — on dessine les marches en-dessous
+     const stepsBottom=H*0.72;
+     const nSteps=12;
+     const stepH=H*0.018;
+
+     for(let i=0;i<nSteps;i++){
+      const y=stepsBottom-i*stepH;
+      const spread=0.32+i*0.025; // plus large vers le bas
+      const x0=cx-W*spread;
+      const x1=cx+W*spread;
+      const lightness=8+i*1.5;
+      // Face supérieure de la marche (légèrement éclairée)
+      ctx.fillStyle=`rgba(${lightness+12},${lightness+8},${lightness+4},0.70)`;
+      ctx.fillRect(x0,y,x1-x0,stepH*0.45);
+      // Contremarche (côté vertical, plus sombre)
+      ctx.fillStyle=`rgba(${lightness},${lightness-2},${lightness-4},0.55)`;
+      ctx.fillRect(x0,y+stepH*0.45,x1-x0,stepH*0.55);
+     }
+
+     // Palier supérieur (plateau où se tient Rocky)
+     const palierY=stepsBottom-nSteps*stepH;
+     ctx.fillStyle='rgba(22,18,14,0.65)';
+     ctx.fillRect(cx-W*0.62,palierY-stepH*0.5,W*1.24,stepH*0.5);
+    }
+
+    function drawRocky(){
+     // Silhouette iconic bras levés — vue de dos, en haut des marches
+     const fy=H*0.55; // Y des pieds
+     const scale=1.0;
+     ctx.save();ctx.translate(cx,fy);ctx.scale(scale,scale);
+     ctx.fillStyle='rgba(5,3,2,0.92)';
+
+     // Jambes
+     ctx.beginPath();
+     ctx.moveTo(-7,0);ctx.lineTo(-10,30);ctx.lineTo(-5,30);ctx.lineTo(-2,8);
+     ctx.fill();
+     ctx.beginPath();
+     ctx.moveTo(7,0);ctx.lineTo(10,30);ctx.lineTo(5,30);ctx.lineTo(2,8);
+     ctx.fill();
+
+     // Corps / sweat à capuche
+     ctx.beginPath();
+     ctx.moveTo(-12,0);
+     ctx.quadraticCurveTo(-14,-20,-10,-40);
+     ctx.lineTo(10,-40);
+     ctx.quadraticCurveTo(14,-20,12,0);
+     ctx.fill();
+
+     // Tête + capuche
+     ctx.beginPath();ctx.arc(0,-48,10,0,Math.PI*2);ctx.fill();
+     // Capuche (forme arrondie autour de la tête)
+     ctx.beginPath();
+     ctx.moveTo(-10,-40);
+     ctx.quadraticCurveTo(-16,-52,-2,-62);
+     ctx.quadraticCurveTo(16,-52,10,-40);
+     ctx.fill();
+
+     // Bras gauche levé
+     ctx.beginPath();
+     ctx.moveTo(-10,-30);
+     ctx.quadraticCurveTo(-32,-42,-38,-55);
+     ctx.lineTo(-34,-58);
+     ctx.quadraticCurveTo(-28,-46,-6,-34);
+     ctx.fill();
+     // Poing gauche
+     ctx.beginPath();ctx.ellipse(-39,-57,6,5,Math.PI*0.3,0,Math.PI*2);ctx.fill();
+
+     // Bras droit levé (légèrement asymétrique)
+     ctx.beginPath();
+     ctx.moveTo(10,-30);
+     ctx.quadraticCurveTo(34,-40,40,-52);
+     ctx.lineTo(36,-55);
+     ctx.quadraticCurveTo(30,-44,6,-34);
+     ctx.fill();
+     // Poing droit
+     ctx.beginPath();ctx.ellipse(41,-53,6,5,-Math.PI*0.3,0,Math.PI*2);ctx.fill();
+
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(2,1,1,0.16)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(3,2,1,0.13)';ctx.fillRect(0,0,W,H);
 
-     const bg=ctx.createRadialGradient(cx,cy,20,cx,cy,W*0.7);
-     bg.addColorStop(0,`rgba(${80+Math.sin(t*0.3)*10|0},10,10,0.09)`);
-     bg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+     // ── Ciel aube — dégradé chaud/froid ──
+     const sky=ctx.createLinearGradient(0,0,0,H*0.65);
+     sky.addColorStop(0,`rgba(8,12,28,0.10)`);
+     sky.addColorStop(0.3,`rgba(${20+Math.sin(t*0.15)*5|0},18,35,0.08)`);
+     sky.addColorStop(0.65,`rgba(${55+Math.sin(t*0.12)*8|0},28,12,0.07)`);
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.65);
 
-     for(let i=0;i<3;i++){
-      const ry=H*(0.55+i*0.06);
-      ctx.strokeStyle=`rgba(200,180,140,${0.15-i*0.04})`;ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(0,ry);ctx.lineTo(W,ry);ctx.stroke();
+     // Soleil levant — horizon orangé
+     const sunY=H*0.62;
+     const sunGlow=ctx.createRadialGradient(cx,sunY,0,cx,sunY,W*0.65);
+     sunGlow.addColorStop(0,`rgba(${200+Math.sin(t*0.2)*15|0},${90+Math.sin(t*0.15)*10|0},20,${0.22+Math.sin(t*0.3)*0.04})`);
+     sunGlow.addColorStop(0.3,`rgba(160,55,10,0.08)`);
+     sunGlow.addColorStop(0.6,`rgba(80,20,0,0.04)`);
+     sunGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunGlow;ctx.fillRect(0,0,W,H);
+
+     // Lumière bleue froide du petit matin (à gauche)
+     const coldLight=ctx.createRadialGradient(0,H*0.4,0,0,H*0.4,W*0.7);
+     coldLight.addColorStop(0,`rgba(20,40,100,${0.08+Math.sin(t*0.25)*0.02})`);
+     coldLight.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=coldLight;ctx.fillRect(0,0,W,H);
+
+     // ── Étoiles pâles ──
+     for(const s of stars){
+      const fade=Math.max(0,0.3-s.y/H*0.5); // s'estompent vers l'horizon
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,230,255,${s.op*fade})`;ctx.fill();
      }
 
-     for(const s of spotlights){
-      s.angle+=s.spd;
-      const tx=s.x+Math.sin(s.angle)*W*0.15;
-      const sg=ctx.createRadialGradient(tx,0,0,tx,H*0.5,W*0.22);
-      sg.addColorStop(0,`rgba(255,240,200,0.08)`);sg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);
+     // ── Skyline de Philadelphie (silhouettes immeubles) ──
+     const buildings=[
+      {x:0,      w:W*0.10,h:H*0.12},
+      {x:W*0.08, w:W*0.06,h:H*0.18},
+      {x:W*0.13, w:W*0.09,h:H*0.10},
+      {x:W*0.72, w:W*0.08,h:H*0.14},
+      {x:W*0.79, w:W*0.06,h:H*0.20},
+      {x:W*0.84, w:W*0.10,h:H*0.11},
+      {x:W*0.93, w:W*0.08,h:H*0.16},
+     ];
+     const horizY=H*0.63;
+     for(const b of buildings){
+      ctx.fillStyle='rgba(6,4,8,0.72)';
+      ctx.fillRect(b.x,horizY-b.h,b.w,b.h);
+      // Quelques fenêtres allumées
+      for(let r=0;r<Math.floor(b.h/14);r++){
+       for(let c=0;c<Math.floor(b.w/9);c++){
+        if(Math.sin(b.x*0.3+r*c*1.1)>0.5){
+         ctx.fillStyle='rgba(255,180,60,0.28)';
+         ctx.fillRect(b.x+c*9+2,horizY-b.h+r*14+3,4,5);
+        }
+       }
+      }
+     }
+     // Sol horizon
+     const ground=ctx.createLinearGradient(0,horizY,0,H);
+     ground.addColorStop(0,'rgba(10,7,5,0.75)');
+     ground.addColorStop(1,'rgba(4,2,1,0.92)');
+     ctx.fillStyle=ground;ctx.fillRect(0,horizY,W,H-horizY);
+
+     // ── Marches ──
+     drawSteps();
+
+     // ── Silhouette Rocky ──
+     drawRocky();
+
+     // ── Buée du souffle ──
+     for(const b of breath){
+      b.x+=b.vx;b.y+=b.vy;b.r+=0.3;b.life-=b.decay;
+      if(b.life<=0){
+       b.x=cx+(Math.random()-0.5)*20;
+       b.y=H*0.38+Math.random()*10;
+       b.r=Math.random()*5+3;b.life=0.8+Math.random()*0.2;
+       b.vy=-(Math.random()*0.5+0.2);
+      }
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,215,210,${b.life*0.12})`;ctx.fill();
      }
 
-     punchPhase+=0.04;
-     const bx=cx,by=H*0.42;
-     const punchL=Math.max(0,Math.sin(punchPhase))*20;
-     const punchR=Math.max(0,Math.sin(punchPhase+Math.PI))*20;
-     ctx.save();ctx.globalAlpha=0.78;ctx.fillStyle='rgba(6,3,2,0.92)';
-
-     ctx.beginPath();ctx.ellipse(bx,by-28,8,10,0,0,Math.PI*2);ctx.fill();
-
-     ctx.fillRect(bx-8,by-18,16,24);
-
-     ctx.strokeStyle='rgba(6,3,2,0.92)';ctx.lineWidth=5;
-     ctx.beginPath();ctx.moveTo(bx-8,by-10);ctx.lineTo(bx-28-punchL,by-18);ctx.stroke();
-     ctx.beginPath();ctx.arc(bx-30-punchL,by-19,6,0,Math.PI*2);ctx.fill();
-
-     ctx.beginPath();ctx.moveTo(bx+8,by-10);ctx.lineTo(bx+28+punchR,by-14);ctx.stroke();
-     ctx.beginPath();ctx.arc(bx+30+punchR,by-15,6,0,Math.PI*2);ctx.fill();
-     ctx.restore();
-
-     for(const d of drops){
-      d.y+=d.vy;if(d.y>H*0.75){d.y=H*0.2+Math.random()*H*0.2;d.x=W*0.3+Math.random()*W*0.4;}
-      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(200,180,160,${d.op})`;ctx.fill();
+     // ── Débris / papiers ──
+     for(const d of debris){
+      d.x+=d.vx;d.y+=d.vy;d.rot+=d.rotSpd;
+      if(d.y<-20)d.y=H+10;
+      if(d.x<-20)d.x=W+10;if(d.x>W+20)d.x=-10;
+      ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.rot);
+      ctx.fillStyle=`rgba(200,190,170,${d.op})`;
+      ctx.fillRect(-d.w/2,-d.h/2,d.w,d.h);
+      ctx.restore();
      }
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.85);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(8,2,2,0.72)');
+
+     // Vignette
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.05,cx,H*0.5,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.6,'rgba(3,1,0,0.15)');
+     vg.addColorStop(1,'rgba(5,1,0,0.80)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
