@@ -19978,8 +19978,8 @@ function closeAvModal(e){
     jx.fillStyle=jEdge; jx.beginPath(); jx.arc(jcx,jcy,jupR,0,Math.PI*2); jx.fill();
 
     /* ── Monolithe (pré-dessiné) ── */
-    const monoW=W*0.16, monoH=H*0.22;
-    const monoX=W*0.5-monoW/2, monoY=H*0.66;
+    const monoW=W*0.16, monoH=H*0.18;
+    const monoX=W*0.5-monoW/2, monoY=H*0.72;
     const monoC=document.createElement('canvas');
     monoC.width=monoW+40; monoC.height=monoH+40;
     const mx=monoC.getContext('2d');
@@ -20383,7 +20383,7 @@ function closeAvModal(e){
      gx.stroke();
     }
 
-    // ── Light cycles — rail vertical + virage 90° horizontal ──
+    // ── Light cycles — rails verticaux uniquement ──
     const TRAIL_LEN=280;
 
     function lanePos(laneX,laneT){
@@ -20393,60 +20393,25 @@ function closeAvModal(e){
      return {x,y};
     }
 
-    function horizPos(turnLaneT,hProg){
-     const ep=Math.pow(turnLaneT,1.7);
-     const y=horizon+ep*(H-horizon+20);
-     const maxSpread=W*0.52*ep;
-     const x=cx-maxSpread+hProg*maxSpread*2;
-     return {x,y};
-    }
-
     const cycles=[
-     // Cyan — descend puis vire à gauche
-     {laneX:cx-W*0.38,laneT:0.04,spd:0.006,color:'0,220,255',
-      trail:[],delay:0,dir:'v',turnAt:0.55,turned:false,hProg:0.5,hDir:-1,hSpd:0.012,turnLaneT:0},
-     // Orange — descend puis vire à droite
-     {laneX:cx+W*0.30,laneT:0.12,spd:0.005,color:'255,100,20',
-      trail:[],delay:90,dir:'v',turnAt:0.65,turned:false,hProg:0.5,hDir:1,hSpd:0.010,turnLaneT:0},
-     // Cyan 2 — tout droit jusqu'en bas
-     {laneX:cx-W*0.18,laneT:0.08,spd:0.004,color:'0,200,240',
-      trail:[],delay:160,dir:'v',turnAt:999,turned:false,hProg:0,hDir:1,hSpd:0.009,turnLaneT:0},
-     // Orange 2 — descend puis vire à gauche
-     {laneX:cx+W*0.48,laneT:0.06,spd:0.0035,color:'255,140,30',
-      trail:[],delay:240,dir:'v',turnAt:0.50,turned:false,hProg:0.5,hDir:-1,hSpd:0.008,turnLaneT:0},
+     {laneX:cx-W*0.38, laneT:0.04,  spd:0.006,  color:'0,220,255',  trail:[], delay:0},
+     {laneX:cx+W*0.30, laneT:0.12,  spd:0.005,  color:'255,100,20', trail:[], delay:90},
+     {laneX:cx-W*0.18, laneT:0.08,  spd:0.004,  color:'0,200,240',  trail:[], delay:160},
+     {laneX:cx+W*0.48, laneT:0.06,  spd:0.0035, color:'255,140,30', trail:[], delay:240},
     ];
 
     function drawCycles(){
      for(const c of cycles){
       if(c.delay>0){c.delay--;continue;}
-
-      let pos;
-      if(c.dir==='v'){
-       c.laneT+=c.spd;
-       if(c.laneT>=c.turnAt&&!c.turned){
-        c.turned=true;c.dir='h';c.turnLaneT=c.laneT;
-       }
-       if(c.laneT>1.02){
-        c.laneT=0.02;c.dir='v';c.turned=false;
-        c.hProg=0.5;
-        c.delay=Math.floor(Math.random()*120+60);
-        c.trail=[];continue;
-       }
-       pos=lanePos(c.laneX,c.laneT);
-      } else {
-       c.hProg+=c.hDir*c.hSpd;
-       pos=horizPos(c.turnLaneT,c.hProg);
-       if(c.hProg<-0.05||c.hProg>1.05){
-        c.laneT=0.02;c.dir='v';c.turned=false;
-        c.hProg=0.5;
-        c.delay=Math.floor(Math.random()*80+40);
-        c.trail=[];continue;
-       }
+      c.laneT+=c.spd;
+      if(c.laneT>1.02){
+       c.laneT=0.02;
+       c.delay=Math.floor(Math.random()*120+60);
+       c.trail=[];continue;
       }
-
+      const pos=lanePos(c.laneX,c.laneT);
       c.trail.push({...pos});
       if(c.trail.length>TRAIL_LEN)c.trail.shift();
-
       if(c.trail.length>2){
        for(let i=1;i<c.trail.length;i++){
         const prog=i/c.trail.length;
@@ -20455,7 +20420,6 @@ function closeAvModal(e){
         ctx.beginPath();ctx.moveTo(c.trail[i-1].x,c.trail[i-1].y);ctx.lineTo(c.trail[i].x,c.trail[i].y);ctx.stroke();
        }
       }
-
       const hg=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,14);
       hg.addColorStop(0,`rgba(${c.color},1.0)`);hg.addColorStop(0.4,`rgba(${c.color},0.5)`);hg.addColorStop(1,`rgba(${c.color},0)`);
       ctx.fillStyle=hg;ctx.beginPath();ctx.arc(pos.x,pos.y,14,0,Math.PI*2);ctx.fill();
@@ -20463,9 +20427,9 @@ function closeAvModal(e){
      }
     }
 
-    // ── Disque identitaire — grand, centré, au-dessus du logo ──
+    // ── Disque identitaire — légèrement sous le header ──
     const discR=Math.min(W,H)*0.155;
-    const discX=cx, discY=H*0.12;
+    const discX=cx, discY=H*0.18;
     let discAngle=0;
 
     // ── Particules de données ──
@@ -22649,12 +22613,18 @@ function closeAvModal(e){
      if(stop.v)return;
      ctx.fillStyle='rgba(0,0,0,0.16)';ctx.fillRect(0,0,W,H);
 
-     /* compteur en boucle */
-     const cycleT=(t*2.5)%18;
-     const countdown=Math.max(0,17-Math.floor(cycleT))|0;
-     const d0=Math.floor(countdown/10);
-     const d1=countdown%10;
-     const cdY=H*0.15;
+     /* Synchronisation avec l'audio — utilise currentTime si dispo, sinon t */
+     var aud=window._splashAudioPlaying;
+     var audioDur=(aud&&aud.duration&&isFinite(aud.duration))?aud.duration:17;
+     var audioPos=(aud&&aud.currentTime)?aud.currentTime:t;
+     /* Progression 0→1 sur toute la durée du morceau */
+     var prog=Math.min(1,audioPos/audioDur);
+
+     /* compteur dégressif calé sur la durée audio */
+     var countdown=Math.max(0,Math.floor(audioDur-audioPos));
+     var d0=Math.floor(countdown/10);
+     var d1=countdown%10;
+     var cdY=H*0.15;
      ctx.save();
      ctx.strokeStyle='rgba(200,15,10,0.45)';ctx.lineWidth=1.5;
      ctx.strokeRect(cx-38,cdY-22,76,44);
@@ -22684,11 +22654,10 @@ function closeAvModal(e){
       ctx.restore();
      }
 
-     /* mèche */
-     const fp=((t*0.14)%1.2);
-     const fuseP=(fp>1)?0:fp;
-     const fi=Math.min(fusePoints.length-1,Math.floor(fuseP*(fusePoints.length-1)))|0;
-     const bp=fusePoints[fi];
+     /* mèche — calée sur la progression audio */
+     var fuseP=Math.min(0.99,prog);
+     var fi=Math.min(fusePoints.length-1,Math.floor(fuseP*(fusePoints.length-1)));
+     var bp=fusePoints[fi];
      if(fi>0){
       ctx.save();ctx.strokeStyle='rgba(55,50,45,0.55)';ctx.lineWidth=2;ctx.lineCap='round';
       ctx.beginPath();ctx.moveTo(fusePoints[0].x,fusePoints[0].y);
@@ -22760,7 +22729,6 @@ function closeAvModal(e){
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
      t+=0.016;requestAnimationFrame(frame);
     }
-    t=0.001;
     frame();
    }
   },
