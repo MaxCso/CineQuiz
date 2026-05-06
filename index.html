@@ -4375,6 +4375,23 @@ body.theme-rose #home-bg::before{background:
 
 /* ── Cinétek en mode paysage : player full-width + contrôles dessous ── */
 @media screen and (orientation:landscape) and (max-height:500px){
+  /* Wrap plein écran — sortir de la contrainte 390px */
+  body.allow-landscape .wrap{
+    max-width:100vw !important;
+    width:100vw !important;
+    height:100dvh !important;
+    border-radius:0 !important;
+    border:none !important;
+    box-shadow:none !important;
+  }
+  body.allow-landscape #jukebox{
+    padding:0 env(safe-area-inset-right,8px) 0 env(safe-area-inset-left,8px);
+  }
+  /* Masquer la topbar Jukebox et les onglets en paysage */
+  body.allow-landscape #jukebox > .jk-topbar,
+  body.allow-landscape #jukebox > .jk-tabs{
+    display:none !important;
+  }
   body.allow-landscape #jk-video-section{
     flex-direction:column !important;
     align-items:stretch;
@@ -25758,127 +25775,192 @@ function closeAvModal(e){
    name:'The Big Lebowski',
    ref:'The Big Lebowski \u2014 Coen Brothers, 1998',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.68';
+    cv.style.opacity='0.70';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2;
 
-    let ballX=-60,ballY=H*0.72,ballRot=0;
-    const ballR=20;
-    const laneY=ballY;
+    // ── Piste verticale ──
+    const laneLeft  = cx - W*0.28;
+    const laneRight = cx + W*0.28;
+    const laneTop   = H*0.10;   // zone quilles (sous le logo)
+    const laneBot   = H*0.98;   // bas de piste
 
-    // Formation bowling : triangle pointé vers la gauche (vers la boule)
-    const pinAnchorX=W*0.78;
-    const rowSpacing=28;
-    const colSpacing=20;
-
+    // ── Quilles — triangle pointé vers le bas (pointe face à la boule) ──
+    // Rangée 0 (avant) = 1 quille au centre, rangées suivantes s'élargissent vers le haut
+    const pinAnchorY = H*0.22;   // Y du pin de tête (bas du triangle)
+    const rowSpacing = 32;        // espace vertical entre rangées
+    const colSpacing = 26;        // espace horizontal entre quilles
     const pinLayout=[
      {row:0,col:0},
      {row:1,col:-0.5},{row:1,col:0.5},
-     {row:2,col:-1},{row:2,col:0},{row:2,col:1},
+     {row:2,col:-1},  {row:2,col:0},  {row:2,col:1},
      {row:3,col:-1.5},{row:3,col:-0.5},{row:3,col:0.5},{row:3,col:1.5}
     ];
-
     const pins=pinLayout.map(({row,col})=>({
-     x:pinAnchorX+row*rowSpacing,
-     y:laneY+col*colSpacing,
-     fallen:false,fallTime:0,fallDir:(Math.random()-0.5)*2
+     x: cx + col*colSpacing,
+     y: pinAnchorY - row*rowSpacing,   // les rangées arrière montent vers le haut
+     fallen:false, fallTime:0, fallAngle:0,
+     fallDir:(Math.random()-0.5)*2
     }));
 
-    const laneLeft=cx-80,laneRight=W*0.92;
-    const rings=Array.from({length:4},(_,i)=>({r:20+i*28,hue:i*60,spd:0.25+i*0.08}));
+    // ── Boule ──
+    const ballR = 22;
+    let ballY   = laneBot + 80;   // démarre sous l'écran
+    let ballRot = 0;
+    let phase   = 'rolling';      // rolling | strike | reset
+
+    // ── Halos psychédéliques autour du pin de tête ──
+    const rings = Array.from({length:5},(_,i)=>({r:22+i*26,hue:i*65,spd:0.22+i*0.07}));
+
+    // ── Particules de choc (strike) ──
+    const sparks = [];
+
+    function spawnSparks(x,y){
+     for(let i=0;i<18;i++){
+      const a=Math.random()*Math.PI*2;
+      const spd=Math.random()*4+1.5;
+      sparks.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:1,hue:Math.random()*60+20});
+     }
+    }
 
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(3,1,5,0.15)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(3,1,6,0.14)';ctx.fillRect(0,0,W,H);
 
-     const bg=ctx.createLinearGradient(0,H*0.55,0,H);
-     bg.addColorStop(0,'rgba(0,0,0,0)');
-     bg.addColorStop(1,`rgba(${30+Math.sin(t*0.3)*8|0},15,40,0.18)`);
-     ctx.fillStyle=bg;ctx.fillRect(0,H*0.55,W,H*0.45);
+     // ── Fond piste ──
+     const laneGrad=ctx.createLinearGradient(laneLeft,0,laneRight,0);
+     laneGrad.addColorStop(0,'rgba(0,0,0,0)');
+     laneGrad.addColorStop(0.18,'rgba(20,14,38,0.22)');
+     laneGrad.addColorStop(0.5,'rgba(28,18,48,0.30)');
+     laneGrad.addColorStop(0.82,'rgba(20,14,38,0.22)');
+     laneGrad.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=laneGrad;
+     ctx.fillRect(laneLeft,laneTop,laneRight-laneLeft,laneBot-laneTop);
 
-     // Lignes de piste
-     ctx.strokeStyle='rgba(120,100,160,0.10)';ctx.lineWidth=1;
-     ctx.beginPath();ctx.moveTo(laneLeft,H*0.55);ctx.lineTo(laneLeft,H);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(laneRight,H*0.55);ctx.lineTo(laneRight,H);ctx.stroke();
-     // Pointillés de visée
-     for(let dy=H*0.6;dy<laneY-ballR-5;dy+=18){
-      ctx.beginPath();ctx.arc(cx,dy,1.5,0,Math.PI*2);
-      ctx.fillStyle='rgba(150,120,200,0.18)';ctx.fill();
+     // Bords de piste
+     ctx.strokeStyle='rgba(110,80,160,0.13)';ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.moveTo(laneLeft,laneTop);ctx.lineTo(laneLeft,laneBot);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(laneRight,laneTop);ctx.lineTo(laneRight,laneBot);ctx.stroke();
+
+     // Pointillés de visée (ligne de mire centrale)
+     for(let dy=ballY-ballR-20;dy>pinAnchorY+30;dy-=22){
+      ctx.beginPath();ctx.arc(cx,dy,1.8,0,Math.PI*2);
+      ctx.fillStyle=`rgba(140,100,200,${0.10+Math.sin(t*2+dy*0.05)*0.05})`;
+      ctx.fill();
      }
 
-     // Halos autour du pin de tête
-     const headPin=pins[0];
-     if(!headPin.fallen){
+     // ── Halos autour pin de tête ──
+     if(!pins[0].fallen){
       for(const ring of rings){
-       const rr=ring.r*(1+Math.sin(t*ring.spd)*0.06);
-       ctx.beginPath();ctx.arc(headPin.x,headPin.y,rr,0,Math.PI*2);
-       ctx.strokeStyle=`hsla(${ring.hue+t*18},55%,55%,${0.07-ring.r/500})`;
-       ctx.lineWidth=1;ctx.stroke();
+       const rr=ring.r*(1+Math.sin(t*ring.spd)*0.07);
+       const alpha=Math.max(0,0.08-ring.r/600);
+       ctx.beginPath();ctx.arc(pins[0].x,pins[0].y,rr,0,Math.PI*2);
+       ctx.strokeStyle=`hsla(${ring.hue+t*20},60%,60%,${alpha})`;
+       ctx.lineWidth=1.2;ctx.stroke();
       }
      }
 
-     // Quilles
+     // ── Quilles ──
      for(const p of pins){
-      if(!p.fallen){
-       const dx=ballX-p.x,dy=ballY-p.y;
-       if(Math.sqrt(dx*dx+dy*dy)<ballR+8){p.fallen=true;p.fallTime=1;}
+      // Collision boule
+      if(!p.fallen&&phase==='rolling'){
+       const dx=cx-p.x,dy=ballY-p.y;
+       if(Math.sqrt(dx*dx+dy*dy)<ballR+9){
+        p.fallen=true;p.fallTime=1;
+        p.fallAngle=p.fallDir*(Math.PI*0.5+Math.random()*0.3);
+        if(p===pins[0])spawnSparks(p.x,p.y);
+       }
       }
       if(p.fallen){
-       p.fallTime=Math.max(0,p.fallTime-0.035);
+       p.fallTime=Math.max(0,p.fallTime-0.03);
        ctx.save();ctx.translate(p.x,p.y);
-       ctx.rotate((1-p.fallTime)*Math.PI*0.55*p.fallDir);
-       ctx.fillStyle=`rgba(235,225,195,${0.45*p.fallTime+0.08})`;
-       ctx.beginPath();ctx.ellipse(0,0,4,11,0,0,Math.PI*2);ctx.fill();
-       ctx.fillStyle=`rgba(200,60,60,${0.55*p.fallTime+0.1})`;
-       ctx.beginPath();ctx.ellipse(0,-3,4,3,0,0,Math.PI*2);ctx.fill();
+       ctx.rotate(p.fallAngle*(1-p.fallTime));
+       const op=p.fallTime*0.5+0.06;
+       ctx.fillStyle=`rgba(235,220,185,${op})`;
+       ctx.beginPath();ctx.ellipse(0,0,5,13,0,0,Math.PI*2);ctx.fill();
+       ctx.fillStyle=`rgba(200,55,55,${op+0.1})`;
+       ctx.beginPath();ctx.ellipse(0,-4,5,4,0,0,Math.PI*2);ctx.fill();
        ctx.restore();
       } else {
-       ctx.fillStyle='rgba(235,225,195,0.60)';
-       ctx.beginPath();ctx.ellipse(p.x,p.y,4,11,0,0,Math.PI*2);ctx.fill();
-       ctx.fillStyle='rgba(200,60,60,0.65)';
-       ctx.beginPath();ctx.ellipse(p.x,p.y-3,4,3,0,0,Math.PI*2);ctx.fill();
-       ctx.fillStyle='rgba(255,255,240,0.25)';
-       ctx.beginPath();ctx.ellipse(p.x-1.5,p.y-4,1.5,4,0,0,Math.PI*2);ctx.fill();
+       // Quille debout
+       ctx.fillStyle='rgba(235,222,188,0.68)';
+       ctx.beginPath();ctx.ellipse(p.x,p.y,5,13,0,0,Math.PI*2);ctx.fill();
+       // Bande rouge
+       ctx.fillStyle='rgba(205,58,58,0.78)';
+       ctx.beginPath();ctx.ellipse(p.x,p.y-4,5,4,0,0,Math.PI*2);ctx.fill();
+       // Reflet
+       ctx.fillStyle='rgba(255,255,240,0.30)';
+       ctx.beginPath();ctx.ellipse(p.x-1.5,p.y-5,2,5,0,0,Math.PI*2);ctx.fill();
+       // Ombre portée
+       ctx.fillStyle='rgba(0,0,0,0.18)';
+       ctx.beginPath();ctx.ellipse(p.x+1,p.y+12,5,2,0,0,Math.PI*2);ctx.fill();
       }
      }
 
-     // Boule
-     ballX+=3.5;ballRot+=0.12;
-     if(ballX>W+60){
-      ballX=-60;
-      pins.forEach(p=>{p.fallen=false;p.fallTime=0;});
+     // ── Particules de strike ──
+     for(let i=sparks.length-1;i>=0;i--){
+      const sp=sparks[i];
+      sp.x+=sp.vx;sp.y+=sp.vy;sp.vy+=0.12;sp.life-=0.028;
+      if(sp.life<=0){sparks.splice(i,1);continue;}
+      ctx.beginPath();ctx.arc(sp.x,sp.y,2.5*sp.life,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${sp.hue},80%,65%,${sp.life*0.8})`;
+      ctx.fill();
+     }
+
+     // ── Boule ──
+     if(phase==='rolling'){
+      ballY -= 3.8;
+      ballRot += 0.13;
+      // A-t-elle dépassé les quilles ?
+      const allFallen=pins.every(p=>p.fallen);
+      if(ballY < pinAnchorY-80 || allFallen){
+       phase='strike';
+       setTimeout(()=>{
+        phase='reset';
+        ballY=laneBot+80;
+        pins.forEach(p=>{p.fallen=false;p.fallTime=0;});
+        setTimeout(()=>{phase='rolling';},400);
+       },1200);
+      }
      }
 
      // Ombre boule
-     ctx.save();ctx.globalAlpha=0.25;
-     const shadowG=ctx.createRadialGradient(ballX,ballY+18,0,ballX,ballY+18,22);
-     shadowG.addColorStop(0,'rgba(0,0,0,0.7)');shadowG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=shadowG;ctx.beginPath();ctx.ellipse(ballX,ballY+18,22,8,0,0,Math.PI*2);ctx.fill();
+     ctx.save();ctx.globalAlpha=0.22;
+     const shG=ctx.createRadialGradient(cx+8,ballY+10,0,cx+8,ballY+10,24);
+     shG.addColorStop(0,'rgba(0,0,0,0.6)');shG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=shG;ctx.beginPath();ctx.ellipse(cx+8,ballY+10,24,9,0,0,Math.PI*2);ctx.fill();
      ctx.restore();
 
-     const ballG=ctx.createRadialGradient(ballX-7,ballY-7,2,ballX,ballY,ballR);
-     ballG.addColorStop(0,'rgba(100,55,160,0.95)');
-     ballG.addColorStop(0.5,'rgba(55,20,100,0.90)');
-     ballG.addColorStop(1,'rgba(20,5,50,0.85)');
-     ctx.beginPath();ctx.arc(ballX,ballY,ballR,0,Math.PI*2);
+     // Corps boule
+     const ballG=ctx.createRadialGradient(cx-8,ballY-8,2,cx,ballY,ballR);
+     ballG.addColorStop(0,'rgba(115,60,175,0.97)');
+     ballG.addColorStop(0.5,'rgba(60,22,115,0.92)');
+     ballG.addColorStop(1,'rgba(18,4,48,0.88)');
+     ctx.beginPath();ctx.arc(cx,ballY,ballR,0,Math.PI*2);
      ctx.fillStyle=ballG;ctx.fill();
 
      // Reflet boule
-     ctx.save();ctx.globalAlpha=0.22;
-     const refG=ctx.createRadialGradient(ballX-6,ballY-8,0,ballX-4,ballY-5,11);
-     refG.addColorStop(0,'rgba(220,200,255,1)');refG.addColorStop(1,'rgba(220,200,255,0)');
-     ctx.fillStyle=refG;ctx.beginPath();ctx.arc(ballX,ballY,ballR,0,Math.PI*2);ctx.fill();
+     ctx.save();ctx.globalAlpha=0.25;
+     const refG=ctx.createRadialGradient(cx-7,ballY-9,0,cx-5,ballY-6,12);
+     refG.addColorStop(0,'rgba(230,210,255,1)');refG.addColorStop(1,'rgba(230,210,255,0)');
+     ctx.fillStyle=refG;ctx.beginPath();ctx.arc(cx,ballY,ballR,0,Math.PI*2);ctx.fill();
      ctx.restore();
 
-     // Trous boule
-     ctx.save();ctx.translate(ballX,ballY);ctx.rotate(ballRot);
-     ctx.fillStyle='rgba(0,0,0,0.75)';
-     [[0,-10],[8,5],[-8,5]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(dx,dy,2.8,0,Math.PI*2);ctx.fill();});
+     // Trous boule (tournent avec la boule)
+     ctx.save();ctx.translate(cx,ballY);ctx.rotate(ballRot);
+     ctx.fillStyle='rgba(0,0,0,0.80)';
+     [[0,-11],[9,5],[-9,5]].forEach(([dx,dy])=>{
+      ctx.beginPath();ctx.arc(dx,dy,3.2,0,Math.PI*2);ctx.fill();
+     });
      ctx.restore();
 
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.82);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,2,10,0.70)');
+     // Vignette
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.08,cx,H*0.5,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.65,'rgba(3,1,8,0.10)');
+     vg.addColorStop(1,'rgba(4,1,10,0.75)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
