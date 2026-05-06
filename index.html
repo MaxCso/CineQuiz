@@ -22124,130 +22124,302 @@ function closeAvModal(e){
    name:'Spider-Man',
    ref:'Spider-Man \u2014 Sam Raimi, 2002',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.72';
+    cv.style.opacity='1';
     let t=0;
-    const cx=W/2, cy=H*0.38;
-    const SPOKES=24, RINGS=9;
-    const MAX_R=Math.min(W,H)*0.55;
+    const cx=W/2, cy=H*0.36;
+    const SPOKES=28, RINGS=11;
+    const MAX_R=Math.min(W,H)*0.72;
 
-    /* ── Gouttelettes de rosée sur la toile ── */
+    /* ── Gouttelettes de rosée ── */
     const drops=[];
-    for(let r=2;r<=RINGS;r+=2){
-     for(let s=0;s<SPOKES;s+=3){
+    for(let r=1;r<=RINGS;r+=1){
+     for(let s=0;s<SPOKES;s+=2){
       drops.push({spoke:s,ring:r,phase:Math.random()*Math.PI*2,
-       size:Math.random()*2.2+0.8,op:Math.random()*0.5+0.2});
+       size:Math.random()*2.5+0.7,op:Math.random()*0.55+0.20});
      }
     }
 
-    /* ── Particules flottantes ── */
-    const dots=Array.from({length:55},function(){return{
+    /* ── Particules rouge/bleu ── */
+    const dots=Array.from({length:55},()=>({
      x:Math.random()*W, y:Math.random()*H,
-     r:Math.random()*2+0.4,
-     hue:Math.random()>0.55?350:210,
-     op:Math.random()*0.32+0.06,
-     vx:(Math.random()-0.5)*0.28, vy:(Math.random()-0.5)*0.28
-    };});
+     r:Math.random()*2.0+0.3,
+     hue:Math.random()>0.55?350:215,
+     op:Math.random()*0.30+0.06,
+     vx:(Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25
+    }));
+
+    /* ── Skyline de New York (plus haute, plus dense) ── */
+    const buildings=[
+     {x:0,      w:W*0.07, h:H*0.24},{x:W*0.05, w:W*0.05, h:H*0.16},
+     {x:W*0.09, w:W*0.09, h:H*0.32},{x:W*0.17, w:W*0.06, h:H*0.20},
+     {x:W*0.22, w:W*0.05, h:H*0.26},{x:W*0.26, w:W*0.08, h:H*0.38},
+     {x:W*0.33, w:W*0.05, h:H*0.19},{x:W*0.37, w:W*0.06, h:H*0.28},
+     {x:W*0.42, w:W*0.09, h:H*0.42},{x:W*0.50, w:W*0.06, h:H*0.24},
+     {x:W*0.55, w:W*0.08, h:H*0.34},{x:W*0.62, w:W*0.05, h:H*0.18},
+     {x:W*0.66, w:W*0.09, h:H*0.40},{x:W*0.74, w:W*0.06, h:H*0.25},
+     {x:W*0.79, w:W*0.05, h:H*0.21},{x:W*0.83, w:W*0.08, h:H*0.30},
+     {x:W*0.90, w:W*0.05, h:H*0.17},{x:W*0.94, w:W*0.06, h:H*0.26},
+    ];
+
+    /* ── Fils de coins — plus nombreux et plus longs ── */
+    const cornerWebs=[
+     {pts:[[0,0],[W*0.06,H*0.10],[W*0.18,H*0.25],[W*0.32,H*0.40],[W*0.42,H*0.50]]},
+     {pts:[[W,0],[W*0.92,H*0.08],[W*0.78,H*0.22],[W*0.64,H*0.38],[W*0.54,H*0.48]]},
+     {pts:[[0,H*0.12],[W*0.08,H*0.20],[W*0.24,H*0.34],[W*0.38,H*0.46]]},
+     {pts:[[W,H*0.15],[W*0.90,H*0.22],[W*0.74,H*0.35],[W*0.60,H*0.46]]},
+     {pts:[[W*0.12,0],[W*0.18,H*0.12],[W*0.28,H*0.30],[W*0.40,H*0.44]]},
+     {pts:[[W*0.88,0],[W*0.80,H*0.11],[W*0.68,H*0.28],[W*0.56,H*0.42]]},
+     {pts:[[0,H*0.35],[W*0.12,H*0.40],[W*0.28,H*0.48]]},
+     {pts:[[W,H*0.38],[W*0.86,H*0.42],[W*0.70,H*0.50]]},
+    ];
+
+    /* ── Vibration de la toile — onde qui se propage ── */
+    let vibPhase=0, vibAmp=0;
 
     function webPoint(spoke,ring,extraWobble){
      const a=(spoke/SPOKES)*Math.PI*2;
      const baseR=(ring/RINGS)*MAX_R;
-     const wobble=Math.sin(t*0.9+spoke*0.6+ring*0.4)*2+
-                  Math.sin(t*1.8+spoke*1.1)*1.2*(extraWobble||1);
+     /* Onde de vibration radiale */
+     const vibOffset=vibAmp*Math.sin(t*8-ring*0.7)*Math.cos(a*2+spoke*0.3)*2.5;
+     const wobble=Math.sin(t*0.9+spoke*0.6+ring*0.4)*2.2+
+                  Math.sin(t*1.8+spoke*1.1)*1.4*(extraWobble||1)+vibOffset;
      return{
       x:cx+Math.cos(a)*(baseR+wobble),
-      y:cy+Math.sin(a)*(baseR+wobble)*0.82
+      y:cy+Math.sin(a)*(baseR+wobble)*0.80
      };
     }
 
     function drawWeb(){
-     /* rayons */
+     /* Rayons */
      for(let s=0;s<SPOKES;s++){
       const p1=webPoint(s,RINGS,1);
-      /* dégradé du centre vers l'extérieur */
       const lg=ctx.createLinearGradient(cx,cy,p1.x,p1.y);
-      lg.addColorStop(0,'rgba(220,220,240,0.30)');
-      lg.addColorStop(0.4,'rgba(200,200,225,0.16)');
-      lg.addColorStop(1,'rgba(180,190,215,0.06)');
-      ctx.strokeStyle=lg;ctx.lineWidth=0.8;
+      lg.addColorStop(0,'rgba(230,225,250,0.38)');
+      lg.addColorStop(0.35,'rgba(210,210,240,0.20)');
+      lg.addColorStop(1,'rgba(185,195,225,0.07)');
+      ctx.strokeStyle=lg;ctx.lineWidth=0.9;
       ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(p1.x,p1.y);ctx.stroke();
      }
-
-     /* cercles concentriques */
+     /* Anneaux */
      for(let r=1;r<=RINGS;r++){
-      const alpha=0.22-r*0.014;
-      const shimmer=0.04+Math.sin(t*1.1+r*0.5)*0.03;
+      const alpha=0.28-r*0.016;
+      const shimmer=0.05+Math.sin(t*1.1+r*0.5+vibPhase)*0.035;
       ctx.beginPath();
       for(let s=0;s<=SPOKES;s++){
        const p=webPoint(s%SPOKES,r,1);
        s===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
       }
       ctx.closePath();
-      ctx.strokeStyle='rgba(210,212,232,'+(alpha+shimmer)+')';
-      ctx.lineWidth=r===1?1.0:0.6;
-      ctx.stroke();
-
-      /* reflet lumineux sur certains anneaux */
-      if(r%3===1){
-       ctx.strokeStyle='rgba(255,255,255,'+(0.08+Math.sin(t*0.7+r)*0.04)+')';
-       ctx.lineWidth=0.4;
-       ctx.stroke();
+      ctx.strokeStyle=`rgba(215,218,240,${alpha+shimmer})`;
+      ctx.lineWidth=r===1?1.1:0.65;ctx.stroke();
+      /* Reflet blanc sur certains anneaux */
+      if(r%2===1){
+       ctx.strokeStyle=`rgba(255,255,255,${0.06+Math.sin(t*0.7+r)*0.03})`;
+       ctx.lineWidth=0.35;ctx.stroke();
       }
      }
-
-     /* point central */
-     const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,8);
-     cg.addColorStop(0,'rgba(220,220,255,0.55)');
-     cg.addColorStop(1,'rgba(180,180,220,0)');
-     ctx.fillStyle=cg;ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);ctx.fill();
+     /* Centre lumineux */
+     const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,10);
+     cg.addColorStop(0,'rgba(230,225,255,0.65)');
+     cg.addColorStop(1,'rgba(180,185,230,0)');
+     ctx.fillStyle=cg;ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);ctx.fill();
     }
 
     function drawDrops(){
-     for(let i=0;i<drops.length;i++){
-      const d=drops[i];
+     for(const d of drops){
       const p=webPoint(d.spoke,d.ring,1);
       const pulse=0.6+Math.sin(t*1.5+d.phase)*0.4;
-      /* reflet de la gouttelette */
-      const dg=ctx.createRadialGradient(p.x-d.size*0.3,p.y-d.size*0.3,0,p.x,p.y,d.size*1.8);
-      dg.addColorStop(0,'rgba(220,235,255,'+(d.op*pulse)+')');
-      dg.addColorStop(0.4,'rgba(180,200,240,'+(d.op*pulse*0.5)+')');
-      dg.addColorStop(1,'rgba(150,170,220,0)');
+      const dg=ctx.createRadialGradient(p.x-d.size*0.35,p.y-d.size*0.35,0,p.x,p.y,d.size*2.0);
+      dg.addColorStop(0,`rgba(225,238,255,${d.op*pulse})`);
+      dg.addColorStop(0.4,`rgba(185,205,245,${d.op*pulse*0.4})`);
+      dg.addColorStop(1,'rgba(150,170,225,0)');
       ctx.fillStyle=dg;
       ctx.beginPath();ctx.arc(p.x,p.y,d.size*pulse,0,Math.PI*2);ctx.fill();
      }
     }
 
+    function drawCornerWebs(){
+     for(const cw of cornerWebs){
+      const pts=cw.pts;
+      const wg=ctx.createLinearGradient(pts[0][0],pts[0][1],pts[pts.length-1][0],pts[pts.length-1][1]);
+      wg.addColorStop(0,'rgba(210,215,245,0.32)');
+      wg.addColorStop(1,'rgba(185,198,235,0.08)');
+      ctx.strokeStyle=wg;ctx.lineWidth=1.1;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+      for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+      ctx.stroke();
+      /* Fils secondaires perpendiculaires */
+      for(let i=0;i<pts.length-1;i++){
+       const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
+       const dx=pts[i+1][0]-pts[i][0], dy=pts[i+1][1]-pts[i][1];
+       const len=Math.sqrt(dx*dx+dy*dy);
+       const nx=-dy/len*20, ny=dx/len*20;
+       ctx.strokeStyle='rgba(195,208,240,0.15)';ctx.lineWidth=0.55;
+       ctx.beginPath();ctx.moveTo(mx-nx,my-ny);ctx.lineTo(mx+nx,my+ny);ctx.stroke();
+      }
+     }
+    }
+
+    function drawSkyline(){
+     /* Lueur rouge de la ville */
+     const cityG=ctx.createLinearGradient(0,H*0.72,0,H);
+     cityG.addColorStop(0,'rgba(0,0,0,0)');
+     cityG.addColorStop(0.4,`rgba(200,30,15,${0.08+Math.sin(t*0.3)*0.02})`);
+     cityG.addColorStop(1,`rgba(240,50,15,${0.14+Math.sin(t*0.25)*0.02})`);
+     ctx.fillStyle=cityG;ctx.fillRect(0,H*0.72,W,H*0.28);
+
+     for(const b of buildings){
+      ctx.fillStyle='rgba(4,2,8,0.97)';
+      ctx.fillRect(b.x,H-b.h,b.w,b.h);
+      /* Flèche antenne */
+      if(b.h>H*0.28){
+       ctx.beginPath();
+       ctx.moveTo(b.x+b.w/2,H-b.h-b.h*0.10);
+       ctx.lineTo(b.x+b.w*0.35,H-b.h);
+       ctx.lineTo(b.x+b.w*0.65,H-b.h);
+       ctx.closePath();ctx.fill();
+      }
+      /* Fenêtres */
+      const cols=Math.max(1,Math.floor(b.w/10));
+      const rows=Math.floor(b.h/11);
+      for(let r=1;r<rows;r++) for(let c=0;c<cols;c++){
+       if(Math.sin(b.x*0.5+r*c*2.1+t*0.04)>0.18){
+        const wx=b.x+c*(b.w/cols)+2, wy=H-b.h+r*11+2;
+        const wp=0.5+Math.sin(t*0.35+r+c)*0.15;
+        ctx.fillStyle=`rgba(255,${155+Math.sin(r*c)*20|0},45,${0.45*wp})`;
+        ctx.fillRect(wx,wy,Math.max(2,b.w/cols-4),4);
+       }
+      }
+     }
+    }
+
+    /* ── Spider-Man principal (suspendu tête en bas) ── */
+    function drawSpiderman(){
+     const spX=cx+W*0.10, spY=H*0.74;
+     const swing=Math.sin(t*0.5)*9;
+     /* Fil */
+     const threadGrad=ctx.createLinearGradient(spX+swing,H*0.55,spX+swing,spY-28);
+     threadGrad.addColorStop(0,'rgba(205,210,240,0.14)');
+     threadGrad.addColorStop(1,'rgba(205,215,245,0.32)');
+     ctx.strokeStyle=threadGrad;ctx.lineWidth=1.3;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(spX,H*0.55);
+     ctx.bezierCurveTo(spX-5,H*0.62,spX+swing+5,H*0.67,spX+swing,spY-28);
+     ctx.stroke();
+
+     ctx.save();ctx.translate(spX+swing,spY);ctx.rotate(Math.PI);
+     ctx.fillStyle='rgba(6,3,12,0.92)';
+     /* Jambes */
+     ctx.save();ctx.rotate(-0.30);
+     ctx.beginPath();ctx.roundRect(-5,-40,10,32,[3]);ctx.fill();
+     ctx.beginPath();ctx.ellipse(-5,-42,5.5,6.5,0,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+     ctx.save();ctx.rotate(0.30);
+     ctx.beginPath();ctx.roundRect(-5,-40,10,32,[3]);ctx.fill();
+     ctx.beginPath();ctx.ellipse(5,-42,5.5,6.5,0,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+     /* Corps */
+     ctx.beginPath();ctx.ellipse(0,-10,11,19,0,0,Math.PI*2);ctx.fill();
+     /* Bras */
+     ctx.strokeStyle='rgba(6,3,12,0.92)';ctx.lineWidth=5.5;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-10,-5);ctx.bezierCurveTo(-24,6,-30,1,-32,-9);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(10,-5);ctx.bezierCurveTo(24,6,30,1,32,-9);ctx.stroke();
+     /* Tête */
+     ctx.fillStyle='rgba(6,3,12,0.92)';
+     ctx.beginPath();ctx.ellipse(0,11,10,11,0,0,Math.PI*2);ctx.fill();
+     /* Yeux blancs */
+     ctx.fillStyle='rgba(225,228,248,0.75)';
+     ctx.save();ctx.rotate(-0.18);ctx.beginPath();ctx.ellipse(-4.5,11,5.5,3.8,0,0,Math.PI*2);ctx.fill();ctx.restore();
+     ctx.save();ctx.rotate(0.18);ctx.beginPath();ctx.ellipse(4.5,11,5.5,3.8,0,0,Math.PI*2);ctx.fill();ctx.restore();
+     /* Halo rouge */
+     const spHalo=ctx.createRadialGradient(0,0,6,0,0,52);
+     spHalo.addColorStop(0,'rgba(200,15,15,0.12)');spHalo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=spHalo;ctx.beginPath();ctx.arc(0,0,52,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+    }
+
+    /* ── Spider-Man 2 — debout sur un building, tire un fil ── */
+    function drawSpiderman2(){
+     const sp2X=W*0.78, sp2Y=H*0.66;
+     const lean=Math.sin(t*0.4)*0.08;
+
+     /* Fil lancé depuis le poignet vers la toile centrale */
+     const webTarget=webPoint(18,RINGS,1);
+     ctx.strokeStyle='rgba(205,215,245,0.22)';ctx.lineWidth=1.0;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(sp2X-12,sp2Y-8);
+     ctx.bezierCurveTo(sp2X-40,sp2Y-30,webTarget.x+30,webTarget.y+20,webTarget.x,webTarget.y);
+     ctx.stroke();
+
+     ctx.save();ctx.translate(sp2X,sp2Y);ctx.rotate(lean);
+     ctx.fillStyle='rgba(5,2,10,0.88)';
+     /* Jambes debout */
+     ctx.beginPath();ctx.roundRect(-8,0,7,26,[2]);ctx.fill();
+     ctx.beginPath();ctx.roundRect(1,0,7,26,[2]);ctx.fill();
+     /* Pieds */
+     ctx.beginPath();ctx.ellipse(-6,26,6,4,-0.2,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(5,26,6,4,0.2,0,Math.PI*2);ctx.fill();
+     /* Corps */
+     ctx.beginPath();ctx.ellipse(0,-12,10,16,0,0,Math.PI*2);ctx.fill();
+     /* Bras — un levé pour tirer le fil */
+     ctx.strokeStyle='rgba(5,2,10,0.88)';ctx.lineWidth=5;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-10,-18);ctx.bezierCurveTo(-22,-30,-28,-24,-30,-12);ctx.stroke();
+     /* Bras lanceur */
+     ctx.beginPath();ctx.moveTo(10,-20);ctx.bezierCurveTo(22,-36,26,-40,20,-45);ctx.stroke();
+     /* Tête */
+     ctx.fillStyle='rgba(5,2,10,0.88)';
+     ctx.beginPath();ctx.ellipse(0,-28,9,10,0,0,Math.PI*2);ctx.fill();
+     /* Yeux */
+     ctx.fillStyle='rgba(225,228,248,0.70)';
+     ctx.save();ctx.rotate(-0.15);ctx.beginPath();ctx.ellipse(-3.5,-28,4.5,3.2,0,0,Math.PI*2);ctx.fill();ctx.restore();
+     ctx.save();ctx.rotate(0.15);ctx.beginPath();ctx.ellipse(3.5,-28,4.5,3.2,0,0,Math.PI*2);ctx.fill();ctx.restore();
+     /* Halo bleu */
+     const sp2Halo=ctx.createRadialGradient(0,-15,5,0,-15,45);
+     sp2Halo.addColorStop(0,'rgba(15,50,210,0.10)');sp2Halo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sp2Halo;ctx.beginPath();ctx.arc(0,-15,45,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(0,0,0,0.14)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(0,0,0,0.13)';ctx.fillRect(0,0,W,H);
 
-     /* halos rouge/bleu — couleurs de Spidey */
-     const rg=ctx.createRadialGradient(W*0.28,H*0.25,10,W*0.28,H*0.25,W*0.58);
-     rg.addColorStop(0,'rgba(200,10,30,'+(0.08+Math.sin(t*0.5)*0.025)+')');
+     /* Vibration de la toile cyclique */
+     vibPhase+=0.04;
+     vibAmp=0.6+Math.sin(vibPhase*0.3)*0.4;
+
+     /* Halos rouge/bleu plus intenses */
+     const rg=ctx.createRadialGradient(W*0.22,H*0.20,8,W*0.22,H*0.20,W*0.62);
+     rg.addColorStop(0,`rgba(210,12,28,${0.14+Math.sin(t*0.5)*0.04})`);
      rg.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
 
-     const bg=ctx.createRadialGradient(W*0.72,H*0.48,10,W*0.72,H*0.48,W*0.52);
-     bg.addColorStop(0,'rgba(10,70,200,'+(0.07+Math.cos(t*0.4)*0.02)+')');
+     const bg=ctx.createRadialGradient(W*0.78,H*0.42,8,W*0.78,H*0.42,W*0.56);
+     bg.addColorStop(0,`rgba(12,65,215,${0.12+Math.cos(t*0.4)*0.03})`);
      bg.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-     /* toile + gouttelettes */
+     drawCornerWebs();
      drawWeb();
      drawDrops();
+     drawSkyline();
+     drawSpiderman();
+     drawSpiderman2();
 
-     /* particules */
-     for(let i=0;i<dots.length;i++){
-      const d=dots[i];
+     /* Particules */
+     for(const d of dots){
       d.x+=d.vx;d.y+=d.vy;
       if(d.x<0)d.x=W;if(d.x>W)d.x=0;
       if(d.y<0)d.y=H;if(d.y>H)d.y=0;
       ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle='hsla('+d.hue+',75%,68%,'+d.op+')';ctx.fill();
+      ctx.fillStyle=`hsla(${d.hue},80%,68%,${d.op})`;ctx.fill();
      }
 
-     /* vignette */
-     const vg=ctx.createRadialGradient(W/2,H/2,H*0.12,W/2,H/2,H*0.82);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,5,0.72)');
+     /* Vignette */
+     const vg=ctx.createRadialGradient(W/2,H/2,H*0.10,W/2,H/2,H*0.90);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.5,'rgba(0,0,8,0.20)');
+     vg.addColorStop(1,'rgba(0,0,5,0.90)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
