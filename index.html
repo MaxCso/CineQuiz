@@ -22736,56 +22736,113 @@ function closeAvModal(e){
    name:'Avatar',
    ref:'Avatar \u2014 James Cameron, 2009',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.70';
+    cv.style.opacity='0.72';
     let t=0;
+    const cx=W/2;
 
-    const plants=Array.from({length:30},()=>({
-     x:Math.random()*W,y:H*0.5+Math.random()*H*0.5,
-     h:Math.random()*80+30,w:Math.random()*3+1,
-     hue:140+Math.random()*80,phase:Math.random()*Math.PI*2,
-     op:Math.random()*0.5+0.2
+    // ── Quelques grandes plantes bioluminescentes (pas trop) ──
+    const plants=[
+     {x:W*0.08, baseY:H,    h:H*0.55, w:2.2, hue:165, phase:0.0,  lean:-0.12},
+     {x:W*0.18, baseY:H,    h:H*0.42, w:1.6, hue:175, phase:1.2,  lean: 0.08},
+     {x:W*0.30, baseY:H,    h:H*0.62, w:2.8, hue:155, phase:0.6,  lean:-0.06},
+     {x:W*0.50, baseY:H,    h:H*0.70, w:3.2, hue:170, phase:2.1,  lean: 0.04},
+     {x:W*0.68, baseY:H,    h:H*0.58, w:2.5, hue:160, phase:1.8,  lean:-0.08},
+     {x:W*0.82, baseY:H,    h:H*0.45, w:1.8, hue:180, phase:0.9,  lean: 0.10},
+     {x:W*0.93, baseY:H,    h:H*0.52, w:2.0, hue:168, phase:3.0,  lean:-0.05},
+    ];
+
+    // ── Spores lumineuses — peu mais belles ──
+    const spores=Array.from({length:22},()=>({
+     x:Math.random()*W,
+     y:H*0.3+Math.random()*H*0.6,
+     vx:(Math.random()-0.5)*0.18,
+     vy:-(Math.random()*0.22+0.06),
+     r:Math.random()*2.2+0.8,
+     hue:155+Math.random()*50,
+     op:Math.random()*0.55+0.20,
+     phase:Math.random()*Math.PI*2,
+     phaseSpd:Math.random()*0.025+0.01
     }));
 
-    const spores=Array.from({length:70},()=>({
-     x:Math.random()*W,y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.4,vy:-(Math.random()*0.5+0.1),
-     r:Math.random()*3+1,hue:160+Math.random()*60,
-     op:Math.random()*0.5+0.15,phase:Math.random()*Math.PI*2
-    }));
+    function drawPlant(p){
+     const sway=Math.sin(t*0.35+p.phase)*12*p.lean*-8;
+     const tipX=p.x+sway+p.lean*p.h;
+     const tipY=p.baseY-p.h;
+     const cp1x=p.x+sway*0.3+p.lean*p.h*0.3;
+     const cp1y=p.baseY-p.h*0.55;
+
+     // Tige principale avec dégradé bioluminescent
+     const g=ctx.createLinearGradient(p.x,p.baseY,tipX,tipY);
+     g.addColorStop(0,`hsla(${p.hue},85%,40%,0)`);
+     g.addColorStop(0.35,`hsla(${p.hue},90%,52%,0.55)`);
+     g.addColorStop(0.75,`hsla(${p.hue+10},95%,65%,0.70)`);
+     g.addColorStop(1,`hsla(${p.hue+20},100%,78%,0.45)`);
+     ctx.strokeStyle=g;
+     ctx.lineWidth=p.w;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(p.x,p.baseY);
+     ctx.quadraticCurveTo(cp1x,cp1y,tipX,tipY);
+     ctx.stroke();
+
+     // Lueur douce autour de la tige (halo bioluminescent)
+     const glow=ctx.createLinearGradient(p.x,p.baseY,tipX,tipY);
+     glow.addColorStop(0,`hsla(${p.hue},90%,60%,0)`);
+     glow.addColorStop(0.5,`hsla(${p.hue},90%,60%,0.06)`);
+     glow.addColorStop(1,`hsla(${p.hue+15},95%,70%,0.04)`);
+     ctx.strokeStyle=glow;
+     ctx.lineWidth=p.w*7;
+     ctx.beginPath();
+     ctx.moveTo(p.x,p.baseY);
+     ctx.quadraticCurveTo(cp1x,cp1y,tipX,tipY);
+     ctx.stroke();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(0,4,8,0.14)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(0,3,8,0.14)';ctx.fillRect(0,0,W,H);
 
-     const pg=ctx.createRadialGradient(W*0.5,H*0.3,20,W*0.5,H*0.3,W*0.7);
-     pg.addColorStop(0,`rgba(20,${100+Math.sin(t*0.3)*20|0},180,0.07)`);
-     pg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=pg;ctx.fillRect(0,0,W,H);
+     // Fond Pandora — dégradé bleu nuit profond
+     const sky=ctx.createLinearGradient(0,0,0,H);
+     sky.addColorStop(0,'rgba(0,4,14,0.10)');
+     sky.addColorStop(0.5,'rgba(0,8,20,0.07)');
+     sky.addColorStop(1,'rgba(0,15,25,0.05)');
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
-     for(const p of plants){
-      const sway=Math.sin(t*0.5+p.phase)*8;
-      const g=ctx.createLinearGradient(p.x,p.y,p.x+sway,p.y-p.h);
-      g.addColorStop(0,`hsla(${p.hue},90%,55%,0)`);
-      g.addColorStop(0.5,`hsla(${p.hue},90%,60%,${p.op})`);
-      g.addColorStop(1,`hsla(${p.hue+20},95%,75%,${p.op*0.8})`);
-      ctx.strokeStyle=g;ctx.lineWidth=p.w;
-      ctx.beginPath();ctx.moveTo(p.x,p.y);
-      ctx.quadraticCurveTo(p.x+sway*0.5,p.y-p.h*0.5,p.x+sway,p.y-p.h);
-      ctx.stroke();
-     }
+     // Lueur bioluminescente centrale douce
+     const glow=ctx.createRadialGradient(cx,H*0.65,0,cx,H*0.65,W*0.65);
+     glow.addColorStop(0,`rgba(10,${80+Math.sin(t*0.25)*12|0},160,${0.08+Math.sin(t*0.3)*0.02})`);
+     glow.addColorStop(0.5,`rgba(5,50,110,0.04)`);
+     glow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
 
+     // Plantes
+     plants.forEach(drawPlant);
+
+     // Spores
      for(const s of spores){
-      s.x+=s.vx+Math.sin(t*0.3+s.phase)*0.2;
-      s.y+=s.vy;if(s.y<-5){s.y=H+5;s.x=Math.random()*W;}
-      const pulse=1+Math.sin(t*2+s.phase)*0.3;
+      s.x+=s.vx+Math.sin(t*0.2+s.phase)*0.15;
+      s.y+=s.vy;
+      s.phase+=s.phaseSpd;
+      if(s.y<-10)s.y=H+10;
+      if(s.x<-5)s.x=W+5;if(s.x>W+5)s.x=-5;
+      const pulse=0.7+Math.sin(s.phase*2.2)*0.3;
+      // Corps lumineux
       ctx.beginPath();ctx.arc(s.x,s.y,s.r*pulse,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${s.hue},85%,65%,${s.op})`;ctx.fill();
-
-      ctx.beginPath();ctx.arc(s.x,s.y,s.r*pulse*2.5,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${s.hue},85%,65%,${s.op*0.15})`;ctx.fill();
+      ctx.fillStyle=`hsla(${s.hue},90%,72%,${s.op*pulse})`;ctx.fill();
+      // Halo doux
+      const hg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*pulse*4.5);
+      hg.addColorStop(0,`hsla(${s.hue},85%,65%,${s.op*0.18*pulse})`);
+      hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(s.x,s.y,s.r*pulse*4.5,0,Math.PI*2);ctx.fill();
      }
-     const vg=ctx.createRadialGradient(W/2,H/2,H*0.1,W/2,H/2,H*0.8);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,4,10,0.65)');
+
+     // Vignette
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.05,cx,H*0.5,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.55,'rgba(0,3,8,0.18)');
+     vg.addColorStop(1,'rgba(0,2,6,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
@@ -22993,7 +23050,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     const roseTargetH=SVG_H*roseScale;
     /* Position X : centrée. Position Y : bas de l'écran */
     const roseX=W*0.5-roseTargetW*0.5;
-    const roseY=H*0.80;
+    const roseY=H*0.75;
 
     /* pétales tombants */
     const petals=Array.from({length:16},function(){return{
