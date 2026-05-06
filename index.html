@@ -23514,44 +23514,140 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     fx.fillStyle=floorFog;fx.fillRect(0,floorY,W,H-floorY);
 
     /* ── Valise mystérieuse ── */
-    const bcx=W*0.5, bcy=floorY-2;
-    const bW=W*0.22, bH=bW*0.55;
+    const bcx=W*0.5, bcy=H*0.70;
+    const bW=W*0.52, bH=bW*0.48;
     function drawBriefcase(){
      ctx.save();ctx.translate(bcx,bcy);
-     /* ombre */
-     const sh=ctx.createRadialGradient(0,8,0,0,8,bW*0.8);
-     sh.addColorStop(0,'rgba(0,0,0,0.55)');sh.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sh;ctx.beginPath();ctx.ellipse(0,10,bW*0.7,10,0,0,Math.PI*2);ctx.fill();
-     /* corps */
-     ctx.fillStyle='rgba(14,11,7,0.96)';
-     ctx.beginPath();ctx.roundRect(-bW/2,-bH,bW,bH,4);ctx.fill();
-     /* reflets cuir */
-     const lrg=ctx.createLinearGradient(-bW/2,-bH,-bW/2+bW*0.4,-bH+bH*0.5);
-     lrg.addColorStop(0,'rgba(60,45,28,0.5)');lrg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=lrg;ctx.beginPath();ctx.roundRect(-bW/2,-bH,bW,bH,4);ctx.fill();
-     /* serrures */
-     ctx.fillStyle='rgba(180,155,80,0.85)';
-     ctx.beginPath();ctx.roundRect(-bW*0.12,-bH*0.48,bW*0.24,bH*0.28,2);ctx.fill();
-     ctx.fillStyle='rgba(140,115,55,0.9)';
-     ctx.beginPath();ctx.roundRect(-bW*0.05,-bH*0.38,bW*0.10,bH*0.16,1);ctx.fill();
-     /* poignée */
-     ctx.strokeStyle='rgba(160,135,65,0.8)';ctx.lineWidth=2.5;ctx.lineCap='round';
-     ctx.beginPath();ctx.moveTo(-bW*0.15,-bH);ctx.quadraticCurveTo(-bW*0.15,-bH-bH*0.35,0,-bH-bH*0.35);ctx.quadraticCurveTo(bW*0.15,-bH-bH*0.35,bW*0.15,-bH);ctx.stroke();
-     /* ligne centrale */
-     ctx.strokeStyle='rgba(8,6,4,0.8)';ctx.lineWidth=1;
-     ctx.beginPath();ctx.moveTo(-bW/2,-bH/2);ctx.lineTo(bW/2,-bH/2);ctx.stroke();
-     /* ── LUMIÈRE qui filtre (la valise est entrouverte) ── */
-     const openAmt=0.06+Math.sin(t*0.5)*0.025;
-     const glow=ctx.createLinearGradient(-bW/2,-bH,-bW/2,-bH+4);
-     glow.addColorStop(0,'rgba(255,230,120,'+(0.6+Math.sin(t*1.2)*0.2)+')');
-     glow.addColorStop(1,'rgba(255,200,60,0)');
-     ctx.fillStyle=glow;ctx.fillRect(-bW/2,-bH-1,bW,4);
-     /* halo externe */
-     const halo=ctx.createRadialGradient(0,-bH/2,5,0,-bH/2,bW*1.2);
-     halo.addColorStop(0,'rgba(255,210,80,'+(openAmt*2.5)+')');
-     halo.addColorStop(0.4,'rgba(200,150,30,'+(openAmt*0.8)+')');
+
+     const flick=Math.sin(t*0.7)*0.5+Math.sin(t*1.3)*0.3;
+     const openAmt=0.055+flick*0.018;
+     const glowInt=0.85+flick*0.12;
+
+     /* ── LUMIÈRE qui jaillit de l'intérieur ── */
+     /* Faisceau principal vers le haut */
+     const beamH=bH*3.8;
+     const beam=ctx.createLinearGradient(0,-bH,0,-bH-beamH);
+     beam.addColorStop(0,`rgba(255,220,80,${0.55*glowInt})`);
+     beam.addColorStop(0.15,`rgba(255,200,60,${0.28*glowInt})`);
+     beam.addColorStop(0.45,`rgba(240,170,40,${0.10*glowInt})`);
+     beam.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.beginPath();
+     ctx.moveTo(-bW*0.38,-bH);
+     ctx.lineTo(-bW*0.9,-bH-beamH);
+     ctx.lineTo(bW*0.9,-bH-beamH);
+     ctx.lineTo(bW*0.38,-bH);
+     ctx.closePath();
+     ctx.fillStyle=beam;ctx.fill();
+
+     /* Halo radial large — illumine le sol et les côtés */
+     const halo=ctx.createRadialGradient(0,-bH*0.5,0,0,-bH*0.5,bW*2.2);
+     halo.addColorStop(0,`rgba(255,210,70,${0.22*glowInt})`);
+     halo.addColorStop(0.25,`rgba(220,160,30,${0.10*glowInt})`);
+     halo.addColorStop(0.55,`rgba(180,110,10,${0.04*glowInt})`);
      halo.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=halo;ctx.fillRect(-bW*1.3,-bH*2,bW*2.6,bH*2.5);
+     ctx.fillStyle=halo;ctx.fillRect(-bW*2.5,-bH*3.5,bW*5,bH*5);
+
+     /* Fissure lumineuse — ligne d'ouverture entre couvercle et corps */
+     const crackGrad=ctx.createLinearGradient(-bW/2,-bH/2,bW/2,-bH/2);
+     crackGrad.addColorStop(0,'rgba(255,230,100,0)');
+     crackGrad.addColorStop(0.2,`rgba(255,240,140,${0.9*glowInt})`);
+     crackGrad.addColorStop(0.5,`rgba(255,255,180,${glowInt})`);
+     crackGrad.addColorStop(0.8,`rgba(255,240,140,${0.9*glowInt})`);
+     crackGrad.addColorStop(1,'rgba(255,230,100,0)');
+     ctx.strokeStyle=crackGrad;
+     ctx.lineWidth=2+openAmt*8;
+     ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-bW*0.44,-bH/2);ctx.lineTo(bW*0.44,-bH/2);ctx.stroke();
+
+     /* ── Corps principal de la valise (partie basse) ── */
+     const bodyGrad=ctx.createLinearGradient(-bW/2,0,-bW/2+bW*0.3,0);
+     bodyGrad.addColorStop(0,'rgba(22,16,8,0.97)');
+     bodyGrad.addColorStop(0.4,'rgba(35,26,12,0.96)');
+     bodyGrad.addColorStop(1,'rgba(18,13,6,0.97)');
+     ctx.fillStyle=bodyGrad;
+     ctx.beginPath();ctx.roundRect(-bW/2,-bH/2,bW,bH/2+6,[0,0,5,5]);ctx.fill();
+
+     /* ── Couvercle (partie haute, très légèrement entrouverte) ── */
+     ctx.save();
+     ctx.translate(0,-bH/2);
+     ctx.rotate(-openAmt);
+     const lidGrad=ctx.createLinearGradient(-bW/2,-bH/2,-bW/2+bW*0.35,-bH/2);
+     lidGrad.addColorStop(0,'rgba(18,13,6,0.97)');
+     lidGrad.addColorStop(0.3,'rgba(38,28,12,0.96)');
+     lidGrad.addColorStop(0.7,'rgba(28,20,9,0.97)');
+     lidGrad.addColorStop(1,'rgba(16,11,5,0.97)');
+     ctx.fillStyle=lidGrad;
+     ctx.beginPath();ctx.roundRect(-bW/2,-bH/2,bW,bH/2,[5,5,0,0]);ctx.fill();
+     /* Reflet de lumière interne sur le couvercle */
+     const innerGlow=ctx.createLinearGradient(0,-bH/2,0,0);
+     innerGlow.addColorStop(0,'rgba(0,0,0,0)');
+     innerGlow.addColorStop(0.7,`rgba(255,200,60,${0.08*glowInt})`);
+     innerGlow.addColorStop(1,`rgba(255,220,80,${0.18*glowInt})`);
+     ctx.fillStyle=innerGlow;
+     ctx.beginPath();ctx.roundRect(-bW/2,-bH/2,bW,bH/2,[5,5,0,0]);ctx.fill();
+     ctx.restore();
+
+     /* ── Ferrures et détails cuir ── */
+     /* Coins métalliques */
+     const corners=[[-bW/2+4,4],[bW/2-4,4],[-bW/2+4,-bH+4],[bW/2-4,-bH+4]];
+     ctx.fillStyle='rgba(140,115,55,0.85)';
+     for(const [cx2,cy2] of corners){
+      ctx.beginPath();ctx.roundRect(cx2-5,cy2-5,10,10,2);ctx.fill();
+     }
+
+     /* Serrures — deux côté à côté, style vintage */
+     for(const lx of [-bW*0.12, bW*0.12]){
+      /* corps serrure */
+      ctx.fillStyle='rgba(165,138,62,0.90)';
+      ctx.beginPath();ctx.roundRect(lx-bW*0.07,-bH*0.12,bW*0.14,bH*0.24,3);ctx.fill();
+      /* reflet métal */
+      ctx.fillStyle='rgba(210,185,100,0.40)';
+      ctx.beginPath();ctx.roundRect(lx-bW*0.07,-bH*0.12,bW*0.06,bH*0.10,2);ctx.fill();
+      /* trou de serrure */
+      ctx.fillStyle='rgba(10,7,3,0.92)';
+      ctx.beginPath();ctx.arc(lx,-bH*0.01,bW*0.018,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(lx-bW*0.01,bH*0.01);ctx.lineTo(lx-bW*0.01,bH*0.07);ctx.lineTo(lx+bW*0.01,bH*0.07);ctx.lineTo(lx+bW*0.01,bH*0.01);ctx.closePath();ctx.fill();
+      /* lueur de serrure */
+      ctx.fillStyle=`rgba(255,215,80,${0.15*glowInt})`;
+      ctx.beginPath();ctx.arc(lx,-bH*0.01,bW*0.022,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Charnières au dos (simulées sur le côté) */
+     ctx.fillStyle='rgba(130,105,48,0.75)';
+     for(const hy of [-bH*0.35,-bH*0.5,-bH*0.65]){
+      ctx.beginPath();ctx.roundRect(-bW/2-2,hy,8,8,1);ctx.fill();
+     }
+
+     /* Ligne de séparation couvercle/corps */
+     ctx.strokeStyle='rgba(8,5,2,0.9)';ctx.lineWidth=1.2;
+     ctx.beginPath();ctx.moveTo(-bW/2,-bH/2);ctx.lineTo(bW/2,-bH/2);ctx.stroke();
+
+     /* Coutures cuir */
+     ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(50,36,16,0.55)';ctx.lineWidth=0.8;
+     ctx.beginPath();ctx.roundRect(-bW/2+8,-bH+8,bW-16,bH-16,3);ctx.stroke();
+     ctx.setLineDash([]);
+
+     /* Poignée en cuir */
+     const hgGrad=ctx.createLinearGradient(-bW*0.18,-bH-bH*0.45,bW*0.18,-bH-bH*0.45);
+     hgGrad.addColorStop(0,'rgba(140,105,40,0.85)');
+     hgGrad.addColorStop(0.5,'rgba(100,75,28,0.90)');
+     hgGrad.addColorStop(1,'rgba(140,105,40,0.85)');
+     ctx.strokeStyle=hgGrad;ctx.lineWidth=5;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(-bW*0.16,-bH);
+     ctx.bezierCurveTo(-bW*0.16,-bH-bH*0.48,bW*0.16,-bH-bH*0.48,bW*0.16,-bH);
+     ctx.stroke();
+     /* anneau de fixation poignée */
+     for(const px of [-bW*0.16,bW*0.16]){
+      ctx.fillStyle='rgba(155,120,50,0.85)';
+      ctx.beginPath();ctx.roundRect(px-5,-bH-4,10,10,2);ctx.fill();
+     }
+
+     /* Ombre portée au sol */
+     const sh=ctx.createRadialGradient(0,8,0,0,10,bW*0.7);
+     sh.addColorStop(0,'rgba(0,0,0,0.50)');sh.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sh;ctx.beginPath();ctx.ellipse(0,10,bW*0.55,10,0,0,Math.PI*2);ctx.fill();
+
      ctx.restore();
     }
 
