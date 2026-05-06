@@ -27092,53 +27092,152 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:"Schindler's List",
    ref:"Schindler's List \u2014 Steven Spielberg, 1993",
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.62';
+    cv.style.opacity='1';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2;
 
-    const ashes=Array.from({length:90},()=>({
+    /* ── Fond noir & blanc ── */
+    ctx.fillStyle='#080808';ctx.fillRect(0,0,W,H);
+
+    /* ── Cendres ── */
+    const ashes=Array.from({length:110},()=>({
      x:Math.random()*W,y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.6,vy:Math.random()*0.8+0.2,
-     r:Math.random()*3+1,op:Math.random()*0.5+0.15,
-     rot:Math.random()*Math.PI*2,rotSpd:(Math.random()-0.5)*0.02,
-     grey:Math.floor(Math.random()*60+180)
+     vx:(Math.random()-0.5)*0.5,vy:Math.random()*0.7+0.15,
+     rx:Math.random()*3+0.8,ry:Math.random()*1.5+0.4,
+     op:Math.random()*0.55+0.12,
+     rot:Math.random()*Math.PI*2,rotSpd:(Math.random()-0.5)*0.025,
+     wobble:Math.random()*Math.PI*2,wobSpd:Math.random()*0.018+0.006,
+     isEmber:Math.random()<0.18
     }));
 
-    let girlX=W*0.38,girlY=H*0.45;
+    /* ── Bougie ── */
+    const candleX=cx,candleBaseY=H*0.72;
+    const candleW=10,candleH=52;
+    let flickerPhase=0;
+
+    /* ── Silhouette fille en rouge ── */
+    const gx=W*0.42,gy=H*0.60;
+
+    function drawCandle(){
+     const flick=Math.sin(flickerPhase)*0.6+Math.sin(flickerPhase*2.3)*0.35;
+     const fScale=1+flick*0.08;
+     const fX=candleX+flick*1.8;
+
+     /* Halo de bougie au sol */
+     const halo=ctx.createRadialGradient(candleX,candleBaseY+4,0,candleX,candleBaseY+4,55);
+     halo.addColorStop(0,'rgba(200,120,20,0.08)');halo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=halo;ctx.fillRect(candleX-60,candleBaseY-20,120,80);
+
+     /* Corps de la bougie */
+     ctx.fillStyle='#1a1a1a';
+     ctx.beginPath();
+     ctx.roundRect(candleX-candleW/2,candleBaseY-candleH,candleW,candleH,2);
+     ctx.fill();
+     ctx.fillStyle='rgba(255,255,255,0.04)';
+     ctx.beginPath();ctx.roundRect(candleX-candleW/2,candleBaseY-candleH,candleW*0.35,candleH,2);ctx.fill();
+
+     /* Cire fondue */
+     ctx.fillStyle='#222';
+     ctx.beginPath();ctx.ellipse(candleX,candleBaseY-candleH,candleW/2+1,3,0,0,Math.PI*2);ctx.fill();
+
+     /* Mèche */
+     ctx.strokeStyle='#555';ctx.lineWidth=1.2;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(candleX,candleBaseY-candleH);ctx.lineTo(candleX+flick*0.5,candleBaseY-candleH-7);ctx.stroke();
+
+     /* Flamme — couche extérieure */
+     ctx.save();ctx.translate(fX,candleBaseY-candleH-7);ctx.scale(fScale,fScale);
+     const fg1=ctx.createRadialGradient(0,0,0,0,0,12);
+     fg1.addColorStop(0,'rgba(255,230,140,0.9)');fg1.addColorStop(0.5,'rgba(255,140,30,0.6)');fg1.addColorStop(1,'rgba(200,60,0,0)');
+     ctx.fillStyle=fg1;
+     ctx.beginPath();ctx.ellipse(0,-5,7,12,0,0,Math.PI*2);ctx.fill();
+     /* Flamme — cœur */
+     const fg2=ctx.createRadialGradient(0,-2,0,0,-2,6);
+     fg2.addColorStop(0,'rgba(255,255,220,1)');fg2.addColorStop(0.4,'rgba(255,200,80,0.9)');fg2.addColorStop(1,'rgba(255,100,0,0)');
+     ctx.fillStyle=fg2;
+     ctx.beginPath();ctx.ellipse(0,-4,3.5,7,0,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
+     /* Reflet lumineux sur le plan */
+     const glow=ctx.createRadialGradient(candleX,candleBaseY-candleH-14,0,candleX,candleBaseY-candleH-14,W*0.55);
+     glow.addColorStop(0,'rgba(210,160,60,0.06)');glow.addColorStop(0.4,'rgba(180,120,30,0.025)');glow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+    }
+
+    function drawGirl(){
+     ctx.save();ctx.globalAlpha=0.88;
+
+     /* Robe — rouge vif, iconic */
+     const rdGrad=ctx.createLinearGradient(gx-8,gy-28,gx+8,gy+2);
+     rdGrad.addColorStop(0,'rgba(210,25,25,0.95)');rdGrad.addColorStop(1,'rgba(160,15,15,0.9)');
+
+     /* Tête */
+     ctx.fillStyle='#1c1c1c';
+     ctx.beginPath();ctx.ellipse(gx,gy-38,5,6,0,0,Math.PI*2);ctx.fill();
+
+     /* Manteau rouge */
+     ctx.fillStyle=rdGrad;
+     /* Buste */
+     ctx.beginPath();ctx.roundRect(gx-7,gy-32,14,18,3);ctx.fill();
+     /* Jupe évasée */
+     ctx.beginPath();
+     ctx.moveTo(gx-7,gy-14);ctx.lineTo(gx-12,gy+4);
+     ctx.lineTo(gx+12,gy+4);ctx.lineTo(gx+7,gy-14);ctx.closePath();
+     ctx.fill();
+
+     /* Chapeau */
+     ctx.fillStyle='rgba(180,18,18,0.9)';
+     ctx.beginPath();ctx.ellipse(gx,gy-44,6,2.5,0,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.roundRect(gx-3,gy-48,6,6,1);ctx.fill();
+
+     /* Jambes */
+     ctx.fillStyle='#161616';
+     ctx.fillRect(gx-6,gy+4,5,12);ctx.fillRect(gx+1,gy+4,5,12);
+
+     /* Chaussures */
+     ctx.fillStyle='#111';
+     ctx.beginPath();ctx.ellipse(gx-3.5,gy+16,4,2,0,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(gx+3.5,gy+16,4,2,0,0,Math.PI*2);ctx.fill();
+
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
 
-     ctx.fillStyle='rgba(4,4,4,0.16)';ctx.fillRect(0,0,W,H);
+     /* Trail */
+     ctx.fillStyle='rgba(6,6,6,0.18)';ctx.fillRect(0,0,W,H);
 
-     const lg=ctx.createRadialGradient(cx,H*0.35,20,cx,H*0.35,W*0.6);
-     lg.addColorStop(0,'rgba(180,180,180,0.05)');lg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=lg;ctx.fillRect(0,0,W,H);
+     /* Fond sépia très léger centré */
+     const sg=ctx.createRadialGradient(cx,H*0.38,0,cx,H*0.38,W*0.7);
+     sg.addColorStop(0,'rgba(60,40,10,0.04)');sg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);
 
+     flickerPhase+=0.07+Math.random()*0.04;
+     drawCandle();
+     drawGirl();
+
+     /* Cendres */
      for(const a of ashes){
-      a.x+=a.vx+Math.sin(t*0.3+a.op*10)*0.2;
+      a.wobble+=a.wobSpd;
+      a.x+=a.vx+Math.sin(a.wobble)*0.3;
       a.y+=a.vy;a.rot+=a.rotSpd;
-      if(a.y>H+a.r){a.y=-a.r;a.x=Math.random()*W;}
+      if(a.y>H+a.rx){a.y=-a.rx;a.x=Math.random()*W;}
       ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.rot);
-      ctx.fillStyle=`rgba(${a.grey},${a.grey},${a.grey},${a.op})`;
-      ctx.beginPath();ctx.ellipse(0,0,a.r,a.r*0.5,0,0,Math.PI*2);ctx.fill();
+      if(a.isEmber){
+       ctx.fillStyle=`rgba(220,130,40,${a.op*0.8})`;
+      }else{
+       const g=Math.floor(170+Math.random()*60);
+       ctx.fillStyle=`rgba(${g},${g},${g},${a.op})`;
+      }
+      ctx.beginPath();ctx.ellipse(0,0,a.rx,a.ry,0,0,Math.PI*2);ctx.fill();
       ctx.restore();
      }
 
-     ctx.save();ctx.globalAlpha=0.6;ctx.fillStyle='rgba(30,30,30,0.85)';
-     ctx.beginPath();ctx.ellipse(girlX+30,girlY-20,6,8,0,0,Math.PI*2);ctx.fill();
-     ctx.fillRect(girlX+24,girlY-12,12,20);ctx.restore();
-
-     ctx.save();ctx.globalAlpha=0.85;
-     ctx.fillStyle='rgba(220,30,30,0.9)'; 
-     ctx.beginPath();ctx.ellipse(girlX,girlY-18,5,6,0,0,Math.PI*2);ctx.fill();
-     ctx.fillRect(girlX-5,girlY-12,10,18);
-
-     ctx.fillStyle='rgba(200,25,25,0.85)';
-     ctx.fillRect(girlX-6,girlY-24,12,5);
-     ctx.restore();
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.85);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.75)');
+     /* Vignette */
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.15,cx,H*0.5,H*0.85);
+     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
