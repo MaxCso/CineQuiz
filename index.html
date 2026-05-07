@@ -27040,62 +27040,104 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     }
 
     function draw88(){
-     const pulse=0.75+Math.sin(t*8)*0.25;
-     const dx=cx, dy=H*0.20;
+     // ── Tableau de bord DeLorean — 3 rangées LED 7-segments ──
+     const bW=W*0.88, bH=H*0.185;
+     const bX=cx-bW/2, bY=H*0.055;
+     const rowH=bH/3;
+
+     // Boîtier métallique
      ctx.save();
-
-     // ── Cadran de compteur ──
-     const cadW=W*0.52, cadH=cadW*0.38;
-     const cadX=dx-cadW/2, cadY=dy-cadH*0.52;
-
-     // Fond du cadran — verre sombre
-     ctx.fillStyle='rgba(4,2,10,0.82)';
-     ctx.beginPath();
-     ctx.roundRect(cadX, cadY, cadW, cadH, 10);
-     ctx.fill();
-
-     // Bordure lumineuse orange
-     ctx.strokeStyle=`rgba(255,${100+pulse*40|0},10,${0.55+pulse*0.2})`;
-     ctx.lineWidth=1.5;
-     ctx.shadowColor='rgba(255,80,0,0.6)';ctx.shadowBlur=10;
-     ctx.beginPath();ctx.roundRect(cadX, cadY, cadW, cadH, 10);ctx.stroke();
+     ctx.fillStyle='rgba(12,10,14,0.93)';
+     ctx.strokeStyle='rgba(55,50,60,0.8)';ctx.lineWidth=1.5;
+     ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=12;
+     ctx.beginPath();ctx.roundRect(bX,bY,bW,bH,5);
+     ctx.fill();ctx.stroke();
      ctx.shadowBlur=0;
 
-     // Petites graduations en bas du cadran
-     const nTicks=11;
-     for(let i=0;i<=nTicks;i++){
-      const px=cadX+10+(i/nTicks)*(cadW-20);
-      const isMajor=(i%5===0);
-      ctx.strokeStyle=`rgba(255,${80+pulse*20|0},8,${isMajor?0.6:0.28})`;
-      ctx.lineWidth=isMajor?1.2:0.6;
-      ctx.beginPath();
-      ctx.moveTo(px, cadY+cadH-8);
-      ctx.lineTo(px, cadY+cadH-(isMajor?18:12));
-      ctx.stroke();
-     }
-     // Aiguille pointant vers 88 (max)
-     const needleX=cadX+cadW*0.92;
-     const needleY=cadY+cadH*0.55;
-     ctx.strokeStyle=`rgba(255,60,0,${0.7+pulse*0.2})`;
-     ctx.lineWidth=1.5;
-     ctx.shadowColor='rgba(255,60,0,0.8)';ctx.shadowBlur=8;
-     ctx.beginPath();ctx.moveTo(cadX+cadW*0.5,cadY+cadH*0.75);ctx.lineTo(needleX,needleY);ctx.stroke();
-     ctx.shadowBlur=0;
+     // Boulons aux coins
+     [[bX+6,bY+6],[bX+bW-6,bY+6],[bX+6,bY+bH-6],[bX+bW-6,bY+bH-6]].forEach(([bx,by])=>{
+      ctx.fillStyle='rgba(70,65,75,0.9)';
+      ctx.beginPath();ctx.arc(bx,by,3,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(40,38,44,0.9)';ctx.lineWidth=0.5;ctx.stroke();
+     });
 
-     // Chiffre 88
-     ctx.textAlign='center';ctx.textBaseline='middle';
-     ctx.shadowColor='rgba(255,80,0,0.9)';ctx.shadowBlur=20;
-     ctx.font=`bold ${W*0.105}px "Courier New",monospace`;
-     ctx.fillStyle=`rgba(255,${75+pulse*25|0},5,${0.80+pulse*0.12})`;
-     ctx.fillText('88', dx-W*0.06, dy);
+     // 3 rangées : DESTINATION (rouge), PRESENT (vert), LAST (ambre)
+     const rows=[
+      {label:'DESTINATION TIME', color:'255,30,10',  month:'OCT', day:'26', year:'1985', time:'09:00'},
+      {label:'PRESENT TIME',     color:'40,230,60',  month:'OCT', day:'21', year:'2015', time:'07:28'},
+      {label:'LAST TIME DEPARTED',color:'255,165,0', month:'NOV', day:'12', year:'1955', time:'06:38'},
+     ];
 
-     // MPH
-     ctx.font=`bold ${W*0.036}px "Courier New",monospace`;
-     ctx.shadowBlur=10;
-     ctx.fillStyle=`rgba(255,55,8,${0.60+pulse*0.1})`;
-     ctx.fillText('MPH', dx+W*0.085, dy);
+     rows.forEach((row,ri)=>{
+      const ry=bY+ri*rowH;
+      const [r,g,b]=row.color.split(',').map(Number);
+      const glow=ri===1?0.85+Math.sin(t*2)*0.12:0.78; // PRESENT clignote légèrement
 
-     ctx.shadowBlur=0;ctx.restore();
+      // Séparateur entre rangées
+      if(ri>0){
+       ctx.strokeStyle='rgba(40,38,44,0.7)';ctx.lineWidth=0.8;
+       ctx.beginPath();ctx.moveTo(bX+4,ry);ctx.lineTo(bX+bW-4,ry);ctx.stroke();
+      }
+
+      // Fond de rangée légèrement distinct
+      ctx.fillStyle=`rgba(${r*0.04|0},${g*0.04|0},${b*0.04|0},0.5)`;
+      ctx.fillRect(bX+2, ry+1, bW-4, rowH-2);
+
+      // Colonnes : MONTH | DAY | YEAR | PM HOUR:MIN
+      const pad=6, innerW=bW-pad*2;
+      // Proportions : 0.18 | 0.14 | 0.22 | 0.06 | 0.28 (séparateur PM + HOUR:MIN)
+      const cols=[
+       {key:'month', label:'MONTH', val:row.month, x:bX+pad,            w:innerW*0.18},
+       {key:'day',   label:'DAY',   val:row.day,   x:bX+pad+innerW*0.19,w:innerW*0.13},
+       {key:'year',  label:'YEAR',  val:row.year,  x:bX+pad+innerW*0.33,w:innerW*0.22},
+       {key:'pm',    label:'PM',    val:'PM',       x:bX+pad+innerW*0.56,w:innerW*0.07},
+       {key:'time',  label:'HOUR MIN',val:row.time, x:bX+pad+innerW*0.63,w:innerW*0.35},
+      ];
+
+      cols.forEach(col=>{
+       // Fond cellule
+       ctx.fillStyle='rgba(5,4,8,0.75)';
+       ctx.beginPath();ctx.roundRect(col.x+1, ry+rowH*0.06, col.w-2, rowH*0.62, 2);ctx.fill();
+
+       // Valeur LED
+       ctx.save();
+       ctx.shadowColor=`rgba(${r},${g},${b},0.9)`;
+       ctx.shadowBlur=col.key==='time'?8:5;
+       ctx.fillStyle=`rgba(${r},${g},${b},${glow})`;
+       ctx.textAlign='center';ctx.textBaseline='middle';
+       const fontSize=col.key==='pm'?rowH*0.18:rowH*0.30;
+       ctx.font=`bold ${fontSize}px "Courier New",monospace`;
+       ctx.fillText(col.val, col.x+col.w/2, ry+rowH*0.37);
+       ctx.restore();
+
+       // Label en haut de cellule
+       ctx.fillStyle=`rgba(${r},${g},${b},0.40)`;
+       ctx.font=`${rowH*0.13}px sans-serif`;
+       ctx.textAlign='center';ctx.textBaseline='top';
+       ctx.fillText(col.label, col.x+col.w/2, ry+rowH*0.70);
+      });
+
+      // Label rangée en bas
+      ctx.fillStyle=`rgba(${r},${g},${b},0.55)`;
+      ctx.font=`bold ${rowH*0.14}px sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText(row.label, cx, ry+rowH-1);
+     });
+
+     // Deux petits points clignotants entre HOUR et MIN (style original)
+     rows.forEach((row,ri)=>{
+      const ry=bY+ri*rowH;
+      const [r,g,b]=row.color.split(',').map(Number);
+      const dotX=bX+bW*0.81, dotY1=ry+rowH*0.25, dotY2=ry+rowH*0.48;
+      const blink=Math.sin(t*4+ri)>0?0.9:0.15;
+      ctx.fillStyle=`rgba(${r},${g},${b},${blink})`;
+      ctx.shadowColor=`rgba(${r},${g},${b},0.8)`;ctx.shadowBlur=4;
+      ctx.beginPath();ctx.arc(dotX,dotY1,2,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(dotX,dotY2,2,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+     });
+
+     ctx.restore();
     }
 
     function drawHillValleySign(){
