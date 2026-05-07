@@ -24139,45 +24139,22 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     let t=0;
     const cx=W/2;
 
-    /* ── Savon rose pré-dessiné — plus grand, centré ── */
-    const sW=Math.min(W,H)*0.16, sH=sW*0.58;
-    const soapC=document.createElement('canvas');
-    soapC.width=sW+30;soapC.height=sH+30;
-    const sx=soapC.getContext('2d');
-    const scx=sW/2+15, scy=sH/2+15;
-    /* corps rose */
-    const sg=sx.createLinearGradient(scx-sW/2,scy-sH/2,scx+sW/2,scy+sH/2);
-    sg.addColorStop(0,'rgba(238,148,172,0.98)');
-    sg.addColorStop(0.4,'rgba(212,112,148,0.98)');
-    sg.addColorStop(1,'rgba(182,82,120,0.96)');
-    sx.fillStyle=sg;
-    sx.beginPath();sx.roundRect(scx-sW/2,scy-sH/2,sW,sH,10);sx.fill();
-    /* reflet spéculaire */
-    const spec=sx.createLinearGradient(scx-sW/2,scy-sH/2,scx-sW/6,scy-sH/5);
-    spec.addColorStop(0,'rgba(255,210,228,0.42)');spec.addColorStop(1,'rgba(255,210,228,0)');
-    sx.fillStyle=spec;sx.beginPath();sx.roundRect(scx-sW/2,scy-sH/2,sW,sH,10);sx.fill();
-    /* ombre sous la savon */
-    sx.strokeStyle='rgba(155,65,95,0.60)';sx.lineWidth=1.4;
-    sx.beginPath();sx.roundRect(scx-sW/2+1,scy-sH/2+1,sW-2,sH-2,9);sx.stroke();
-    /* texture mousse */
-    for(let i=0;i<22;i++){
-     sx.fillStyle='rgba(155,65,95,'+(0.04+Math.random()*0.07)+')';
-     sx.beginPath();sx.arc(scx-sW/2+Math.random()*sW,scy-sH/2+Math.random()*sH,Math.random()*1.8+0.4,0,Math.PI*2);sx.fill();
-    }
-    /* FIGHT CLUB gravé */
-    sx.save();sx.textAlign='center';sx.textBaseline='middle';
-    sx.font='bold '+Math.floor(sW*0.21)+'px sans-serif';
-    /* ombre de gravure */
-    sx.fillStyle='rgba(135,50,80,0.70)';
-    sx.fillText('FIGHT',scx+1.5,scy-sH*0.16+1.5);
-    sx.fillText('CLUB', scx+1.5,scy+sH*0.18+1.5);
-    /* texte relief */
-    sx.fillStyle='rgba(248,185,210,0.90)';
-    sx.fillText('FIGHT',scx,scy-sH*0.16);
-    sx.fillText('CLUB', scx,scy+sH*0.18);
-    sx.restore();
-
-    const soapFloat=Math.random()*Math.PI*2;
+    /* ── Tours jumelles + explosions ── */
+    // Explosions en cascade sur les deux tours
+    const blasts=Array.from({length:12},(_,i)=>({
+     tower: i%2===0 ? -1 : 1,          // -1=gauche, 1=droite
+     floor: 0.35+Math.random()*0.55,   // hauteur relative sur la tour (0=bas, 1=haut)
+     timer: Math.floor(Math.random()*160),
+     active:false, r:0, maxR:0, op:0
+    }));
+    // Débris
+    const debris=Array.from({length:28},()=>({
+     x:0,y:0,vx:0,vy:0,life:0,maxLife:0,active:false,r:0,timer:Math.floor(Math.random()*80)
+    }));
+    // Fumée
+    const smokes=Array.from({length:18},()=>({
+     x:0,y:0,vx:0,vy:0,r:0,op:0,active:false,timer:Math.floor(Math.random()*100)
+    }));
 
     /* ── Mots subliminaux — plusieurs simultanément ── */
     const subliminal=['CONSUME','OBEY','SLEEP','COMPLY','BUY','DESTROY','SUBMIT','CONFORM','KILL','WORK','SPEND','HATE'];
@@ -24262,11 +24239,156 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ambL.addColorStop(0,'rgba(18,12,35,0.22)');ambL.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=ambL;ctx.fillRect(0,0,W,H);
 
-     // Savon en haut, centré
-     const sy=H*0.16+Math.sin(t*0.55+soapFloat)*4;
-     ctx.save();ctx.globalAlpha=0.94;
-     ctx.drawImage(soapC,cx-sW/2-15,sy-sH/2-15);
-     ctx.restore();
+     // ── Tours jumelles + explosions ──
+     // Dimensions : tours hautes et élancées, côte à côte
+     const TW=W*0.072, TH=H*0.26;
+     const BASE=H*0.32;
+     const LX=cx-W*0.155, RX=cx+W*0.155;
+
+     // Lueur de fond — incendie ambiant
+     const fglow=ctx.createRadialGradient(cx,BASE-TH*0.4,5,cx,BASE-TH*0.4,W*0.6);
+     fglow.addColorStop(0,`rgba(${200+Math.sin(t*2)*15|0},70,8,${0.18+Math.sin(t*1.8)*0.06})`);
+     fglow.addColorStop(0.4,'rgba(120,30,4,0.10)');
+     fglow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=fglow;ctx.fillRect(0,0,W,BASE+10);
+
+     // Fumée montante (dessinée AVANT les tours pour être derrière)
+     for(const sm of smokes){
+      sm.timer--;
+      if(sm.timer<=0&&!sm.active){
+       sm.active=true;
+       const side=Math.random()<0.5;
+       sm.x=(side?LX:RX)+(Math.random()-0.5)*TW*1.4;
+       sm.y=BASE-TH*(0.5+Math.random()*0.5);
+       sm.vx=(Math.random()-0.5)*0.4;sm.vy=-(Math.random()*0.5+0.25);
+       sm.r=TW*(0.4+Math.random()*0.3);sm.op=0.18+Math.random()*0.10;
+       sm.timer=40+Math.floor(Math.random()*50);
+      }
+      if(sm.active){
+       sm.x+=sm.vx;sm.y+=sm.vy;sm.r+=0.7;sm.op*=0.975;
+       if(sm.op<0.008) sm.active=false;
+       const skg=ctx.createRadialGradient(sm.x,sm.y,0,sm.x,sm.y,sm.r);
+       skg.addColorStop(0,`rgba(65,55,48,${sm.op})`);
+       skg.addColorStop(0.5,`rgba(40,32,28,${sm.op*0.5})`);
+       skg.addColorStop(1,'rgba(0,0,0,0)');
+       ctx.fillStyle=skg;ctx.fillRect(sm.x-sm.r,sm.y-sm.r,sm.r*2,sm.r*2);
+      }
+     }
+
+     // Fonction pour dessiner une tour élancée
+     function drawTower(tx){
+      // Façade principale — dégradé vertical sombre avec reflets chauds en bas
+      const tg=ctx.createLinearGradient(tx,BASE-TH,tx,BASE);
+      tg.addColorStop(0,'rgba(22,18,14,0.97)');
+      tg.addColorStop(0.55,'rgba(28,22,16,0.97)');
+      tg.addColorStop(0.85,'rgba(45,32,18,0.97)');
+      tg.addColorStop(1,'rgba(60,40,18,0.97)');
+      ctx.fillStyle=tg;
+      ctx.fillRect(tx-TW/2, BASE-TH, TW, TH);
+
+      // Reflet latéral (côté droit de chaque tour)
+      const side=ctx.createLinearGradient(tx+TW/2-4,0,tx+TW/2+2,0);
+      side.addColorStop(0,'rgba(50,38,22,0.0)');
+      side.addColorStop(1,'rgba(50,38,22,0.3)');
+      ctx.fillStyle=side;
+      ctx.fillRect(tx+TW/2-5,BASE-TH,6,TH);
+
+      // Bandes horizontales (étages) — très fines
+      ctx.strokeStyle='rgba(15,12,9,0.55)';ctx.lineWidth=0.5;
+      const floors=14;
+      for(let fi=1;fi<floors;fi++){
+       const fy=BASE-TH+fi*(TH/floors);
+       ctx.beginPath();ctx.moveTo(tx-TW/2,fy);ctx.lineTo(tx+TW/2,fy);ctx.stroke();
+      }
+
+      // Fenêtres allumées en orange/feu — groupées par étages
+      for(let fi=2;fi<floors-1;fi++){
+       for(let wi=0;wi<4;wi++){
+        const glow=Math.sin(t*2.2+fi*0.8+wi*1.1+tx)>0.15;
+        const onFire=Math.sin(t*3.5+fi*1.4+wi*0.9+tx*0.01)>0.55;
+        if(glow||onFire){
+         const wx=tx-TW/2+4+(wi*(TW-8)/4)+1;
+         const wy=BASE-TH+fi*(TH/floors)+2;
+         const ww=(TW-8)/4-2, wh=TH/floors-3;
+         if(onFire){
+          const wg=ctx.createRadialGradient(wx+ww/2,wy+wh/2,0,wx+ww/2,wy+wh/2,ww*1.2);
+          wg.addColorStop(0,`rgba(255,${200+Math.random()*40|0},60,0.90)`);
+          wg.addColorStop(0.5,`rgba(255,100,10,0.55)`);
+          wg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=wg;ctx.fillRect(wx-ww*0.3,wy-wh*0.3,ww*1.6,wh*1.6);
+         } else {
+          ctx.fillStyle=`rgba(255,${160+Math.random()*50|0},40,${0.35+Math.random()*0.15})`;
+          ctx.fillRect(wx,wy,ww,wh);
+         }
+        }
+       }
+      }
+
+      // Antenne au sommet
+      ctx.strokeStyle='rgba(40,34,26,0.85)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(tx,BASE-TH);ctx.lineTo(tx,BASE-TH-TH*0.08);ctx.stroke();
+      // Petit voyant rouge qui clignote
+      ctx.fillStyle=`rgba(255,50,30,${0.5+Math.sin(t*2.5)*0.5})`;
+      ctx.beginPath();ctx.arc(tx,BASE-TH-TH*0.08,2,0,Math.PI*2);ctx.fill();
+
+      // Contour de la tour
+      ctx.strokeStyle='rgba(10,8,6,0.8)';ctx.lineWidth=1;
+      ctx.strokeRect(tx-TW/2,BASE-TH,TW,TH);
+     }
+
+     drawTower(LX);
+     drawTower(RX);
+
+     // Explosions en cascade sur les flancs des tours
+     for(const bl of blasts){
+      bl.timer--;
+      if(bl.timer<=0&&!bl.active){
+       bl.active=true;bl.r=0;
+       bl.maxR=TW*(0.8+Math.random()*0.9);
+       bl.op=0.88;
+       bl.floor=0.15+Math.random()*0.75;
+       bl.timer=20+Math.floor(Math.random()*70);
+      }
+      if(bl.active){
+       bl.r+=2.2;bl.op*=0.90;
+       const bx=(bl.tower<0?LX:RX)+(Math.random()-0.5)*TW*0.7;
+       const by=BASE-TH*bl.floor;
+       if(bl.r<=bl.maxR&&bl.op>0.015){
+        // Coeur blanc-jaune
+        const eg=ctx.createRadialGradient(bx,by,0,bx,by,bl.r);
+        eg.addColorStop(0,`rgba(255,252,200,${bl.op})`);
+        eg.addColorStop(0.15,`rgba(255,200,50,${bl.op*0.9})`);
+        eg.addColorStop(0.4,`rgba(255,80,10,${bl.op*0.6})`);
+        eg.addColorStop(0.7,`rgba(140,30,4,${bl.op*0.25})`);
+        eg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=eg;ctx.fillRect(bx-bl.r,by-bl.r,bl.r*2,bl.r*2);
+       } else {
+        bl.active=false;
+       }
+      }
+     }
+
+     // Débris incandescents
+     for(const db of debris){
+      db.timer--;
+      if(db.timer<=0&&!db.active){
+       db.active=true;
+       db.x=(Math.random()<0.5?LX:RX)+(Math.random()-0.5)*TW;
+       db.y=BASE-TH*(0.15+Math.random()*0.75);
+       db.vx=(Math.random()-0.5)*3.5;db.vy=-(Math.random()*2+0.5);
+       db.r=Math.random()*2+0.6;
+       db.maxLife=35+Math.random()*25|0;db.life=db.maxLife;
+       db.timer=15+Math.floor(Math.random()*40);
+      }
+      if(db.active){
+       db.x+=db.vx;db.y+=db.vy;db.vy+=0.22;db.vx*=0.98;db.life--;
+       const da=db.life/db.maxLife;
+       const dr=180+Math.random()*75|0, dg=60+Math.random()*60|0;
+       ctx.fillStyle=`rgba(${dr},${dg},10,${da*0.85})`;
+       ctx.beginPath();ctx.arc(db.x,db.y,Math.max(0.1,db.r*da),0,Math.PI*2);ctx.fill();
+       if(db.life<=0) db.active=false;
+      }
+     }
 
      // Impacts
      for(const imp of impacts){
