@@ -29594,7 +29594,19 @@ function runSplash(){
       if(!aud){ setTimeout(closeSplash, closeDelay); return; }
 
       _splashAudioPlaying = aud;
-      aud.addEventListener('ended', closeSplash, {once:true});
+      // Durée minimum par film (ms) — évite que le splash ferme trop tôt
+      var MIN_DURATIONS = {
+        'Mission Impossible': 18000,
+        'Back to the Future': 15000,
+        'Retour vers le Futur': 15000,
+      };
+      var minDur = MIN_DURATIONS[window._splashEffectName] || 0;
+      var splashStartTime = Date.now();
+      aud.addEventListener('ended', function(){
+        var elapsed = Date.now() - splashStartTime;
+        var remaining = Math.max(0, minDur - elapsed);
+        setTimeout(closeSplash, remaining);
+      }, {once:true});
 
       function doFadeIn(){
         var fadeDur = 800, steps = 30, step = 0;
