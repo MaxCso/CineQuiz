@@ -25034,63 +25034,173 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'WALL·E',
    ref:'WALL\u00b7E \u2014 Andrew Stanton, 2008',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.68';
+    cv.style.opacity='1';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2;
 
-    const stars=Array.from({length:80},()=>({
-     x:Math.random()*W,y:Math.random()*H,
-     r:Math.random()*1.5+0.3,op:Math.random()*0.6+0.2,
-     phase:Math.random()*Math.PI*2
+    /* ── Étoiles — 3 couches de profondeur ── */
+    const stars=Array.from({length:160},(_,i)=>({
+     x:Math.random()*W, y:Math.random()*H,
+     r:i<100?Math.random()*0.8+0.2 : Math.random()*1.4+0.6,
+     op:Math.random()*0.5+0.15,
+     phase:Math.random()*Math.PI*2,
+     twinkle:Math.random()*0.018+0.006
     }));
 
-    const cubes=Array.from({length:15},()=>({
-     x:Math.random()*W,y:H*0.65+Math.random()*H*0.35,
-     w:Math.random()*18+8,h:Math.random()*14+6,
-     hue:25+Math.random()*30,op:Math.random()*0.35+0.1
-    }));
+    /* ── Terre en arrière-plan — grande sphère floue bas-gauche ── */
+    const earthX=W*0.18, earthY=H*0.82, earthR=W*0.55;
+
+    /* ── WALL-E : position et dérive lente ── */
+    const walle={
+     x:cx, y:H*0.52,
+     /* dérive douce et irrégulière */
+     driftX:0, driftY:0,
+     /* légère rotation globale du robot */
+     tilt:0, tiltSpd:0.0006,
+     /* battement des yeux */
+     blinkTimer:0, blinkDur:0, isBlinking:false
+    };
+
+    function drawWalle(x,y,tilt){
+     ctx.save();
+     ctx.translate(x,y);
+     ctx.rotate(tilt);
+     const sc=W*0.0018; // taille relative à l'écran
+     ctx.scale(sc,sc);
+
+     /* ── Chenilles (bas) ── */
+     ctx.fillStyle='rgba(85,72,48,0.92)';
+     ctx.beginPath();ctx.roundRect(-38,28,76,18,6);ctx.fill();
+     ctx.strokeStyle='rgba(50,40,28,0.7)';ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.roundRect(-38,28,76,18,6);ctx.stroke();
+     /* roues */
+     [−28,0,28].forEach(ox=>{
+      ctx.fillStyle='rgba(60,52,35,0.9)';
+      ctx.beginPath();ctx.arc(ox,37,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(90,78,52,0.6)';
+      ctx.beginPath();ctx.arc(ox,37,3,0,Math.PI*2);ctx.fill();
+     });
+
+     /* ── Corps principal ── */
+     ctx.fillStyle='rgba(175,148,88,0.95)';
+     ctx.beginPath();ctx.roundRect(-30,-10,60,40,5);ctx.fill();
+     ctx.strokeStyle='rgba(120,100,58,0.6)';ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.roundRect(-30,-10,60,40,5);ctx.stroke();
+     /* détails corps */
+     ctx.strokeStyle='rgba(100,85,48,0.4)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.moveTo(-30,10);ctx.lineTo(30,10);ctx.stroke();
+
+     /* ── Tête ── */
+     ctx.fillStyle='rgba(188,162,98,0.97)';
+     ctx.beginPath();ctx.roundRect(-26,-46,52,38,7);ctx.fill();
+     ctx.strokeStyle='rgba(130,108,62,0.55)';ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.roundRect(-26,-46,52,38,7);ctx.stroke();
+
+     /* ── Yeux (expression clé du personnage) ── */
+     const eyeOpenL=walle.isBlinking?0.05:1;
+     const eyeOpenR=walle.isBlinking?0.05:1;
+     /* boitier oeil gauche */
+     ctx.fillStyle='rgba(40,35,22,0.95)';
+     ctx.beginPath();ctx.roundRect(-22,-42,18,28,4);ctx.fill();
+     /* boitier oeil droit */
+     ctx.beginPath();ctx.roundRect(4,-42,18,28,4);ctx.fill();
+     /* lentille oeil gauche */
+     ctx.save();ctx.beginPath();ctx.roundRect(-22,-42,18,28,4);ctx.clip();
+     const eg1=ctx.createRadialGradient(-13,-28,0,-13,-28,9);
+     eg1.addColorStop(0,`rgba(200,220,255,${0.92*eyeOpenL})`);
+     eg1.addColorStop(0.5,`rgba(140,180,255,${0.75*eyeOpenL})`);
+     eg1.addColorStop(1,`rgba(60,100,200,${0.4*eyeOpenL})`);
+     ctx.fillStyle=eg1;ctx.fillRect(-22,-42,18,28);
+     /* pupille */
+     ctx.fillStyle=`rgba(15,12,8,${0.9*eyeOpenL})`;
+     ctx.beginPath();ctx.arc(-13,-28,4,0,Math.PI*2);ctx.fill();
+     /* reflet */
+     ctx.fillStyle=`rgba(255,255,255,${0.8*eyeOpenL})`;
+     ctx.beginPath();ctx.arc(-16,-32,2,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+     /* lentille oeil droit */
+     ctx.save();ctx.beginPath();ctx.roundRect(4,-42,18,28,4);ctx.clip();
+     const eg2=ctx.createRadialGradient(13,-28,0,13,-28,9);
+     eg2.addColorStop(0,`rgba(200,220,255,${0.92*eyeOpenR})`);
+     eg2.addColorStop(0.5,`rgba(140,180,255,${0.75*eyeOpenR})`);
+     eg2.addColorStop(1,`rgba(60,100,200,${0.4*eyeOpenR})`);
+     ctx.fillStyle=eg2;ctx.fillRect(4,-42,18,28);
+     ctx.fillStyle=`rgba(15,12,8,${0.9*eyeOpenR})`;
+     ctx.beginPath();ctx.arc(13,-28,4,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle=`rgba(255,255,255,${0.8*eyeOpenR})`;
+     ctx.beginPath();ctx.arc(10,-32,2,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
+     /* ── Petits bras repliés ── */
+     ctx.strokeStyle='rgba(155,132,78,0.85)';ctx.lineWidth=5;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-30,5);ctx.lineTo(-44,16);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(30,5);ctx.lineTo(44,16);ctx.stroke();
+     /* mains */
+     ctx.fillStyle='rgba(130,108,62,0.88)';
+     ctx.beginPath();ctx.arc(-44,16,5,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.arc(44,16,5,0,Math.PI*2);ctx.fill();
+
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(0,2,8,0.13)';ctx.fillRect(0,0,W,H);
 
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0,'rgba(8,5,2,0.06)');
-     bg.addColorStop(0.5,`rgba(${40+Math.sin(t*0.2)*5|0},20,5,0.05)`);
-     bg.addColorStop(1,'rgba(60,35,10,0.08)');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+     /* Trail — noir espace profond */
+     ctx.fillStyle='rgba(1,1,6,0.25)';ctx.fillRect(0,0,W,H);
 
+     /* ── Terre — sphère atmosphérique floue ── */
+     /* halo atmosphérique externe */
+     const atm=ctx.createRadialGradient(earthX,earthY,earthR*0.88,earthX,earthY,earthR*1.12);
+     atm.addColorStop(0,'rgba(60,110,200,0.10)');
+     atm.addColorStop(0.5,'rgba(40,80,160,0.05)');
+     atm.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=atm;ctx.beginPath();ctx.arc(earthX,earthY,earthR*1.12,0,Math.PI*2);ctx.fill();
+     /* corps de la Terre */
+     const eg=ctx.createRadialGradient(earthX-earthR*0.25,earthY-earthR*0.28,earthR*0.05,earthX,earthY,earthR);
+     eg.addColorStop(0,'rgba(80,130,220,0.38)');
+     eg.addColorStop(0.3,'rgba(55,105,190,0.28)');
+     eg.addColorStop(0.65,'rgba(30,65,130,0.18)');
+     eg.addColorStop(1,'rgba(10,20,50,0.08)');
+     ctx.fillStyle=eg;ctx.beginPath();ctx.arc(earthX,earthY,earthR,0,Math.PI*2);ctx.fill();
+     /* nuages très flous */
+     const cloud1=ctx.createRadialGradient(earthX+earthR*0.12,earthY-earthR*0.18,0,earthX+earthR*0.12,earthY-earthR*0.18,earthR*0.35);
+     cloud1.addColorStop(0,'rgba(200,215,240,0.10)');
+     cloud1.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=cloud1;ctx.beginPath();ctx.arc(earthX,earthY,earthR,0,Math.PI*2);ctx.fill();
+
+     /* ── Étoiles ── */
      for(const s of stars){
-      const pulse=1+Math.sin(t*0.8+s.phase)*0.15;
+      const pulse=1+Math.sin(t*s.twinkle*60+s.phase)*0.18;
       ctx.beginPath();ctx.arc(s.x,s.y,s.r*pulse,0,Math.PI*2);
-      ctx.fillStyle=`rgba(220,210,180,${s.op*pulse})`;ctx.fill();
+      ctx.fillStyle=`rgba(235,228,210,${s.op*pulse})`;ctx.fill();
      }
 
-     for(const c of cubes){
-      ctx.fillStyle=`hsla(${c.hue},40%,40%,${c.op})`;
-      ctx.fillRect(c.x,c.y,c.w,c.h);
-      ctx.strokeStyle=`hsla(${c.hue},35%,30%,${c.op*0.6})`;ctx.lineWidth=0.5;ctx.strokeRect(c.x,c.y,c.w,c.h);
+     /* ── Dérive de WALL-E ── */
+     walle.driftX=Math.sin(t*0.18)*W*0.055+Math.sin(t*0.11)*W*0.022;
+     walle.driftY=Math.cos(t*0.14)*H*0.038+Math.cos(t*0.09)*H*0.018;
+     walle.tilt=Math.sin(t*0.16)*0.12;
+
+     /* ── Clignement des yeux ── */
+     walle.blinkTimer+=0.016;
+     if(!walle.isBlinking && walle.blinkTimer>3.5+Math.random()*3){
+      walle.isBlinking=true; walle.blinkDur=0; walle.blinkTimer=0;
+     }
+     if(walle.isBlinking){
+      walle.blinkDur+=0.016;
+      if(walle.blinkDur>0.18){walle.isBlinking=false;}
      }
 
-     const wx=cx,wy=H*0.6;
-     ctx.save();ctx.globalAlpha=0.75;
+     /* ── WALL-E ── */
+     drawWalle(walle.x+walle.driftX, walle.y+walle.driftY, walle.tilt);
 
-     ctx.fillStyle='rgba(120,95,50,0.85)';
-     ctx.fillRect(wx-12,wy-18,24,20);
-
-     ctx.fillStyle='rgba(180,160,90,0.9)';
-     ctx.beginPath();ctx.arc(wx-5,wy-22,5,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.arc(wx+5,wy-22,5,0,Math.PI*2);ctx.fill();
-
-     ctx.fillStyle='rgba(60,180,220,0.9)';
-     ctx.beginPath();ctx.arc(wx-5,wy-22,2.5,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.arc(wx+5,wy-22,2.5,0,Math.PI*2);ctx.fill();
-
-     ctx.fillStyle='rgba(80,65,35,0.85)';
-     ctx.fillRect(wx-16,wy+2,10,8);ctx.fillRect(wx+6,wy+2,10,8);
-     ctx.restore();
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.8);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(5,3,0,0.65)');
+     /* ── Vignette espace ── */
+     const vg=ctx.createRadialGradient(W/2,H/2,H*0.18,W/2,H/2,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.6,'rgba(0,0,4,0.15)');
+     vg.addColorStop(1,'rgba(0,0,8,0.78)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
