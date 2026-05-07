@@ -26446,7 +26446,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     }));
 
     // ── Rocher : démarre petit (loin) et grossit vers l'écran ──
-    let boulder={progress:0, spd:0.0028, active:true, pauseTimer:0};
+    let boulder={progress:0, spd:0.0018, active:true, pauseTimer:0};
     // progress 0=loin (petit) → 1=proche (grand)
 
     // ── Fouet : cycle claquement ──
@@ -27666,77 +27666,173 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'The Shining',
    ref:'The Shining \u2014 Stanley Kubrick, 1980',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.65';
+    cv.style.opacity='1';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2;
 
-    const bloodStreams=Array.from({length:6},(_,i)=>({
-     x:W*(0.08+i*0.17),w:18+Math.random()*12,spd:Math.random()*1.5+1,
-     y:-Math.random()*H*0.5,op:Math.random()*0.4+0.25
-    }));
+    /* ── Niveau du sang — monte très lentement ── */
+    let bloodY=H*1.05;
+    const bloodRiseSpd=0.18;
 
-    let mirrorPhase=0;
-    function frame(){
-     if(stop.v)return;
-     ctx.fillStyle='rgba(2,0,0,0.14)';ctx.fillRect(0,0,W,H);
-     mirrorPhase+=0.008;
+    /* ── Couloir — lignes de fuite Kubrick ── */
+    const vp={x:cx, y:H*0.42}; // point de fuite
 
-     const vp={x:cx,y:cy*0.6};
-     for(let i=0;i<8;i++){
-      const prog=i/8;
-      const w=(0.1+prog*0.45)*W;
-      const y=vp.y+(H-vp.y)*prog;
-      ctx.strokeStyle=`rgba(${150+prog*50|0},${120+prog*40|0},${100+prog*30|0},${0.06+prog*0.06})`;
-      ctx.lineWidth=0.8;
-      ctx.beginPath();ctx.rect(cx-w/2,y,w,1);ctx.stroke();
+    function drawCorridor(){
+     /* Fond noir profond */
+     ctx.fillStyle='rgba(4,2,2,1)';
+     ctx.fillRect(0,0,W,H);
 
-      ctx.beginPath();ctx.moveTo(cx-w/2,y);ctx.lineTo(vp.x,vp.y);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(cx+w/2,y);ctx.lineTo(vp.x,vp.y);ctx.stroke();
+     /* Murs, plafond, sol — 8 plans de profondeur */
+     const levels=10;
+     for(let i=0;i<levels;i++){
+      const prog=i/levels;
+      const eased=prog*prog;
+      const hw=W*(0.08+eased*0.46); // demi-largeur du couloir à ce niveau
+      const y=vp.y+(H*0.92-vp.y)*eased; // hauteur sol
+      const yt=vp.y-(vp.y-H*0.02)*eased; // hauteur plafond
+
+      const bright=8+eased*18;
+      const col=`rgba(${bright+4},${bright},${bright},`;
+
+      /* Sol */
+      if(i<levels-1){
+       const progN=(i+1)/levels, easedN=progN*progN;
+       const hwN=W*(0.08+easedN*0.46);
+       const yN=vp.y+(H*0.92-vp.y)*easedN;
+       const ytN=vp.y-(vp.y-H*0.02)*easedN;
+       /* Panneau sol */
+       ctx.fillStyle=`rgba(${bright+2},${bright-1},${bright-1},1)`;
+       ctx.beginPath();
+       ctx.moveTo(cx-hw,y);ctx.lineTo(cx+hw,y);
+       ctx.lineTo(cx+hwN,yN);ctx.lineTo(cx-hwN,yN);
+       ctx.closePath();ctx.fill();
+       /* Ligne de joint sol */
+       ctx.strokeStyle=`rgba(${bright+14},${bright+8},${bright+8},0.55)`;
+       ctx.lineWidth=0.8;
+       ctx.beginPath();ctx.moveTo(cx-hw,y);ctx.lineTo(cx+hw,y);ctx.stroke();
+       /* Panneau plafond */
+       ctx.fillStyle=`rgba(${bright+6},${bright+2},${bright+2},1)`;
+       ctx.beginPath();
+       ctx.moveTo(cx-hw,yt);ctx.lineTo(cx+hw,yt);
+       ctx.lineTo(cx+hwN,ytN);ctx.lineTo(cx-hwN,ytN);
+       ctx.closePath();ctx.fill();
+       /* Ligne de joint plafond */
+       ctx.strokeStyle=`rgba(${bright+18},${bright+10},${bright+10},0.45)`;
+       ctx.lineWidth=0.8;
+       ctx.beginPath();ctx.moveTo(cx-hw,yt);ctx.lineTo(cx+hw,yt);ctx.stroke();
+       /* Mur gauche */
+       ctx.fillStyle=`rgba(${bright+1},${bright-1},${bright-1},1)`;
+       ctx.beginPath();
+       ctx.moveTo(cx-hw,yt);ctx.lineTo(cx-hw,y);
+       ctx.lineTo(cx-hwN,yN);ctx.lineTo(cx-hwN,ytN);
+       ctx.closePath();ctx.fill();
+       /* Mur droit */
+       ctx.beginPath();
+       ctx.moveTo(cx+hw,yt);ctx.lineTo(cx+hw,y);
+       ctx.lineTo(cx+hwN,yN);ctx.lineTo(cx+hwN,ytN);
+       ctx.closePath();ctx.fill();
+      }
+
+      /* Lignes verticales (coins du couloir) */
+      ctx.strokeStyle=`rgba(${bright+20},${bright+12},${bright+10},0.40)`;
+      ctx.lineWidth=0.6;
+      ctx.beginPath();ctx.moveTo(cx-hw,yt);ctx.lineTo(cx-hw,y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx+hw,yt);ctx.lineTo(cx+hw,y);ctx.stroke();
      }
 
-     ctx.save();ctx.globalAlpha=0.06;
-     for(let gx=0;gx<W;gx+=24){
-      for(let gy=H*0.55;gy<H;gy+=20){
-       const hx=gx+(gy%40===0?12:0);
+     /* Lumière au fond — pulse lent et inquiétant */
+     const pulse=0.5+Math.sin(t*0.4)*0.5;
+     const glow=ctx.createRadialGradient(cx,vp.y,0,cx,vp.y,W*0.28);
+     glow.addColorStop(0,`rgba(255,230,180,${0.12+pulse*0.06})`);
+     glow.addColorStop(0.5,`rgba(200,140,80,${0.04+pulse*0.02})`);
+     glow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+
+     /* Motif moquette — rangées de losanges géométriques */
+     const floorTop=vp.y+(H*0.92-vp.y)*0.04;
+     const floorBot=H*0.92;
+     ctx.save();ctx.globalAlpha=0.18;
+     const rows=8;
+     for(let r=0;r<rows;r++){
+      const ry=floorTop+(floorBot-floorTop)*(r/rows);
+      const ryN=floorTop+(floorBot-floorTop)*((r+1)/rows);
+      const progR=r/rows, easedR=progR*progR;
+      const hwR=W*(0.08+easedR*0.46);
+      const cols=Math.max(2,Math.floor(3+r*1.2));
+      for(let c=0;c<cols;c++){
+       const fx=cx-hwR+hwR*2*(c/cols)+hwR/cols;
+       const fw=hwR*2/cols*0.38;
+       const fh=(ryN-ry)*0.42;
+       /* Losange */
+       ctx.fillStyle=`rgba(${140+r*8},${20+r*4},${20+r*4},1)`;
        ctx.beginPath();
-       for(let k=0;k<6;k++){
-        const a=k*Math.PI/3;
-        const px=hx+8*Math.cos(a),py=gy+8*Math.sin(a);
-        k===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-       }
-       ctx.closePath();
-       ctx.strokeStyle=`hsl(${30+Math.sin(hx*0.1+t)*10},60%,45%)`;ctx.lineWidth=0.5;ctx.stroke();
+       ctx.moveTo(fx,ry+(ryN-ry)*0.5-fh);
+       ctx.lineTo(fx+fw,ry+(ryN-ry)*0.5);
+       ctx.lineTo(fx,ry+(ryN-ry)*0.5+fh);
+       ctx.lineTo(fx-fw,ry+(ryN-ry)*0.5);
+       ctx.closePath();ctx.fill();
       }
      }
      ctx.restore();
+    }
 
-     for(const s of bloodStreams){
-      s.y+=s.spd;
-      if(s.y>H+50) s.y=-H*0.3-Math.random()*H*0.4;
-      const bg=ctx.createLinearGradient(s.x,s.y,s.x,s.y+H*0.4);
-      bg.addColorStop(0,`rgba(160,0,0,0)`);
-      bg.addColorStop(0.1,`rgba(${180+Math.sin(t)*15|0},8,8,${s.op})`);
-      bg.addColorStop(0.7,`rgba(140,5,5,${s.op*0.8})`);
-      bg.addColorStop(1,'rgba(100,0,0,0)');
-      ctx.fillStyle=bg;
-      ctx.beginPath();
-      ctx.moveTo(s.x-s.w/2,s.y);
-      ctx.quadraticCurveTo(s.x+s.w*0.3,s.y+H*0.1,s.x-s.w*0.1,s.y+H*0.4);
-      ctx.lineTo(s.x+s.w*0.4,s.y+H*0.4);
-      ctx.quadraticCurveTo(s.x+s.w*0.1,s.y+H*0.1,s.x+s.w/2,s.y);
-      ctx.closePath();ctx.fill();
-     }
+    function drawBlood(){
+     if(bloodY>H*0.98) return;
 
-     if(Math.sin(t*0.5)>0.3){
-      ctx.save();ctx.globalAlpha=(Math.sin(t*0.5)-0.3)*0.6;
-      ctx.font=`bold ${28+Math.sin(t)*3|0}px serif`;
-      ctx.fillStyle='rgba(220,10,10,1)';
-      ctx.scale(-1,1);ctx.fillText('REDRUM',-(cx+50),H*0.48);
-      ctx.restore();
+     /* Vague de sang — surface irrégulière */
+     const waveY=bloodY;
+     ctx.save();
+
+     /* Corps du sang */
+     const bg=ctx.createLinearGradient(0,waveY,0,H);
+     bg.addColorStop(0,`rgba(${160+Math.sin(t*0.3)*15|0},4,4,0.96)`);
+     bg.addColorStop(0.3,'rgba(120,2,2,0.98)');
+     bg.addColorStop(1,'rgba(80,0,0,1)');
+     ctx.fillStyle=bg;
+
+     ctx.beginPath();
+     ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,waveY);
+     /* Surface ondulée */
+     for(let x=W;x>=0;x-=4){
+      const wave=Math.sin(x*0.025+t*0.6)*2.8
+               +Math.sin(x*0.048+t*0.4)*1.4
+               +Math.sin(x*0.012+t*0.25)*3.5;
+      ctx.lineTo(x,waveY+wave);
      }
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.85);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(10,0,0,0.75)');
+     ctx.closePath();ctx.fill();
+
+     /* Reflet brillant sur la surface */
+     const sheen=ctx.createLinearGradient(0,waveY-4,0,waveY+8);
+     sheen.addColorStop(0,'rgba(255,80,80,0)');
+     sheen.addColorStop(0.4,`rgba(255,60,60,${0.12+Math.sin(t*0.8)*0.04})`);
+     sheen.addColorStop(1,'rgba(200,20,20,0)');
+     ctx.fillStyle=sheen;
+     ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,waveY-5);
+     for(let x=W;x>=0;x-=4){
+      const wave=Math.sin(x*0.025+t*0.6)*2.8+Math.sin(x*0.048+t*0.4)*1.4+Math.sin(x*0.012+t*0.25)*3.5;
+      ctx.lineTo(x,waveY+wave);
+     }
+     ctx.closePath();ctx.fill();
+     ctx.restore();
+    }
+
+    function frame(){
+     if(stop.v)return;
+
+     drawCorridor();
+
+     /* Montée du sang */
+     bloodY-=bloodRiseSpd;
+
+     drawBlood();
+
+     /* Vignette noire sur les bords */
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.15,cx,H*0.5,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.6,'rgba(0,0,0,0.12)');
+     vg.addColorStop(1,'rgba(0,0,0,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
