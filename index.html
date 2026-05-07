@@ -26886,9 +26886,9 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
 
     // Traces de pneus — deux lignes qui convergent vers l'horizon
     // Point de fuite légèrement décalé du centre
-    const VPX=cx*0.92, VPY=horizon;
+    const VPX=cx, VPY=horizon;
     // Les traces partent de deux points en bas et convergent
-    const TRACK_L_BOT=W*0.22, TRACK_R_BOT=W*0.78;
+    const TRACK_L_BOT=W*0.18, TRACK_R_BOT=W*0.82;
     // Offset d'animation
     let trailOffset=0;
 
@@ -26928,19 +26928,15 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ctx.beginPath();ctx.moveTo(roadTopL,horizon);ctx.lineTo(W*0.15,H);ctx.stroke();
      ctx.beginPath();ctx.moveTo(roadTopR,horizon);ctx.lineTo(W*0.85,H);ctx.stroke();
 
-     // Pointillés centraux en perspective
+     // Pointillés centraux en perspective — fixes
      const nDashes=10;
      for(let i=0;i<nDashes;i++){
-      const p0=(i+trailOffset%1)/nDashes;
-      const p1=(i+0.45+trailOffset%1)/nDashes;
-      if(p0>=1||p1<0) continue;
-      const fp=Math.max(0,Math.min(1,p0));
-      const tp=Math.max(0,Math.min(1,p1));
-      // Interpoler position en perspective
+      const p0=i/nDashes;
+      const p1=(i+0.45)/nDashes;
+      const fp=p0, tp=p1;
       const y0=horizon+fp*(H-horizon);
       const y1=horizon+tp*(H-horizon);
-      const x0=VPX+(fp*(cx-VPX)*0.1); // légère divergence
-      const x1=VPX+(tp*(cx-VPX)*0.1);
+      const x0=VPX, x1=VPX;
       const w0=Math.max(0.5,(fp*(H-horizon))*0.012);
       const w1=Math.max(0.5,(tp*(H-horizon))*0.012);
       ctx.fillStyle=`rgba(255,255,255,${0.15+fp*0.18})`;
@@ -27044,20 +27040,93 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     }
 
     function draw88(){
-     // "88 MPH" — chiffre iconique, grand, orange/rouge pulsant
      const pulse=0.75+Math.sin(t*8)*0.25;
+     const dx=cx, dy=H*0.20;
      ctx.save();
-     ctx.shadowColor='rgba(255,80,0,1)';ctx.shadowBlur=30;
+
+     // ── Cadran de compteur ──
+     const cadW=W*0.52, cadH=cadW*0.38;
+     const cadX=dx-cadW/2, cadY=dy-cadH*0.52;
+
+     // Fond du cadran — verre sombre
+     ctx.fillStyle='rgba(4,2,10,0.82)';
+     ctx.beginPath();
+     ctx.roundRect(cadX, cadY, cadW, cadH, 10);
+     ctx.fill();
+
+     // Bordure lumineuse orange
+     ctx.strokeStyle=`rgba(255,${100+pulse*40|0},10,${0.55+pulse*0.2})`;
+     ctx.lineWidth=1.5;
+     ctx.shadowColor='rgba(255,80,0,0.6)';ctx.shadowBlur=10;
+     ctx.beginPath();ctx.roundRect(cadX, cadY, cadW, cadH, 10);ctx.stroke();
+     ctx.shadowBlur=0;
+
+     // Petites graduations en bas du cadran
+     const nTicks=11;
+     for(let i=0;i<=nTicks;i++){
+      const px=cadX+10+(i/nTicks)*(cadW-20);
+      const isMajor=(i%5===0);
+      ctx.strokeStyle=`rgba(255,${80+pulse*20|0},8,${isMajor?0.6:0.28})`;
+      ctx.lineWidth=isMajor?1.2:0.6;
+      ctx.beginPath();
+      ctx.moveTo(px, cadY+cadH-8);
+      ctx.lineTo(px, cadY+cadH-(isMajor?18:12));
+      ctx.stroke();
+     }
+     // Aiguille pointant vers 88 (max)
+     const needleX=cadX+cadW*0.92;
+     const needleY=cadY+cadH*0.55;
+     ctx.strokeStyle=`rgba(255,60,0,${0.7+pulse*0.2})`;
+     ctx.lineWidth=1.5;
+     ctx.shadowColor='rgba(255,60,0,0.8)';ctx.shadowBlur=8;
+     ctx.beginPath();ctx.moveTo(cadX+cadW*0.5,cadY+cadH*0.75);ctx.lineTo(needleX,needleY);ctx.stroke();
+     ctx.shadowBlur=0;
+
+     // Chiffre 88
      ctx.textAlign='center';ctx.textBaseline='middle';
-     // Le chiffre 88
-     ctx.font=`bold ${W*0.18}px "Courier New",monospace`;
-     ctx.fillStyle=`rgba(255,${70+pulse*30|0},5,${0.55+pulse*0.15})`;
-     ctx.fillText('88',cx-W*0.06,H*0.22);
-     // MPH plus petit
-     ctx.font=`bold ${W*0.055}px "Courier New",monospace`;
-     ctx.shadowBlur=15;
-     ctx.fillStyle=`rgba(255,60,8,${0.45+pulse*0.12})`;
-     ctx.fillText('MPH',cx+W*0.12,H*0.22);
+     ctx.shadowColor='rgba(255,80,0,0.9)';ctx.shadowBlur=20;
+     ctx.font=`bold ${W*0.105}px "Courier New",monospace`;
+     ctx.fillStyle=`rgba(255,${75+pulse*25|0},5,${0.80+pulse*0.12})`;
+     ctx.fillText('88', dx-W*0.06, dy);
+
+     // MPH
+     ctx.font=`bold ${W*0.036}px "Courier New",monospace`;
+     ctx.shadowBlur=10;
+     ctx.fillStyle=`rgba(255,55,8,${0.60+pulse*0.1})`;
+     ctx.fillText('MPH', dx+W*0.085, dy);
+
+     ctx.shadowBlur=0;ctx.restore();
+    }
+
+    function drawHillValleySign(){
+     // Panneau Hill Valley — style années 80, en bord de route
+     const sx=W*0.78, sy=horizon-H*0.055;
+     ctx.save();
+
+     // Poteau
+     ctx.strokeStyle='rgba(180,165,130,0.55)';ctx.lineWidth=2;
+     ctx.beginPath();ctx.moveTo(sx,sy+4);ctx.lineTo(sx,sy+H*0.07);ctx.stroke();
+
+     // Fond du panneau
+     ctx.fillStyle='rgba(8,5,22,0.88)';
+     ctx.beginPath();ctx.roundRect(sx-38,sy-18,76,36,4);ctx.fill();
+
+     // Bordure blanche fine
+     ctx.strokeStyle='rgba(200,215,255,0.45)';ctx.lineWidth=1;
+     ctx.beginPath();ctx.roundRect(sx-38,sy-18,76,36,4);ctx.stroke();
+
+     // Texte HILL VALLEY
+     ctx.font='bold 8px "Courier New",sans-serif';
+     ctx.textAlign='center';ctx.textBaseline='middle';
+     ctx.fillStyle='rgba(215,230,255,0.90)';
+     ctx.shadowColor='rgba(150,200,255,0.5)';ctx.shadowBlur=4;
+     ctx.fillText('HILL VALLEY',sx,-2+sy);
+
+     // POP.
+     ctx.font='6px sans-serif';ctx.shadowBlur=0;
+     ctx.fillStyle='rgba(140,175,230,0.60)';
+     ctx.fillText('POP. 1,178',sx,sy+10);
+
      ctx.restore();
     }
 
@@ -27076,6 +27145,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      drawBolts();
      drawFireTrails();
      draw88();
+     drawHillValleySign();
 
      // Vignette
      const vg=ctx.createRadialGradient(cx,H*0.5,H*0.05,cx,H*0.5,H*0.9);
