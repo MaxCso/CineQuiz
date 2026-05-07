@@ -23786,87 +23786,124 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     floorFog.addColorStop(1,'rgba(0,0,0,0.7)');
     fx.fillStyle=floorFog;fx.fillRect(0,floorY,W,H-floorY);
 
-    /* ── Valise Pulp Fiction — Option B : face + forte lueur ── */
-    const bcx=W*0.5, bcy=H*0.755;
-    const bW=W*0.52, bH=bW*0.46;
+    /* ── Valise mystérieuse ── */
+    const bcx=W*0.5, bcy=H*0.70;
+    const bW=W*0.52, bH=bW*0.48;
     function drawBriefcase(){
      ctx.save();ctx.translate(bcx,bcy);
 
-     const pulse=Math.sin(t*0.8)*0.5+Math.sin(t*1.5)*0.3;
-     const glowInt=0.80+pulse*0.18;
+     const flick=Math.sin(t*0.7)*0.5+Math.sin(t*1.3)*0.3;
+     const openAmt=0.055+flick*0.018;
+     const glowInt=0.85+flick*0.12;
 
-     /* ── Ombre sol ── */
-     const sh=ctx.createRadialGradient(0,8,0,0,8,bW*0.52);
-     sh.addColorStop(0,'rgba(0,0,0,0.55)');sh.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sh;ctx.beginPath();ctx.ellipse(0,8,bW*0.46,7,0,0,Math.PI*2);ctx.fill();
+     /* ── LUMIÈRE qui jaillit de l'intérieur ── */
+     /* Faisceau principal vers le haut */
+     const beamH=bH*3.8;
+     const beam=ctx.createLinearGradient(0,-bH,0,-bH-beamH);
+     beam.addColorStop(0,`rgba(255,220,80,${0.55*glowInt})`);
+     beam.addColorStop(0.15,`rgba(255,200,60,${0.28*glowInt})`);
+     beam.addColorStop(0.45,`rgba(240,170,40,${0.10*glowInt})`);
+     beam.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.beginPath();
+     ctx.moveTo(-bW*0.38,-bH);
+     ctx.lineTo(-bW*0.9,-bH-beamH);
+     ctx.lineTo(bW*0.9,-bH-beamH);
+     ctx.lineTo(bW*0.38,-bH);
+     ctx.closePath();
+     ctx.fillStyle=beam;ctx.fill();
 
-     /* ── Halo ambiant large ── */
-     const halo=ctx.createRadialGradient(0,-bH*0.5,0,0,-bH*0.5,bW*1.8);
-     halo.addColorStop(0,`rgba(255,195,40,${0.40+pulse*0.15})`);
-     halo.addColorStop(0.4,`rgba(200,140,20,${0.14+pulse*0.06})`);
-     halo.addColorStop(0.75,`rgba(140,90,10,${0.05+pulse*0.02})`);
+     /* Halo radial large — illumine le sol et les côtés */
+     const halo=ctx.createRadialGradient(0,-bH*0.5,0,0,-bH*0.5,bW*2.2);
+     halo.addColorStop(0,`rgba(255,210,70,${0.22*glowInt})`);
+     halo.addColorStop(0.25,`rgba(220,160,30,${0.10*glowInt})`);
+     halo.addColorStop(0.55,`rgba(180,110,10,${0.04*glowInt})`);
      halo.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=halo;ctx.fillRect(-bW*2,-bH*3.5,bW*4,bH*5);
+     ctx.fillStyle=halo;ctx.fillRect(-bW*2.5,-bH*3.5,bW*5,bH*5);
 
-     /* ── Corps de la mallette ── */
-     ctx.fillStyle='#1c1508';
-     ctx.beginPath();ctx.roundRect(-bW/2,-bH,bW,bH,5);ctx.fill();
-     /* reflet latéral gauche */
-     ctx.fillStyle='rgba(72,54,16,0.18)';
-     ctx.beginPath();ctx.roundRect(-bW/2,-bH,bW*0.08,bH,[5,0,0,5]);ctx.fill();
+     /* Fissure lumineuse — ligne d'ouverture entre couvercle et corps */
+     const crackGrad=ctx.createLinearGradient(-bW/2,-bH/2,bW/2,-bH/2);
+     crackGrad.addColorStop(0,'rgba(255,230,100,0)');
+     crackGrad.addColorStop(0.2,`rgba(255,240,140,${0.9*glowInt})`);
+     crackGrad.addColorStop(0.5,`rgba(255,255,180,${glowInt})`);
+     crackGrad.addColorStop(0.8,`rgba(255,240,140,${0.9*glowInt})`);
+     crackGrad.addColorStop(1,'rgba(255,230,100,0)');
+     ctx.strokeStyle=crackGrad;
+     ctx.lineWidth=2+openAmt*8;
+     ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-bW*0.44,-bH/2);ctx.lineTo(bW*0.44,-bH/2);ctx.stroke();
 
-     /* ── Grande fissure lumineuse ── */
-     const gy=-bH*0.42;
-     /* couches de halo décroissantes */
-     for(let i=4;i>=1;i--){
-      ctx.strokeStyle=`rgba(255,215,65,${(0.10+pulse*0.05)*i/4})`;
-      ctx.lineWidth=i*8;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(-bW*0.40,gy);ctx.lineTo(bW*0.40,gy);ctx.stroke();
+     /* ── Corps principal de la valise (partie basse) ── */
+     const bodyGrad=ctx.createLinearGradient(-bW/2,0,-bW/2+bW*0.3,0);
+     bodyGrad.addColorStop(0,'rgba(22,16,8,0.97)');
+     bodyGrad.addColorStop(0.4,'rgba(35,26,12,0.96)');
+     bodyGrad.addColorStop(1,'rgba(18,13,6,0.97)');
+     ctx.fillStyle=bodyGrad;
+     ctx.beginPath();ctx.roundRect(-bW/2,-bH/2,bW,bH/2+6,[0,0,5,5]);ctx.fill();
+
+     /* ── Couvercle (partie haute, très légèrement entrouverte) ── */
+     ctx.save();
+     ctx.translate(0,-bH/2);
+     ctx.rotate(-openAmt);
+     const lidGrad=ctx.createLinearGradient(-bW/2,-bH/2,-bW/2+bW*0.35,-bH/2);
+     lidGrad.addColorStop(0,'rgba(18,13,6,0.97)');
+     lidGrad.addColorStop(0.3,'rgba(38,28,12,0.96)');
+     lidGrad.addColorStop(0.7,'rgba(28,20,9,0.97)');
+     lidGrad.addColorStop(1,'rgba(16,11,5,0.97)');
+     ctx.fillStyle=lidGrad;
+     ctx.beginPath();ctx.roundRect(-bW/2,-bH/2,bW,bH/2,[5,5,0,0]);ctx.fill();
+     /* Reflet de lumière interne sur le couvercle */
+     const innerGlow=ctx.createLinearGradient(0,-bH/2,0,0);
+     innerGlow.addColorStop(0,'rgba(0,0,0,0)');
+     innerGlow.addColorStop(0.7,`rgba(255,200,60,${0.08*glowInt})`);
+     innerGlow.addColorStop(1,`rgba(255,220,80,${0.18*glowInt})`);
+     ctx.fillStyle=innerGlow;
+     ctx.beginPath();ctx.roundRect(-bW/2,-bH/2,bW,bH/2,[5,5,0,0]);ctx.fill();
+     ctx.restore();
+
+     /* ── Ferrures et détails cuir ── */
+     /* Coins métalliques */
+     const corners=[[-bW/2+4,4],[bW/2-4,4],[-bW/2+4,-bH+4],[bW/2-4,-bH+4]];
+     ctx.fillStyle='rgba(140,115,55,0.85)';
+     for(const [cx2,cy2] of corners){
+      ctx.beginPath();ctx.roundRect(cx2-5,cy2-5,10,10,2);ctx.fill();
      }
-     /* ligne fine brillante */
-     ctx.strokeStyle=`rgba(255,255,185,${0.96+pulse*0.04})`;ctx.lineWidth=1.5;
-     ctx.beginPath();ctx.moveTo(-bW*0.44,gy);ctx.lineTo(bW*0.44,gy);ctx.stroke();
 
-     /* ── Coins métalliques en L ── */
-     for(const [px,py] of [[-bW/2,-bH],[bW/2,-bH],[-bW/2,0],[bW/2,0]]){
-      const cg=ctx.createLinearGradient(px,py,px+(px<0?9:-9),py+(py<0?9:-9));
-      cg.addColorStop(0,'rgba(205,172,65,0.92)');cg.addColorStop(1,'rgba(145,115,40,0.68)');
-      ctx.fillStyle=cg;
-      const s=9,th=2.5,sx=px<0?1:-1,sy=py<0?1:-1;
-      ctx.beginPath();
-      ctx.moveTo(px,py);
-      ctx.lineTo(px+sx*s,py);ctx.lineTo(px+sx*s,py+sy*th);
-      ctx.lineTo(px+sx*th,py+sy*th);ctx.lineTo(px+sx*th,py+sy*s);
-      ctx.lineTo(px,py+sy*s);ctx.closePath();ctx.fill();
+
+     /* Charnières au dos (simulées sur le côté) */
+     ctx.fillStyle='rgba(130,105,48,0.75)';
+     for(const hy of [-bH*0.35,-bH*0.5,-bH*0.65]){
+      ctx.beginPath();ctx.roundRect(-bW/2-2,hy,8,8,1);ctx.fill();
      }
 
-     /* ── Coutures ── */
-     ctx.setLineDash([2,4]);ctx.strokeStyle='rgba(52,38,10,0.38)';ctx.lineWidth=0.8;
-     ctx.beginPath();ctx.roundRect(-bW/2+7,-bH+7,bW-14,bH-14,3);ctx.stroke();
+     /* Ligne de séparation couvercle/corps */
+     ctx.strokeStyle='rgba(8,5,2,0.9)';ctx.lineWidth=1.2;
+     ctx.beginPath();ctx.moveTo(-bW/2,-bH/2);ctx.lineTo(bW/2,-bH/2);ctx.stroke();
+
+     /* Coutures cuir */
+     ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(50,36,16,0.55)';ctx.lineWidth=0.8;
+     ctx.beginPath();ctx.roundRect(-bW/2+8,-bH+8,bW-16,bH-16,3);ctx.stroke();
      ctx.setLineDash([]);
 
-     /* ── Poignée rectangulaire épaisse ── */
-     const hW=bW*0.30,hH=bH*0.30,hT=bW*0.038;
-     /* attaches dorées */
-     for(const px of [-hW/2,hW/2]){
-      ctx.fillStyle='rgba(168,138,52,0.90)';
-      ctx.beginPath();ctx.roundRect(px-4,-bH-2,9,11,2);ctx.fill();
-      ctx.strokeStyle='rgba(70,52,14,0.45)';ctx.lineWidth=0.7;
-      ctx.beginPath();ctx.roundRect(px-4,-bH-2,9,11,2);ctx.stroke();
+     /* Poignée en cuir */
+     const hgGrad=ctx.createLinearGradient(-bW*0.18,-bH-bH*0.45,bW*0.18,-bH-bH*0.45);
+     hgGrad.addColorStop(0,'rgba(140,105,40,0.85)');
+     hgGrad.addColorStop(0.5,'rgba(100,75,28,0.90)');
+     hgGrad.addColorStop(1,'rgba(140,105,40,0.85)');
+     ctx.strokeStyle=hgGrad;ctx.lineWidth=5;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(-bW*0.16,-bH);
+     ctx.bezierCurveTo(-bW*0.16,-bH-bH*0.48,bW*0.16,-bH-bH*0.48,bW*0.16,-bH);
+     ctx.stroke();
+     /* anneau de fixation poignée */
+     for(const px of [-bW*0.16,bW*0.16]){
+      ctx.fillStyle='rgba(155,120,50,0.85)';
+      ctx.beginPath();ctx.roundRect(px-5,-bH-4,10,10,2);ctx.fill();
      }
-     /* barre du haut */
-     ctx.fillStyle='#151009';
-     ctx.beginPath();ctx.roundRect(-hW/2-hT,-bH-hH-hT*1.7,hW+hT*2,hT*1.9,[4,4,0,0]);ctx.fill();
-     /* montant gauche */
-     ctx.beginPath();ctx.roundRect(-hW/2-hT,-bH-hH,hT*2,hH,[4,0,0,4]);ctx.fill();
-     /* montant droit */
-     ctx.beginPath();ctx.roundRect(hW/2-hT,-bH-hH,hT*2,hH,[0,4,4,0]);ctx.fill();
-     /* reflet barre haut */
-     ctx.fillStyle='rgba(68,52,18,0.28)';
-     ctx.beginPath();ctx.roundRect(-hW/2-hT,-bH-hH-hT*1.7,hW+hT*2,hT*0.85,[4,4,0,0]);ctx.fill();
-     /* contour */
-     ctx.strokeStyle='rgba(8,5,2,0.40)';ctx.lineWidth=0.8;
-     ctx.beginPath();ctx.roundRect(-hW/2-hT,-bH-hH-hT*1.7,hW+hT*2,hT*1.9,[4,4,0,0]);ctx.stroke();
+
+     /* Ombre portée au sol */
+     const sh=ctx.createRadialGradient(0,8,0,0,10,bW*0.7);
+     sh.addColorStop(0,'rgba(0,0,0,0.50)');sh.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sh;ctx.beginPath();ctx.ellipse(0,10,bW*0.55,10,0,0,Math.PI*2);ctx.fill();
 
      ctx.restore();
     }
