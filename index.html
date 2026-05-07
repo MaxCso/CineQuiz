@@ -29350,75 +29350,87 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Dune',
    ref:'Dune \u2014 Denis Villeneuve, 2021',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.68';
+    cv.style.opacity='0.85';
     let t=0;
-    const cx=W/2,cy=H/2;
+    const cx=W/2;
 
-    const dunePoints=Array.from({length:5},(_,i)=>({
-     phase:i*1.1,amp:H*(0.04+i*0.015),freq:0.006+i*0.002,spd:0.2+i*0.08,
-     baseY:H*(0.48+i*0.08)
+    // Dunes — 5 couches
+    const dunes=Array.from({length:5},(_,i)=>({
+     phase:i*1.2, amp:H*(0.028+i*0.012),
+     freq:0.0055+i*0.0018, spd:0.12+i*0.06,
+     baseY:H*(0.50+i*0.075),
+     r:82+i*14, g:56+i*9, b:18+i*5,
+     alpha:0.62+i*0.07
     }));
 
-    const spice=Array.from({length:80},()=>({
-     x:Math.random()*W,y:H*0.3+Math.random()*H*0.5,
-     vx:Math.random()*1.5+0.3,vy:(Math.random()-0.5)*0.3,
-     r:Math.random()*2+0.4,op:Math.random()*0.4+0.1,
-     hue:28+Math.random()*15
+    // Spice
+    const spice=Array.from({length:55},()=>({
+     x:Math.random()*W, y:H*0.25+Math.random()*H*0.45,
+     vx:Math.random()*0.8+0.2, vy:(Math.random()-0.5)*0.15,
+     r:Math.random()*1.6+0.3, op:Math.random()*0.30+0.08,
+     hue:28+Math.random()*18
     }));
 
-    let wormProgress=0;
+    // Ver des sables — anneaux qui émergent
+    // Position du ver : légèrement décalé, sort du sable à mi-écran
+    const WORM_CX=cx+W*0.06;
+    const WORM_BASE=H*0.58; // point d'émergence du sable
+
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(5,3,1,0.14)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(4,2,0,0.16)';ctx.fillRect(0,0,W,H);
 
-     const sky=ctx.createLinearGradient(0,0,0,H*0.5);
-     sky.addColorStop(0,`rgba(${40+Math.sin(t*0.12)*5|0},25,8,0.10)`);
-     sky.addColorStop(1,`rgba(${80+Math.sin(t*0.1)*8|0},50,15,0.08)`);
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.5);
+     // Ciel
+     const sky=ctx.createLinearGradient(0,0,0,H*0.52);
+     sky.addColorStop(0,`rgba(${22+Math.sin(t*0.08)*3|0},14,6,0.92)`);
+     sky.addColorStop(0.35,`rgba(${65+Math.sin(t*0.10)*5|0},38,12,0.88)`);
+     sky.addColorStop(0.7,`rgba(${110+Math.sin(t*0.09)*8|0},65,18,0.82)`);
+     sky.addColorStop(1,`rgba(${145+Math.sin(t*0.07)*6|0},88,22,0.75)`);
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.52);
 
-     for(let d=dunePoints.length-1;d>=0;d--){
-      const dp=dunePoints[d];
-      const alpha=0.60+d*0.08;
-      ctx.fillStyle=`rgba(${80+d*12|0},${55+d*8|0},${20+d*5|0},${alpha})`;
-      ctx.beginPath();ctx.moveTo(0,H);
-      ctx.lineTo(0,dp.baseY);
-      for(let x=0;x<=W;x+=4){
+     // Soleil bas
+     const sunX=cx-W*0.12, sunY=H*0.46;
+     const sunG=ctx.createRadialGradient(sunX,sunY,2,sunX,sunY,W*0.22);
+     sunG.addColorStop(0,`rgba(255,${220+Math.sin(t*0.15)*12|0},120,${0.50+Math.sin(t*0.2)*0.05})`);
+     sunG.addColorStop(0.2,'rgba(255,165,40,0.25)');
+     sunG.addColorStop(0.5,'rgba(210,100,15,0.10)');
+     sunG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H*0.55);
+
+     // Dunes
+     for(let d=dunes.length-1;d>=0;d--){
+      const dp=dunes[d];
+      ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,dp.baseY);
+      for(let x=0;x<=W;x+=3){
        const y=dp.baseY+Math.sin(x*dp.freq+t*dp.spd+dp.phase)*dp.amp
-        +Math.sin(x*dp.freq*1.7-t*dp.spd*0.6+dp.phase)*dp.amp*0.4;
+        +Math.sin(x*dp.freq*1.7-t*dp.spd*0.6+dp.phase)*dp.amp*0.38;
        ctx.lineTo(x,y);
       }
-      ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+      ctx.lineTo(W,H);ctx.closePath();
+      const dg=ctx.createLinearGradient(0,dp.baseY-dp.amp*2,0,H);
+      dg.addColorStop(0,`rgba(${dp.r+18},${dp.g+12},${dp.b+4},${dp.alpha-0.08})`);
+      dg.addColorStop(0.4,`rgba(${dp.r},${dp.g},${dp.b},${dp.alpha})`);
+      dg.addColorStop(1,`rgba(${dp.r-12},${dp.g-8},${dp.b-2},${dp.alpha+0.05})`);
+      ctx.fillStyle=dg;ctx.fill();
      }
 
+
+     // Spice
      for(const s of spice){
-      s.x+=s.vx;s.y+=s.vy+Math.sin(t*0.4+s.op*10)*0.15;
-      if(s.x>W+s.r){s.x=-s.r;s.y=H*0.3+Math.random()*H*0.4;}
+      s.x+=s.vx;s.y+=s.vy+Math.sin(t*0.5+s.op*8)*0.10;
+      if(s.x>W+s.r){s.x=-s.r;s.y=H*0.22+Math.random()*H*0.42;}
       ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${s.hue},75%,55%,${s.op})`;ctx.fill();
+      ctx.fillStyle=`hsla(${s.hue},72%,58%,${s.op})`;ctx.fill();
      }
 
-     wormProgress+=0.004;
-     const wormX=cx+Math.sin(wormProgress)*W*0.3;
-     const wormY=H*0.52+Math.cos(wormProgress*0.7)*H*0.04;
-     const wormArc=Math.PI*0.55;
-     ctx.save();
-     const arcPts=[];
-     for(let i=0;i<=20;i++){
-      const a=-Math.PI*0.5-wormArc/2+i*(wormArc/20);
-      const r=60+Math.sin(i*0.5)*8;
-      arcPts.push({x:wormX+Math.cos(a)*r,y:wormY+Math.sin(a)*r*0.4});
-     }
-     ctx.beginPath();ctx.moveTo(arcPts[0].x,arcPts[0].y);
-     arcPts.forEach(p=>ctx.lineTo(p.x,p.y));
-     ctx.strokeStyle='rgba(30,20,8,0.75)';ctx.lineWidth=22;ctx.stroke();
-     ctx.strokeStyle='rgba(50,35,12,0.50)';ctx.lineWidth=28;ctx.stroke();
-
-     ctx.beginPath();ctx.arc(arcPts[10].x,arcPts[10].y,12,0,Math.PI*2);
-     ctx.fillStyle='rgba(20,10,5,0.85)';ctx.fill();
-     ctx.restore();
-     const vg=ctx.createRadialGradient(cx,cy,H*0.1,cx,cy,H*0.85);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(8,5,0,0.68)');
+     // Vignette
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.08,cx,H*0.5,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.6,'rgba(4,2,0,0.15)');
+     vg.addColorStop(1,'rgba(8,4,0,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
