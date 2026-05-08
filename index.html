@@ -24604,6 +24604,9 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     let t=0;
     const cx=W/2;
 
+    /* ── Décalage vertical global — descend la scène pour centrer dans la zone visible ── */
+    const yOff = H*0.10;
+
     /* ── Mots subliminaux flash ── */
     const subliminal=['CONSUME','OBEY','SLEEP','BUY','SUBMIT','CONFORM'];
     let subWord='', subAlpha=0, subTimer=120;
@@ -24611,7 +24614,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     /* ── Fumée qui monte des bâtiments ── */
     const smokeParticles=Array.from({length:30},()=>({
      x:Math.random()*W,
-     y:H*(0.15+Math.random()*0.35),
+     y:H*(0.15+Math.random()*0.35)+yOff,
      vx:(Math.random()-0.5)*0.25,
      vy:-(Math.random()*0.4+0.15),
      r:Math.random()*18+8,
@@ -24635,23 +24638,23 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ctx.save();
 
      /* Ciel — dégradé cyan profond */
-     const sky=ctx.createLinearGradient(0,0,0,H*0.72);
+     const sky=ctx.createLinearGradient(0,0,0,H*0.72+yOff);
      sky.addColorStop(0,'rgb(4,40,65)');
      sky.addColorStop(0.45,'rgb(8,68,100)');
      sky.addColorStop(0.72,'rgb(12,80,110)');
      ctx.fillStyle=sky;
-     ctx.fillRect(0,0,W,H*0.72);
+     ctx.fillRect(0,0,W,H*0.72+yOff);
 
      /* Halos lumineux dans le ciel — bleu cyan */
-     const halo1=ctx.createRadialGradient(W*0.28,H*0.12,5,W*0.28,H*0.12,W*0.55);
+     const halo1=ctx.createRadialGradient(W*0.28,H*0.12+yOff,5,W*0.28,H*0.12+yOff,W*0.55);
      halo1.addColorStop(0,'rgba(0,140,190,0.22)');
      halo1.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=halo1;ctx.fillRect(0,0,W,H*0.72);
+     ctx.fillStyle=halo1;ctx.fillRect(0,0,W,H*0.72+yOff);
 
-     const halo2=ctx.createRadialGradient(W*0.75,H*0.08,5,W*0.75,H*0.08,W*0.45);
+     const halo2=ctx.createRadialGradient(W*0.75,H*0.08+yOff,5,W*0.75,H*0.08+yOff,W*0.45);
      halo2.addColorStop(0,'rgba(0,120,170,0.18)');
      halo2.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=halo2;ctx.fillRect(0,0,W,H*0.72);
+     ctx.fillStyle=halo2;ctx.fillRect(0,0,W,H*0.72+yOff);
 
      /* Immeubles arrière-plan — silhouettes foncées, tons bleu */
      const bgBuildings=[
@@ -24666,10 +24669,10 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ];
      for(const b of bgBuildings){
       ctx.fillStyle=b.c;
-      ctx.fillRect(b.x,H*0.72-b.h,b.w,b.h);
+      ctx.fillRect(b.x,H*0.72+yOff-b.h,b.w,b.h);
       /* Petites fenêtres brillantes */
       ctx.fillStyle='rgba(0,200,240,0.14)';
-      for(let fy=H*0.72-b.h+6;fy<H*0.72-8;fy+=10){
+      for(let fy=H*0.72+yOff-b.h+6;fy<H*0.72+yOff-8;fy+=10){
        for(let fx=b.x+4;fx<b.x+b.w-4;fx+=8){
         if(Math.random()>0.45) ctx.fillRect(fx,fy,3,4);
        }
@@ -24679,7 +24682,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      /* Immeubles avant-plan — plus sombres, certains penchés / en ruine */
      /* immeuble gauche — incliné */
      ctx.save();
-     ctx.translate(W*0.07,H*0.72);
+     ctx.translate(W*0.07,H*0.72+yOff);
      ctx.rotate(-0.045);
      const bldL=ctx.createLinearGradient(0,-H*0.52,W*0.20,0);
      bldL.addColorStop(0,'rgb(5,30,48)');
@@ -24695,7 +24698,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
 
      /* immeuble droit — effondré partiellement */
      ctx.save();
-     ctx.translate(W*0.72,H*0.72);
+     ctx.translate(W*0.72,H*0.72+yOff);
      ctx.rotate(0.03);
      const bldR=ctx.createLinearGradient(0,-H*0.48,W*0.25,0);
      bldR.addColorStop(0,'rgb(4,28,45)');
@@ -24721,8 +24724,8 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      for(const bx of bars){
       ctx.fillRect(bx-barW/2, 0, barW, H);
      }
-     /* Montant horizontal — milieu */
-     ctx.fillRect(0, H*0.485, W, barW-1);
+     /* Montant horizontal — décalé avec yOff */
+     ctx.fillRect(0, H*0.485+yOff, W, barW-1);
      /* Reflets subtils sur les vitres */
      for(let i=0;i<4;i++){
       const gx=i*(W/4);
@@ -24738,18 +24741,19 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     /* ── Sol / reflet ── */
     function drawFloor(){
      ctx.save();
-     const floor=ctx.createLinearGradient(0,H*0.72,0,H);
+     const floorY = H*0.72+yOff;
+     const floor=ctx.createLinearGradient(0,floorY,0,H);
      floor.addColorStop(0,'rgb(3,20,32)');
      floor.addColorStop(1,'rgb(1,10,18)');
      ctx.fillStyle=floor;
-     ctx.fillRect(0,H*0.72,W,H*0.28);
+     ctx.fillRect(0,floorY,W,H-floorY);
 
      /* Reflet des silhouettes — flou, très sombre */
-     const refG=ctx.createLinearGradient(0,H*0.72,0,H*0.88);
+     const refG=ctx.createLinearGradient(0,floorY,0,floorY+H*0.16);
      refG.addColorStop(0,'rgba(0,0,0,0.55)');
      refG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=refG;
-     ctx.fillRect(0,H*0.72,W,H*0.16);
+     ctx.fillRect(0,floorY,W,H*0.16);
 
      /* Ligne de sol lumineuse (reflet baie vitrée) */
      const lineG=ctx.createLinearGradient(0,0,W,0);
@@ -24758,7 +24762,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      lineG.addColorStop(0.7,'rgba(0,180,220,0.12)');
      lineG.addColorStop(1,'rgba(0,180,220,0)');
      ctx.fillStyle=lineG;
-     ctx.fillRect(0,H*0.72,W,1.5);
+     ctx.fillRect(0,floorY,W,1.5);
      ctx.restore();
     }
 
@@ -24766,9 +24770,8 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     function drawSilhouettes(){
      ctx.save();
 
-     /* Lumière de bord (rim light) magenta/cyan sur les silhouettes */
      /* Personnage GAUCHE — homme (plus grand, manteau long) */
-     const p1x=cx-W*0.095, p1base=H*0.725;
+     const p1x=cx-W*0.095, p1base=H*0.725+yOff;
      const p1h=H*0.295, p1w=W*0.115;
 
      /* Rim light cyan — bord gauche */
@@ -24805,7 +24808,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ctx.beginPath();ctx.ellipse(p1x+p1w*0.14,p1base,p1w*0.16,p1h*0.035,0,0,Math.PI*2);ctx.fill();
 
      /* Personnage DROIT — femme (fourrure, cheveux bouclés) */
-     const p2x=cx+W*0.085, p2base=H*0.725;
+     const p2x=cx+W*0.085, p2base=H*0.725+yOff;
      const p2h=H*0.270, p2w=W*0.125;
 
      /* Rim light magenta — bord droit */
@@ -24902,7 +24905,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
       s.y+=s.vy;s.life-=s.decay;s.r+=0.06;
       if(s.life<=0){
        s.x=W*0.08+Math.random()*W*0.84;
-       s.y=H*(0.15+Math.random()*0.30);
+       s.y=H*(0.15+Math.random()*0.30)+yOff;
        s.vy=-(Math.random()*0.35+0.12);s.life=0.55+Math.random()*0.35;s.r=Math.random()*12+5;
       }
       const sg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
@@ -24926,7 +24929,7 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.shadowColor='rgba(0,180,220,0.7)';ctx.shadowBlur=25;
       ctx.fillStyle=`rgba(0,200,230,${subAlpha*0.70})`;
-      ctx.fillText(subWord,cx,H*0.35);
+      ctx.fillText(subWord,cx,H*0.35+yOff);
       ctx.shadowBlur=0;ctx.restore();
       subAlpha*=0.58;
       if(subAlpha<0.008)subAlpha=0;
