@@ -24456,287 +24456,205 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     let t=0;
     const cx=W/2;
 
-    // Marges sûres
-    const SAFE_TOP=H*0.12, SAFE_BOT=H*0.88;
+    /* ── Mots subliminaux flash (1-2 frames) ── */
+    const subliminal=['CONSUME','OBEY','SLEEP','BUY','SUBMIT','CONFORM'];
+    let subWord='', subAlpha=0, subTimer=0;
 
-    // ── Tours + explosions (fond) ──
-    const blasts=Array.from({length:10},(_,i)=>({
-     tower:i%2===0?-1:1, floor:0.2+Math.random()*0.65,
-     timer:Math.floor(Math.random()*120), active:false, r:0, maxR:0, op:0
-    }));
-    const debris=Array.from({length:24},()=>({
-     x:0,y:0,vx:0,vy:0,life:0,maxLife:0,active:false,r:0,timer:Math.floor(Math.random()*60)
-    }));
-    const smokes=Array.from({length:14},()=>({
-     x:0,y:0,vx:0,vy:0,r:0,op:0,active:false,timer:Math.floor(Math.random()*80)
-    }));
+    /* ── Savon — position centrale ── */
+    const soapX=cx, soapY=H*0.52;
+    const soapW=W*0.62, soapH=W*0.30;
 
-    // ── Mots subliminaux ──
-    const subliminal=['CONSUME','OBEY','SLEEP','COMPLY','BUY','DESTROY','SUBMIT','CONFORM','KILL','WORK','SPEND','HATE'];
-    const subWords=Array.from({length:4},()=>({
-     word:'',alpha:0,x:0,y:0,size:0,timer:Math.floor(Math.random()*120)
-    }));
-
-    // ── Grain pellicule (pré-calculé) ──
-    const grainC=document.createElement('canvas');
-    grainC.width=W;grainC.height=H;
-
-    function drawTowers(){
-     const TW=W*0.072, TH=H*0.30;
-     const BASE=H*0.68;
-     const LX=cx-W*0.16, RX=cx+W*0.16;
-
-     // Lueur incendie
-     const fg=ctx.createRadialGradient(cx,BASE-TH*0.3,5,cx,BASE-TH*0.3,W*0.65);
-     fg.addColorStop(0,`rgba(${190+Math.sin(t*1.8)*15|0},60,5,${0.22+Math.sin(t*2.2)*0.06})`);
-     fg.addColorStop(0.5,'rgba(90,25,3,0.10)');
-     fg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=fg;ctx.fillRect(0,0,W,BASE+10);
-
-     // Fumée derrière les tours
-     for(const sm of smokes){
-      sm.timer--;
-      if(sm.timer<=0&&!sm.active){
-       sm.active=true;
-       sm.x=(Math.random()<0.5?LX:RX)+(Math.random()-0.5)*TW*1.5;
-       sm.y=BASE-TH*(0.4+Math.random()*0.55);
-       sm.vx=(Math.random()-0.5)*0.35;sm.vy=-(Math.random()*0.5+0.2);
-       sm.r=TW*(0.35+Math.random()*0.25);sm.op=0.14+Math.random()*0.08;
-       sm.timer=35+Math.floor(Math.random()*45);
-      }
-      if(sm.active){
-       sm.x+=sm.vx;sm.y+=sm.vy;sm.r+=0.65;sm.op*=0.975;
-       if(sm.op<0.007)sm.active=false;
-       const sk=ctx.createRadialGradient(sm.x,sm.y,0,sm.x,sm.y,sm.r);
-       sk.addColorStop(0,`rgba(55,45,40,${sm.op})`);
-       sk.addColorStop(1,'rgba(0,0,0,0)');
-       ctx.fillStyle=sk;ctx.fillRect(sm.x-sm.r,sm.y-sm.r,sm.r*2,sm.r*2);
-      }
-     }
-
-     // Dessiner une tour
-     function drawTower(tx){
-      const tg=ctx.createLinearGradient(tx,BASE-TH,tx,BASE);
-      tg.addColorStop(0,'rgba(18,14,10,0.97)');
-      tg.addColorStop(0.6,'rgba(25,18,12,0.97)');
-      tg.addColorStop(1,'rgba(50,30,12,0.97)');
-      ctx.fillStyle=tg;
-      ctx.fillRect(tx-TW/2,BASE-TH,TW,TH);
-      // Étages
-      ctx.strokeStyle='rgba(12,9,6,0.5)';ctx.lineWidth=0.5;
-      for(let fi=1;fi<16;fi++){
-       ctx.beginPath();ctx.moveTo(tx-TW/2,BASE-TH+fi*(TH/16));ctx.lineTo(tx+TW/2,BASE-TH+fi*(TH/16));ctx.stroke();
-      }
-      // Fenêtres en feu
-      for(let fi=1;fi<15;fi++){
-       for(let wi=0;wi<4;wi++){
-        const onFire=Math.sin(t*3+fi*1.3+wi*0.9+tx*0.01)>0.4;
-        if(onFire){
-         const wx=tx-TW/2+4+wi*(TW-8)/4;
-         const wy=BASE-TH+fi*(TH/16)+1;
-         const ww=(TW-8)/4-1;const wh=TH/16-2;
-         const wg=ctx.createRadialGradient(wx+ww/2,wy+wh/2,0,wx+ww/2,wy+wh/2,ww*1.4);
-         wg.addColorStop(0,`rgba(255,${180+Math.random()*50|0},40,0.92)`);
-         wg.addColorStop(0.5,'rgba(255,80,8,0.45)');
-         wg.addColorStop(1,'rgba(0,0,0,0)');
-         ctx.fillStyle=wg;ctx.fillRect(wx-ww*0.3,wy-wh*0.4,ww*1.6,wh*1.8);
-        }
-       }
-      }
-      // Antenne + voyant
-      ctx.strokeStyle='rgba(35,28,20,0.9)';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.moveTo(tx,BASE-TH);ctx.lineTo(tx,BASE-TH-TH*0.07);ctx.stroke();
-      ctx.fillStyle=`rgba(255,40,20,${0.5+Math.sin(t*2.8)*0.5})`;
-      ctx.beginPath();ctx.arc(tx,BASE-TH-TH*0.07,2,0,Math.PI*2);ctx.fill();
-      // Contour
-      ctx.strokeStyle='rgba(8,6,4,0.8)';ctx.lineWidth=1;
-      ctx.strokeRect(tx-TW/2,BASE-TH,TW,TH);
-     }
-
-     drawTower(LX);drawTower(RX);
-
-     // Explosions
-     for(const bl of blasts){
-      bl.timer--;
-      if(bl.timer<=0&&!bl.active){
-       bl.active=true;bl.r=0;
-       bl.maxR=TW*(0.7+Math.random()*0.8);bl.op=0.88;
-       bl.floor=0.15+Math.random()*0.72;
-       bl.timer=18+Math.floor(Math.random()*65);
-      }
-      if(bl.active){
-       bl.r+=2.4;bl.op*=0.89;
-       const bx=(bl.tower<0?LX:RX)+(Math.random()-0.5)*TW*0.6;
-       const by=BASE-TH*bl.floor;
-       if(bl.r<=bl.maxR&&bl.op>0.015){
-        const eg=ctx.createRadialGradient(bx,by,0,bx,by,bl.r);
-        eg.addColorStop(0,`rgba(255,248,180,${bl.op})`);
-        eg.addColorStop(0.15,`rgba(255,190,40,${bl.op*0.85})`);
-        eg.addColorStop(0.4,`rgba(255,70,8,${bl.op*0.55})`);
-        eg.addColorStop(0.75,`rgba(120,25,3,${bl.op*0.2})`);
-        eg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=eg;ctx.fillRect(bx-bl.r,by-bl.r,bl.r*2,bl.r*2);
-       } else { bl.active=false; }
-      }
-     }
-
-     // Débris
-     for(const db of debris){
-      db.timer--;
-      if(db.timer<=0&&!db.active){
-       db.active=true;
-       db.x=(Math.random()<0.5?LX:RX)+(Math.random()-0.5)*TW;
-       db.y=BASE-TH*(0.15+Math.random()*0.7);
-       db.vx=(Math.random()-0.5)*3.2;db.vy=-(Math.random()*2+0.4);
-       db.r=Math.random()*2+0.5;
-       db.maxLife=30+Math.random()*22|0;db.life=db.maxLife;
-       db.timer=12+Math.floor(Math.random()*38);
-      }
-      if(db.active){
-       db.x+=db.vx;db.y+=db.vy;db.vy+=0.20;db.life--;
-       const da=db.life/db.maxLife;
-       ctx.fillStyle=`rgba(${160+Math.random()*80|0},${55+Math.random()*45|0},8,${da*0.8})`;
-       ctx.beginPath();ctx.arc(db.x,db.y,Math.max(0.1,db.r*da),0,Math.PI*2);ctx.fill();
-       if(db.life<=0)db.active=false;
-      }
-     }
-    }
-
-    function drawCouple(){
-     // Tyler et Marla debout, main dans la main, premier plan
-     // Silhouettes sombres sur fond de feu — minimalistes
-     const groundY=H*0.88;
-     const scH=H*0.20; // hauteur des silhouettes
-     const gap=W*0.10; // espace entre eux (main dans la main)
-
-     // Tyler (gauche) — légèrement plus grand
-     const TX=cx-gap*0.5-scH*0.08;
-     // Marla (droite) — légèrement plus petite
-     const MX=cx+gap*0.5+scH*0.06;
-
-     const drawSilhouette=(sx,sy,sc,lean)=>{
-      ctx.save();
-      ctx.fillStyle='rgba(5,3,2,0.97)';
-      ctx.strokeStyle='rgba(5,3,2,0.97)';
-      ctx.lineWidth=sc*0.085;
-      ctx.lineCap='round';
-
-      // Tête
-      ctx.beginPath();
-      ctx.arc(sx,sy-sc*0.88,sc*0.115,0,Math.PI*2);
-      ctx.fill();
-
-      // Corps légèrement incliné
-      ctx.save();ctx.translate(sx,sy-sc*0.5);ctx.rotate(lean*0.06);
-      ctx.fillRect(-sc*0.09,-sc*0.35,sc*0.18,sc*0.42);
-      ctx.restore();
-
-      // Jambes
-      ctx.beginPath();
-      ctx.moveTo(sx-sc*0.04,sy-sc*0.08);ctx.lineTo(sx-sc*0.06,sy);
-      ctx.moveTo(sx+sc*0.04,sy-sc*0.08);ctx.lineTo(sx+sc*0.06,sy);
-      ctx.stroke();
-
-      // Bras extérieur (libre, naturel)
-      ctx.beginPath();
-      ctx.moveTo(sx-lean*sc*0.09,sy-sc*0.60);
-      ctx.quadraticCurveTo(sx-lean*sc*0.22,sy-sc*0.35,sx-lean*sc*0.18,sy-sc*0.18);
-      ctx.stroke();
-
-      ctx.restore();
-     };
-
-     // Bras intérieurs joints (main dans la main)
-     // Tyler tend son bras droit vers Marla, Marla tend son bras gauche vers Tyler
+    function drawSoap(){
      ctx.save();
-     ctx.strokeStyle='rgba(5,3,2,0.97)';
-     ctx.lineWidth=scH*0.075;ctx.lineCap='round';
+     /* Légère oscillation + inclinaison permanente comme sur la vraie image */
+     const bob=Math.sin(t*0.55)*3;
+     const tilt=-0.18 + Math.sin(t*0.38)*0.012; /* angle fixe ~-10° */
+     ctx.translate(soapX, soapY+bob);
+     ctx.rotate(tilt);
+
+     /* Ombre portée */
+     const shG=ctx.createRadialGradient(soapW*0.08, soapH*0.72, 2, soapW*0.08, soapH*0.72, soapW*0.58);
+     shG.addColorStop(0,'rgba(0,0,0,0.55)');
+     shG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=shG;
+     ctx.beginPath();ctx.ellipse(soapW*0.05, soapH*0.72, soapW*0.50, soapH*0.18, 0, 0, Math.PI*2);ctx.fill();
+
+     /* Tranche basse (3D) — rose plus foncé */
+     const sideG=ctx.createLinearGradient(0, soapH/2, 0, soapH/2+soapH*0.22);
+     sideG.addColorStop(0,'rgb(155,85,105)');
+     sideG.addColorStop(1,'rgb(125,62,82)');
+     ctx.fillStyle=sideG;
      ctx.beginPath();
-     ctx.moveTo(TX+scH*0.09,groundY-scH*0.58);
-     ctx.quadraticCurveTo((TX+MX)/2,groundY-scH*0.42,MX-scH*0.09,groundY-scH*0.58);
-     ctx.stroke();
-     ctx.restore();
+     ctx.moveTo(-soapW/2+soapH*0.14, soapH/2);
+     ctx.lineTo(soapW/2-soapH*0.10, soapH/2);
+     ctx.lineTo(soapW/2-soapH*0.06, soapH/2+soapH*0.20);
+     ctx.lineTo(-soapW/2+soapH*0.10, soapH/2+soapH*0.20);
+     ctx.closePath();ctx.fill();
 
-     // Silhouettes
-     drawSilhouette(TX, groundY, scH, 1);   // Tyler, légèrement penché vers elle
-     drawSilhouette(MX, groundY, scH*0.88, -1); // Marla, légèrement vers lui
+     /* Tranche droite */
+     const sideRG=ctx.createLinearGradient(soapW/2, 0, soapW/2+soapH*0.14, 0);
+     sideRG.addColorStop(0,'rgb(148,78,98)');
+     sideRG.addColorStop(1,'rgb(118,55,75)');
+     ctx.fillStyle=sideRG;
+     ctx.beginPath();
+     ctx.moveTo(soapW/2-soapH*0.10, soapH/2);
+     ctx.lineTo(soapW/2+soapH*0.04, soapH/2-soapH*0.10);
+     ctx.lineTo(soapW/2+soapH*0.04, -soapH/2+soapH*0.14);
+     ctx.lineTo(soapW/2-soapH*0.10, -soapH/2);
+     ctx.closePath();ctx.fill();
 
-     // Lueur du feu qui se reflète sur les silhouettes (bord chaud)
+     /* Face principale — rose chaud */
+     const topG=ctx.createLinearGradient(-soapW/2, -soapH/2, soapW*0.3, soapH*0.2);
+     topG.addColorStop(0,'rgb(218,138,162)');
+     topG.addColorStop(0.3,'rgb(232,155,178)');
+     topG.addColorStop(0.65,'rgb(220,142,168)');
+     topG.addColorStop(1,'rgb(205,125,150)');
+     ctx.fillStyle=topG;
+     ctx.beginPath();ctx.roundRect(-soapW/2,-soapH/2,soapW,soapH,soapH*0.13);ctx.fill();
+
+     /* Reflet brillant haut-gauche — comme sur la vraie image */
+     const refG=ctx.createRadialGradient(-soapW*0.28,-soapH*0.30,0,-soapW*0.22,-soapH*0.22,soapW*0.22);
+     refG.addColorStop(0,'rgba(255,240,248,0.70)');
+     refG.addColorStop(0.3,'rgba(255,235,245,0.35)');
+     refG.addColorStop(1,'rgba(255,235,245,0)');
+     ctx.fillStyle=refG;
+     ctx.beginPath();ctx.roundRect(-soapW/2,-soapH/2,soapW,soapH,soapH*0.13);ctx.fill();
+
+     /* Petits éclats de reflet (comme sur la vraie image) */
+     ctx.fillStyle='rgba(255,248,252,0.75)';
+     for(const [rx,ry,rr] of [[-soapW*0.38,-soapH*0.35,3.5],[-soapW*0.28,-soapH*0.10,2],[-soapW*0.44,soapH*0.30,2.5]]){
+      ctx.beginPath();ctx.arc(rx,ry,rr,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Contour rose foncé */
+     ctx.strokeStyle='rgba(165,88,115,0.60)';ctx.lineWidth=2;
+     ctx.beginPath();ctx.roundRect(-soapW/2,-soapH/2,soapW,soapH,soapH*0.13);ctx.stroke();
+
+     /* ── Texte "FIGHT / CLUB" — grand, gras, rose pâle, deux lignes ── */
      ctx.save();
-     const rimL=ctx.createLinearGradient(TX-scH*0.15,0,TX+scH*0.15,0);
-     rimL.addColorStop(0,`rgba(255,80,10,${0.12+Math.sin(t*2)*0.04})`);
-     rimL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=rimL;ctx.fillRect(TX-scH*0.15,groundY-scH,scH*0.15,scH);
+     ctx.textAlign='center';ctx.textBaseline='middle';
+     const fontSize=soapH*0.52;
+     ctx.font=`900 ${fontSize}px 'Arial Black', sans-serif`;
 
-     const rimR=ctx.createLinearGradient(MX+scH*0.15,0,MX-scH*0.15,0);
-     rimR.addColorStop(0,`rgba(255,80,10,${0.10+Math.sin(t*2+1)*0.04})`);
-     rimR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=rimR;ctx.fillRect(MX,groundY-scH,scH*0.15,scH);
+     /* Ombre du texte (rose foncé décalée) — effet 3D comme la vraie image */
+     ctx.fillStyle='rgba(165,88,115,0.80)';
+     ctx.fillText('FIGHT', 3, -soapH*0.14+3);
+     ctx.fillText('CLUB',  3,  soapH*0.16+3);
+
+     /* Texte principal rose très clair */
+     ctx.fillStyle='rgb(242,210,225)';
+     ctx.fillText('FIGHT', 0, -soapH*0.14);
+     ctx.fillText('CLUB',  0,  soapH*0.16);
      ctx.restore();
 
-     // Sol — ligne de sol simple
-     ctx.strokeStyle='rgba(20,12,6,0.5)';ctx.lineWidth=1;
-     ctx.beginPath();ctx.moveTo(0,groundY);ctx.lineTo(W,groundY);ctx.stroke();
+     ctx.restore();
     }
+
+    /* état glitch */
+    let glitchActive=false, glitchTimer=0, glitchIntensity=0;
 
     function frame(){
      if(stop.v)return;
 
-     // Fond persistant sombre — Fincher
-     ctx.fillStyle='rgba(4,2,1,0.22)';ctx.fillRect(0,0,W,H);
+     /* Fond noir persistant — esthétique Fincher */
+     ctx.fillStyle='rgba(0,0,0,0.20)';ctx.fillRect(0,0,W,H);
 
-     // Ambiance rouge-brun Fincher
-     const amb=ctx.createRadialGradient(cx,H*0.45,10,cx,H*0.45,W*0.75);
-     amb.addColorStop(0,`rgba(${85+Math.sin(t*0.2)*8|0},22,5,0.32)`);
-     amb.addColorStop(0.4,'rgba(45,10,3,0.18)');
+     /* Vignette rouge très sombre en fond */
+     const amb=ctx.createRadialGradient(cx,H*0.5,H*0.05,cx,H*0.5,W*0.75);
+     amb.addColorStop(0,`rgba(${30+Math.sin(t*0.18)*5|0},5,2,0.18)`);
+     amb.addColorStop(0.5,'rgba(15,3,1,0.10)');
      amb.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=amb;ctx.fillRect(0,0,W,H);
 
-     // Tours + explosions
-     drawTowers();
-
-     // Grain pellicule Fincher
-     for(let i=0;i<70;i++){
-      const gv=130+Math.random()*80|0;
-      ctx.fillStyle=`rgba(${gv},${gv*0.80|0},${gv*0.74|0},${Math.random()*0.045})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2+0.5,1);
+     /* ── Mots subliminaux — DERRIÈRE le savon ── */
+     subTimer--;
+     if(subTimer<=0){
+      subWord=subliminal[Math.floor(Math.random()*subliminal.length)];
+      subAlpha=1.0;
+      subTimer=180+Math.floor(Math.random()*200);
+     }
+     if(subAlpha>0){
+      ctx.save();
+      const fSize=W*0.16+Math.random()*W*0.04;
+      ctx.font=`900 ${fSize}px 'Arial Black',sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      /* Lueur derrière */
+      ctx.shadowColor='rgba(220,50,50,0.6)';
+      ctx.shadowBlur=30;
+      ctx.fillStyle=`rgba(200,180,170,${subAlpha*0.82})`;
+      ctx.fillText(subWord, cx, H*0.50);
+      ctx.shadowBlur=0;
+      ctx.restore();
+      subAlpha*=0.60; /* disparaît en ~5 frames */
+      if(subAlpha<0.008)subAlpha=0;
      }
 
-     // Glitch subtil
-     if(Math.random()>0.88){
-      const gy=Math.random()*H,gh=Math.random()*6+1;
-      try{const sl=ctx.getImageData(0,gy,W,gh);ctx.putImageData(sl,(Math.random()-0.5)*20,gy);}catch(e){}
+     /* ── Savon central (par dessus les mots) ── */
+     drawSoap();
+
+     /* Grain pellicule Fincher — neutre */
+     for(let i=0;i<55;i++){
+      const gv=120+Math.random()*70|0;
+      ctx.fillStyle=`rgba(${gv},${gv},${gv},${Math.random()*0.035})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2+0.4,1);
      }
 
-     // Mots subliminaux
-     ctx.textAlign='center';ctx.textBaseline='middle';
-     for(const sw of subWords){
-      sw.timer--;
-      if(sw.timer<=0){
-       sw.word=subliminal[Math.floor(Math.random()*subliminal.length)];
-       sw.alpha=0.45+Math.random()*0.25;
-       sw.x=W*(0.08+Math.random()*0.84);
-       sw.y=H*(0.12+Math.random()*0.72);
-       sw.size=16+Math.random()*14|0;
-       sw.timer=160+Math.floor(Math.random()*180);
+     /* ── GLITCH Fincher — effet marqué ── */
+     /* Déclenchement aléatoire */
+     if(!glitchActive && Math.random()>0.965){
+      glitchActive=true;
+      glitchTimer=4+Math.floor(Math.random()*6); /* dure 4-10 frames */
+      glitchIntensity=0.6+Math.random()*0.4;
+     }
+     if(glitchActive){
+      glitchTimer--;
+      if(glitchTimer<=0) glitchActive=false;
+
+      /* Décalage de plusieurs bandes horizontales */
+      const nBands=3+Math.floor(Math.random()*5);
+      for(let b=0;b<nBands;b++){
+       const gy=Math.random()*H;
+       const gh=Math.random()*H*0.06+2;
+       const shift=(Math.random()-0.5)*W*0.12*glitchIntensity;
+       try{
+        const sl=ctx.getImageData(0,gy,W,gh);
+        ctx.putImageData(sl,shift,gy);
+       }catch(e){}
       }
-      if(sw.alpha>0){
-       ctx.font=`bold ${sw.size}px monospace`;
-       ctx.fillStyle=`rgba(200,180,155,${sw.alpha})`;
-       ctx.fillText(sw.word,sw.x,sw.y);
-       sw.alpha*=0.75;if(sw.alpha<0.004)sw.alpha=0;
+
+      /* Séparation chromatique RGB */
+      const rgbShift=W*0.012*glitchIntensity;
+      ctx.save();
+      ctx.globalCompositeOperation='screen';
+      ctx.globalAlpha=0.18*glitchIntensity;
+      /* Canal rouge décalé gauche */
+      try{
+       const snapH=Math.floor(H*0.4);
+       const snapY=Math.floor(H*0.30);
+       const snap=ctx.getImageData(0,snapY,W,snapH);
+       ctx.putImageData(snap,-rgbShift,snapY);
+      }catch(e){}
+      ctx.restore();
+
+      /* Lignes de scan blanches */
+      if(Math.random()>0.5){
+       const ly=Math.random()*H;
+       ctx.fillStyle=`rgba(255,255,255,${0.08+Math.random()*0.12})`;
+       ctx.fillRect(0,ly,W,Math.random()*3+0.5);
+      }
+
+      /* Flash global bref */
+      if(glitchTimer===1){
+       ctx.fillStyle=`rgba(255,255,255,${0.04*glitchIntensity})`;
+       ctx.fillRect(0,0,W,H);
       }
      }
-     ctx.textAlign='left';ctx.textBaseline='alphabetic';
 
-     // Le couple au premier plan
-     drawCouple();
-
-     // Vignette Fincher — très marquée sur les bords
-     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.06,cx,H*0.5,H*0.88);
+     /* Vignette Fincher — coins très sombres */
+     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.12,cx,H*0.5,H*0.80);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.5,'rgba(5,1,1,0.20)');
-     vg.addColorStop(1,'rgba(8,2,1,0.92)');
+     vg.addColorStop(0.55,'rgba(0,0,0,0.08)');
+     vg.addColorStop(1,'rgba(0,0,0,0.92)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
