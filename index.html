@@ -24300,28 +24300,61 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ctx.restore();
     }
 
-    /* ── Banc de parc — silhouette minimaliste ── */
+    /* ── Banc de parc — fidèle à la vraie photo du film ── */
     function drawBench(){
-     const bx=W*0.5, by=H*0.82, bw=W*0.38, a=0.22;
-     ctx.save();ctx.globalAlpha=a;
-     ctx.strokeStyle='rgba(180,155,110,1)';ctx.fillStyle='rgba(160,135,95,1)';
-     ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
-     /* Assise — 2 planches */
-     const pw=bw,ph=4,py=by;
-     ctx.fillRect(bx-pw/2, py-ph-3, pw, ph);
-     ctx.fillRect(bx-pw/2, py+2, pw, ph);
-     /* Dossier */
-     ctx.fillRect(bx-pw/2, py-22, pw, ph);
-     /* Montant dossier gauche & droit */
-     ctx.lineWidth=2;
-     ctx.beginPath();ctx.moveTo(bx-pw/2+pw*0.15,py-22+ph);ctx.lineTo(bx-pw/2+pw*0.15,py+2+ph);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(bx+pw/2-pw*0.15,py-22+ph);ctx.lineTo(bx+pw/2-pw*0.15,py+2+ph);ctx.stroke();
-     /* Pieds */
-     ctx.lineWidth=2.5;
-     ctx.beginPath();ctx.moveTo(bx-pw/2+pw*0.08,py+2+ph);ctx.lineTo(bx-pw/2+pw*0.08,py+18);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(bx+pw/2-pw*0.08,py+2+ph);ctx.lineTo(bx+pw/2-pw*0.08,py+18);ctx.stroke();
-     /* Barre transversale pieds */
-     ctx.beginPath();ctx.moveTo(bx-pw/2+pw*0.08,py+14);ctx.lineTo(bx+pw/2-pw*0.08,py+14);ctx.stroke();
+     /* Reproduction fidèle du SVG fourni — proportions 1060×430 mis à l'échelle */
+     /* SVG original : viewBox 0 0 1060 430
+        - 2 montants gris #585A5A : x=125,w=40 et x=895,w=40, hauteur pleine (430)
+        - 3 lattes assise #614F41 : y=20,h=40 / y=80,h=40 / y=140,h=40
+        - 1 latte dossier #614F41 : y=260,h=20
+        - 2 bases pieds #76787C  : x=120,y=407,w=50,h=23 et x=890,y=407,w=50,h=23
+        - boulons #563C3C aux jonctions
+     */
+     const svgW=1060, svgH=430;
+
+     /* Zone de dessin : centré, occupe 88% de la largeur du canvas */
+     const scale=W*0.88/svgW;
+     const offX=(W-svgW*scale)/2;
+     /* Positionner le banc en bas de l'écran */
+     const offY=H*0.76 - svgH*scale*0.5;
+
+     ctx.save();
+     ctx.translate(offX, offY);
+     ctx.scale(scale, scale);
+
+     /* Ombre sol */
+     const sg=ctx.createRadialGradient(530,445,5,530,445,480);
+     sg.addColorStop(0,'rgba(0,0,0,0.30)');sg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(530,445,460,16,0,0,Math.PI*2);ctx.fill();
+
+     /* ── Montants verticaux gris (pleine hauteur) ── */
+     ctx.fillStyle='#585A5A';
+     ctx.beginPath();ctx.roundRect(125,0,40,430,4);ctx.fill();
+     ctx.beginPath();ctx.roundRect(895,0,40,430,4);ctx.fill();
+
+     /* ── 3 lattes d'assise ── */
+     ctx.fillStyle='#614F41';
+     ctx.fillRect(0,20,1060,40);
+     ctx.fillRect(0,80,1060,40);
+     ctx.fillRect(0,140,1060,40);
+
+     /* ── 1 latte dossier ── */
+     ctx.fillStyle='#614F41';
+     ctx.fillRect(0,260,1060,20);
+
+     /* ── Bases des pieds ── */
+     ctx.fillStyle='#76787C';
+     ctx.beginPath();ctx.roundRect(110,407,70,23,3);ctx.fill();
+     ctx.beginPath();ctx.roundRect(880,407,70,23,3);ctx.fill();
+
+     /* ── Boulons ── */
+     ctx.fillStyle='#563C3C';
+     const boltXs=[145,915];
+     const boltYs=[40,100,160];
+     for(const bx2 of boltXs) for(const by2 of boltYs){
+      ctx.beginPath();ctx.arc(bx2,by2,5,0,Math.PI*2);ctx.fill();
+     }
+
      ctx.restore();
     }
 
