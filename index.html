@@ -25201,13 +25201,50 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     gx2.lineTo(gcx+gS*0.40,gcy-gS*1.03);
     gx2.stroke();
 
-    /* ── Sable et poussière ── */
-    const dust=Array.from({length:65},function(){return{
-     x:Math.random()*W,y:arenaY+Math.random()*(H-arenaY)*0.6,
-     vx:(Math.random()-0.5)*0.6,vy:-(Math.random()*0.5+0.1),
-     r:Math.random()*2.5+0.5,op:Math.random()*0.28+0.06,
+    /* ── Sable et poussière — 3 couches ── */
+
+    /* Couche 1 : grains de sable fins au ras du sol */
+    const sandGrains=Array.from({length:120},()=>({
+     x:Math.random()*W,
+     y:arenaY+Math.random()*(H-arenaY)*0.25,
+     vx:Math.random()*1.8+0.4,
+     vy:-(Math.random()*0.15),
+     r:Math.random()*1.2+0.2,
+     op:Math.random()*0.55+0.15,
+     hue:22+Math.random()*18,
+     wobble:Math.random()*Math.PI*2
+    }));
+
+    /* Couche 2 : particules moyennes qui montent */
+    const dust=Array.from({length:65},()=>({
+     x:Math.random()*W,
+     y:arenaY+Math.random()*(H-arenaY)*0.6,
+     vx:(Math.random()-0.5)*0.6,
+     vy:-(Math.random()*0.5+0.1),
+     r:Math.random()*2.5+0.5,
+     op:Math.random()*0.28+0.06,
      hue:25+Math.random()*20
-    };});
+    }));
+
+    /* Couche 3 : grosses volutes atmosphériques */
+    const puffs=Array.from({length:8},(_,i)=>({
+     x:Math.random()*W,
+     y:arenaY-Math.random()*H*0.12,
+     vx:(Math.random()-0.5)*0.25+0.15,
+     r:W*(0.06+Math.random()*0.10),
+     op:Math.random()*0.07+0.02,
+     phase:Math.random()*Math.PI*2
+    }));
+
+    /* Rafales horizontales (streaks) */
+    const streaks=Array.from({length:18},()=>({
+     x:Math.random()*W,
+     y:arenaY+Math.random()*(H-arenaY)*0.5,
+     vx:Math.random()*3.5+1.5,
+     len:Math.random()*W*0.08+W*0.02,
+     op:Math.random()*0.18+0.04,
+     life:Math.random()
+    }));
 
     function frame(){
      if(stop.v)return;
@@ -25230,14 +25267,51 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
      ctx.drawImage(gladC,W*0.5-gS*0.7,arenaY-gS*1.62);
      ctx.restore();
 
-     /* poussière qui vole */
+     /* ── Volutes atmosphériques (fond, dessinées en premier) ── */
+     for(const p of puffs){
+      p.x+=p.vx;p.phase+=0.008;
+      if(p.x>W+p.r*2)p.x=-p.r*2;
+      const pulse=1+Math.sin(p.phase)*0.12;
+      const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*pulse);
+      pg.addColorStop(0,`rgba(160,110,45,${p.op})`);
+      pg.addColorStop(0.5,`rgba(130,85,28,${p.op*0.5})`);
+      pg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=pg;ctx.beginPath();ctx.ellipse(p.x,p.y,p.r*pulse*1.6,p.r*pulse*0.7,0,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Rafales horizontales ── */
+     for(const s of streaks){
+      s.x+=s.vx;s.life-=0.008;
+      if(s.x>W+s.len||s.life<=0){s.x=-s.len;s.y=arenaY+Math.random()*(H-arenaY)*0.5;s.life=0.6+Math.random()*0.4;s.len=Math.random()*W*0.08+W*0.02;}
+      const sg=ctx.createLinearGradient(s.x-s.len,s.y,s.x,s.y);
+      sg.addColorStop(0,'rgba(190,140,60,0)');
+      sg.addColorStop(0.6,`rgba(190,140,60,${s.op*s.life})`);
+      sg.addColorStop(1,'rgba(190,140,60,0)');
+      ctx.strokeStyle=sg;ctx.lineWidth=Math.random()*1.2+0.3;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(s.x-s.len,s.y);ctx.lineTo(s.x,s.y);ctx.stroke();
+     }
+
+     /* ── Particules moyennes qui montent ── */
      for(let i=0;i<dust.length;i++){
       const d=dust[i];
       d.x+=d.vx+Math.sin(t*0.4+i)*0.18;d.y+=d.vy;
       if(d.y<arenaY-20){d.y=arenaY+Math.random()*20;d.x=Math.random()*W;}
       ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle='hsla('+d.hue+',55%,60%,'+d.op+')';ctx.fill();
+      ctx.fillStyle=`hsla(${d.hue},55%,60%,${d.op})`;ctx.fill();
      }
+
+     /* ── Grains de sable fins au ras du sol ── */
+     for(const g of sandGrains){
+      g.wobble+=0.04;
+      g.x+=g.vx+Math.sin(g.wobble)*0.3;
+      g.y+=g.vy+Math.cos(g.wobble*0.7)*0.08;
+      if(g.x>W+5){g.x=-5;g.y=arenaY+Math.random()*(H-arenaY)*0.22;}
+      if(g.y<arenaY-8){g.y=arenaY+Math.random()*10;}
+      ctx.globalAlpha=g.op*(0.7+Math.sin(g.wobble)*0.3);
+      ctx.fillStyle=`hsl(${g.hue},52%,${58+Math.sin(g.wobble)*8}%)`;
+      ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();
+     }
+     ctx.globalAlpha=1;
 
      /* vignette chaude */
      const vg=ctx.createRadialGradient(W/2,H*0.42,H*0.06,W/2,H*0.42,H*0.88);
@@ -27901,9 +27975,10 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
        Les portes glissent vers l'extérieur (G vers la gauche, D vers la droite)
     ── */
     const SVG_W=763, SVG_H=582;
-    const drawScale=W*0.82/SVG_W;
+    /* Scaler sur la hauteur pour remplir tout l'écran, centrer horizontalement */
+    const drawScale=H/SVG_H;
     const offX=(W-SVG_W*drawScale)/2;
-    const offY=H*0.14;   /* Y du haut de l'ascenseur dans le canvas */
+    const offY=0;
 
     /* Convertit coordonnées SVG → canvas */
     function sx(x){ return offX + x*drawScale; }
