@@ -27878,450 +27878,183 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
   },
   {
    name:'The Shining',
-   ref:'The Shining \u2014 Stanley Kubrick, 1980',
+   ref:'The Shining — Stanley Kubrick, 1980',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
     let t=0;
     const cx=W/2;
-
-    /* ── Phases : 0=couloir calme, 1=portes s'ouvrent, 2=sang déferle ── */
     let phase=0, phaseT=0;
     let doorOpen=0;
     let bloodY=H;
-
-    /* Point de fuite central — légèrement sous mi-écran pour perspective réaliste */
-    const vpY=H*0.46;
-
-    /* ── COULOIR OVERLOOK — fidèle à la vraie photo ── */
-    function drawCorridor(){
-     /* Fond crème blanc général */
-     ctx.fillStyle='rgb(230,220,205)';
-     ctx.fillRect(0,0,W,H);
-
-     /* ── Sol — carrelage beige/crème clair avec reflet ── */
-     const floorY=vpY, floorBot=H;
-     const floorG=ctx.createLinearGradient(0,floorY,0,floorBot);
-     floorG.addColorStop(0,'rgb(195,175,148)');
-     floorG.addColorStop(0.3,'rgb(210,192,165)');
-     floorG.addColorStop(0.7,'rgb(205,185,158)');
-     floorG.addColorStop(1,'rgb(190,170,140)');
-     ctx.fillStyle=floorG;
-     ctx.fillRect(0,floorY,W,floorBot-floorY);
-
-     /* Joints de carrelage en perspective */
-     const nTilesH=8;
-     for(let r=1;r<=nTilesH;r++){
-      const prog=r/nTilesH, ep=Math.pow(prog,1.4);
-      const fy=floorY+(floorBot-floorY)*ep;
-      const spread=0.1+ep*0.9;
-      /* ligne horizontale */
-      ctx.strokeStyle=`rgba(155,135,108,${0.25+ep*0.25})`;
-      ctx.lineWidth=0.5+ep*0.8;
-      ctx.beginPath();ctx.moveTo(cx-W*0.5*spread,fy);ctx.lineTo(cx+W*0.5*spread,fy);ctx.stroke();
-     }
-     /* lignes de fuite verticales du carrelage */
-     for(let c=-4;c<=4;c++){
-      const bx=cx+c*(W/8);
-      ctx.strokeStyle='rgba(155,135,108,0.18)';ctx.lineWidth=0.5;
-      ctx.beginPath();ctx.moveTo(cx+(bx-cx)*0.01,floorY);ctx.lineTo(bx,floorBot);ctx.stroke();
-     }
-     /* Reflet central lumineux sur le sol (comme dans la photo) */
-     const solReflet=ctx.createRadialGradient(cx,floorY+10,0,cx,floorY+(floorBot-floorY)*0.5,W*0.6);
-     solReflet.addColorStop(0,'rgba(255,248,235,0.35)');
-     solReflet.addColorStop(0.5,'rgba(240,225,200,0.12)');
-     solReflet.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=solReflet;ctx.fillRect(0,floorY,W,floorBot-floorY);
-
-     /* ── Plafond blanc avec lustre ── */
-     const ceilBot=vpY;
-     const ceilG=ctx.createLinearGradient(0,0,0,ceilBot);
-     ceilG.addColorStop(0,'rgb(242,238,230)');
-     ceilG.addColorStop(1,'rgb(225,218,205)');
-     ctx.fillStyle=ceilG;
-     ctx.fillRect(0,0,W,ceilBot);
-
-     /* Frise décorative dorée en haut du mur (comme dans la photo) */
-     const friseY=H*0.09, friseH=H*0.038;
-     const friseG=ctx.createLinearGradient(0,friseY,0,friseY+friseH);
-     friseG.addColorStop(0,'rgb(175,145,65)');
-     friseG.addColorStop(0.5,'rgb(195,165,80)');
-     friseG.addColorStop(1,'rgb(165,135,55)');
-     ctx.fillStyle=friseG;
-     ctx.fillRect(0,friseY,W,friseH);
-     /* Motifs géométriques sur la frise */
-     ctx.fillStyle='rgba(80,50,20,0.55)';
-     const nFrise=Math.floor(W/18);
-     for(let f=0;f<nFrise;f++){
-      const fx=f*(W/nFrise)+W/(nFrise*2);
-      /* Losange */
-      const fw=W/(nFrise)*0.32, fh2=friseH*0.38;
-      ctx.beginPath();ctx.moveTo(fx,friseY+friseH*0.5-fh2);ctx.lineTo(fx+fw,friseY+friseH*0.5);ctx.lineTo(fx,friseY+friseH*0.5+fh2);ctx.lineTo(fx-fw,friseY+friseH*0.5);ctx.closePath();ctx.fill();
-      /* Triangles de part et d'autre */
-      ctx.beginPath();ctx.moveTo(fx+fw*1.5,friseY+friseH*0.15);ctx.lineTo(fx+fw*2.1,friseY+friseH*0.5);ctx.lineTo(fx+fw*0.9,friseY+friseH*0.5);ctx.closePath();ctx.fill();
-      ctx.beginPath();ctx.moveTo(fx-fw*1.5,friseY+friseH*0.15);ctx.lineTo(fx-fw*2.1,friseY+friseH*0.5);ctx.lineTo(fx-fw*0.9,friseY+friseH*0.5);ctx.closePath();ctx.fill();
-     }
-     /* Liseré sombre en bas de frise */
-     ctx.fillStyle='rgba(50,30,10,0.4)';ctx.fillRect(0,friseY+friseH-2,W,2);
-     ctx.fillStyle='rgba(50,30,10,0.2)';ctx.fillRect(0,friseY,W,2);
-
-     /* ── Lustre au plafond ── */
-     const chandX=cx, chandY=H*0.06;
-     const flicker=1+Math.sin(t*8.1)*0.025+Math.sin(t*13.7)*0.012;
-     /* Tige */
-     ctx.strokeStyle='rgb(40,30,20)';ctx.lineWidth=3.5;
-     ctx.beginPath();ctx.moveTo(chandX,0);ctx.lineTo(chandX,chandY+8);ctx.stroke();
-     /* Anneau principal */
-     ctx.strokeStyle='rgb(35,25,15)';ctx.lineWidth=4;
-     ctx.beginPath();ctx.ellipse(chandX,chandY+10,18,5,0,0,Math.PI*2);ctx.stroke();
-     /* Bougies (7) */
-     const nBougies=7, bR=14;
-     for(let b2=0;b2<nBougies;b2++){
-      const ba=(b2/nBougies)*Math.PI*2;
-      const bx=chandX+Math.cos(ba)*bR, by=chandY+10+Math.sin(ba)*4;
-      /* Corps bougie */
-      ctx.fillStyle='rgb(240,232,215)';
-      ctx.fillRect(bx-2,by-8,4,10);
-      /* Flamme */
-      ctx.save();ctx.globalAlpha=(0.8+Math.sin(t*9+b2)*0.15)*flicker;
-      const flameG=ctx.createRadialGradient(bx,by-10,0,bx,by-10,5);
-      flameG.addColorStop(0,'rgba(255,240,180,1)');
-      flameG.addColorStop(0.4,'rgba(255,180,60,0.8)');
-      flameG.addColorStop(1,'rgba(255,100,0,0)');
-      ctx.fillStyle=flameG;
-      ctx.beginPath();ctx.ellipse(bx,by-11,2.5,4,Math.sin(t*6+b2)*0.2,0,Math.PI*2);ctx.fill();
-      ctx.restore();
-     }
-     /* Lueur chaude du lustre sur le plafond */
-     const chandGlow=ctx.createRadialGradient(chandX,chandY,0,chandX,chandY,W*0.55);
-     chandGlow.addColorStop(0,`rgba(255,220,150,${(0.22+Math.sin(t*0.8)*0.04)*flicker})`);
-     chandGlow.addColorStop(0.4,`rgba(255,200,100,${0.07*flicker})`);
-     chandGlow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=chandGlow;ctx.fillRect(0,0,W,H);
-
-     /* ── Murs latéraux blancs ── */
-     /* Les murs sont visibles sur les côtés — blanc cassé */
-     /* Mur gauche */
-     const wallLG=ctx.createLinearGradient(0,0,W*0.2,0);
-     wallLG.addColorStop(0,'rgba(185,178,165,1)');
-     wallLG.addColorStop(1,'rgba(228,222,208,0)');
-     ctx.fillStyle=wallLG;ctx.fillRect(0,0,W*0.22,H);
-     /* Mur droit */
-     const wallRG=ctx.createLinearGradient(W,0,W*0.8,0);
-     wallRG.addColorStop(0,'rgba(185,178,165,1)');
-     wallRG.addColorStop(1,'rgba(228,222,208,0)');
-     ctx.fillStyle=wallRG;ctx.fillRect(W*0.78,0,W*0.22,H);
-
-     /* ── Colonnes blanches de chaque côté ── */
-     const colW=W*0.068, colH=H*0.70;
-     const colY=H*0.08;
-     for(const colX of [W*0.08, W*0.92-colW]){
-      const colG=ctx.createLinearGradient(colX,0,colX+colW,0);
-      colG.addColorStop(0,'rgb(205,200,190)');
-      colG.addColorStop(0.3,'rgb(240,237,230)');
-      colG.addColorStop(0.7,'rgb(235,232,225)');
-      colG.addColorStop(1,'rgb(195,190,180)');
-      ctx.fillStyle=colG;
-      ctx.fillRect(colX,colY,colW,colH);
-      /* Ombre portée colonne */
-      const colSh=ctx.createLinearGradient(colX+colW,0,colX+colW+12,0);
-      colSh.addColorStop(0,'rgba(0,0,0,0.10)');colSh.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=colSh;ctx.fillRect(colX+colW,colY,12,colH);
-     }
-
-     /* ── Lambris bordeaux bas sur les murs ── */
-     const lambrisY=H*0.68, lambrisH=H*0.25;
-     /* Fond lambris */
-     ctx.fillStyle='rgb(48,18,18)';
-     ctx.fillRect(0,lambrisY,W*0.12,lambrisH);
-     ctx.fillRect(W*0.88,lambrisY,W*0.12,lambrisH);
-     /* Liseré doré séparation */
-     ctx.strokeStyle='rgba(180,145,55,0.7)';ctx.lineWidth=2;
-     ctx.beginPath();ctx.moveTo(0,lambrisY);ctx.lineTo(W*0.12,lambrisY);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(W*0.88,lambrisY);ctx.lineTo(W,lambrisY);ctx.stroke();
-
-     /* ── Canapés tartan de chaque côté ── */
-     function drawSofa(sx, side){
-      const sw=W*0.22, sh=H*0.14, sy=H*0.73;
-      const sg=ctx.createLinearGradient(sx,sy,sx+sw*side,sy+sh);
-      sg.addColorStop(0,'rgb(92,72,48)');
-      sg.addColorStop(1,'rgb(68,52,32)');
-      ctx.fillStyle=sg;
-      /* Corps */
-      ctx.beginPath();ctx.roundRect(sx,sy,sw,sh,4);ctx.fill();
-      /* Dossier */
-      ctx.fillStyle='rgb(80,60,38)';
-      ctx.beginPath();ctx.roundRect(sx,sy-sh*0.55,sw,sh*0.58,4);ctx.fill();
-      /* Motif tartan sur l'assise */
-      ctx.save();ctx.beginPath();ctx.roundRect(sx,sy,sw,sh,4);ctx.clip();
-      const tColors=['rgba(180,30,30,0.18)','rgba(220,180,80,0.12)','rgba(50,40,30,0.12)'];
-      const tSize=8;
-      for(let ti=0;ti*tSize<sw+tSize;ti++){
-       ctx.fillStyle=tColors[ti%3];
-       ctx.fillRect(sx+ti*tSize,sy,tSize*0.5,sh);
-      }
-      for(let ti=0;ti*tSize<sh+tSize;ti++){
-       ctx.fillStyle=tColors[(ti+1)%3];
-       ctx.fillRect(sx,sy+ti*tSize,sw,tSize*0.5);
-      }
-      ctx.restore();
-      /* Accoudoirs */
-      ctx.fillStyle='rgb(75,55,35)';
-      ctx.beginPath();ctx.roundRect(sx-4,sy-sh*0.4,12,sh*1.4,3);ctx.fill();
-      ctx.beginPath();ctx.roundRect(sx+sw-8,sy-sh*0.4,12,sh*1.4,3);ctx.fill();
-     }
-     drawSofa(W*0.01, 1);
-     drawSofa(W*0.77, -1);
-
-     /* ── Petites tables/commodes de chaque côté ── */
-     function drawSideTable(tx){
-      const tw=W*0.09, th=H*0.12, ty=H*0.77;
-      ctx.fillStyle='rgb(95,60,25)';
-      ctx.beginPath();ctx.roundRect(tx,ty,tw,th,3);ctx.fill();
-      /* Plateau */
-      ctx.fillStyle='rgb(110,72,30)';
-      ctx.fillRect(tx-2,ty,tw+4,th*0.12);
-      /* Ombre */
-      ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(tx+2,ty+th,tw-4,4);
-     }
-     drawSideTable(W*0.23);
-     drawSideTable(W*0.68);
-    }
-
-    /* ── ASCENSEUR OVERLOOK — fidèle à la vraie photo ── */
-    function drawElevator(){
-     /* L'ascenseur occupe le centre, fidèle à la symétrie de la photo */
-     const elW=W*0.54, elH=H*0.55;
-     const elX=cx-elW/2;
-     const frontonH=elH*0.22;
-     const indGap=H*0.025;
-     const indW=elW*0.16, indR=indW*0.5;
-     /* elY positionné pour que tout soit visible */
-     const totalAbove=frontonH+indGap+indR*2+H*0.02;
-     const elY=vpY+H*0.06;
-     const elB=elY+elH;
-
-     /* ── Cadre sombre mural autour de l'ensemble ── */
-     ctx.fillStyle='rgb(38,16,14)';
-     ctx.beginPath();ctx.roundRect(elX-12,elY-totalAbove-8,elW+24,elH+totalAbove+12,4);ctx.fill();
-
-     /* ── Fronton — motif amérindien rose/noir fidèle au film ── */
-     const fY=elY-frontonH, fH=frontonH;
-     /* Fond sombre du fronton */
-     ctx.fillStyle='rgb(22,8,8)';
-     ctx.fillRect(elX,fY,elW,fH);
-     /* Bande principale rose/rouge foncé */
-     ctx.fillStyle='rgb(160,25,50)';
-     ctx.fillRect(elX+3,fY+3,elW-6,fH-6);
-
-     /* Motifs noirs sur le fronton — rangées horizontales */
-     const mX=elX+4, mW2=elW-8, mY=fY+4, mH=fH-8;
-     ctx.fillStyle='rgb(18,6,8)';
-     /* Rangée haute : triangles pointus */
-     const nT=11;
-     for(let i=0;i<nT;i++){
-      const tx=mX+i*(mW2/nT), tw=mW2/nT;
-      ctx.beginPath();ctx.moveTo(tx+tw*0.5,mY+mH*0.04);ctx.lineTo(tx+tw*0.06,mY+mH*0.42);ctx.lineTo(tx+tw*0.94,mY+mH*0.42);ctx.closePath();ctx.fill();
-     }
-     /* Rangée centrale : losanges et flèches (motif Overlook) */
-     /* Losanges centraux (3 grands) */
-     const bigDiamonds=[0.18,0.5,0.82];
-     for(const dp of bigDiamonds){
-      const dx=mX+mW2*dp, dy=mY+mH*0.62, dw=mW2*0.07, dh=mH*0.28;
-      ctx.beginPath();ctx.moveTo(dx,dy-dh);ctx.lineTo(dx+dw,dy);ctx.lineTo(dx,dy+dh);ctx.lineTo(dx-dw,dy);ctx.closePath();ctx.fill();
-     }
-     /* Petits losanges entre les grands */
-     const smDiamonds=[0.34,0.66];
-     for(const dp of smDiamonds){
-      const dx=mX+mW2*dp, dy=mY+mH*0.62, dw=mW2*0.038, dh=mH*0.18;
-      ctx.beginPath();ctx.moveTo(dx,dy-dh);ctx.lineTo(dx+dw,dy);ctx.lineTo(dx,dy+dh);ctx.lineTo(dx-dw,dy);ctx.closePath();ctx.fill();
-     }
-     /* Zigzag bas */
-     ctx.strokeStyle='rgb(18,6,8)';ctx.lineWidth=3;ctx.lineCap='square';
-     ctx.beginPath();
-     const nZz=28;
-     for(let i=0;i<=nZz;i++){
-      const zx=mX+i*(mW2/nZz), zy=mY+mH*(i%2===0?0.82:0.96);
-      i===0?ctx.moveTo(zx,zy):ctx.lineTo(zx,zy);
-     }
-     ctx.stroke();
-     /* Contour doré fronton */
-     ctx.strokeStyle='rgba(175,140,50,0.65)';ctx.lineWidth=1.5;
-     ctx.strokeRect(elX+2,fY+2,elW-4,fH-4);
-
-     /* ── Indicateurs dorés demi-lune ── */
-     const indY=fY-indGap-indR;
-     for(const indXc of [cx-elW*0.20, cx+elW*0.20]){
-      /* Boitier doré */
-      ctx.fillStyle='rgb(185,148,52)';
-      ctx.beginPath();ctx.arc(indXc,indY+indR,indR,Math.PI,0);
-      ctx.lineTo(indXc+indR,indY+indR);
-      ctx.lineTo(indXc-indR,indY+indR);
-      ctx.closePath();ctx.fill();
-      /* Fond intérieur légèrement plus sombre */
-      ctx.fillStyle='rgb(155,122,38)';
-      ctx.beginPath();ctx.arc(indXc,indY+indR,indR*0.82,Math.PI,0);ctx.closePath();ctx.fill();
-      /* Graduations */
-      for(let g=0;g<=8;g++){
-       const ga=Math.PI*(1-g/8);
-       const isMain=(g%4===0);
-       ctx.strokeStyle='rgb(60,40,10)';ctx.lineWidth=isMain?1.4:0.8;
-       const r1=indR*(isMain?0.62:0.70), r2=indR*0.82;
-       ctx.beginPath();
-       ctx.moveTo(indXc+Math.cos(ga)*r1, indY+indR-Math.sin(ga)*r1);
-       ctx.lineTo(indXc+Math.cos(ga)*r2, indY+indR-Math.sin(ga)*r2);
-       ctx.stroke();
-      }
-      /* Aiguille oscillante — pointe légèrement vers le haut (ascenseur en mouvement) */
-      const needleA=Math.PI*(0.28+Math.sin(t*0.18)*0.06);
-      ctx.strokeStyle='rgb(25,12,5)';ctx.lineWidth=2;ctx.lineCap='round';
-      ctx.beginPath();
-      ctx.moveTo(indXc,indY+indR);
-      ctx.lineTo(indXc+Math.cos(Math.PI-needleA)*indR*0.72, indY+indR-Math.sin(Math.PI-needleA)*indR*0.72);
-      ctx.stroke();
-      /* Point central */
-      ctx.fillStyle='rgb(40,25,8)';
-      ctx.beginPath();ctx.arc(indXc,indY+indR,indR*0.1,0,Math.PI*2);ctx.fill();
-      /* Contour boitier */
-      ctx.strokeStyle='rgb(130,100,28)';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.arc(indXc,indY+indR,indR,Math.PI,0);
-      ctx.lineTo(indXc+indR,indY+indR);ctx.moveTo(indXc-indR,indY+indR);ctx.stroke();
-     }
-
-     /* ── Portes rouges — s'ouvrent selon doorOpen ── */
-     const gap=doorOpen*elW*0.5;
-     function drawDoor(px, pw, isLeft){
-      if(pw<=0)return;
-      /* Panneau rouge principal — 4 colonnes rouges */
-      const dg=ctx.createLinearGradient(px,0,px+pw,0);
-      if(isLeft){
-       dg.addColorStop(0,'rgb(170,18,18)');dg.addColorStop(0.25,'rgb(215,28,28)');
-       dg.addColorStop(0.55,'rgb(200,22,22)');dg.addColorStop(1,'rgb(175,15,15)');
-      } else {
-       dg.addColorStop(0,'rgb(175,15,15)');dg.addColorStop(0.45,'rgb(200,22,22)');
-       dg.addColorStop(0.75,'rgb(215,28,28)');dg.addColorStop(1,'rgb(170,18,18)');
-      }
-      ctx.fillStyle=dg;ctx.fillRect(px,elY,pw,elH);
-
-      /* Séparateurs verticaux sombres — 3 panneaux sur chaque porte */
-      ctx.fillStyle='rgba(22,6,6,0.82)';
-      ctx.fillRect(px+pw*0.30-1.5,elY,3,elH);
-      ctx.fillRect(px+pw*0.62-1.5,elY,3,elH);
-
-      /* Ornements sculptés noirs sur chaque panneau */
-      const panels=[[px,pw*0.30],[px+pw*0.30,pw*0.32],[px+pw*0.62,pw*0.38]];
-      for(const [panX,panW] of panels){
-       if(panW<4)continue;
-       const pcx=panX+panW*0.5;
-       /* Barre haut */
-       ctx.fillStyle='rgba(18,5,5,0.80)';
-       ctx.fillRect(panX+panW*0.12,elY+elH*0.04,panW*0.76,elH*0.038);
-       /* Motif central — forme symétrique effilée (comme dans la photo) */
-       ctx.beginPath();
-       ctx.moveTo(pcx,elY+elH*0.10);
-       ctx.bezierCurveTo(panX+panW*0.18,elY+elH*0.22,panX+panW*0.06,elY+elH*0.42,panX+panW*0.25,elY+elH*0.56);
-       ctx.lineTo(pcx,elY+elH*0.66);
-       ctx.lineTo(panX+panW*0.75,elY+elH*0.56);
-       ctx.bezierCurveTo(panX+panW*0.94,elY+elH*0.42,panX+panW*0.82,elY+elH*0.22,pcx,elY+elH*0.10);
-       ctx.closePath();ctx.fill();
-       /* Détail supplémentaire bas */
-       ctx.beginPath();
-       ctx.moveTo(pcx,elY+elH*0.70);
-       ctx.bezierCurveTo(panX+panW*0.28,elY+elH*0.76,panX+panW*0.22,elY+elH*0.86,pcx,elY+elH*0.92);
-       ctx.bezierCurveTo(panX+panW*0.78,elY+elH*0.86,panX+panW*0.72,elY+elH*0.76,pcx,elY+elH*0.70);
-       ctx.closePath();ctx.fill();
-      }
-
-      /* Bouton doré laiton */
-      const btnX=isLeft ? px+pw*0.85 : px+pw*0.15;
-      ctx.fillStyle='rgb(195,155,55)';
-      ctx.beginPath();ctx.arc(btnX,elY+elH*0.50,pw*0.048,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgb(140,105,28)';ctx.lineWidth=1.5;ctx.stroke();
-      /* Reflet bouton */
-      ctx.fillStyle='rgba(255,235,150,0.45)';
-      ctx.beginPath();ctx.arc(btnX-pw*0.012,elY+elH*0.496,pw*0.018,0,Math.PI*2);ctx.fill();
-
-      /* Joint vertical bord intérieur */
-      ctx.fillStyle='rgba(10,2,2,0.92)';
-      if(isLeft) ctx.fillRect(px+pw-2,elY,3,elH);
-      else ctx.fillRect(px-1,elY,3,elH);
-     }
-     drawDoor(elX, elW*0.5-gap, true);
-     drawDoor(cx+gap, elW*0.5-gap, false);
-
-     /* Intérieur visible à l'ouverture — rouge profond avec halo */
-     if(doorOpen>0.02){
-      const innerX=cx-gap, innerW=gap*2;
-      if(innerW>0){
-       const ig=ctx.createLinearGradient(0,elY,0,elB);
-       ig.addColorStop(0,`rgba(155,4,4,${doorOpen*0.95})`);
-       ig.addColorStop(0.4,`rgba(95,1,1,${doorOpen*0.98})`);
-       ig.addColorStop(1,'rgba(55,0,0,1)');
-       ctx.fillStyle=ig;ctx.fillRect(innerX,elY,innerW,elH);
-       const halo=ctx.createRadialGradient(cx,elY+elH*0.5,0,cx,elY+elH*0.5,elW*0.8);
-       halo.addColorStop(0,`rgba(200,4,4,${doorOpen*0.18})`);
-       halo.addColorStop(1,'rgba(0,0,0,0)');
-       ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
-      }
-     }
-
-     /* Seuil métallique bas */
-     ctx.fillStyle='rgb(120,100,55)';
-     ctx.fillRect(elX,elB,elW,H*0.008);
-     ctx.fillStyle='rgb(95,78,38)';
-     ctx.fillRect(elX,elB+H*0.008,elW,H*0.006);
-    }
-
-    /* ── SANG ── */
-    function drawBlood(){
-     if(bloodY>=H)return;
-     ctx.save();
-     const bg=ctx.createLinearGradient(0,bloodY,0,H);
-     bg.addColorStop(0,`rgba(${158+Math.sin(t*0.4)*10|0},4,4,0.97)`);
-     bg.addColorStop(0.25,'rgba(115,2,2,0.99)');
-     bg.addColorStop(1,'rgba(60,0,0,1)');
-     ctx.fillStyle=bg;
-     ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,bloodY);
-     for(let x=W;x>=0;x-=3){
-      const w=Math.sin(x*0.022+t*0.7)*3.5+Math.sin(x*0.051+t*0.45)*1.8+Math.sin(x*0.011+t*0.22)*4.5;
-      ctx.lineTo(x,bloodY+w);
-     }
-     ctx.closePath();ctx.fill();
-     /* Reflet brillant */
-     const sheen=ctx.createLinearGradient(0,bloodY-4,0,bloodY+12);
-     sheen.addColorStop(0,'rgba(255,50,50,0)');
-     sheen.addColorStop(0.45,`rgba(255,40,40,${0.16+Math.sin(t*0.9)*0.05})`);
-     sheen.addColorStop(1,'rgba(180,8,8,0)');
-     ctx.fillStyle=sheen;
-     ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,bloodY-4);
-     for(let x=W;x>=0;x-=3){
-      const w=Math.sin(x*0.022+t*0.7)*3.5+Math.sin(x*0.051+t*0.45)*1.8+Math.sin(x*0.011+t*0.22)*4.5;
-      ctx.lineTo(x,bloodY+w);
-     }
-     ctx.closePath();ctx.fill();
-     ctx.restore();
-    }
 
     function frame(){
      if(stop.v)return;
      phaseT+=0.016;
      if(phase===0 && phaseT>3.0){phase=1;phaseT=0;}
-     if(phase===1){
-      doorOpen=Math.min(1,phaseT/2.8);
-      if(phaseT>2.8){phase=2;phaseT=0;}
+     if(phase===1){doorOpen=Math.min(1,phaseT/2.5);if(phaseT>2.5){phase=2;phaseT=0;}}
+     if(phase===2){bloodY=Math.max(0,bloodY-(0.35+phaseT*0.12));}
+
+     /* ── Fond noir ── */
+     ctx.fillStyle='rgb(6,4,4)';
+     ctx.fillRect(0,0,W,H);
+
+     /* ── Couloir — sol carrelage hexagonal Overlook ── */
+     /* Sol : bande du bas, carrelage rouge/brique */
+     const floorY=H*0.58;
+     const floorG=ctx.createLinearGradient(0,floorY,0,H);
+     floorG.addColorStop(0,'rgb(80,18,18)');
+     floorG.addColorStop(0.5,'rgb(105,25,25)');
+     floorG.addColorStop(1,'rgb(75,15,15)');
+     ctx.fillStyle=floorG;
+     ctx.fillRect(0,floorY,W,H-floorY);
+
+     /* Motif hexagonal en perspective sur le sol */
+     const tW=W/7, tH=(H-floorY)/5;
+     for(let row=0;row<6;row++){
+      const py=floorY+row*tH;
+      const scale2=0.3+row*0.14;
+      const nCols=Math.ceil(W/(tW*scale2))+2;
+      for(let col=-1;col<nCols;col++){
+       const px=cx+(col-nCols/2)*tW*scale2;
+       const isEven=(row+col)%2===0;
+       ctx.strokeStyle=isEven?'rgba(160,30,30,0.35)':'rgba(100,15,15,0.25)';
+       ctx.lineWidth=0.8;
+       /* Hexagone simplifié */
+       const hw=tW*scale2*0.48, hh=tH*0.48;
+       ctx.beginPath();
+       ctx.moveTo(px,py);ctx.lineTo(px+hw,py+hh*0.5);
+       ctx.lineTo(px+hw,py+hh*1.5);ctx.lineTo(px,py+hh*2);
+       ctx.lineTo(px-hw,py+hh*1.5);ctx.lineTo(px-hw,py+hh*0.5);
+       ctx.closePath();ctx.stroke();
+      }
      }
-     if(phase===2){
-      bloodY=Math.max(0,bloodY-(0.30+phaseT*0.10));
+     /* Reflet central sur le sol */
+     const solRef=ctx.createRadialGradient(cx,H,0,cx,H*0.75,W*0.5);
+     solRef.addColorStop(0,'rgba(200,40,40,0.10)');
+     solRef.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=solRef;ctx.fillRect(0,floorY,W,H-floorY);
+
+     /* ── Plafond sombre ── */
+     ctx.fillStyle='rgb(14,10,10)';
+     ctx.fillRect(0,0,W,H*0.16);
+
+     /* ── Murs latéraux — dégradé sombre vers le centre ── */
+     const wallL=ctx.createLinearGradient(0,0,W*0.18,0);
+     wallL.addColorStop(0,'rgba(8,4,4,1)');
+     wallL.addColorStop(1,'rgba(8,4,4,0)');
+     ctx.fillStyle=wallL;ctx.fillRect(0,0,W*0.22,H);
+     const wallR=ctx.createLinearGradient(W,0,W*0.82,0);
+     wallR.addColorStop(0,'rgba(8,4,4,1)');
+     wallR.addColorStop(1,'rgba(8,4,4,0)');
+     ctx.fillStyle=wallR;ctx.fillRect(W*0.78,0,W*0.22,H);
+
+     /* ── LES DEUX PORTES ROUGES — élément central ── */
+     const dW=W*0.52, dH=H*0.62;
+     const dX=cx-dW/2, dY=H*0.14;
+     const gap=doorOpen*dW*0.5;
+
+     /* Cadre sombre autour des portes */
+     ctx.fillStyle='rgb(12,5,5)';
+     ctx.fillRect(dX-6, dY-6, dW+12, dH+12);
+
+     /* Porte gauche */
+     const ldW=dW*0.5-gap;
+     if(ldW>0){
+      /* Fond rouge */
+      const lg=ctx.createLinearGradient(dX,0,dX+ldW,0);
+      lg.addColorStop(0,'rgb(130,10,10)');
+      lg.addColorStop(0.5,'rgb(175,18,18)');
+      lg.addColorStop(1,'rgb(145,12,12)');
+      ctx.fillStyle=lg;
+      ctx.fillRect(dX, dY, ldW, dH);
+      /* Panneau central sombre — forme en amande */
+      ctx.fillStyle='rgba(15,3,3,0.80)';
+      const px=dX, pw=ldW;
+      ctx.beginPath();
+      ctx.moveTo(px+pw*0.5, dY+dH*0.08);
+      ctx.bezierCurveTo(px+pw*0.15,dY+dH*0.22, px+pw*0.08,dY+dH*0.42, px+pw*0.28,dY+dH*0.55);
+      ctx.lineTo(px+pw*0.5, dY+dH*0.64);
+      ctx.lineTo(px+pw*0.72, dY+dH*0.55);
+      ctx.bezierCurveTo(px+pw*0.92,dY+dH*0.42, px+pw*0.85,dY+dH*0.22, px+pw*0.5,dY+dH*0.08);
+      ctx.closePath();ctx.fill();
+      /* Bouton doré */
+      ctx.fillStyle='rgb(185,148,45)';
+      ctx.beginPath();ctx.arc(dX+ldW*0.80, dY+dH*0.50, 5, 0, Math.PI*2);ctx.fill();
+      /* Liseré doré vertical bord intérieur */
+      ctx.strokeStyle='rgba(180,140,40,0.35)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(dX+ldW-1,dY);ctx.lineTo(dX+ldW-1,dY+dH);ctx.stroke();
      }
 
-     drawCorridor();
-     drawElevator();
-     drawBlood();
+     /* Porte droite */
+     const rdX=cx+gap;
+     const rdW=dW*0.5-gap;
+     if(rdW>0){
+      const rg=ctx.createLinearGradient(rdX,0,rdX+rdW,0);
+      rg.addColorStop(0,'rgb(145,12,12)');
+      rg.addColorStop(0.5,'rgb(175,18,18)');
+      rg.addColorStop(1,'rgb(130,10,10)');
+      ctx.fillStyle=rg;
+      ctx.fillRect(rdX, dY, rdW, dH);
+      ctx.fillStyle='rgba(15,3,3,0.80)';
+      const px=rdX, pw=rdW;
+      ctx.beginPath();
+      ctx.moveTo(px+pw*0.5, dY+dH*0.08);
+      ctx.bezierCurveTo(px+pw*0.15,dY+dH*0.22, px+pw*0.08,dY+dH*0.42, px+pw*0.28,dY+dH*0.55);
+      ctx.lineTo(px+pw*0.5, dY+dH*0.64);
+      ctx.lineTo(px+pw*0.72, dY+dH*0.55);
+      ctx.bezierCurveTo(px+pw*0.92,dY+dH*0.42, px+pw*0.85,dY+dH*0.22, px+pw*0.5,dY+dH*0.08);
+      ctx.closePath();ctx.fill();
+      ctx.fillStyle='rgb(185,148,45)';
+      ctx.beginPath();ctx.arc(rdX+rdW*0.20, dY+dH*0.50, 5, 0, Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(180,140,40,0.35)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(rdX+1,dY);ctx.lineTo(rdX+1,dY+dH);ctx.stroke();
+     }
 
-     /* Vignette douce — coins sombres uniquement */
+     /* Lueur rouge depuis l'intérieur quand ça s'ouvre */
+     if(doorOpen>0.02){
+      const halo=ctx.createRadialGradient(cx,dY+dH*0.5,0,cx,dY+dH*0.5,dW*0.9);
+      halo.addColorStop(0,`rgba(220,8,8,${doorOpen*0.20})`);
+      halo.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
+      /* Intérieur sombre-rouge */
+      if(gap>1){
+       ctx.fillStyle=`rgba(90,2,2,${doorOpen*0.97})`;
+       ctx.fillRect(cx-gap, dY, gap*2, dH);
+      }
+     }
+
+     /* ── SANG qui monte depuis le bas ── */
+     if(bloodY<H){
+      const bg=ctx.createLinearGradient(0,bloodY,0,H);
+      bg.addColorStop(0,`rgba(${155+Math.sin(t*0.4)*10|0},3,3,0.97)`);
+      bg.addColorStop(0.3,'rgba(105,1,1,0.99)');
+      bg.addColorStop(1,'rgba(55,0,0,1)');
+      ctx.fillStyle=bg;
+      ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,bloodY);
+      for(let x=W;x>=0;x-=4){
+       const w=Math.sin(x*0.025+t*0.7)*3+Math.sin(x*0.055+t*0.4)*1.5+Math.sin(x*0.012+t*0.2)*4;
+       ctx.lineTo(x,bloodY+w);
+      }
+      ctx.closePath();ctx.fill();
+      /* Reflet brillant */
+      const sh=ctx.createLinearGradient(0,bloodY-2,0,bloodY+8);
+      sh.addColorStop(0,'rgba(255,40,40,0)');
+      sh.addColorStop(0.5,`rgba(255,35,35,${0.15+Math.sin(t*0.9)*0.04})`);
+      sh.addColorStop(1,'rgba(180,5,5,0)');
+      ctx.fillStyle=sh;
+      ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,bloodY-3);
+      for(let x=W;x>=0;x-=4){
+       const w=Math.sin(x*0.025+t*0.7)*3+Math.sin(x*0.055+t*0.4)*1.5+Math.sin(x*0.012+t*0.2)*4;
+       ctx.lineTo(x,bloodY+w);
+      }
+      ctx.closePath();ctx.fill();
+     }
+
+     /* ── Vignette coins ── */
      const vg=ctx.createRadialGradient(cx,H*0.50,H*0.18,cx,H*0.50,H*0.72);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.65,'rgba(0,0,0,0.05)');
-     vg.addColorStop(1,'rgba(0,0,0,0.75)');
+     vg.addColorStop(0.6,'rgba(0,0,0,0.05)');
+     vg.addColorStop(1,'rgba(0,0,0,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
