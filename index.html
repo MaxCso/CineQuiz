@@ -2587,6 +2587,49 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 
 
 /* -- SPLASH SCREEN -- */
+/* ── Overlay paysage mobile ── */
+#landscape-overlay{
+  display:none; /* caché par défaut */
+  position:fixed;inset:0;z-index:99999;
+  background:#0f0e18;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+}
+.lo-inner{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  padding:24px;text-align:center;
+}
+.lo-icon{
+  width:64px;height:64px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(245,200,66,.08);
+  border:1.5px solid rgba(245,200,66,.2);
+  border-radius:20px;
+  color:var(--gold);
+  animation:loRotate 2s ease-in-out infinite;
+}
+.lo-icon svg{width:32px;height:32px;}
+@keyframes loRotate{
+  0%,100%{transform:rotate(0deg);}
+  30%{transform:rotate(90deg);}
+  70%{transform:rotate(90deg);}
+}
+.lo-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:2px;
+  color:rgba(255,255,255,.9);
+}
+.lo-sub{
+  font-size:12px;color:rgba(255,255,255,.4);
+  line-height:1.5;letter-spacing:.3px;
+}
+/* Afficher uniquement sur mobile (<= 900px) en paysage, sauf si zone vidéo active */
+@media screen and (orientation:landscape) and (max-height:500px){
+  #landscape-overlay:not(.lo-hidden){
+    display:flex;
+  }
+}
+
 #splash{
   position:fixed;inset:0;z-index:9999;
   background:#0f0e18;
@@ -7660,6 +7703,21 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   </div>
 
   <!-- SPLASH SCREEN -->
+  <!-- ── Overlay orientation paysage ── -->
+  <div id="landscape-overlay">
+    <div class="lo-inner">
+      <div class="lo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="5" width="14" height="20" rx="2"/>
+          <path d="M16 9h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"/>
+          <path d="M9 2v3M9 19v3"/>
+        </svg>
+      </div>
+      <div class="lo-title">Tournez votre téléphone</div>
+      <div class="lo-sub">CinéQuiz est optimisé en mode portrait</div>
+    </div>
+  </div>
+
   <div id="splash">
     <div id="splash-bg"></div>
     <canvas id="splash-canvas"></canvas>
@@ -39955,11 +40013,24 @@ if('serviceWorker' in navigator){
 
     // ── API publique ──
 
+    // Gestion de l'overlay portrait
+    function _loUpdate(){
+      const overlay=document.getElementById('landscape-overlay');
+      if(!overlay)return;
+      // Masquer si zone vidéo active (on autorise le paysage pour les vidéos)
+      if(window._videoZoneActive){
+        overlay.classList.add('lo-hidden');
+      } else {
+        overlay.classList.remove('lo-hidden');
+      }
+    }
+
     // Appelé quand on entre dans une zone vidéo (Cinetek vidéo ou HM onglet FILM)
     window._videoOrientationUnlock = function(zone){
       window._videoZoneActive = zone || 'jk';
       document.body.classList.add('allow-landscape');
       unlockOrientation();
+      _loUpdate();
     };
 
     // Appelé quand on quitte une zone vidéo
@@ -39968,6 +40039,7 @@ if('serviceWorker' in navigator){
       document.body.classList.remove('allow-landscape');
       exitFullscreen();
       lockPortrait();
+      _loUpdate();
     };
 
   })();
