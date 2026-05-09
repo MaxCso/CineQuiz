@@ -5209,6 +5209,343 @@ const POOL=[
   586863,512263,570131,500664,339692,339403,263115,290250,381356,312221,
   773, 1640, 2153, 2292, 4771, 7445, 7457, 7972, 8052, 8194, 9787, 10741, 11524, 12163, 17431, 24469, 39210, 43920, 64720, 71859, 76025, 88005, 96936, 97370, 121872, 122906, 156700, 157354, 157386, 157845, 157847, 164457, 181886, 210479, 220289, 223485, 241239, 244267, 252512, 256569, 264644, 265195, 296523, 319066, 331781, 334541, 340666, 342737, 347031, 347866, 355254, 371638, 376865, 391713, 393519, 396461, 399057, 418078, 424781, 428449, 453278, 458737, 493066, 507076, 520023, 522039, 541572, 542417, 559907, 565310, 573952, 575417, 575776, 585378, 587792, 592695, 595586, 615643, 632617, 635731, 648878, 660120, 760104, 760329, 763329, 780609, 788929, 790416, 798286, 828558, 834027, 858017, 869626, 896536, 901563, 912520, 929590, 946127, 949423, 985617, 988402, 989662, 1008042, 1013850, 1020006, 1023922, 1058647, 1079310, 1100099, 1109255, 1128752, 1136867, 1138194, 1155828, 1158996, 1205515, 1239655, 1241436, 1242419, 1242434, 1242686, 1313229, 1325734
 ];
+
+// ══════════════════════════════════════════════════════════════════════
+// TRIVIA DÉCOUVERTE — Questions grand public, simples, films incontournables
+// Utilisé exclusivement par le Mode Découverte
+
+
+// ══════════════════════════════════════════════════════════
+// BASE TRIVIA MODE DÉCOUVERTE
+// Questions 100% grand public — films connus de tous
+// Formulation simple, aucun piège, aucun film de niche
+// ══════════════════════════════════════════════════════════
+const TRIVIA_DECOUVERTE = [
+
+  // ── LION KING ──
+  {text:"Dans Le Roi Lion, comment s'appelle le père de Simba ?",correct:"Mufasa",wrong:["Scar","Rafiki","Timon"],category:"Animation"},
+  {text:"Dans Le Roi Lion, comment s'appelle le méchant oncle de Simba ?",correct:"Scar",wrong:["Mufasa","Zazu","Rafiki"],category:"Animation"},
+  {text:"Dans Le Roi Lion, quelle phrase signifie 'pas de soucis' ?",correct:"Hakuna Matata",wrong:["Simba","Savanna","Ubuntu"],category:"Animation"},
+
+  // ── TOY STORY ──
+  {text:"Dans Toy Story, quel est le cri de guerre de Buzz L'Éclair ?",correct:"À l'infini et au-delà !",wrong:["Vers l'infini !","En avant !","Buzz est là !"],category:"Animation"},
+  {text:"Dans Toy Story, qui est le cowboy jouet ami de Buzz L'Éclair ?",correct:"Woody",wrong:["Rex","Hamm","Jessie"],category:"Animation"},
+  {text:"Quel studio a créé Toy Story (1995), premier film d'animation entièrement en images de synthèse ?",correct:"Pixar",wrong:["DreamWorks","Disney","Warner Bros"],category:"Animation"},
+
+  // ── FROZEN ──
+  {text:"Dans La Reine des Neiges, comment s'appelle la reine aux pouvoirs de glace ?",correct:"Elsa",wrong:["Anna","Kristoff","Olaf"],category:"Animation"},
+  {text:"Dans La Reine des Neiges, comment s'appelle le bonhomme de neige attachant ?",correct:"Olaf",wrong:["Sven","Hans","Kristoff"],category:"Animation"},
+
+  // ── SHREK ──
+  {text:"Dans Shrek, dans quel endroit vit Shrek au début du film ?",correct:"Un marécage",wrong:["Un château","Une forêt","Une grotte"],category:"Animation"},
+  {text:"Dans Shrek, quel animal parlant est le meilleur ami de Shrek ?",correct:"L'Âne",wrong:["Le Chat botté","Le Dragon","Le Cochon"],category:"Animation"},
+  {text:"Qui prête sa voix à Shrek dans la version originale ?",correct:"Mike Myers",wrong:["Eddie Murphy","Antonio Banderas","Cameron Diaz"],category:"Animation"},
+
+  // ── HARRY POTTER ──
+  {text:"Dans Harry Potter, dans quelle maison Poudlard Harry est-il placé ?",correct:"Gryffondor",wrong:["Serpentard","Serdaigle","Poufsouffle"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, comment s'appelle le meilleur ami roux de Harry ?",correct:"Ron Weasley",wrong:["Neville Londubat","Drago Malefoy","Dean Thomas"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, comment s'appelle la meilleure amie intelligente de Harry ?",correct:"Hermione Granger",wrong:["Ginny Weasley","Luna Lovegood","Cho Chang"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, comment s'appelle le sport joué sur des balais volants ?",correct:"Quidditch",wrong:["Broomball","Volebal","Sorcerball"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, quel est le nom du hibou de Harry ?",correct:"Hedwige",wrong:["Croutard","Pattenrond","Fumseck"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, quel train emmène les élèves à Poudlard ?",correct:"Le Poudlard Express",wrong:["L'Eclair Magique","Le Train des Sorciers","L'Orient Express"],category:"Harry Potter"},
+
+  // ── STAR WARS ──
+  {text:"Dans Star Wars, quel personnage dit 'Que la Force soit avec toi' ?",correct:"C'est une phrase dite par plusieurs personnages",wrong:["Uniquement Yoda","Uniquement Obi-Wan","Uniquement Han Solo"],category:"Star Wars"},
+  {text:"Dans Star Wars, comment s'appelle le père de Luke Skywalker ?",correct:"Dark Vador",wrong:["Obi-Wan Kenobi","Han Solo","Palpatine"],category:"Star Wars"},
+  {text:"Dans Star Wars, de quelle couleur est le sabre laser de Luke Skywalker ?",correct:"Vert (et bleu au début)",wrong:["Rouge","Violet","Jaune"],category:"Star Wars"},
+  {text:"Dans Star Wars, quelle est la célèbre phrase de Dark Vador sur son rapport avec Luke ?",correct:"Je suis ton père",wrong:["Tu es mon fils","Rejoins-moi","Luke, obéis-moi"],category:"Star Wars"},
+  {text:"Dans Star Wars, quel petit robot accompagne toujours C-3PO ?",correct:"R2-D2",wrong:["BB-8","C1-10P","K-2SO"],category:"Star Wars"},
+  {text:"Dans Star Wars, comment s'appelle le wookiee pilote du Faucon Millenium ?",correct:"Chewbacca",wrong:["Jar Jar Binks","Lando","Greedo"],category:"Star Wars"},
+
+  // ── MARVEL / AVENGERS ──
+  {text:"Dans les films Marvel, qui est Iron Man ?",correct:"Tony Stark",wrong:["Steve Rogers","Bruce Banner","Peter Parker"],category:"Marvel"},
+  {text:"Dans les films Marvel, quel est le vrai nom de Captain America ?",correct:"Steve Rogers",wrong:["Tony Stark","Thor Odinson","Bucky Barnes"],category:"Marvel"},
+  {text:"Dans les films Marvel, quelle arme Thor peut-il seul soulever ?",correct:"Mjolnir (son marteau)",wrong:["Un bouclier","Une lance","Un arc"],category:"Marvel"},
+  {text:"Dans Avengers, quel personnage violet veut détruire la moitié de l'univers ?",correct:"Thanos",wrong:["Loki","Ultron","Red Skull"],category:"Marvel"},
+  {text:"Quel acteur joue Iron Man / Tony Stark dans les films Marvel ?",correct:"Robert Downey Jr.",wrong:["Chris Evans","Mark Ruffalo","Chris Hemsworth"],category:"Marvel"},
+  {text:"Quel acteur joue Thor dans les films Marvel ?",correct:"Chris Hemsworth",wrong:["Chris Evans","Chris Pratt","Tom Hiddleston"],category:"Marvel"},
+  {text:"Quel acteur joue Spider-Man dans la trilogie MCU (2017-2021) ?",correct:"Tom Holland",wrong:["Tobey Maguire","Andrew Garfield","Jacob Batalon"],category:"Marvel"},
+  {text:"Dans les films Marvel, comment s'appelle le frère jaloux de Thor ?",correct:"Loki",wrong:["Odin","Hela","Baldr"],category:"Marvel"},
+
+  // ── LE SEIGNEUR DES ANNEAUX ──
+  {text:"Dans Le Seigneur des Anneaux, comment s'appelle l'anneau unique que Frodon doit détruire ?",correct:"L'Anneau Unique",wrong:["L'Anneau du Pouvoir","L'Anneau de Sauron","L'Anneau Maudit"],category:"Le Seigneur des Anneaux"},
+  {text:"Dans Le Seigneur des Anneaux, où Frodon doit-il jeter l'Anneau Unique pour le détruire ?",correct:"Dans le volcan de la Montagne du Destin",wrong:["Dans la mer","Dans la Forêt de Fangorn","Dans le fleuve"],category:"Le Seigneur des Anneaux"},
+  {text:"Dans Le Seigneur des Anneaux, qui est le magicien à la longue barbe et au chapeau pointu ?",correct:"Gandalf",wrong:["Saroumane","Radagast","Élrond"],category:"Le Seigneur des Anneaux"},
+  {text:"Dans Le Seigneur des Anneaux, comment s'appelle la créature qui répète 'Mon précieux' ?",correct:"Gollum",wrong:["Frodon","Bilbon","Saroumane"],category:"Le Seigneur des Anneaux"},
+
+  // ── TITANIC ──
+  {text:"Dans Titanic, qui joue le rôle de Jack ?",correct:"Leonardo DiCaprio",wrong:["Brad Pitt","Johnny Depp","Matt Damon"],category:"Titanic"},
+  {text:"Dans Titanic, qui joue le rôle de Rose ?",correct:"Kate Winslet",wrong:["Cate Blanchett","Gwyneth Paltrow","Julia Roberts"],category:"Titanic"},
+  {text:"Quelle est la célèbre réplique de Jack au bout du Titanic ?",correct:"Je suis le roi du monde !",wrong:["Je suis invincible !","Je vole !","Le monde m'appartient !"],category:"Titanic"},
+  {text:"Dans Titanic, contre quoi le bateau entre-t-il en collision ?",correct:"Un iceberg",wrong:["Un autre navire","Un récif","Une baleine"],category:"Titanic"},
+
+  // ── FORREST GUMP ──
+  {text:"Dans Forrest Gump, quelle phrase dit la mère de Forrest sur la vie ?",correct:"La vie c'est comme une boîte de chocolats",wrong:["La vie est belle","La vie est un voyage","La vie va vite"],category:"Forrest Gump"},
+  {text:"Qui joue Forrest Gump dans le film de 1994 ?",correct:"Tom Hanks",wrong:["John Travolta","Kevin Costner","Mel Gibson"],category:"Forrest Gump"},
+  {text:"Dans Forrest Gump, quel sport Forrest pratique-t-il exceptionnellement bien à l'université ?",correct:"Football américain",wrong:["Basketball","Baseball","Tennis"],category:"Forrest Gump"},
+
+  // ── JURASSIC PARK ──
+  {text:"Dans Jurassic Park, quel scientifique crée le parc à dinosaures ?",correct:"John Hammond",wrong:["Alan Grant","Ian Malcolm","Dennis Nedry"],category:"Jurassic Park"},
+  {text:"Dans Jurassic Park, quelle scène célèbre montre un T-Rex attaqué par des dinosaures cornus ?",correct:"Il n'y a pas cette scène",wrong:["La scène de la jeep","La scène de la cuisine","La scène de la clôture"],category:"Jurassic Park"},
+  {text:"Dans Jurassic Park, quel dinosaure intelligent chasse en meute les enfants dans la cuisine ?",correct:"Velociraptor",wrong:["T-Rex","Dilophosaure","Brachiosaure"],category:"Jurassic Park"},
+  {text:"Qui a réalisé Jurassic Park (1993) ?",correct:"Steven Spielberg",wrong:["James Cameron","Tim Burton","George Lucas"],category:"Jurassic Park"},
+
+  // ── PIRATES DES CARAÏBES ──
+  {text:"Dans Pirates des Caraïbes, qui joue le capitaine Jack Sparrow ?",correct:"Johnny Depp",wrong:["Orlando Bloom","Keira Knightley","Geoffrey Rush"],category:"Pirates des Caraïbes"},
+  {text:"Dans Pirates des Caraïbes, comment s'appelle le bateau de Jack Sparrow ?",correct:"Le Black Pearl",wrong:["Le Flying Dutchman","Le Queen Anne's Revenge","Le Jolly Roger"],category:"Pirates des Caraïbes"},
+
+  // ── THE DARK KNIGHT ──
+  {text:"Dans The Dark Knight, qui joue le Joker ?",correct:"Heath Ledger",wrong:["Jack Nicholson","Jared Leto","Joaquin Phoenix"],category:"Batman"},
+  {text:"Qui joue Bruce Wayne / Batman dans la trilogie The Dark Knight ?",correct:"Christian Bale",wrong:["Michael Keaton","Ben Affleck","George Clooney"],category:"Batman"},
+  {text:"Qui a réalisé la trilogie The Dark Knight ?",correct:"Christopher Nolan",wrong:["Tim Burton","Zack Snyder","Joel Schumacher"],category:"Batman"},
+
+  // ── INCEPTION ──
+  {text:"Dans Inception, quel acteur joue le personnage principal Dom Cobb ?",correct:"Leonardo DiCaprio",wrong:["Tom Hardy","Joseph Gordon-Levitt","Cillian Murphy"],category:"Inception"},
+  {text:"Dans Inception, dans quel état les personnages entrent-ils pour voler des idées ?",correct:"Le rêve",wrong:["L'hypnose","La transe","Le coma"],category:"Inception"},
+
+  // ── MATRIX ──
+  {text:"Dans Matrix, quel acteur joue Néo ?",correct:"Keanu Reeves",wrong:["Laurence Fishburne","Hugo Weaving","Joe Pantoliano"],category:"Matrix"},
+  {text:"Dans Matrix, quelle couleur de pilule Néo doit-il choisir pour découvrir la vérité ?",correct:"La pilule rouge",wrong:["La pilule bleue","La pilule verte","La pilule blanche"],category:"Matrix"},
+  {text:"Dans Matrix, quel personnage propose les pilules à Néo ?",correct:"Morpheus",wrong:["Trinity","L'Oracle","L'Architecte"],category:"Matrix"},
+
+  // ── LE PARRAIN ──
+  {text:"Qui joue Don Vito Corleone dans Le Parrain (1972) ?",correct:"Marlon Brando",wrong:["Al Pacino","Robert De Niro","James Caan"],category:"Le Parrain"},
+  {text:"Dans Le Parrain, quelle célèbre réplique Don Corleone prononce-t-il ?",correct:"Je vais lui faire une offre qu'il ne pourra pas refuser",wrong:["On ne refuse pas le Don","La famille avant tout","Le sang, c'est le sang"],category:"Le Parrain"},
+
+  // ── SPIDER-MAN ──
+  {text:"Quelle araignée mord Peter Parker et lui donne ses pouvoirs de Spider-Man ?",correct:"Une araignée radioactive",wrong:["Une araignée géante","Une araignée génétiquement modifiée","Une araignée alien"],category:"Spider-Man"},
+  {text:"Quelle est la phrase emblématique de l'oncle de Peter Parker dans Spider-Man ?",correct:"Un grand pouvoir implique de grandes responsabilités",wrong:["Sois fort, Peter","N'abandonne jamais","La famille passe avant tout"],category:"Spider-Man"},
+
+  // ── INDIANA JONES ──
+  {text:"Quel acteur joue Indiana Jones ?",correct:"Harrison Ford",wrong:["Tom Selleck","Mel Gibson","Kevin Costner"],category:"Indiana Jones"},
+  {text:"Dans Indiana Jones, quelle est la peur panique du héros ?",correct:"Les serpents",wrong:["Les araignées","Les hauteurs","L'eau"],category:"Indiana Jones"},
+  {text:"Dans Les Aventuriers de l'Arche Perdue, quelle relique Indiana Jones cherche-t-il ?",correct:"L'Arche d'Alliance",wrong:["Le Graal","La Pierre de Sankara","Le Crâne de Cristal"],category:"Indiana Jones"},
+
+  // ── JAMES BOND ──
+  {text:"Quel acteur joue James Bond en premier dans les films officiels (1962) ?",correct:"Sean Connery",wrong:["Roger Moore","Pierce Brosnan","Daniel Craig"],category:"James Bond"},
+  {text:"Dans les films James Bond, quel est le code d'agent de 007 ?",correct:"James Bond",wrong:["Agent 007","John Smith","Jack Brown"],category:"James Bond"},
+  {text:"Quel acteur a joué James Bond dans Casino Royale (2006) et Skyfall (2012) ?",correct:"Daniel Craig",wrong:["Pierce Brosnan","Roger Moore","Timothy Dalton"],category:"James Bond"},
+
+  // ── RETOUR VERS LE FUTUR ──
+  {text:"Dans Retour vers le futur, dans quelle voiture le Doc et Marty voyagent-ils dans le temps ?",correct:"Une DeLorean",wrong:["Une Ferrari","Une Corvette","Une Mustang"],category:"Retour vers le futur"},
+  {text:"Dans Retour vers le futur, en quelle année Marty McFly est-il envoyé ?",correct:"1955",wrong:["1985","1965","1945"],category:"Retour vers le futur"},
+  {text:"Qui joue Marty McFly dans Retour vers le futur ?",correct:"Michael J. Fox",wrong:["Eric Stoltz","Tom Hanks","Emilio Estevez"],category:"Retour vers le futur"},
+
+  // ── TERMINATOR ──
+  {text:"Qui joue le Terminator dans le film de 1984 ?",correct:"Arnold Schwarzenegger",wrong:["Sylvester Stallone","Bruce Willis","Dolph Lundgren"],category:"Terminator"},
+  {text:"Dans Terminator, quelle est la célèbre réplique du Terminator avant de partir ?",correct:"I'll be back (Je reviendrai)",wrong:["I'll find you","I'm back","You'll be back"],category:"Terminator"},
+  {text:"Dans Terminator 2, quel Terminator protège John Connor ?",correct:"Le T-800 (Arnold Schwarzenegger)",wrong:["Le T-1000","Le T-X","Le Skynet"],category:"Terminator"},
+
+  // ── ROCKY ──
+  {text:"Qui joue Rocky Balboa dans la saga Rocky ?",correct:"Sylvester Stallone",wrong:["Arnold Schwarzenegger","Bruce Willis","Chuck Norris"],category:"Rocky"},
+  {text:"Dans Rocky, contre qui Rocky affronte-t-il dans le combat principal du premier film ?",correct:"Apollo Creed",wrong:["Clubber Lang","Ivan Drago","Tommy Gunn"],category:"Rocky"},
+
+  // ── DIRTY DANCING ──
+  {text:"Dans Dirty Dancing, quelle est la réplique culte de Johnny Castle ?",correct:"Nobody puts Baby in a corner",wrong:["Dance with me Baby","Baby, let's dance","I love you Baby"],category:"Dirty Dancing"},
+  {text:"Qui joue Johnny Castle dans Dirty Dancing ?",correct:"Patrick Swayze",wrong:["John Travolta","Kevin Bacon","Richard Gere"],category:"Dirty Dancing"},
+
+  // ── PULP FICTION ──
+  {text:"Qui a réalisé Pulp Fiction (1994) ?",correct:"Quentin Tarantino",wrong:["Martin Scorsese","Spike Lee","Oliver Stone"],category:"Pulp Fiction"},
+  {text:"Dans Pulp Fiction, quel acteur joue Vincent Vega ?",correct:"John Travolta",wrong:["Samuel L. Jackson","Harvey Keitel","Tim Roth"],category:"Pulp Fiction"},
+
+  // ── INTOUCHABLES ──
+  {text:"Dans Intouchables (2011), quel acteur joue Driss l'aide-soignant ?",correct:"Omar Sy",wrong:["Jamel Debbouze","Dany Boon","Gad Elmaleh"],category:"Intouchables"},
+  {text:"Dans Intouchables, quel acteur joue Philippe le tétraplégique ?",correct:"François Cluzet",wrong:["Jean Dujardin","Romain Duris","Mathieu Kassovitz"],category:"Intouchables"},
+
+  // ── AMÉLIE POULAIN ──
+  {text:"Qui joue Amélie Poulain dans Le Fabuleux Destin d'Amélie Poulain ?",correct:"Audrey Tautou",wrong:["Marion Cotillard","Juliette Binoche","Sophie Marceau"],category:"Cinéma français"},
+  {text:"Dans quelle ville se passe Le Fabuleux Destin d'Amélie Poulain ?",correct:"Paris (Montmartre)",wrong:["Lyon","Marseille","Bordeaux"],category:"Cinéma français"},
+
+  // ── BIENVENUE CHEZ LES CH'TIS ──
+  {text:"Qui a réalisé Bienvenue chez les Ch'tis (2008) ?",correct:"Dany Boon",wrong:["Gad Elmaleh","Jamel Debbouze","Michel Hazanavicius"],category:"Cinéma français"},
+  {text:"Dans Bienvenue chez les Ch'tis, dans quelle région de France Philippe est-il muté ?",correct:"Le Nord (Bergues)",wrong:["La Bretagne","L'Alsace","La Normandie"],category:"Cinéma français"},
+
+  // ── LA REINE DES NEIGES ──
+  {text:"Dans La Reine des Neiges, quelle chanson Elsa chante-t-elle en construisant son château ?",correct:"Libérée, délivrée",wrong:["Pour la première fois","L'amour est un cadeau","À nous deux"],category:"Animation"},
+  {text:"Dans La Reine des Neiges, comment s'appelle le renne de Kristoff ?",correct:"Sven",wrong:["Blitzen","Comet","Dasher"],category:"Animation"},
+
+  // ── NEMO ──
+  {text:"Dans Le Monde de Nemo, de quelle espèce de poisson est Nemo ?",correct:"Un poisson-clown",wrong:["Un poisson-lune","Un poisson-ange","Un poisson-napoléon"],category:"Animation"},
+  {text:"Dans Le Monde de Nemo, quel est le problème de Dory ?",correct:"Elle a des pertes de mémoire",wrong:["Elle est aveugle","Elle ne sait pas nager","Elle a peur de l'eau"],category:"Animation"},
+
+  // ── CARS / INCOGNITO ──
+  {text:"Dans Cars, comment s'appelle le héros bolide de couleur rouge ?",correct:"Flash McQueen",wrong:["Tom Speed","Mack Track","Speed Racer"],category:"Animation"},
+  {text:"Dans Les Indestructibles, pourquoi les super-héros se cachent-ils ?",correct:"Parce que leur existence est interdite par la loi",wrong:["Parce qu'ils ont honte","Parce que leurs pouvoirs ont disparu","Parce qu'ils ont peur"],category:"Animation"},
+
+  // ── UP ──
+  {text:"Dans Là-Haut (Up), comment Carl fait-il s'envoler sa maison ?",correct:"Avec des milliers de ballons",wrong:["Avec un moteur à réaction","Avec de l'hélium","Avec de la magie"],category:"Animation"},
+
+  // ── MISSION IMPOSSIBLE ──
+  {text:"Qui joue Ethan Hunt dans la saga Mission Impossible ?",correct:"Tom Cruise",wrong:["Matt Damon","Vin Diesel","Will Smith"],category:"Action"},
+  {text:"Dans Mission Impossible, dans quel bâtiment célèbre Ethan Hunt s'infiltre-t-il en se suspendant à un câble ?",correct:"La CIA (Langley)",wrong:["Le Pentagone","La Maison Blanche","Fort Knox"],category:"Action"},
+
+  // ── DIE HARD ──
+  {text:"Qui joue John McClane dans Die Hard ?",correct:"Bruce Willis",wrong:["Mel Gibson","Sylvester Stallone","Arnold Schwarzenegger"],category:"Action"},
+
+  // ── THE LION KING (précisions) ──
+  {text:"Dans Le Roi Lion, comment s'appellent les deux amis de Simba (le suricate et le phacochère) ?",correct:"Timon et Pumbaa",wrong:["Rafiki et Zazu","Nala et Kiara","Shenzi et Banzaï"],category:"Animation"},
+
+  // ── GÉNÉRAL CULTURE CINÉ GRAND PUBLIC ──
+  {text:"Qui a réalisé Titanic (1997) ?",correct:"James Cameron",wrong:["Steven Spielberg","Michael Bay","Ron Howard"],category:"Cinéma"},
+  {text:"Qui joue le rôle de Will Smith dans Men in Black ?",correct:"Will Smith (son vrai nom et son rôle s'appellent différemment, il joue Jay)",wrong:["Will Smith joue James Edwards","Will Smith joue Mike Lowrey","Will Smith joue Marcus Burnett"],category:"Cinéma"},
+  {text:"Dans quel film Tom Hanks joue-t-il un homme bloqué dans un aéroport ?",correct:"Le Terminal",wrong:["Cast Away","Philadelphia","Big"],category:"Tom Hanks"},
+  {text:"Dans quel film Tom Hanks joue-t-il un naufragé seul sur une île déserte ?",correct:"Cast Away (Seul au monde)",wrong:["Le Terminal","Forrest Gump","Philadelphia"],category:"Tom Hanks"},
+  {text:"Qui joue l'agent J dans Men in Black ?",correct:"Will Smith",wrong:["Tommy Lee Jones","Martin Lawrence","Ice Cube"],category:"Action"},
+  {text:"Dans Aladdin (1992), comment s'appelle le génie de la lampe magique ?",correct:"Le Génie",wrong:["Aladin","Jafar","Abu"],category:"Animation"},
+  {text:"Dans La Belle et la Bête (Disney), quelle est la malédiction sur la Bête ?",correct:"Un enchantement qui le transforme en monstre s'il n'est pas aimé avant ses 21 ans",wrong:["Il doit dormir 100 ans","Il doit toucher une rose magique","Il doit trouver une princesse"],category:"Animation"},
+  {text:"Dans Mulan (Disney), pourquoi Mulan s'engage-t-elle dans l'armée chinoise ?",correct:"Pour remplacer son vieux père qui est trop faible pour combattre",wrong:["Pour trouver un mari","Par goût de l'aventure","Pour fuir un mariage forcé"],category:"Animation"},
+  {text:"Dans Cendrillon (Disney), à quelle heure le charme de la fée marraine prend-il fin ?",correct:"À minuit",wrong:["À l'aube","Au coucher du soleil","À trois heures du matin"],category:"Animation"},
+  {text:"Dans Blanche-Neige (Disney), quelle est la question que la méchante reine pose à son miroir ?",correct:"Miroir, mon beau miroir, qui est la plus belle ?",wrong:["Qui sera reine ?","Qui mérite d'être aimée ?","Qui est la plus sage ?"],category:"Animation"},
+  {text:"Dans La Petite Sirène, comment s'appelle la sirène principale ?",correct:"Ariel",wrong:["Marina","Coral","Pearl"],category:"Animation"},
+  {text:"Qui est la voix française d'Edouard Elric dans Fullmetal Alchemist ?",correct:"Cette question ne concerne pas un film",wrong:["Nicolas Reyes","Maxime Donnay","Jules de Jongh"],category:"Animation"},
+  {text:"Quel film d'animation met en scène un petit garçon dont les jouets prennent vie ?",correct:"Toy Story",wrong:["Monstres & Cie","Cars","Là-Haut"],category:"Animation"},
+  {text:"Dans Monstres & Cie, comment s'appelle la petite fille humaine que les monstres accueillent ?",correct:"Boo",wrong:["Mary","Lily","Anna"],category:"Animation"},
+  {text:"Quel acteur joue Wolverine dans la saga X-Men ?",correct:"Hugh Jackman",wrong:["Chris Hemsworth","Tom Hardy","Joel Edgerton"],category:"Super-héros"},
+  {text:"Quel acteur joue Deadpool dans le film du même nom ?",correct:"Ryan Reynolds",wrong:["Ryan Gosling","Chris Pratt","Channing Tatum"],category:"Super-héros"},
+  {text:"Dans Hunger Games, dans quel district habite Katniss ?",correct:"Le District 12",wrong:["Le District 1","Le District 7","Le District 4"],category:"Hunger Games"},
+  {text:"Qui joue Katniss dans Hunger Games ?",correct:"Jennifer Lawrence",wrong:["Emma Watson","Saoirse Ronan","Shailene Woodley"],category:"Hunger Games"},
+  {text:"Dans Twilight, Edward Cullen est quel type de créature surnaturelle ?",correct:"Un vampire",wrong:["Un loup-garou","Un fantôme","Un sorcier"],category:"Twilight"},
+  {text:"Dans Le Monde de Narnia, quel meuble permet aux enfants d'entrer dans Narnia ?",correct:"Une armoire",wrong:["Un miroir","Une porte","Un tableau"],category:"Narnia"},
+  {text:"Dans Fast and Furious, quel acteur joue Dominic Toretto ?",correct:"Vin Diesel",wrong:["Dwayne Johnson","Paul Walker","Jason Statham"],category:"Action"},
+  {text:"Qui joue Jack Sparrow dans Pirates des Caraïbes ?",correct:"Johnny Depp",wrong:["Orlando Bloom","Keira Knightley","Geoffrey Rush"],category:"Pirates des Caraïbes"},
+  {text:"Dans Titanic, dans quelle mer / quel océan coule le bateau ?",correct:"L'Atlantique Nord",wrong:["La Méditerranée","L'Atlantique Sud","Le Pacifique"],category:"Titanic"},
+  {text:"Quelle planète Buzz L'Éclair croit-il défendre dans Toy Story ?",correct:"La planète de l'Étoile du Commandement",wrong:["La Terre","Mars","Zurg"],category:"Animation"},
+  {text:"Dans Zootopie, Judy Hopps est la première de son espèce à devenir officier de police. Quelle est son espèce ?",correct:"Un lapin",wrong:["Un renard","Un mouton","Un bison"],category:"Animation"},
+  {text:"Dans Vaiana, quel demi-dieu tatoué accompagne Vaiana dans son voyage ?",correct:"Maui",wrong:["Tamatoa","Tefiti","Hei Hei"],category:"Animation"},
+  {text:"Quel film Disney met en scène une princesse qui parle aux animaux et chante dans la forêt ?",correct:"Blanche-Neige (et plusieurs autres !)",wrong:["Raiponce","Brave","Encanto"],category:"Animation"},
+  {text:"Dans Raiponce, combien d'années Raiponce est-elle enfermée dans sa tour ?",correct:"Environ 18 ans (depuis sa naissance)",wrong:["7 ans","10 ans","25 ans"],category:"Animation"},
+  {text:"Dans Coco (Pixar), dans quel pays se déroule l'histoire ?",correct:"Le Mexique",wrong:["L'Espagne","Le Brésil","Cuba"],category:"Animation"},
+  {text:"Dans Ratatouille, dans quelle ville habite le rat Rémy qui rêve de devenir cuisinier ?",correct:"Paris",wrong:["Rome","Barcelone","Lyon"],category:"Animation"},
+  {text:"Dans Wall-E, quelle est la mission du petit robot Wall-E sur Terre ?",correct:"Compacter les déchets",wrong:["Réparer les machines","Planter des arbres","Surveiller les humains"],category:"Animation"},
+  {text:"Dans la saga Avengers, comment s'appelle la planète de Thanos ?",correct:"Titan",wrong:["Xandar","Sakaar","Vormir"],category:"Marvel"},
+  {text:"Quel acteur joue Black Panther / T'Challa dans les films Marvel ?",correct:"Chadwick Boseman",wrong:["Michael B. Jordan","Idris Elba","Winston Duke"],category:"Marvel"},
+  {text:"Dans quel film Marvel apparaît la première Pierre de l'Infini (le Tesseract) ?",correct:"Captain America (le premier Avenger)",wrong:["Iron Man","Thor","Avengers"],category:"Marvel"},
+  {text:"Dans Star Wars, sur quelle planète désertique grandit Luke Skywalker ?",correct:"Tatooine",wrong:["Coruscant","Alderaan","Dagobah"],category:"Star Wars"},
+  {text:"Dans Star Wars, qui est le maître Jedi vert et très vieux (900 ans) ?",correct:"Yoda",wrong:["Obi-Wan Kenobi","Mace Windu","Qui-Gon Jinn"],category:"Star Wars"},
+  {text:"Quel film raconte l'histoire de dinosaures clonés qui s'échappent dans un parc ?",correct:"Jurassic Park",wrong:["The Lost World","Prehistoric Planet","Dinosaure"],category:"Cinéma"},
+  {text:"Dans quel film Keanu Reeves joue-t-il un ancien tueur à gages qui cherche vengeance pour son chien ?",correct:"John Wick",wrong:["Speed","Point Break","Constantine"],category:"Action"},
+  {text:"Qui joue Hermione Granger dans les films Harry Potter ?",correct:"Emma Watson",wrong:["Emma Stone","Emily Blunt","Keira Knightley"],category:"Harry Potter"},
+  {text:"Qui joue Ron Weasley dans les films Harry Potter ?",correct:"Rupert Grint",wrong:["Daniel Radcliffe","Tom Felton","Matthew Lewis"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, comment s'appelle la grande méchante au chapeau pointu qui déteste les 'sang-de-bourbe' ?",correct:"Dolores Ombrage (et Voldemort plus généralement)",wrong:["Bellatrix Lestrange","Rita Skeeter","Narcissa Malefoy"],category:"Harry Potter"},
+  {text:"Dans Harry Potter, comment s'appelle le professeur de potions sarcastique qui sera révélé comme personnage complexe ?",correct:"Severus Rogue",wrong:["Albus Dumbledore","Remus Lupin","Gilderoy Lockhart"],category:"Harry Potter"},
+  {text:"Quel film de 2009 de James Cameron se déroule sur une planète alien appelée Pandora ?",correct:"Avatar",wrong:["Aliens","Interstellar","Dune"],category:"Cinéma"},
+  {text:"Dans quel film un comptable timide se découvre un double meurtrier ?",correct:"Fight Club",wrong:["American Psycho","Seven","Zodiac"],category:"Cinéma"},
+  {text:"Qui a réalisé Interstellar (2014) ?",correct:"Christopher Nolan",wrong:["Ridley Scott","Denis Villeneuve","J.J. Abrams"],category:"Cinéma"},
+  {text:"Dans Intouchables, quel sport de glisse Philippe pratique-t-il avant son accident ?",correct:"Le parapente",wrong:["Le ski","Le surf","L'escalade"],category:"Cinéma français"},
+  {text:"Dans Barbie (2023), qui joue Ken ?",correct:"Ryan Gosling",wrong:["Channing Tatum","Zac Efron","Chris Evans"],category:"Cinéma"},
+  {text:"Qui joue Barbie (Barbie stéréotype) dans le film Barbie (2023) ?",correct:"Margot Robbie",wrong:["Emma Stone","Scarlett Johansson","Ana de Armas"],category:"Cinéma"},
+  {text:"Dans Top Gun : Maverick (2022), quel acteur reprend son rôle de Pete 'Maverick' Mitchell ?",correct:"Tom Cruise",wrong:["Brad Pitt","Tom Hardy","Miles Teller"],category:"Cinéma"},
+  {text:"Quel film de 2019 a remporté l'Oscar du meilleur film ET l'Oscar du meilleur film international ?",correct:"Parasite",wrong:["1917","Joker","Le Mans 66"],category:"Cinéma"},
+  {text:"Qui a réalisé Parasite (2019) ?",correct:"Bong Joon-ho",wrong:["Park Chan-wook","Lee Chang-dong","Kim Jee-woon"],category:"Cinéma"},
+  {text:"Dans Oppenheimer (2023), qui joue J. Robert Oppenheimer ?",correct:"Cillian Murphy",wrong:["Matt Damon","Tom Hanks","Bradley Cooper"],category:"Cinéma"},
+
+];
+
+
+// ══════════════════════════════════════════════════════════
+// BASE BLIND TEST — Musiques de films iconiques
+// search : terme pour iTunes/Deezer, composer : pour affichage
+// tmdb_id : pour affiche de révélation
+// ══════════════════════════════════════════════════════════
+const BLINDTEST_DB = [
+  // ── HANS ZIMMER ──
+  {title:"Inception",        search:"Hans Zimmer Time Inception",        composer:"Hans Zimmer",   tmdb_id:27205,  year:2010},
+  {title:"Interstellar",     search:"Hans Zimmer Interstellar Cornfield", composer:"Hans Zimmer",   tmdb_id:157336, year:2014},
+  {title:"The Dark Knight",  search:"Hans Zimmer Why So Serious",        composer:"Hans Zimmer",   tmdb_id:155,    year:2008},
+  {title:"Gladiator",        search:"Hans Zimmer Now We Are Free",       composer:"Hans Zimmer",   tmdb_id:98,     year:2000},
+  {title:"The Lion King",    search:"Hans Zimmer Circle of Life",        composer:"Hans Zimmer",   tmdb_id:8587,   year:1994},
+  {title:"Pirates of the Caribbean", search:"Hans Zimmer He's a Pirate", composer:"Hans Zimmer",  tmdb_id:22,     year:2003},
+  {title:"Dunkirk",          search:"Hans Zimmer Dunkirk Supermarine",   composer:"Hans Zimmer",   tmdb_id:374720, year:2017},
+  {title:"Dune",             search:"Hans Zimmer Dune Arrival",          composer:"Hans Zimmer",   tmdb_id:438631, year:2021},
+  // ── JOHN WILLIAMS ──
+  {title:"Star Wars",        search:"John Williams Star Wars Main Theme", composer:"John Williams", tmdb_id:11,     year:1977},
+  {title:"Jurassic Park",    search:"John Williams Jurassic Park Theme",  composer:"John Williams", tmdb_id:329,    year:1993},
+  {title:"Indiana Jones",    search:"John Williams Raiders March",        composer:"John Williams", tmdb_id:85,     year:1981},
+  {title:"Schindler's List", search:"John Williams Schindler List Theme", composer:"John Williams", tmdb_id:424,    year:1993},
+  {title:"Harry Potter",     search:"John Williams Hedwig Theme",         composer:"John Williams", tmdb_id:671,    year:2001},
+  {title:"Jaws",             search:"John Williams Jaws Theme",           composer:"John Williams", tmdb_id:578,    year:1975},
+  {title:"Home Alone",       search:"John Williams Somewhere in my Memory", composer:"John Williams", tmdb_id:771,  year:1990},
+  {title:"Superman",         search:"John Williams Superman March",       composer:"John Williams", tmdb_id:1924,   year:1978},
+  // ── ENNIO MORRICONE ──
+  {title:"The Good the Bad and the Ugly", search:"Ennio Morricone Good Bad Ugly", composer:"Ennio Morricone", tmdb_id:1700, year:1966},
+  {title:"Cinema Paradiso",  search:"Ennio Morricone Cinema Paradiso",   composer:"Ennio Morricone", tmdb_id:11216, year:1988},
+  {title:"Once Upon a Time in the West", search:"Ennio Morricone Once Upon West", composer:"Ennio Morricone", tmdb_id:213, year:1968},
+  {title:"The Hateful Eight",search:"Ennio Morricone Hateful Eight",     composer:"Ennio Morricone", tmdb_id:273248,year:2015},
+  // ── HOWARD SHORE ──
+  {title:"Le Seigneur des Anneaux", search:"Howard Shore Lord of the Rings Shire", composer:"Howard Shore", tmdb_id:120, year:2001},
+  {title:"Le Hobbit",        search:"Howard Shore Hobbit Misty Mountains", composer:"Howard Shore", tmdb_id:57158, year:2012},
+  // ── DANNY ELFMAN ──
+  {title:"Batman",           search:"Danny Elfman Batman Theme",         composer:"Danny Elfman",  tmdb_id:268,    year:1989},
+  {title:"Edward Scissorhands", search:"Danny Elfman Edward Scissorhands", composer:"Danny Elfman", tmdb_id:162,  year:1990},
+  {title:"Spider-Man",       search:"Danny Elfman Spider-Man Theme",     composer:"Danny Elfman",  tmdb_id:557,    year:2002},
+  // ── ALAN SILVESTRI ──
+  {title:"Retour vers le futur", search:"Alan Silvestri Back to the Future Theme", composer:"Alan Silvestri", tmdb_id:105, year:1985},
+  {title:"Avengers",         search:"Alan Silvestri Avengers Theme",     composer:"Alan Silvestri", tmdb_id:24428, year:2012},
+  {title:"Forrest Gump",     search:"Alan Silvestri Forrest Gump Suite", composer:"Alan Silvestri", tmdb_id:13,    year:1994},
+  // ── JAMES HORNER ──
+  {title:"Titanic",          search:"James Horner Titanic My Heart Will Go On", composer:"James Horner", tmdb_id:597, year:1997},
+  {title:"Avatar",           search:"James Horner Avatar Pandora",       composer:"James Horner",  tmdb_id:19995, year:2009},
+  {title:"Braveheart",       search:"James Horner Braveheart Freedom",   composer:"James Horner",  tmdb_id:197,   year:1995},
+  // ── MICHAEL GIACCHINO ──
+  {title:"Là-Haut",          search:"Michael Giacchino Married Life Up", composer:"Michael Giacchino", tmdb_id:14160, year:2009},
+  {title:"Ratatouille",      search:"Michael Giacchino Ratatouille Gusteau", composer:"Michael Giacchino", tmdb_id:2062, year:2007},
+  {title:"The Batman",       search:"Michael Giacchino The Batman",      composer:"Michael Giacchino", tmdb_id:414906, year:2022},
+  // ── LUDWIG GÖRANSSON ──
+  {title:"Black Panther",    search:"Ludwig Goransson Black Panther",    composer:"Ludwig Göransson", tmdb_id:284054, year:2018},
+  {title:"Tenet",            search:"Ludwig Goransson Tenet",            composer:"Ludwig Göransson", tmdb_id:577922, year:2020},
+  {title:"Oppenheimer",      search:"Ludwig Goransson Oppenheimer Can You Hear the Music", composer:"Ludwig Göransson", tmdb_id:872585, year:2023},
+  // ── HENRY JACKMAN ──
+  {title:"Captain America",  search:"Henry Jackman Captain America",     composer:"Henry Jackman",  tmdb_id:1771,   year:2011},
+  // ── THOMAS NEWMAN ──
+  {title:"American Beauty",  search:"Thomas Newman American Beauty",     composer:"Thomas Newman",  tmdb_id:14,     year:1999},
+  {title:"WALL-E",           search:"Thomas Newman WALL-E",              composer:"Thomas Newman",  tmdb_id:10681,  year:2008},
+  // ── JERRY GOLDSMITH ──
+  {title:"Mission Impossible", search:"Lalo Schifrin Mission Impossible Theme", composer:"Lalo Schifrin", tmdb_id:954, year:1996},
+  // ── BASIL POLEDOURIS ──
+  {title:"RoboCop",          search:"Basil Poledouris RoboCop Theme",    composer:"Basil Poledouris", tmdb_id:5548, year:1987},
+  // ── JOHN BARRY ──
+  {title:"James Bond",       search:"Monty Norman James Bond Theme",     composer:"Monty Norman",   tmdb_id:36669, year:1962},
+  // ── BERNARD HERRMANN ──
+  {title:"Psycho",           search:"Bernard Herrmann Psycho Theme",     composer:"Bernard Herrmann", tmdb_id:539, year:1960},
+  // ── NINO ROTA ──
+  {title:"Le Parrain",       search:"Nino Rota Godfather Theme",         composer:"Nino Rota",      tmdb_id:238,   year:1972},
+  // ── VANGELIS ──
+  {title:"Blade Runner",     search:"Vangelis Blade Runner End Titles",  composer:"Vangelis",       tmdb_id:78,    year:1982},
+  {title:"Chariots of Fire", search:"Vangelis Chariots of Fire",         composer:"Vangelis",       tmdb_id:9443,  year:1981},
+  // ── JOHN CARPENTER ──
+  {title:"Halloween",        search:"John Carpenter Halloween Theme",    composer:"John Carpenter", tmdb_id:948,   year:1978},
+  // ── GUSTAVO SANTAOLALLA ──
+  {title:"Brokeback Mountain", search:"Gustavo Santaolalla Brokeback Mountain", composer:"Gustavo Santaolalla", tmdb_id:324,year:2005},
+  // ── CLIFF MARTINEZ ──
+  {title:"Drive",            search:"Cliff Martinez Drive",              composer:"Cliff Martinez", tmdb_id:57158, year:2011},
+  // ── TRENT REZNOR ──
+  {title:"The Social Network", search:"Trent Reznor In Motion Social Network", composer:"Trent Reznor", tmdb_id:37799, year:2010},
+  {title:"Gone Girl",        search:"Trent Reznor Gone Girl",            composer:"Trent Reznor",  tmdb_id:210577, year:2014},
+  // ── JONNY GREENWOOD ──
+  {title:"There Will Be Blood", search:"Jonny Greenwood There Will Be Blood", composer:"Jonny Greenwood", tmdb_id:978, year:2007},
+  // ── CARTER BURWELL ──
+  {title:"Fargo",            search:"Carter Burwell Fargo Theme",        composer:"Carter Burwell", tmdb_id:275,   year:1996},
+  {title:"No Country for Old Men", search:"Carter Burwell No Country Old Men", composer:"Carter Burwell", tmdb_id:6977, year:2007},
+  // ── ALEXANDRE DESPLAT ──
+  {title:"The Grand Budapest Hotel", search:"Alexandre Desplat Grand Budapest Hotel", composer:"Alexandre Desplat", tmdb_id:120467, year:2014},
+  {title:"The Shape of Water", search:"Alexandre Desplat Shape of Water", composer:"Alexandre Desplat", tmdb_id:399055, year:2017},
+  // ── JUSTIN HURWITZ ──
+  {title:"La La Land",       search:"Justin Hurwitz City of Stars La La Land", composer:"Justin Hurwitz", tmdb_id:313369, year:2016},
+  {title:"Whiplash",         search:"Justin Hurwitz Whiplash",           composer:"Justin Hurwitz", tmdb_id:244786, year:2014},
+  // ── NICHOLAS BRITELL ──
+  {title:"Succession",       search:"Nicholas Britell Succession Theme", composer:"Nicholas Britell", tmdb_id:0,  year:2018},
+  // ── JOE HISAISHI ──
+  {title:"Le Voyage de Chihiro", search:"Joe Hisaishi One Summer's Day Spirited Away", composer:"Joe Hisaishi", tmdb_id:129, year:2001},
+  {title:"Mon Voisin Totoro", search:"Joe Hisaishi My Neighbor Totoro",  composer:"Joe Hisaishi",  tmdb_id:8392,  year:1988},
+  {title:"Princess Mononoke", search:"Joe Hisaishi Princess Mononoke",  composer:"Joe Hisaishi",  tmdb_id:128,   year:1997},
+  // ── BRAD FIEDEL ──
+  {title:"Terminator 2",     search:"Brad Fiedel Terminator 2 Theme",   composer:"Brad Fiedel",   tmdb_id:280,   year:1991},
+  // ── LALO SCHIFRIN ──
+  {title:"Dirty Harry",      search:"Lalo Schifrin Dirty Harry",        composer:"Lalo Schifrin",  tmdb_id:4431,  year:1971},
+  // ── BILL CONTI ──
+  {title:"Rocky",            search:"Bill Conti Gonna Fly Now Rocky",   composer:"Bill Conti",    tmdb_id:1366,   year:1976},
+];
+
 // Signal que les données sont prêtes
 window._dataReady = true;
 if(window._dataReadyCallbacks) {
