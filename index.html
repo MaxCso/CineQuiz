@@ -31477,283 +31477,250 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     let t=0;
     const cx=W/2;
 
-    /* ── Spice — nuage dense de particules portées par le vent ── */
-    const spice=Array.from({length:120},()=>({
-     x:Math.random()*W,
-     y:H*0.10+Math.random()*H*0.55,
-     vx:Math.random()*1.2+0.2,
-     vy:(Math.random()-0.5)*0.12,
-     r:Math.random()*1.8+0.2,
-     op:Math.random()*0.28+0.04,
-     wobble:Math.random()*Math.PI*2,
-     wobbleSpd:Math.random()*0.02+0.005,
-     layer:Math.floor(Math.random()*3) /* 0=fond 1=milieu 2=avant */
-    }));
+    /* ── Planète — réduite, repositionnée en haut à droite ── */
+    const PX=cx+W*0.08, PY=H*0.20, PR=W*0.18;
 
-    /* ── Sable soufflé depuis les crêtes ── */
-    const crestDust=Array.from({length:60},()=>({
-     /* Naît sur la crête de la grande dune */
-     x:W*(0.14+Math.random()*0.28),
-     y:H*(0.46+Math.random()*0.10),
-     vx:Math.random()*1.8+0.8,
-     vy:-(Math.random()*0.6+0.1),
-     r:Math.random()*2.5+0.5,
-     op:Math.random()*0.35+0.08,
-     life:Math.random(),
-     decay:Math.random()*0.008+0.004
+    /* ── Spice + poussière de vent ── */
+    const particles=Array.from({length:90},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H*0.72,
+     vx:Math.random()*0.9+0.15,
+     vy:(Math.random()-0.5)*0.08,
+     r:Math.random()*1.4+0.2,
+     op:Math.random()*0.22+0.04,
+     phase:Math.random()*Math.PI*2
     }));
 
     /* ── Traînées de vent horizontales ── */
-    const windStreaks=Array.from({length:18},()=>({
-     y:H*(0.15+Math.random()*0.38),
-     x:-W*Math.random(),
-     vx:Math.random()*3.5+1.5,
-     len:W*(0.08+Math.random()*0.18),
-     op:Math.random()*0.18+0.04,
-     w:Math.random()*1.2+0.4
+    const streaks=Array.from({length:14},()=>({
+     x:-Math.random()*W,
+     y:H*(0.08+Math.random()*0.55),
+     vx:Math.random()*2.8+1.2,
+     len:W*(0.06+Math.random()*0.16),
+     op:Math.random()*0.14+0.03,
+     w:Math.random()*0.9+0.3
     }));
 
-    /* ── Grains de sable tourbillonnants — avant-plan ── */
-    const sandSwirl=Array.from({length:25},()=>({
-     angle:Math.random()*Math.PI*2,
-     radius:W*(0.02+Math.random()*0.08),
-     cx:W*(0.3+Math.random()*0.4),
-     cy:H*(0.45+Math.random()*0.15),
-     spd:(Math.random()-0.5)*0.04,
-     r:Math.random()*2+0.8,
-     op:Math.random()*0.22+0.06
+    /* ── Ondes de chaleur — simples lignes horizontales ondulantes ── */
+    const heatLines=Array.from({length:6},(_,i)=>({
+     baseY:H*(0.50+i*0.028),
+     amp:H*0.004,
+     freq:0.018+i*0.004,
+     phase:Math.random()*Math.PI*2,
+     spd:0.4+Math.random()*0.3
     }));
 
-    /* ── Rotation planète — offset animé ── */
-    let planetRotOffset=0;
-
-    /* ── Planète géante ── */
     function drawPlanet(){
-     const px=cx*0.95, py=H*0.22;
-     const pr=W*0.30;
-     planetRotOffset+=0.0004; /* rotation très lente */
-
-     /* Halo atmosphérique */
-     const atmo=ctx.createRadialGradient(px,py,pr*0.7,px,py,pr*1.9);
-     atmo.addColorStop(0,`rgba(240,160,40,${0.20+Math.sin(t*0.10)*0.04})`);
-     atmo.addColorStop(0.4,'rgba(220,130,20,0.08)');
-     atmo.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=atmo;ctx.beginPath();ctx.arc(px,py,pr*1.9,0,Math.PI*2);ctx.fill();
-
-     /* Disque */
-     const pg=ctx.createRadialGradient(px-pr*0.28,py-pr*0.30,pr*0.05,px,py,pr);
-     pg.addColorStop(0,'rgba(255,245,195,0.96)');
-     pg.addColorStop(0.15,'rgba(252,220,140,0.94)');
-     pg.addColorStop(0.35,'rgba(245,190,90,0.92)');
-     pg.addColorStop(0.60,'rgba(230,155,50,0.88)');
-     pg.addColorStop(0.82,'rgba(205,120,28,0.84)');
-     pg.addColorStop(1,'rgba(170,85,10,0.70)');
-     ctx.fillStyle=pg;ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.fill();
-
-     /* Bandes de surface animées — défilent lentement */
      ctx.save();
-     ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.clip();
-     for(let b=0;b<9;b++){
-      const by=py-pr*0.85+b*(pr*0.19);
-      const bw=Math.sqrt(Math.max(0,pr*pr-(by-py)*(by-py)))*2;
-      const ba=0.035+b*0.008;
-      /* Décalage horizontal animé par rotation */
-      const bx=px-bw*0.5+(Math.sin(planetRotOffset*30+b*0.8)*bw*0.12);
-      ctx.fillStyle=`rgba(160,85,12,${ba})`;
-      ctx.fillRect(bx,by,bw,pr*0.07);
+     /* Halo atmosphérique très doux */
+     const halo=ctx.createRadialGradient(PX,PY,PR*0.6,PX,PY,PR*2.2);
+     halo.addColorStop(0,`rgba(255,190,60,${0.14+Math.sin(t*0.08)*0.03})`);
+     halo.addColorStop(0.5,'rgba(220,140,30,0.05)');
+     halo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=halo;ctx.beginPath();ctx.arc(PX,PY,PR*2.2,0,Math.PI*2);ctx.fill();
+
+     /* Disque planétaire */
+     const pg=ctx.createRadialGradient(PX-PR*0.30,PY-PR*0.32,PR*0.04,PX,PY,PR);
+     pg.addColorStop(0,  'rgb(255,242,185)');
+     pg.addColorStop(0.2,'rgb(250,215,130)');
+     pg.addColorStop(0.45,'rgb(238,178,72)');
+     pg.addColorStop(0.70,'rgb(215,135,38)');
+     pg.addColorStop(0.88,'rgb(185,98,18)');
+     pg.addColorStop(1,  'rgb(145,68,8)');
+     ctx.fillStyle=pg;ctx.beginPath();ctx.arc(PX,PY,PR,0,Math.PI*2);ctx.fill();
+
+     /* Bandes de surface — clippées dans le disque */
+     ctx.save();ctx.beginPath();ctx.arc(PX,PY,PR,0,Math.PI*2);ctx.clip();
+     for(let b=0;b<6;b++){
+      const by=PY-PR*0.75+b*(PR*0.25);
+      const hw=Math.sqrt(Math.max(0,PR*PR-(by-PY)*(by-PY)));
+      ctx.fillStyle=`rgba(155,80,10,${0.04+b*0.012})`;
+      ctx.fillRect(PX-hw,by,hw*2,PR*0.08);
      }
-     /* Tache sombre animée */
-     const tachX=px+pr*(0.18+Math.sin(planetRotOffset*25)*0.35);
-     const tachY=py+pr*0.12;
-     ctx.fillStyle=`rgba(140,65,8,${0.10+Math.sin(t*0.08)*0.03})`;
-     ctx.beginPath();ctx.ellipse(tachX,tachY,pr*0.22,pr*0.09,0.2,0,Math.PI*2);ctx.fill();
-     /* Terminateur */
-     const term=ctx.createRadialGradient(px+pr*0.42,py,pr*0.1,px+pr*0.55,py,pr*0.9);
+     /* Terminateur — ombre côté droit */
+     const term=ctx.createLinearGradient(PX,PY,PX+PR,PY);
      term.addColorStop(0,'rgba(0,0,0,0)');
-     term.addColorStop(0.6,'rgba(60,25,5,0.18)');
-     term.addColorStop(1,'rgba(30,10,2,0.55)');
-     ctx.fillStyle=term;ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.fill();
+     term.addColorStop(0.65,'rgba(40,15,3,0.12)');
+     term.addColorStop(1,'rgba(20,6,1,0.50)');
+     ctx.fillStyle=term;ctx.beginPath();ctx.arc(PX,PY,PR,0,Math.PI*2);ctx.fill();
      ctx.restore();
-     ctx.strokeStyle='rgba(255,200,80,0.07)';ctx.lineWidth=1.5;
-     ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.stroke();
+     ctx.restore();
     }
 
-    /* ── Chaleur — distorsion visuelle ondes thermiques ── */
-    function drawHeatShimmer(){
-     /* Lignes horizontales très fines qui ondulent légèrement au-dessus des dunes */
-     for(let i=0;i<5;i++){
-      const hy=H*(0.44+i*0.015)+Math.sin(t*1.8+i*2.3)*H*0.003;
-      const hg=ctx.createLinearGradient(0,hy,W,hy);
-      hg.addColorStop(0,'rgba(0,0,0,0)');
-      hg.addColorStop(0.2,`rgba(255,180,60,${0.04+Math.sin(t*2.2+i)*0.02})`);
-      hg.addColorStop(0.5,`rgba(255,170,50,${0.06+Math.sin(t*1.9+i*1.5)*0.03})`);
-      hg.addColorStop(0.8,`rgba(255,180,60,${0.04+Math.sin(t*2.0+i*0.8)*0.02})`);
-      hg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=hg;ctx.fillRect(0,hy,W,2);
-     }
-    }
-
-    /* ── Dunes ── */
     function drawDunes(){
-     /* Fond gauche */
+     /* ═══ Palette : orangé chaud éclairé, brun sombre dans l'ombre ═══ */
+
+     /* ── Dunes lointaines — horizon, très claires ── */
      ctx.beginPath();
-     ctx.moveTo(0,H*0.52);
-     ctx.bezierCurveTo(W*0.12,H*0.44,W*0.22,H*0.42,W*0.32,H*0.46);
-     ctx.bezierCurveTo(W*0.40,H*0.50,W*0.46,H*0.55,W*0.50,H*0.58);
-     ctx.lineTo(W*0.50,H);ctx.lineTo(0,H);ctx.closePath();
-     const dfg=ctx.createLinearGradient(W*0.10,H*0.42,W*0.10,H*0.80);
-     dfg.addColorStop(0,'rgb(195,138,60)');dfg.addColorStop(0.5,'rgb(165,108,38)');dfg.addColorStop(1,'rgb(120,75,20)');
-     ctx.fillStyle=dfg;ctx.fill();
-     /* Fond droite */
+     ctx.moveTo(0,H*0.55);
+     ctx.bezierCurveTo(W*0.15,H*0.48, W*0.28,H*0.45, W*0.40,H*0.48);
+     ctx.bezierCurveTo(W*0.52,H*0.51, W*0.62,H*0.54, W*0.72,H*0.52);
+     ctx.bezierCurveTo(W*0.82,H*0.50, W*0.92,H*0.48, W,H*0.51);
+     ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();
+     const dh=ctx.createLinearGradient(0,H*0.45,0,H*0.70);
+     dh.addColorStop(0,'rgb(210,155,68)');
+     dh.addColorStop(0.6,'rgb(175,118,40)');
+     dh.addColorStop(1,'rgb(130,82,22)');
+     ctx.fillStyle=dh;ctx.fill();
+
+     /* ── Grande dune GAUCHE — versant lumineux doux, crête haute ── */
      ctx.beginPath();
-     ctx.moveTo(W*0.55,H*0.52);
-     ctx.bezierCurveTo(W*0.62,H*0.46,W*0.72,H*0.44,W*0.82,H*0.47);
-     ctx.bezierCurveTo(W*0.90,H*0.50,W*0.97,H*0.54,W*1.02,H*0.58);
-     ctx.lineTo(W*1.02,H);ctx.lineTo(W*0.55,H);ctx.closePath();
-     const dfrg=ctx.createLinearGradient(W*0.72,H*0.44,W*0.72,H*0.78);
-     dfrg.addColorStop(0,'rgb(200,140,55)');dfrg.addColorStop(0.5,'rgb(168,112,35)');dfrg.addColorStop(1,'rgb(118,72,18)');
-     ctx.fillStyle=dfrg;ctx.fill();
-     /* Grande dune principale */
-     ctx.beginPath();
-     ctx.moveTo(0,H);ctx.lineTo(0,H*0.78);
-     ctx.bezierCurveTo(W*0.04,H*0.72,W*0.10,H*0.64,W*0.18,H*0.56);
-     ctx.bezierCurveTo(W*0.25,H*0.50,W*0.32,H*0.46,W*0.40,H*0.46);
-     ctx.bezierCurveTo(W*0.46,H*0.46,W*0.50,H*0.50,W*0.52,H*0.55);
-     ctx.bezierCurveTo(W*0.54,H*0.60,W*0.52,H*0.70,W*0.48,H*0.82);
-     ctx.bezierCurveTo(W*0.44,H*0.90,W*0.40,H*0.96,W*0.36,H);
+     ctx.moveTo(-W*0.02,H);
+     ctx.bezierCurveTo(W*0.02,H*0.82, W*0.08,H*0.68, W*0.18,H*0.57);
+     ctx.bezierCurveTo(W*0.26,H*0.49, W*0.36,H*0.46, W*0.44,H*0.48);
+     ctx.bezierCurveTo(W*0.50,H*0.50, W*0.54,H*0.56, W*0.52,H*0.66);
+     ctx.bezierCurveTo(W*0.50,H*0.76, W*0.46,H*0.88, W*0.42,H);
      ctx.closePath();
-     const dmg=ctx.createLinearGradient(W*0.05,H*0.46,W*0.42,H*0.85);
-     dmg.addColorStop(0,'rgb(228,168,75)');dmg.addColorStop(0.2,'rgb(212,148,55)');
-     dmg.addColorStop(0.5,'rgb(185,120,35)');dmg.addColorStop(0.8,'rgb(148,90,20)');dmg.addColorStop(1,'rgb(105,60,12)');
-     ctx.fillStyle=dmg;ctx.fill();
-     /* Versant ombre */
+     const dl=ctx.createLinearGradient(W*0.06,H*0.46,W*0.38,H*0.82);
+     dl.addColorStop(0,  'rgb(232,172,78)');
+     dl.addColorStop(0.3,'rgb(210,145,55)');
+     dl.addColorStop(0.65,'rgb(178,112,30)');
+     dl.addColorStop(1,  'rgb(132,78,15)');
+     ctx.fillStyle=dl;ctx.fill();
+
+     /* ── Ombre de la grande dune (slip face) — simple triangle sombre ── */
      ctx.beginPath();
-     ctx.moveTo(W*0.40,H*0.46);
-     ctx.bezierCurveTo(W*0.46,H*0.46,W*0.50,H*0.50,W*0.52,H*0.55);
-     ctx.bezierCurveTo(W*0.54,H*0.60,W*0.52,H*0.70,W*0.48,H*0.82);
-     ctx.bezierCurveTo(W*0.46,H*0.88,W*0.44,H*0.94,W*0.42,H);
-     ctx.lineTo(W*0.36,H);
-     ctx.bezierCurveTo(W*0.38,H*0.90,W*0.40,H*0.78,W*0.42,H*0.68);
-     ctx.bezierCurveTo(W*0.44,H*0.58,W*0.42,H*0.52,W*0.40,H*0.46);
+     ctx.moveTo(W*0.44,H*0.48);
+     ctx.bezierCurveTo(W*0.50,H*0.50, W*0.54,H*0.56, W*0.52,H*0.66);
+     ctx.bezierCurveTo(W*0.50,H*0.76, W*0.46,H*0.88, W*0.44,H);
+     ctx.lineTo(W*0.52,H);
+     ctx.bezierCurveTo(W*0.54,H*0.80, W*0.56,H*0.65, W*0.54,H*0.56);
+     ctx.bezierCurveTo(W*0.52,H*0.50, W*0.48,H*0.48, W*0.44,H*0.48);
      ctx.closePath();
-     const dsg=ctx.createLinearGradient(W*0.40,H*0.46,W*0.50,H*0.88);
-     dsg.addColorStop(0,'rgba(70,35,8,0.88)');dsg.addColorStop(0.4,'rgba(50,22,5,0.95)');dsg.addColorStop(1,'rgba(30,12,3,0.98)');
-     ctx.fillStyle=dsg;ctx.fill();
-     /* Dune avant-plan droite */
+     const ds=ctx.createLinearGradient(W*0.44,H*0.48,W*0.54,H*0.80);
+     ds.addColorStop(0,'rgba(62,28,5,0.90)');
+     ds.addColorStop(0.5,'rgba(45,18,3,0.95)');
+     ds.addColorStop(1,'rgba(28,10,2,0.80)');
+     ctx.fillStyle=ds;ctx.fill();
+
+     /* ── Dune droite — douce, éclairée ── */
      ctx.beginPath();
-     ctx.moveTo(W*0.50,H);
-     ctx.bezierCurveTo(W*0.52,H*0.88,W*0.56,H*0.72,W*0.64,H*0.60);
-     ctx.bezierCurveTo(W*0.70,H*0.54,W*0.78,H*0.52,W*0.86,H*0.55);
-     ctx.bezierCurveTo(W*0.93,H*0.58,W*0.99,H*0.64,W*1.02,H*0.70);
-     ctx.lineTo(W*1.02,H);ctx.closePath();
-     const ddrg=ctx.createLinearGradient(W*0.60,H*0.52,W*0.60,H);
-     ddrg.addColorStop(0,'rgb(210,148,52)');ddrg.addColorStop(0.3,'rgb(180,118,32)');
-     ddrg.addColorStop(0.65,'rgb(138,85,18)');ddrg.addColorStop(1,'rgb(80,42,8)');
-     ctx.fillStyle=ddrg;ctx.fill();
-     /* Ombre dune droite */
+     ctx.moveTo(W*0.48,H);
+     ctx.bezierCurveTo(W*0.52,H*0.86, W*0.58,H*0.70, W*0.68,H*0.58);
+     ctx.bezierCurveTo(W*0.76,H*0.50, W*0.86,H*0.48, W*0.96,H*0.52);
+     ctx.bezierCurveTo(W*1.02,H*0.55, W*1.04,H*0.62, W*1.04,H*0.70);
+     ctx.lineTo(W*1.04,H);ctx.closePath();
+     const dr=ctx.createLinearGradient(W*0.58,H*0.48,W*0.58,H);
+     dr.addColorStop(0,  'rgb(218,158,62)');
+     dr.addColorStop(0.4,'rgb(188,125,38)');
+     dr.addColorStop(0.75,'rgb(148,90,20)');
+     dr.addColorStop(1,  'rgb(95,52,10)');
+     ctx.fillStyle=dr;ctx.fill();
+
+     /* ── Crêtes lumineuses — fil d'or ── */
+     ctx.save();ctx.shadowColor='rgba(255,220,100,0.25)';ctx.shadowBlur=4;
+     /* Crête gauche */
      ctx.beginPath();
-     ctx.moveTo(W*0.50,H);
-     ctx.bezierCurveTo(W*0.52,H*0.88,W*0.56,H*0.72,W*0.64,H*0.60);
-     ctx.bezierCurveTo(W*0.60,H*0.62,W*0.56,H*0.70,W*0.54,H*0.82);
-     ctx.bezierCurveTo(W*0.52,H*0.90,W*0.50,H*0.96,W*0.50,H);ctx.closePath();
-     const ddsh=ctx.createLinearGradient(W*0.50,H*0.60,W*0.60,H);
-     ddsh.addColorStop(0,'rgba(55,25,5,0.82)');ddsh.addColorStop(1,'rgba(35,15,3,0)');
-     ctx.fillStyle=ddsh;ctx.fill();
-     /* Crêtes lumineuses */
-     ctx.beginPath();ctx.moveTo(W*0.14,H*0.58);
-     ctx.bezierCurveTo(W*0.22,H*0.52,W*0.30,H*0.47,W*0.40,H*0.46);
-     ctx.strokeStyle='rgba(255,220,130,0.50)';ctx.lineWidth=1.8;ctx.stroke();
-     ctx.beginPath();ctx.moveTo(W*0.64,H*0.60);
-     ctx.bezierCurveTo(W*0.72,H*0.54,W*0.80,H*0.52,W*0.88,H*0.55);
-     ctx.strokeStyle='rgba(255,210,110,0.32)';ctx.lineWidth=1.2;ctx.stroke();
+     ctx.moveTo(W*0.10,H*0.595);
+     ctx.bezierCurveTo(W*0.20,H*0.52, W*0.32,H*0.47, W*0.44,H*0.48);
+     ctx.strokeStyle='rgba(255,225,135,0.55)';ctx.lineWidth=1.6;ctx.stroke();
+     /* Crête droite */
+     ctx.beginPath();
+     ctx.moveTo(W*0.68,H*0.58);
+     ctx.bezierCurveTo(W*0.78,H*0.51, W*0.88,H*0.49, W*0.98,H*0.52);
+     ctx.strokeStyle='rgba(255,215,115,0.35)';ctx.lineWidth=1.2;ctx.stroke();
+     ctx.restore();
     }
 
-    /* ── Silhouette ── */
     function drawFigure(){
-     const fx=W*0.415,fy=H*0.478,fh=H*0.052;
-     ctx.save();ctx.fillStyle='rgba(15,6,1,0.97)';
-     ctx.beginPath();ctx.ellipse(fx,fy-fh*0.50,fh*0.11,fh*0.26,-0.05,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.arc(fx-fh*0.01,fy-fh*0.88,fh*0.10,0,Math.PI*2);ctx.fill();
+     /* Sur la crête gauche, tout petit — donne l'échelle */
+     const fx=W*0.40, fy=H*0.475;
+     const fh=H*0.040;
+     ctx.save();ctx.fillStyle='rgba(18,7,1,0.96)';
+     /* Corps */
+     ctx.beginPath();ctx.ellipse(fx,fy-fh*0.45,fh*0.10,fh*0.24,0,0,Math.PI*2);ctx.fill();
+     /* Tête */
+     ctx.beginPath();ctx.arc(fx,fy-fh*0.82,fh*0.09,0,Math.PI*2);ctx.fill();
+     /* Cape — ondule dans le vent */
+     const sw=Math.sin(t*1.1)*fh*0.04;
      ctx.beginPath();
-     ctx.moveTo(fx-fh*0.14,fy-fh*0.65);
-     ctx.bezierCurveTo(fx-fh*0.28,fy-fh*0.35+Math.sin(t*0.9)*fh*0.03,fx-fh*0.20,fy,fx-fh*0.04,fy+fh*0.02);
-     ctx.lineTo(fx+fh*0.10,fy+fh*0.02);
-     ctx.bezierCurveTo(fx+fh*0.06,fy-fh*0.28,fx+fh*0.16,fy-fh*0.52+Math.sin(t*0.9+0.4)*fh*0.03,fx+fh*0.13,fy-fh*0.68);
+     ctx.moveTo(fx-fh*0.12,fy-fh*0.60);
+     ctx.bezierCurveTo(fx-fh*0.24+sw,fy-fh*0.28,fx-fh*0.16+sw,fy+fh*0.05,fx,fy+fh*0.06);
+     ctx.lineTo(fx+fh*0.08,fy+fh*0.06);
+     ctx.bezierCurveTo(fx+fh*0.10-sw,fy-fh*0.22,fx+fh*0.18-sw,fy-fh*0.55,fx+fh*0.11,fy-fh*0.62);
      ctx.closePath();ctx.fill();
-     ctx.fillRect(fx-fh*0.08,fy,fh*0.07,fh*0.20);
-     ctx.fillRect(fx+fh*0.02,fy,fh*0.07,fh*0.18);
+     /* Ombre portée */
+     ctx.fillStyle='rgba(15,5,1,0.30)';
+     ctx.beginPath();ctx.ellipse(fx+fh*0.05,fy+fh*0.08,fh*0.14,fh*0.04,0.2,0,Math.PI*2);ctx.fill();
      ctx.restore();
     }
 
     function frame(){
      if(stop.v)return;
 
-     /* Fond orange */
-     ctx.fillStyle='rgb(175,82,8)';ctx.fillRect(0,0,W,H);
+     /* ── Ciel — orange monochrome profond ── */
+     const sky=ctx.createLinearGradient(0,0,0,H*0.70);
+     sky.addColorStop(0,  `rgb(${148+Math.sin(t*0.04)*3|0},65,8)`);
+     sky.addColorStop(0.30,`rgb(${175+Math.sin(t*0.05)*4|0},82,12)`);
+     sky.addColorStop(0.60,`rgb(${200+Math.sin(t*0.06)*4|0},108,18)`);
+     sky.addColorStop(1,  `rgb(${218+Math.sin(t*0.05)*3|0},130,25)`);
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+     /* Sol sombre */
+     const grd=ctx.createLinearGradient(0,H*0.68,0,H);
+     grd.addColorStop(0,'rgb(115,68,16)');
+     grd.addColorStop(1,'rgb(55,28,5)');
+     ctx.fillStyle=grd;ctx.fillRect(0,H*0.68,W,H*0.32);
 
-     /* Ciel */
-     const sky=ctx.createRadialGradient(cx*0.92,H*0.22,0,cx*0.92,H*0.22,W*0.85);
-     sky.addColorStop(0,`rgba(255,220,120,${0.55+Math.sin(t*0.12)*0.04})`);
-     sky.addColorStop(0.18,'rgba(248,185,65,0.45)');sky.addColorStop(0.40,'rgba(230,145,30,0.25)');
-     sky.addColorStop(0.70,'rgba(200,105,12,0.10)');sky.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.75);
+     /* ── Lueur autour de la planète dans le ciel ── */
+     const glow=ctx.createRadialGradient(PX,PY,PR*0.5,PX,PY,PR*3.5);
+     glow.addColorStop(0,`rgba(255,200,80,${0.18+Math.sin(t*0.10)*0.04})`);
+     glow.addColorStop(0.4,'rgba(230,155,35,0.07)');
+     glow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glow;ctx.fillRect(0,0,W,H*0.55);
 
      drawPlanet();
+     drawDunes();
+     drawFigure();
 
-     /* ── Spice — 3 couches de profondeur ── */
-     for(const s of spice){
-      s.wobble+=s.wobbleSpd;
-      const speed=s.layer===0?0.4:s.layer===1?0.9:1.6;
-      s.x+=s.vx*speed+Math.sin(s.wobble)*0.15;
-      s.y+=s.vy+Math.cos(s.wobble*0.7)*0.08;
-      if(s.x>W+s.r){s.x=-s.r;s.y=H*0.08+Math.random()*H*0.50;}
-      if(s.y<0||s.y>H*0.62){s.vy*=-1;}
-      const bright=s.layer===2?`rgba(255,200,90,${s.op*1.2})`:`rgba(255,185,70,${s.op})`;
-      ctx.beginPath();ctx.arc(s.x,s.y,s.r*(0.6+s.layer*0.3),0,Math.PI*2);
-      ctx.fillStyle=bright;ctx.fill();
+     /* ── Particules de spice ── */
+     for(const p of particles){
+      p.phase+=0.018;
+      p.x+=p.vx+Math.sin(p.phase*0.6)*0.12;
+      p.y+=p.vy+Math.cos(p.phase*0.4)*0.06;
+      if(p.x>W+p.r){p.x=-p.r;p.y=Math.random()*H*0.70;}
+      if(p.y<0||p.y>H*0.72){p.vy*=-1;}
+      const gp=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.5);
+      gp.addColorStop(0,`rgba(255,200,90,${p.op*1.3})`);
+      gp.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gp;ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.5,0,Math.PI*2);ctx.fill();
      }
 
      /* ── Traînées de vent ── */
-     for(const w of windStreaks){
-      w.x+=w.vx;
-      if(w.x>W+w.len){w.x=-w.len;w.y=H*(0.12+Math.random()*0.40);w.op=Math.random()*0.18+0.04;}
-      const wg=ctx.createLinearGradient(w.x,0,w.x+w.len,0);
-      wg.addColorStop(0,'rgba(0,0,0,0)');
-      wg.addColorStop(0.3,`rgba(255,190,70,${w.op})`);
-      wg.addColorStop(0.7,`rgba(255,180,60,${w.op*0.7})`);
-      wg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.strokeStyle=wg;ctx.lineWidth=w.w;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(w.x,w.y);ctx.lineTo(w.x+w.len,w.y);ctx.stroke();
+     for(const s of streaks){
+      s.x+=s.vx;
+      if(s.x>W+s.len){s.x=-s.len;s.y=H*(0.06+Math.random()*0.58);}
+      const sg=ctx.createLinearGradient(s.x,0,s.x+s.len,0);
+      sg.addColorStop(0,'rgba(0,0,0,0)');
+      sg.addColorStop(0.35,`rgba(255,195,80,${s.op})`);
+      sg.addColorStop(0.65,`rgba(255,185,65,${s.op*0.7})`);
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.strokeStyle=sg;ctx.lineWidth=s.w;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+s.len,s.y);ctx.stroke();
      }
 
-     drawDunes();
-     drawHeatShimmer();
-     drawFigure();
-
-     /* ── Sable soufflé depuis les crêtes ── */
-     for(const d of crestDust){
-      d.x+=d.vx;d.y+=d.vy;d.life-=d.decay;d.r+=0.02;
-      if(d.life<=0||d.y<H*0.10){
-       d.x=W*(0.12+Math.random()*0.30);d.y=H*(0.44+Math.random()*0.08);
-       d.vx=Math.random()*1.8+0.8;d.vy=-(Math.random()*0.5+0.05);
-       d.life=0.5+Math.random()*0.5;d.r=Math.random()*2+0.4;
+     /* ── Ondes de chaleur — au-dessus des crêtes ── */
+     for(const hl of heatLines){
+      hl.phase+=hl.spd*0.016;
+      ctx.beginPath();
+      ctx.moveTo(0,hl.baseY);
+      for(let x=0;x<=W;x+=8){
+       const y=hl.baseY+Math.sin(x*hl.freq+hl.phase)*hl.amp;
+       ctx.lineTo(x,y);
       }
-      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,200,100,${d.life*d.op})`;ctx.fill();
+      const hg=ctx.createLinearGradient(0,0,W,0);
+      hg.addColorStop(0,'rgba(0,0,0,0)');
+      hg.addColorStop(0.2,`rgba(255,175,55,${0.06+Math.sin(t*1.5+hl.phase)*0.03})`);
+      hg.addColorStop(0.5,`rgba(255,168,48,${0.08+Math.sin(t*1.8+hl.phase)*0.04})`);
+      hg.addColorStop(0.8,`rgba(255,175,55,${0.06+Math.sin(t*1.5+hl.phase)*0.03})`);
+      hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.strokeStyle=hg;ctx.lineWidth=1.5;ctx.stroke();
      }
 
-     /* ── Tourbillons de sable ── */
-     for(const sw of sandSwirl){
-      sw.angle+=sw.spd;
-      const sx=sw.cx+Math.cos(sw.angle)*sw.radius;
-      const sy=sw.cy+Math.sin(sw.angle)*sw.radius*0.35;
-      ctx.beginPath();ctx.arc(sx,sy,sw.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,195,80,${sw.op*Math.abs(Math.sin(sw.angle))})`;ctx.fill();
-     }
-
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.12,cx,H*0.48,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.60,'rgba(5,2,0,0.08)');vg.addColorStop(1,'rgba(10,4,0,0.72)');
+     /* ── Vignette douce ── */
+     const vg=ctx.createRadialGradient(cx,H*0.46,H*0.10,cx,H*0.46,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.65,'rgba(6,2,0,0.08)');
+     vg.addColorStop(1,'rgba(12,4,0,0.68)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
