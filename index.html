@@ -12015,13 +12015,15 @@ function _fetchWithTimeout(url, ms){
 }
 
 async function fetchBlindTestPreview(entry){
+  // Force HTTPS sur toute URL audio (iTunes renvoie du http:// → mixed-content bloqué sur mobile)
+  const toHttps=u=>u?u.replace(/^http:/,'https:'):u;
   // 1. iTunes Search API (gratuit, sans clé, CORS OK)
   try{
     const q=encodeURIComponent(entry.search);
     const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,6000);
     const d=await r.json();
     const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
-    if(tracks.length>0)return tracks[0].previewUrl;
+    if(tracks.length>0)return toHttps(tracks[0].previewUrl);
   }catch(e){}
   // 2. Deezer via proxy allorigins (CORS fallback)
   try{
@@ -12031,7 +12033,7 @@ async function fetchBlindTestPreview(entry){
     const d=await r.json();
     const data=JSON.parse(d.contents||'{}');
     const tracks=(data.data||[]).filter(t=>t.preview);
-    if(tracks.length>0)return tracks[0].preview;
+    if(tracks.length>0)return toHttps(tracks[0].preview);
   }catch(e){}
   return null;
 }
@@ -17811,62 +17813,44 @@ function loadQ(){
         <div class="bt-status loading" id="bt-status">Chargement de l'extrait…</div>
         <div class="bt-composer" id="bt-composer"></div>
       </div>`;
-    // Async : récupérer le preview puis activer
-    let _btLoaded=false;
-    // Fallback de sécurité : si le fetch reste bloqué > 10s (PWA standalone / CORS strict),
-    // on débloque quand même le jeu sans extrait audio.
-    const _btFallbackTimer=setTimeout(()=>{
-      if(!_btLoaded && grid.classList.contains('bt-hidden')){
-        const status=document.getElementById('bt-status');
+    // Flag : les réponses ont-elles déjà été affichées ? (évite le doublement)
+    let _btUnlocked=false;
+    function _btUnlock(noAudio){
+      if(_btUnlocked)return; // garde — ne s'exécute qu'une seule fois
+      _btUnlocked=true;
+      const status=document.getElementById('bt-status');
+      if(noAudio){
         if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
-        grid.className='agrid bt-visible';
-        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-        startTimer();
       }
-    },10000);
+      grid.innerHTML=''; // vider au cas où
+      q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+      grid.className='agrid bt-visible';
+      startTimer();
+    }
+
+    // Fallback de sécurité : si le fetch reste bloqué > 9s, débloquer quand même
+    const _btFallbackTimer=setTimeout(()=>_btUnlock(true),9000);
 
     fetchBlindTestPreview(q).then(url=>{
       clearTimeout(_btFallbackTimer);
       const status=document.getElementById('bt-status');
-      const playBtn=document.getElementById('bt-play-btn');
-      const bars=document.querySelectorAll('.bt-note-bar');
       if(!url){
-        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
-        // Montrer les réponses quand même
-        grid.className='agrid bt-visible';
-        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-        startTimer();
+        _btUnlock(true);
         return;
       }
       q.previewUrl=url;
       _btAudio=new Audio(url);
       _btAudio.volume=0.85;
-      // Précharger l'audio sans déclencher la lecture
-      // (évite le blocage iOS en mode PWA standalone où autoplay hors geste est refusé)
       _btAudio.load();
-      _btLoaded=true;
       if(status){status.textContent='Prêt — appuie sur play !';status.className='bt-status';}
-      // Afficher les réponses et démarrer le timer dès que l'extrait est prêt
-      // L'utilisateur déclenche la lecture via le bouton play (geste direct → autorisé)
-      if(grid.classList.contains('bt-hidden')){
-        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-        grid.className='agrid bt-visible';
-        startTimer();
-      }
+      _btUnlock(false);
     }).catch(()=>{
-      // Rejet inattendu de la Promise (ex: réseau coupé en PWA) → débloquer le jeu
       clearTimeout(_btFallbackTimer);
-      if(grid.classList.contains('bt-hidden')){
-        const status=document.getElementById('bt-status');
-        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
-        grid.className='agrid bt-visible';
-        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-        startTimer();
-      }
+      _btUnlock(true);
     });
     // Fonction play/pause
     window._btToggle=function(){
-      if(!_btLoaded)return;
+      if(!_btAudio)return;
       if(_btAudio.paused)_btPlay();else _btPause();
     };
     window._btPlay=function(){
