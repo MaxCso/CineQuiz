@@ -22920,189 +22920,281 @@ function closeAvModal(e){
    name:'James Bond',
    ref:'James Bond \u2014 Eon Productions, 1962\u2013',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.92';
+    cv.style.opacity='1';
     let t=0;
-    const cx=W/2, cy=H/2;
-    // rayon suffisant pour couvrir tout l'écran depuis le centre
-    const MAX_R=Math.hypot(cx,cy)*1.05;
+    const cx=W/2;
 
-    let phase=0; // 0=marche 1=tir 2=barrel s'ouvre 3=sang coule
-    let bondX=-W*0.15;
-    const bondY=cy*0.88;
-    let shootTimer=0;
-    let barrelR=0;       // rayon courant du cercle (0→MAX_R)
-    let bloodY=0;
-    let muzzleFlash=0;
-    let phaseTimer=0;
+    /* ── Centre de la spirale — positionné comme Fight Club : légèrement au-dessus du centre ── */
+    const spX=cx, spY=H*0.48;
 
-    const particles=Array.from({length:50},()=>({
+    /* ── Rayon de la spirale — couvre tout l'écran depuis spX,spY ── */
+    const outerR=Math.hypot(Math.max(spX,W-spX), Math.max(spY,H-spY))*1.08;
+    const innerR=W*0.028; /* trou du canon */
+
+    /* ── Rotation animée de la spirale ── */
+    let spiralRot=0;
+
+    /* ── Coup de feu ── */
+    let shotTimer=180, flashAlpha=0, bloodY=0, bloodActive=false;
+    const shotCooldown=400;
+
+    /* ── Particules dorées ── */
+    const gold=Array.from({length:45},()=>({
      x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.4, vy:-(Math.random()*0.5+0.1),
-     r:Math.random()*1.6+0.3, op:Math.random()*0.30+0.06, hue:38+Math.random()*18
+     vx:(Math.random()-0.5)*0.25, vy:-(Math.random()*0.30+0.05),
+     r:Math.random()*1.6+0.3,
+     op:Math.random()*0.20+0.04,
+     phase:Math.random()*Math.PI*2
     }));
 
-    function drawBond(x,y,facingLeft,shooting){
-     ctx.save();ctx.translate(x,y);
-     if(!facingLeft)ctx.scale(-1,1);
-     const h=H*0.13;
-     const wk=Math.sin(t*8)*0.10;
-     // Jambes
-     ctx.fillStyle='rgba(10,8,16,0.96)';
-     ctx.save();ctx.rotate(shooting?0.08:wk*0.7);ctx.fillRect(-5,h*0.50,9,h*0.38);ctx.restore();
-     ctx.save();ctx.rotate(shooting?-0.04:-wk*0.7);ctx.fillRect(-4,h*0.50,9,h*0.38);ctx.restore();
-     // Chaussures
-     ctx.fillStyle='rgba(6,5,12,0.98)';
-     ctx.beginPath();ctx.ellipse(-3,h*0.88,6,3,0.1,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.ellipse(3,h*0.88,6,3,-0.1,0,Math.PI*2);ctx.fill();
-     // Corps smoking
-     ctx.fillStyle='rgba(12,10,20,0.97)';
-     ctx.beginPath();ctx.roundRect(-10,h*0.24,20,h*0.30,[3,3,2,2]);ctx.fill();
-     // Plastron
-     ctx.fillStyle='rgba(225,220,210,0.50)';
-     ctx.beginPath();ctx.roundRect(-2.5,h*0.25,5,h*0.16,2);ctx.fill();
-     // Bras
-     if(shooting){
-      ctx.fillStyle='rgba(12,10,20,0.96)';
-      ctx.save();ctx.rotate(-0.12);ctx.fillRect(-26,h*0.28,26,7);ctx.restore();
-      // Gun
-      ctx.fillStyle='rgba(6,5,12,0.98)';
-      ctx.save();ctx.rotate(-0.12);
-      ctx.beginPath();ctx.roundRect(-34,h*0.26,14,5,[2]);ctx.fill();
-      ctx.fillRect(-42,h*0.27,9,4);
-      ctx.restore();
-     } else {
-      ctx.fillStyle='rgba(12,10,20,0.96)';
-      ctx.save();ctx.rotate(-wk*0.5);ctx.fillRect(-13,h*0.26,9,h*0.20);ctx.restore();
-      ctx.save();ctx.rotate(wk*0.5);ctx.fillRect(4,h*0.26,9,h*0.20);ctx.restore();
+    /* ── Spirale du gun barrel ── */
+    function drawSpiral(){
+     ctx.save();
+
+     /* Fond — noir chaud */
+     ctx.fillStyle='rgb(3,2,1)';
+     ctx.fillRect(0,0,W,H);
+
+     const nArcs=32;
+
+     for(let i=0;i<nArcs;i++){
+      const prog=i/nArcs;
+      const progNext=(i+1)/nArcs;
+      const r=outerR*(1-prog)+innerR*prog;
+      const rNext=outerR*(1-progNext)+innerR*progNext;
+      const rMid=(r+rNext)*0.5;
+      const lightness=1-prog; /* 1=bord extérieur clair, 0=centre noir */
+
+      /* Palette fidèle : beige/sable chaud → brun → noir */
+      let rc,gc,bc;
+      if(lightness>0.65){
+       const p=(lightness-0.65)/0.35;
+       rc=Math.round(168+p*38);gc=Math.round(140+p*30);bc=Math.round(88+p*18);
+      } else if(lightness>0.30){
+       const p=(lightness-0.30)/0.35;
+       rc=Math.round(62+p*106);gc=Math.round(46+p*94);bc=Math.round(24+p*64);
+      } else {
+       const p=lightness/0.30;
+       rc=Math.round(3+p*59);gc=Math.round(2+p*44);bc=Math.round(1+p*23);
+      }
+
+      /* Anneau plein */
+      ctx.beginPath();
+      ctx.arc(spX,spY,r,0,Math.PI*2);
+      ctx.arc(spX,spY,rNext,Math.PI*2,0,true);
+      ctx.closePath();
+      ctx.fillStyle=`rgb(${rc},${gc},${bc})`;
+      ctx.fill();
+
+      /* Séparateur sombre entre anneaux */
+      if(i<nArcs-1){
+       ctx.beginPath();ctx.arc(spX,spY,rNext,0,Math.PI*2);
+       ctx.strokeStyle=`rgba(${rc*0.35|0},${gc*0.25|0},${bc*0.15|0},0.80)`;
+       ctx.lineWidth=Math.max(0.3,2.8*(1-prog));
+       ctx.stroke();
+      }
+
+      /* Arc de reflet lumineux — tourne avec spiralRot */
+      const refA=spiralRot+prog*Math.PI*3.8+Math.PI*0.12;
+      const refLen=Math.PI*(0.16+lightness*0.10);
+      ctx.beginPath();ctx.arc(spX,spY,rMid,refA,refA+refLen);
+      ctx.strokeStyle=`rgba(${Math.min(255,rc+58)|0},${Math.min(255,gc+50)|0},${Math.min(255,bc+32)|0},${0.38+lightness*0.28})`;
+      ctx.lineWidth=Math.max(0.3,2.2*(1-prog*0.72));
+      ctx.stroke();
+
+      /* Arc d'ombre — opposé au reflet */
+      const shdA=refA+Math.PI*0.88;
+      ctx.beginPath();ctx.arc(spX,spY,rMid,shdA,shdA+refLen*0.75);
+      ctx.strokeStyle=`rgba(0,0,0,${0.42+prog*0.32})`;
+      ctx.lineWidth=Math.max(0.3,2.8*(1-prog*0.6));
+      ctx.stroke();
      }
-     // Tête
-     ctx.fillStyle='rgba(190,160,125,0.92)';
-     ctx.beginPath();ctx.ellipse(0,h*0.10,8,10,0,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle='rgba(18,13,8,0.90)';
-     ctx.beginPath();ctx.ellipse(0,h*0.03,8,5,0,0,Math.PI*2);ctx.fill();
+
+     /* Fond noir du canon — cercle central */
+     const cg=ctx.createRadialGradient(spX,spY,0,spX,spY,innerR*3.2);
+     cg.addColorStop(0,'rgb(0,0,0)');
+     cg.addColorStop(0.55,'rgba(2,1,0,0.97)');
+     cg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=cg;
+     ctx.beginPath();ctx.arc(spX,spY,innerR*3.2,0,Math.PI*2);ctx.fill();
+
      ctx.restore();
     }
 
-    function drawMuzzleFlash(x,y){
-     ctx.save();ctx.translate(x,y);ctx.rotate(-0.12);
-     for(let i=0;i<8;i++){
-      const a=i*Math.PI/4, len=18+Math.random()*14;
-      const fg=ctx.createLinearGradient(0,0,Math.cos(a)*len,Math.sin(a)*len);
-      fg.addColorStop(0,'rgba(255,240,150,0.95)');fg.addColorStop(1,'rgba(255,150,20,0)');
-      ctx.strokeStyle=fg;ctx.lineWidth=2+Math.random()*2;
-      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*len,Math.sin(a)*len);ctx.stroke();
-     }
-     const cg=ctx.createRadialGradient(0,0,0,0,0,13);
-     cg.addColorStop(0,'rgba(255,255,200,1)');cg.addColorStop(0.4,'rgba(255,200,50,0.9)');cg.addColorStop(1,'rgba(255,100,0,0)');
-     ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,0,13,0,Math.PI*2);ctx.fill();
+    /* ── Silhouette Bond — proportions Fight Club ── */
+    function drawBond(){
+     /* Taille inspirée de Fight Club : H*0.26 de hauteur, W*0.10 de largeur */
+     const bh=H*0.26, bw=W*0.10;
+     const bx=spX, by=spY+bh*0.52; /* pieds juste en dessous du centre */
+
+     ctx.save();
+
+     /* Rim light doré — contre-jour de la spirale */
+     const rimG=ctx.createRadialGradient(bx,by-bh*0.5,bw*0.1,bx,by-bh*0.5,bw*1.8);
+     rimG.addColorStop(0,'rgba(0,0,0,0)');
+     rimG.addColorStop(0.5,`rgba(${180+Math.sin(t*0.4)*15|0},${148+Math.sin(t*0.35)*12|0},${72+Math.sin(t*0.3)*8|0},0.22)`);
+     rimG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=rimG;
+     ctx.fillRect(bx-bw*2,by-bh,bw*4,bh*1.1);
+
+     /* Silhouette — couleur légèrement plus claire que le fond noir du canon */
+     ctx.fillStyle='rgb(18,13,8)';
+
+     /* Tête */
+     ctx.beginPath();ctx.ellipse(bx-bw*0.04,by-bh*0.91,bw*0.16,bh*0.08,0,0,Math.PI*2);ctx.fill();
+
+     /* Corps smoking */
+     ctx.beginPath();
+     ctx.moveTo(bx-bw*0.22,by-bh*0.82);
+     ctx.bezierCurveTo(bx-bw*0.26,by-bh*0.60,bx-bw*0.24,by-bh*0.44,bx-bw*0.18,by-bh*0.38);
+     ctx.lineTo(bx+bw*0.16,by-bh*0.38);
+     ctx.bezierCurveTo(bx+bw*0.22,by-bh*0.44,bx+bw*0.24,by-bh*0.60,bx+bw*0.20,by-bh*0.82);
+     ctx.closePath();ctx.fill();
+
+     /* Bras gauche — tendu horizontal, tient le pistolet */
+     ctx.beginPath();
+     ctx.moveTo(bx-bw*0.20,by-bh*0.72);
+     ctx.lineTo(bx-bw*0.58,by-bh*0.60);
+     ctx.lineTo(bx-bw*0.55,by-bh*0.53);
+     ctx.lineTo(bx-bw*0.16,by-bh*0.64);
+     ctx.closePath();ctx.fill();
+
+     /* Walther PPK */
+     ctx.beginPath();
+     ctx.moveTo(bx-bw*0.60,by-bh*0.62);
+     ctx.lineTo(bx-bw*0.78,by-bh*0.56);
+     ctx.lineTo(bx-bw*0.76,by-bh*0.50);
+     ctx.lineTo(bx-bw*0.58,by-bh*0.55);
+     ctx.closePath();ctx.fill();
+     /* Canon */
+     ctx.fillRect(bx-bw*0.80,by-bh*0.575,bw*0.08,bh*0.028);
+
+     /* Bras droit — le long du corps */
+     ctx.beginPath();
+     ctx.moveTo(bx+bw*0.18,by-bh*0.76);
+     ctx.lineTo(bx+bw*0.28,by-bh*0.55);
+     ctx.lineTo(bx+bw*0.24,by-bh*0.40);
+     ctx.lineTo(bx+bw*0.14,by-bh*0.56);
+     ctx.closePath();ctx.fill();
+
+     /* Jambes */
+     ctx.beginPath();
+     ctx.moveTo(bx-bw*0.18,by-bh*0.38);
+     ctx.lineTo(bx-bw*0.22,by);
+     ctx.lineTo(bx-bw*0.05,by);
+     ctx.lineTo(bx,by-bh*0.38);
+     ctx.closePath();ctx.fill();
+     ctx.beginPath();
+     ctx.moveTo(bx,by-bh*0.38);
+     ctx.lineTo(bx+bw*0.04,by);
+     ctx.lineTo(bx+bw*0.20,by);
+     ctx.lineTo(bx+bw*0.16,by-bh*0.38);
+     ctx.closePath();ctx.fill();
+
+     /* Chaussures */
+     ctx.beginPath();ctx.ellipse(bx-bw*0.14,by+bh*0.018,bw*0.14,bh*0.022,0.1,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(bx+bw*0.12,by+bh*0.018,bw*0.14,bh*0.022,-0.1,0,Math.PI*2);ctx.fill();
+
+     /* Liseré doré sur la silhouette — contour très fin */
+     ctx.strokeStyle=`rgba(175,142,68,${0.28+Math.sin(t*0.5)*0.06})`;
+     ctx.lineWidth=0.8;
+     /* Contour tête */
+     ctx.beginPath();ctx.ellipse(bx-bw*0.04,by-bh*0.91,bw*0.16,bh*0.08,0,0,Math.PI*2);ctx.stroke();
+     /* Contour épaules */
+     ctx.beginPath();
+     ctx.moveTo(bx-bw*0.22,by-bh*0.82);
+     ctx.bezierCurveTo(bx-bw*0.26,by-bh*0.60,bx-bw*0.24,by-bh*0.44,bx-bw*0.18,by-bh*0.38);
+     ctx.lineTo(bx+bw*0.16,by-bh*0.38);
+     ctx.bezierCurveTo(bx+bw*0.22,by-bh*0.44,bx+bw*0.24,by-bh*0.60,bx+bw*0.20,by-bh*0.82);
+     ctx.stroke();
+
      ctx.restore();
     }
 
-    function drawBlood(by){
-     const bw=W*0.015;
-     const bg=ctx.createLinearGradient(cx,0,cx,by);
-     bg.addColorStop(0,'rgba(200,0,0,0.96)');
-     bg.addColorStop(0.6,'rgba(160,0,0,0.88)');
-     bg.addColorStop(1,'rgba(110,0,0,0.70)');
+    /* ── Sang dans le canon ── */
+    function drawBlood(){
+     if(!bloodActive||bloodY<=0)return;
+     ctx.save();
+     ctx.beginPath();ctx.arc(spX,spY,innerR*3.0,0,Math.PI*2);ctx.clip();
+     const bw=innerR*0.55;
+     const by0=spY-innerR*2.8;
+     const by1=Math.min(spY+innerR*2.8,by0+bloodY);
+     const bg=ctx.createLinearGradient(0,by0,0,by1);
+     bg.addColorStop(0,'rgba(185,0,0,0.92)');
+     bg.addColorStop(0.5,'rgba(145,0,0,0.86)');
+     bg.addColorStop(1,'rgba(80,0,0,0.70)');
      ctx.fillStyle=bg;
      ctx.beginPath();
-     ctx.moveTo(cx-bw*0.5,0);ctx.lineTo(cx+bw*0.5,0);
-     ctx.lineTo(cx+bw*0.32,by);ctx.lineTo(cx-bw*0.32,by);
+     ctx.moveTo(spX-bw,by0);ctx.lineTo(spX+bw,by0);
+     ctx.lineTo(spX+bw*0.5,by1);ctx.lineTo(spX-bw*0.5,by1);
      ctx.closePath();ctx.fill();
-     if(by<H){
-      ctx.beginPath();ctx.arc(cx,by,bw*0.75+Math.sin(t*4)*0.4,0,Math.PI*2);
-      ctx.fillStyle='rgba(175,0,0,0.88)';ctx.fill();
+     if(bloodY>innerR*0.8){
+      ctx.beginPath();ctx.arc(spX,by1,bw*0.75+Math.sin(t*7)*0.3,0,Math.PI*2);
+      ctx.fillStyle='rgba(160,0,0,0.88)';ctx.fill();
      }
+     ctx.restore();
     }
 
     function frame(){
      if(stop.v)return;
-     t+=0.016; phaseTimer++;
 
-     // ── PHASE 0 : fond animé + Bond qui marche ──
-     if(phase===0||phase===1){
-      // Fond noir avec particules
-      ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
-      const bg=ctx.createRadialGradient(cx,cy*0.7,10,cx,cy,W*0.75);
-      bg.addColorStop(0,`rgba(22,8,38,${0.07+Math.sin(t*0.3)*0.02})`);
-      bg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-      for(const p of particles){
-       p.x+=p.vx;p.y+=p.vy;
-       if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}
-       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-       ctx.fillStyle=`hsla(${p.hue},75%,62%,${p.op})`;ctx.fill();
-      }
+     /* ── Spirale ── */
+     spiralRot+=0.004; /* rotation lente */
+     drawSpiral();
+
+     /* ── Particules dorées — tombent doucement ── */
+     for(const p of gold){
+      p.phase+=0.016;
+      p.x+=p.vx+Math.sin(p.phase*0.7)*0.10;
+      p.y+=p.vy;
+      if(p.y<-p.r){p.y=H+p.r;p.x=Math.random()*W;}
+      const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3);
+      gr.addColorStop(0,`rgba(218,185,88,${p.op*(0.6+Math.sin(p.phase)*0.4)})`);
+      gr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2);ctx.fill();
      }
 
-     if(phase===0){
-      bondX+=1.8;
-      drawBond(bondX,bondY,false,false);
-      if(bondX>cx*0.88){ phase=1; phaseTimer=0; }
-     }
-     else if(phase===1){
-      drawBond(bondX,bondY,true,true);
-      shootTimer++;
-      if(shootTimer===10||shootTimer===11){
-       muzzleFlash=1;
-       ctx.fillStyle='rgba(255,230,100,0.10)';ctx.fillRect(0,0,W,H);
-      }
-      if(muzzleFlash>0){
-       drawMuzzleFlash(bondX-H*0.08,bondY+H*0.032);
-       muzzleFlash=Math.max(0,muzzleFlash-0.16);
-      }
-      if(shootTimer>80){ phase=2; phaseTimer=0; barrelR=0; }
+     /* ── Bond ── */
+     drawBond();
+     drawBlood();
+
+     /* ── Flash de tir ── */
+     if(flashAlpha>0){
+      ctx.fillStyle=`rgba(255,230,150,${flashAlpha*0.18})`;ctx.fillRect(0,0,W,H);
+      /* Onde depuis le bout du pistolet */
+      const gunX=spX-W*0.082, gunY=spY-H*0.13*0.575;
+      const wR=innerR*(1+(1-flashAlpha)*6);
+      ctx.beginPath();ctx.arc(gunX,gunY,wR,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(255,210,80,${flashAlpha*0.60})`;ctx.lineWidth=2;ctx.stroke();
+      flashAlpha=Math.max(0,flashAlpha-0.07);
      }
 
-     // ── PHASE 2 : barrel s'ouvre progressivement ──
-     else if(phase===2){
-      // Fond noir plein
-      ctx.fillStyle='rgba(0,0,0,1)';ctx.fillRect(0,0,W,H);
-      // Particules visibles à l'intérieur du cercle seulement
-      ctx.save();
-      ctx.beginPath();ctx.arc(cx,cy,barrelR,0,Math.PI*2);ctx.clip();
-      for(const p of particles){
-       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-       ctx.fillStyle=`hsla(${p.hue},75%,62%,${p.op})`;ctx.fill();
-      }
-      drawBond(bondX,bondY,true,false);
-      ctx.restore();
-      // Anneau chrome
-      const ringOp=Math.max(0,1-(barrelR/MAX_R)*2.2);
-      if(ringOp>0.01){
-       ctx.beginPath();ctx.arc(cx,cy,barrelR,0,Math.PI*2);
-       ctx.strokeStyle=`rgba(55,50,68,${ringOp*0.88})`;ctx.lineWidth=16;ctx.stroke();
-       const cg=ctx.createLinearGradient(cx-barrelR,cy,cx+barrelR,cy);
-       cg.addColorStop(0,`rgba(130,120,155,${ringOp*0.6})`);
-       cg.addColorStop(0.5,`rgba(215,205,235,${ringOp*0.85})`);
-       cg.addColorStop(1,`rgba(130,120,155,${ringOp*0.6})`);
-       ctx.beginPath();ctx.arc(cx,cy,barrelR,0,Math.PI*2);
-       ctx.strokeStyle=cg;ctx.lineWidth=5;ctx.stroke();
-      }
-      // Sang dès mi-ouverture
-      if(barrelR/MAX_R>0.4){ bloodY+=2+bloodY*0.015; drawBlood(Math.min(bloodY,H)); }
-      // Agrandir le cercle
-      barrelR=Math.min(MAX_R, barrelR+MAX_R*0.008);
-      if(barrelR>=MAX_R){ phase=3; phaseTimer=0; }
+     /* ── Cycle de tir ── */
+     shotTimer++;
+     if(shotTimer>=shotCooldown){
+      shotTimer=0;flashAlpha=1.0;bloodY=0;bloodActive=true;
+     }
+     if(bloodActive){
+      if(shotTimer>10&&shotTimer<160) bloodY+=innerR*0.065;
+      else if(shotTimer>=160) bloodY=Math.max(0,bloodY-innerR*0.055);
+      if(bloodY<=0&&shotTimer>200) bloodActive=false;
      }
 
-     // ── PHASE 3 : plein écran — sang descend ──
-     else if(phase===3){
-      ctx.fillStyle='rgba(0,0,0,1)';ctx.fillRect(0,0,W,H);
-      for(const p of particles){
-       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-       ctx.fillStyle=`hsla(${p.hue},75%,62%,${p.op})`;ctx.fill();
-      }
-      drawBond(bondX,bondY,true,false);
-      bloodY+=1.5+bloodY*0.008;
-      drawBlood(Math.min(bloodY,H*1.02));
-      if(bloodY>=H && phaseTimer>100){
-       phase=0; bondX=-W*0.15; shootTimer=0; barrelR=0;
-       bloodY=0; muzzleFlash=0; phaseTimer=0;
-      }
-     }
+     /* ── "007" en bas gauche — discret, doré ── */
+     ctx.save();
+     ctx.font=`bold ${W*0.062}px 'Arial Black',sans-serif`;
+     ctx.textAlign='left';ctx.textBaseline='bottom';
+     ctx.fillStyle=`rgba(172,144,90,${0.60+Math.sin(t*0.35)*0.05})`;
+     ctx.fillText('007',W*0.055,H*0.948);
+     ctx.restore();
 
-     requestAnimationFrame(frame);
+     /* Vignette douce */
+     const vg=ctx.createRadialGradient(spX,spY,outerR*0.45,spX,spY,outerR*1.05);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(1,'rgba(0,0,0,0.35)');
+     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+     t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
