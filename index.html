@@ -12032,31 +12032,43 @@ function _fetchWithTimeout(url, ms){
 async function fetchBlindTestPreview(entry){
   const toHttps=u=>u?u.replace(/^http:/,'https:'):u;
 
-  // 1. iTunes JSONP — marche sur tous les mobiles sans CORS (pas de preflight)
+  // 1. iTunes JSONP — contourne CORS sur mobile (script tag, pas de preflight)
   try{
     const q=encodeURIComponent(entry.search);
-    const d=await _jsonp(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,7000);
+    const d=await _jsonp(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,8000);
     const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
     if(tracks.length>0)return toHttps(tracks[0].previewUrl);
   }catch(e){}
 
-  // 2. iTunes fetch classique (fallback desktop)
+  // 2. iTunes fetch standard (fonctionne quand CORS autorisé — desktop + Android Chrome)
   try{
     const q=encodeURIComponent(entry.search);
-    const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,6000);
-    const d=await r.json();
-    const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
-    if(tracks.length>0)return toHttps(tracks[0].previewUrl);
+    const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,7000);
+    if(r.ok){
+      const d=await r.json();
+      const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
+      if(tracks.length>0)return toHttps(tracks[0].previewUrl);
+    }
   }catch(e){}
 
-  // 3. Deezer via proxy allorigins
+  // 3. Deezer via proxy allorigins (fonctionne même si iTunes est bloqué réseau mobile)
   try{
     const q=encodeURIComponent(entry.search);
     const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.deezer.com/search?q='+q+'&limit=5')}`;
-    const r=await _fetchWithTimeout(proxy,8000);
-    const d=await r.json();
-    const data=JSON.parse(d.contents||'{}');
-    const tracks=(data.data||[]).filter(t=>t.preview);
+    const r=await _fetchWithTimeout(proxy,10000);
+    if(r.ok){
+      const d=await r.json();
+      const data=JSON.parse(d.contents||'{}');
+      const tracks=(data.data||[]).filter(t=>t.preview);
+      if(tracks.length>0)return toHttps(tracks[0].preview);
+    }
+  }catch(e){}
+
+  // 4. Deezer JSONP direct (dernier recours mobile)
+  try{
+    const q=encodeURIComponent(entry.search);
+    const d=await _jsonp(`https://api.deezer.com/search?q=${q}&limit=5&output=jsonp`,6000);
+    const tracks=(d.data||[]).filter(t=>t.preview);
     if(tracks.length>0)return toHttps(tracks[0].preview);
   }catch(e){}
 
@@ -12075,9 +12087,11 @@ function buildBlindTestQuestions(count){
 }
 
 function _btStop(){
-  if(_btAudio){_btAudio.pause();_btAudio.src='';_btAudio=null;}
+  if(_btAudio){try{_btAudio.pause();}catch(e){}; _btAudio.src='';_btAudio=null;}
   if(_btProgTimer){clearInterval(_btProgTimer);_btProgTimer=null;}
   if(_btRevealTimer){clearTimeout(_btRevealTimer);_btRevealTimer=null;}
+  // Réinitialiser les fonctions locales pour éviter les appels fantômes
+  window._btToggle=window._btDoPlay=window._btDoPause=window._btPlay=window._btPause=function(){};
 }
 
 function _btRevealPoster(q){
@@ -17821,16 +17835,66 @@ function loadQ(){
     document.getElementById('dbadge').className='dbd';
     document.getElementById('dbadge').style.background='rgba(167,139,250,.15)';
     document.getElementById('dbadge').style.color='#a78bfa';
-    // Cacher les boutons réponses pendant le chargement
+
+    // ── État local de la question ──
+    let _btUrl=null;       // URL preview résolue
+    let _btReady=false;    // fetch terminé (avec ou sans URL)
+    let _btPlaying=false;  // audio en cours
+    let _btUnlocked=false; // réponses déjà affichées
+
+    // ── Afficher les réponses (une seule fois) ──
+    function _btUnlock(noAudio){
+      if(_btUnlocked)return;
+      _btUnlocked=true;
+      const status=document.getElementById('bt-status');
+      if(noAudio&&!_btUrl){
+        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
+      }
+      grid.innerHTML='';
+      q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+      grid.className='agrid bt-visible';
+      startTimer();
+    }
+
+    // ── Mettre à jour le bouton play selon l'état ──
+    function _btUpdateUI(){
+      const btn=document.getElementById('bt-play-btn');
+      const status=document.getElementById('bt-status');
+      const bars=document.querySelectorAll('.bt-note-bar');
+      if(!_btReady){
+        // Chargement en cours
+        if(btn)btn.disabled=true;
+        if(status){status.textContent='Chargement…';status.className='bt-status loading';}
+        return;
+      }
+      if(!_btUrl){
+        // Pas d'extrait disponible
+        if(btn){btn.disabled=true;btn.style.opacity='0.35';}
+        if(status){status.textContent='Extrait indisponible';status.className='bt-status error';}
+        return;
+      }
+      // Extrait prêt
+      if(btn)btn.disabled=false;
+      if(_btPlaying){
+        bars.forEach(b=>{b.classList.remove('paused');b.classList.add('playing');});
+        if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        if(status){status.textContent='En écoute…';status.className='bt-status';}
+      } else {
+        bars.forEach(b=>{b.classList.add('paused');b.classList.remove('playing');});
+        if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+        if(status){status.textContent=_btAudio?'En pause — appuie pour reprendre':'Prêt — appuie sur ▶';status.className='bt-status';}
+      }
+    }
+
+    // ── UI initiale (bouton grisé pendant le fetch) ──
     grid.className='agrid bt-hidden';
-    // Player UI
     qa.innerHTML=`
       <div class="qtl">🎵 Blind Test</div>
       <div class="bt-player" id="bt-player">
-        <div class="bt-note-row" id="bt-bars">
+        <div class="bt-note-row">
           ${[1,2,3,4,5,6,7].map(()=>'<div class="bt-note-bar paused"></div>').join('')}
         </div>
-        <button class="bt-play-btn" id="bt-play-btn" onclick="_btToggle()">
+        <button class="bt-play-btn" id="bt-play-btn" disabled onclick="_btToggle()">
           <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
         </button>
         <div class="bt-progress-wrap"><div class="bt-progress-fill" id="bt-prog"></div></div>
@@ -17838,91 +17902,84 @@ function loadQ(){
         <div class="bt-status loading" id="bt-status">Chargement de l'extrait…</div>
         <div class="bt-composer" id="bt-composer"></div>
       </div>`;
-    // Flag : les réponses ont-elles déjà été affichées ? (évite le doublement)
-    let _btUnlocked=false;
-    function _btUnlock(noAudio){
-      if(_btUnlocked)return; // garde — ne s'exécute qu'une seule fois
-      _btUnlocked=true;
-      const status=document.getElementById('bt-status');
-      if(noAudio){
-        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
-      }
-      grid.innerHTML=''; // vider au cas où
-      q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-      grid.className='agrid bt-visible';
-      startTimer();
-    }
 
-    // Fallback de sécurité : si le fetch reste bloqué > 9s, débloquer quand même
-    const _btFallbackTimer=setTimeout(()=>_btUnlock(true),9000);
+    // ── Fallback : si fetch bloqué > 10s, débloquer sans audio ──
+    const _btFallback=setTimeout(()=>{
+      if(!_btReady){ _btReady=true; _btUrl=null; _btUpdateUI(); _btUnlock(true); }
+    },10000);
 
+    // ── Fetch de l'URL preview (en arrière-plan pendant que l'user voit le player) ──
     fetchBlindTestPreview(q).then(url=>{
-      clearTimeout(_btFallbackTimer);
-      const status=document.getElementById('bt-status');
-      if(!url){
-        _btUnlock(true);
-        return;
-      }
-      q.previewUrl=url;
-      _btAudio=new Audio(url);
-      _btAudio.volume=0.85;
-      _btAudio.load();
-      if(status){status.textContent='Prêt — appuie sur play !';status.className='bt-status';}
-      _btUnlock(false);
+      clearTimeout(_btFallback);
+      _btReady=true;
+      _btUrl=url||null;
+      _btUpdateUI();
+      if(!url){ _btUnlock(true); return; }
+      // Préparer l'objet Audio — PAS de .play() ici (interdit sans geste sur iOS)
+      // URL prête — le bouton s'active, l'Audio sera créé au premier clic (iOS safe)
+      // NE PAS créer Audio() ici — doit être dans le contexte du geste utilisateur
     }).catch(()=>{
-      clearTimeout(_btFallbackTimer);
-      _btUnlock(true);
+      clearTimeout(_btFallback);
+      _btReady=true; _btUrl=null;
+      _btUpdateUI(); _btUnlock(true);
     });
-    // Fonction play/pause
+
+    // ── Toggle play/pause — DOIT être appelé directement depuis un onclick ──
     window._btToggle=function(){
-      if(!_btAudio)return;
-      if(_btAudio.paused)_btPlay();else _btPause();
+      if(!_btReady)return;
+      if(!_btUrl){return;} // pas d'extrait
+      if(_btPlaying){_btDoPause();return;}
+      // iOS Safari : créer ET jouer l'Audio dans le même contexte de geste utilisateur
+      // Si _btAudio n'existe pas encore (premier appui), on le crée ici
+      if(!_btAudio){
+        _btAudio=new Audio();
+        _btAudio.preload='none'; // pas de preload — on joue directement
+        _btAudio.volume=0.85;
+        _btAudio.src=_btUrl;
+      }
+      _btDoPlay();
     };
-    window._btPlay=function(){
-      if(!_btAudio)return;
-      // Débloquer l'AudioContext iOS (PWA standalone l'exige avant tout play)
-      resume();
-      _btAudio.play().catch(()=>{});
-      // Animer les barres
-      document.querySelectorAll('.bt-note-bar').forEach(b=>{b.classList.remove('paused');b.classList.add('playing');});
-      // Changer icône en pause
-      const btn=document.getElementById('bt-play-btn');
-      if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-      const status=document.getElementById('bt-status');
-      if(status){status.textContent='En écoute…';status.className='bt-status';}
+
+    window._btDoPlay=function(){
+      if(!_btAudio||_btPlaying)return;
+      // Appel .play() synchrone dans le onclick → iOS l'autorise
+      const p=_btAudio.play();
+      if(p&&p.catch)p.catch(err=>{
+        const status=document.getElementById('bt-status');
+        if(status){status.textContent='Appuie à nouveau sur ▶';status.className='bt-status error';}
+        _btPlaying=false; _btUpdateUI();
+      });
+      _btPlaying=true;
+      _btUpdateUI();
       // Barre de progression
       if(_btProgTimer)clearInterval(_btProgTimer);
       _btProgTimer=setInterval(()=>{
-        if(!_btAudio)return;
-        const pct=(_btAudio.currentTime/30)*100;
+        if(!_btAudio||_btAudio.paused)return;
+        const t=_btAudio.currentTime;
         const prog=document.getElementById('bt-prog');
-        if(prog)prog.style.width=Math.min(pct,100)+'%';
+        if(prog)prog.style.width=Math.min((t/30)*100,100)+'%';
         const cur=document.getElementById('bt-cur');
-        const s=Math.floor(_btAudio.currentTime);
-        if(cur)cur.textContent=`0:${s.toString().padStart(2,'0')}`;
-        // Arrêter à 30s
-        if(_btAudio.currentTime>=30){_btPause();_btAudio.currentTime=0;}
-      },200);
-      // Révéler les réponses après 5s d'écoute
-      if(!grid.classList.contains('bt-visible')&&grid.classList.contains('bt-hidden')){
-        if(_btRevealTimer)clearTimeout(_btRevealTimer);
-        _btRevealTimer=setTimeout(()=>{
-          if(!ansed){
-            q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-            grid.className='agrid bt-visible';
-            startTimer();
-          }
-        },5000);
-      }
+        if(cur)cur.textContent='0:'+Math.floor(t).toString().padStart(2,'0');
+        if(t>=30){_btDoPause();_btAudio.currentTime=0;}
+      },150);
+      // Révéler réponses après 5s d'écoute cumulée (le timer repart à chaque play)
+      if(_btRevealTimer)clearTimeout(_btRevealTimer);
+      const _msAlreadyPlayed=_btAudio.currentTime*1000;
+      const _msRemaining=Math.max(0,5000-_msAlreadyPlayed);
+      _btRevealTimer=setTimeout(()=>{if(!ansed)_btUnlock(false);},_msRemaining);
     };
-    window._btPause=function(){
-      if(!_btAudio)return;
+
+    window._btDoPause=function(){
+      if(!_btAudio||!_btPlaying)return;
       _btAudio.pause();
-      document.querySelectorAll('.bt-note-bar').forEach(b=>{b.classList.add('paused');b.classList.remove('playing');});
-      const btn=document.getElementById('bt-play-btn');
-      if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+      _btPlaying=false;
+      _btUpdateUI();
       if(_btProgTimer){clearInterval(_btProgTimer);_btProgTimer=null;}
     };
+
+    // Alias legacy utilisés dans _btStop / advanceQ
+    window._btPlay=window._btDoPlay;
+    window._btPause=window._btDoPause;
 
   } else if(q.type==='generique'){
     game.style.overflowY='auto';
