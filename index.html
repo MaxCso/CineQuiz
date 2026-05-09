@@ -12007,11 +12007,18 @@ async function fetchVersusQuestions(count){
 // ══════════════════════════════════════════════
 let _btAudio=null,_btProgTimer=null,_btRevealTimer=null;
 
+// Polyfill AbortSignal.timeout pour iOS < 16.4 et PWA standalone
+function _fetchWithTimeout(url, ms){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),ms);
+  return fetch(url,{signal:ctrl.signal}).finally(()=>clearTimeout(tid));
+}
+
 async function fetchBlindTestPreview(entry){
   // 1. iTunes Search API (gratuit, sans clé, CORS OK)
   try{
     const q=encodeURIComponent(entry.search);
-    const r=await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,{signal:AbortSignal.timeout(6000)});
+    const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,6000);
     const d=await r.json();
     const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
     if(tracks.length>0)return tracks[0].previewUrl;
@@ -12020,7 +12027,7 @@ async function fetchBlindTestPreview(entry){
   try{
     const q=encodeURIComponent(entry.search);
     const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.deezer.com/search?q='+q+'&limit=5')}`;
-    const r=await fetch(proxy,{signal:AbortSignal.timeout(8000)});
+    const r=await _fetchWithTimeout(proxy,8000);
     const d=await r.json();
     const data=JSON.parse(d.contents||'{}');
     const tracks=(data.data||[]).filter(t=>t.preview);
@@ -17806,7 +17813,20 @@ function loadQ(){
       </div>`;
     // Async : récupérer le preview puis activer
     let _btLoaded=false;
+    // Fallback de sécurité : si le fetch reste bloqué > 10s (PWA standalone / CORS strict),
+    // on débloque quand même le jeu sans extrait audio.
+    const _btFallbackTimer=setTimeout(()=>{
+      if(!_btLoaded && grid.classList.contains('bt-hidden')){
+        const status=document.getElementById('bt-status');
+        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
+        grid.className='agrid bt-visible';
+        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+        startTimer();
+      }
+    },10000);
+
     fetchBlindTestPreview(q).then(url=>{
+      clearTimeout(_btFallbackTimer);
       const status=document.getElementById('bt-status');
       const playBtn=document.getElementById('bt-play-btn');
       const bars=document.querySelectorAll('.bt-note-bar');
@@ -17833,6 +17853,16 @@ function loadQ(){
         grid.className='agrid bt-visible';
         startTimer();
       }
+    }).catch(()=>{
+      // Rejet inattendu de la Promise (ex: réseau coupé en PWA) → débloquer le jeu
+      clearTimeout(_btFallbackTimer);
+      if(grid.classList.contains('bt-hidden')){
+        const status=document.getElementById('bt-status');
+        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
+        grid.className='agrid bt-visible';
+        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+        startTimer();
+      }
     });
     // Fonction play/pause
     window._btToggle=function(){
@@ -17841,6 +17871,8 @@ function loadQ(){
     };
     window._btPlay=function(){
       if(!_btAudio)return;
+      // Débloquer l'AudioContext iOS (PWA standalone l'exige avant tout play)
+      resume();
       _btAudio.play().catch(()=>{});
       // Animer les barres
       document.querySelectorAll('.bt-note-bar').forEach(b=>{b.classList.remove('paused');b.classList.add('playing');});
