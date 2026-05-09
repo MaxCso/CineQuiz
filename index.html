@@ -1994,8 +1994,8 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 
 /* ─── ANECDOTE DU JOUR — DESIGN CINÉMATOGRAPHIQUE ─── */
 @keyframes anecHalo{
-  0%,100%{opacity:.5;transform:scale(1);}
-  50%{opacity:.8;transform:scale(1.08);}
+  0%,100%{opacity:.65;transform:scale(1)   translateY(0);}
+  50%    {opacity:1;  transform:scale(1.12) translateY(-4px);}
 }
 @keyframes anecFadeIn{
   from{opacity:0;transform:translateY(10px) scale(.98);}
@@ -2010,6 +2010,21 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   40%    {opacity:.80;transform:translateX(-46%) scaleX(1.08);}
   70%    {opacity:.60;transform:translateX(-54%) scaleX(.94);}
 }
+/* Shimmer de fond — trait de lumière qui traverse lentement */
+@keyframes anecBgShimmer{
+  0%  {transform:translateX(-140%) skewX(-18deg);}
+  35% {transform:translateX(380%)  skewX(-18deg);}
+  100%{transform:translateX(380%)  skewX(-18deg);}
+}
+@keyframes anecSlideInRight{
+  from{opacity:0;transform:translateX(48px) scale(.97);}
+  to  {opacity:1;transform:translateX(0)    scale(1);}
+}
+@keyframes anecSlideInLeft{
+  from{opacity:0;transform:translateX(-48px) scale(.97);}
+  to  {opacity:1;transform:translateX(0)     scale(1);}
+}
+@keyframes anecProgress{from{width:0%;}to{width:100%;}}
 
 .anec-cinema-card{
   position:relative;overflow:hidden;border-radius:22px;
@@ -2020,6 +2035,25 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   box-shadow:0 8px 40px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.06) inset;
   animation:anecFadeIn .45s cubic-bezier(.22,.68,0,1.2) both;
 }
+/* Shimmer de fond — élément dédié */
+.anec-bg-shimmer{
+  position:absolute;top:0;left:0;width:45%;height:100%;
+  pointer-events:none;z-index:1;
+  background:linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255,255,255,.028) 48%,
+    rgba(255,255,255,.042) 50%,
+    rgba(255,255,255,.028) 52%,
+    transparent 80%
+  );
+  transform:translateX(-140%) skewX(-18deg);
+  will-change:transform;
+  animation:anecBgShimmer 6s ease-in-out infinite;
+  animation-delay:1.2s;
+}
+.anec-cinema-card.slide-in-right{animation:anecSlideInRight .38s cubic-bezier(.22,.68,0,1.15) both;}
+.anec-cinema-card.slide-in-left {animation:anecSlideInLeft  .38s cubic-bezier(.22,.68,0,1.15) both;}
 /* Effet projecteur — cône de lumière venant du haut */
 .anec-spotlight{
   position:absolute;
@@ -2034,12 +2068,12 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .anec-halo{
   position:absolute;inset:0;pointer-events:none;
   border-radius:inherit;z-index:0;
-  animation:anecHalo 5s ease-in-out infinite;
+  animation:anecHalo 4s ease-in-out infinite;
 }
 /* Accent gauche coloré */
 .anec-film-strip{
-  position:absolute;left:0;top:12%;bottom:12%;width:4px;
-  border-radius:0 4px 4px 0;
+  position:absolute;top:0;left:12%;right:12%;height:3px;
+  border-radius:0 0 4px 4px;
   z-index:1;
 }
 /* Contenu principal */
@@ -2063,10 +2097,7 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 /* Ligne emoji + texte */
 .anec-body{display:flex;align-items:flex-start;gap:12px;}
-.anec-emoji{
-  font-size:28px;flex-shrink:0;
-  width:48px;height:48px;border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
+.anec-emoji{display:none;
   background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.08);
   box-shadow:0 2px 12px rgba(0,0,0,.4);
@@ -2088,8 +2119,18 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   text-transform:uppercase;border-radius:6px;padding:3px 9px;
 }
 .anecdote-dots{display:flex;gap:5px;align-items:center;}
-.anecdote-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .3s cubic-bezier(.34,1.56,.64,1);}
-.anecdote-dot.active{width:18px;border-radius:3px;}
+.anecdote-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,.18);
+  transition:all .35s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+}
+.anecdote-dot.active{width:28px;border-radius:3px;}
+.anecdote-dot.active .anec-dot-progress{
+  position:absolute;top:0;left:0;height:100%;
+  background:currentColor;opacity:.55;border-radius:inherit;
+  animation:anecProgress 8s linear both;
+}
 
 /* ─── ANCIENNE ANECDOTE DU JOUR ─── */
 .anecdote-card{
@@ -6942,11 +6983,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div id="h-motivate" class="xpw-motivate"></div>
         <div id="h-xptoday" class="xpw-today" style="display:none;">+0 XP aujourd'hui</div>
       </div>
-      <!-- Citation cinéma du jour -->
-      <div class="xpw-quote">
-        <div class="xpw-quote-text" id="h-quote-text"></div>
-        <div class="xpw-quote-author" id="h-quote-author"></div>
-      </div>
 
     </div>
     <!-- Stats -->
@@ -6976,7 +7012,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
           </div>
           <span class="daily-badge" id="daily-card-badge">À JOUER</span>
         </div>
-        <div class="daily-desc" id="daily-card-desc">10 questions spéciales, le même défi pour tout le monde aujourd'hui. Revient chaque jour à minuit !</div>
+        <div class="daily-desc" id="daily-card-desc" style="display:none;"></div>
         <div class="daily-bar-wrap"><div class="daily-bar" id="daily-card-bar" style="width:0%"></div></div>
         <div class="daily-meta">
           <span id="daily-card-score">Ton meilleur : —</span>
@@ -16057,33 +16093,30 @@ function renderDailyAnecdote(){
 
     // Palette par tag
     const tagPalette={
-      "Tournage":  {emoji:"🎬",color:"#f5a623",bg:"rgba(245,166,35,.12)",border:"rgba(245,166,35,.25)",halo:"rgba(245,166,35,.18)"},
-      "Box-office":{emoji:"💰",color:"#4ade80",bg:"rgba(74,222,128,.10)",border:"rgba(74,222,128,.22)",halo:"rgba(74,222,128,.15)"},
-      "Casting":   {emoji:"🎭",color:"#c084fc",bg:"rgba(192,132,252,.10)",border:"rgba(192,132,252,.22)",halo:"rgba(192,132,252,.15)"},
-      "Studios":   {emoji:"🏛️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)",halo:"rgba(96,165,250,.15)"},
-      "Anecdote":  {emoji:"💡",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)",halo:"rgba(251,191,36,.15)"},
-      "Son":       {emoji:"🔊",color:"#34d399",bg:"rgba(52,211,153,.10)",border:"rgba(52,211,153,.22)",halo:"rgba(52,211,153,.15)"},
-      "Réalisateur":{emoji:"🎥",color:"#f87171",bg:"rgba(248,113,113,.10)",border:"rgba(248,113,113,.22)",halo:"rgba(248,113,113,.15)"},
-      "Acteur":    {emoji:"🌟",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)",halo:"rgba(251,191,36,.15)"},
-      "Oscars":    {emoji:"🏆",color:"#f5c842",bg:"rgba(245,200,66,.12)",border:"rgba(245,200,66,.28)",halo:"rgba(245,200,66,.2)"},
-      "Musique":   {emoji:"🎼",color:"#a78bfa",bg:"rgba(167,139,250,.10)",border:"rgba(167,139,250,.22)",halo:"rgba(167,139,250,.15)"},
-      "Costumes":  {emoji:"👗",color:"#f472b6",bg:"rgba(244,114,182,.10)",border:"rgba(244,114,182,.22)",halo:"rgba(244,114,182,.15)"},
-      "Technique": {emoji:"⚙️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)",halo:"rgba(96,165,250,.15)"},
-      "Histoire":  {emoji:"📖",color:"#fb923c",bg:"rgba(251,146,60,.10)",border:"rgba(251,146,60,.22)",halo:"rgba(251,146,60,.15)"},
-      "Effets":    {emoji:"✨",color:"#e879f9",bg:"rgba(232,121,249,.10)",border:"rgba(232,121,249,.22)",halo:"rgba(232,121,249,.15)"},
-      "Script":    {emoji:"📝",color:"#94a3b8",bg:"rgba(148,163,184,.10)",border:"rgba(148,163,184,.22)",halo:"rgba(148,163,184,.15)"},
+      "Tournage":  {emoji:"🎬",color:"#f5a623",bg:"rgba(245,166,35,.12)",border:"rgba(245,166,35,.25)",halo:"rgba(245,166,35,.38)"},
+      "Box-office":{emoji:"💰",color:"#4ade80",bg:"rgba(74,222,128,.10)",border:"rgba(74,222,128,.22)",halo:"rgba(74,222,128,.32)"},
+      "Casting":   {emoji:"🎭",color:"#c084fc",bg:"rgba(192,132,252,.10)",border:"rgba(192,132,252,.22)",halo:"rgba(192,132,252,.35)"},
+      "Studios":   {emoji:"🏛️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)",halo:"rgba(96,165,250,.32)"},
+      "Anecdote":  {emoji:"💡",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)",halo:"rgba(251,191,36,.36)"},
+      "Son":       {emoji:"🔊",color:"#34d399",bg:"rgba(52,211,153,.10)",border:"rgba(52,211,153,.22)",halo:"rgba(52,211,153,.32)"},
+      "Réalisateur":{emoji:"🎥",color:"#f87171",bg:"rgba(248,113,113,.10)",border:"rgba(248,113,113,.22)",halo:"rgba(248,113,113,.34)"},
+      "Acteur":    {emoji:"🌟",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)",halo:"rgba(251,191,36,.36)"},
+      "Oscars":    {emoji:"🏆",color:"#f5c842",bg:"rgba(245,200,66,.12)",border:"rgba(245,200,66,.28)",halo:"rgba(245,200,66,.42)"},
+      "Musique":   {emoji:"🎼",color:"#a78bfa",bg:"rgba(167,139,250,.10)",border:"rgba(167,139,250,.22)",halo:"rgba(167,139,250,.35)"},
+      "Costumes":  {emoji:"👗",color:"#f472b6",bg:"rgba(244,114,182,.10)",border:"rgba(244,114,182,.22)",halo:"rgba(244,114,182,.34)"},
+      "Technique": {emoji:"⚙️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)",halo:"rgba(96,165,250,.32)"},
+      "Histoire":  {emoji:"📖",color:"#fb923c",bg:"rgba(251,146,60,.10)",border:"rgba(251,146,60,.22)",halo:"rgba(251,146,60,.36)"},
+      "Effets":    {emoji:"✨",color:"#e879f9",bg:"rgba(232,121,249,.10)",border:"rgba(232,121,249,.22)",halo:"rgba(232,121,249,.36)"},
+      "Script":    {emoji:"📝",color:"#94a3b8",bg:"rgba(148,163,184,.10)",border:"rgba(148,163,184,.22)",halo:"rgba(148,163,184,.30)"},
     };
-    const p=tagPalette[a.tag]||{emoji:"🎬",color:"#f5c842",bg:"rgba(245,200,66,.10)",border:"rgba(245,200,66,.22)",halo:"rgba(245,200,66,.18)"};
+    const p=tagPalette[a.tag]||{emoji:"🎬",color:"#f5c842",bg:"rgba(245,200,66,.10)",border:"rgba(245,200,66,.22)",halo:"rgba(245,200,66,.40)"};
 
     el.innerHTML=`
-    <div class="anec-cinema-card" id="anec-inner" style="border-color:${p.border};">
-      <!-- Projecteur -->
+    <div class="anec-cinema-card slide-in-${_anecDir||'right'}" id="anec-inner" style="border-color:${p.border};">
       <div class="anec-spotlight"></div>
-      <!-- Halo coloré -->
-      <div class="anec-halo" style="background:radial-gradient(ellipse 70% 55% at 50% 100%,${p.halo} 0%,transparent 70%);"></div>
-      <!-- Accent gauche -->
-      <div class="anec-film-strip" style="background:linear-gradient(to bottom,transparent,${p.color},transparent);"></div>
-      <!-- Contenu -->
+      <div class="anec-bg-shimmer"></div>
+      <div class="anec-halo" style="background:radial-gradient(ellipse 92% 72% at 50% 110%,${p.halo} 0%,transparent 68%);"></div>
+      <div class="anec-film-strip" style="background:linear-gradient(to right,transparent,${p.color},transparent);"></div>
       <div class="anec-content">
         <div class="anec-head">
           <span class="anec-label" style="color:${p.color};">✦ Anecdote du jour</span>
@@ -16100,15 +16133,29 @@ function renderDailyAnecdote(){
       </div>
     </div>`;
 
-    // Dot active coloré
-    el.querySelectorAll('.anecdote-dot.active').forEach(d=>d.style.background=p.color);
+    el.querySelectorAll('.anecdote-dot.active').forEach(d=>{
+      d.style.background=p.color;
+      d.style.color=p.color;
+      const prog=document.createElement('div');
+      prog.className='anec-dot-progress';
+      d.appendChild(prog);
+    });
 
     const card=el.querySelector('.anec-cinema-card');
     setupSwipeHoriz(card,
-      ()=>{ _anecIdx=(_anecIdx+1)%3; render(_anecIdx); },
-      ()=>{ _anecIdx=(_anecIdx+2)%3; render(_anecIdx); }
+      ()=>{ _anecDir='right'; _anecIdx=(_anecIdx+1)%3; _resetAnecTimer(); render(_anecIdx); },
+      ()=>{ _anecDir='left';  _anecIdx=(_anecIdx+2)%3; _resetAnecTimer(); render(_anecIdx); }
     );
   }
+
+  let _anecTimer=null;
+  let _anecDir='right';
+  function _resetAnecTimer(){
+    if(_anecTimer)clearInterval(_anecTimer);
+    _anecTimer=setInterval(()=>{_anecDir='right';_anecIdx=(_anecIdx+1)%3;render(_anecIdx);},8000);
+  }
+  _resetAnecTimer();
+
   render(0);
 }
 
@@ -33009,7 +33056,7 @@ const EE_DEFS = [
   { id:'ee_streak',     icon:'🔥', name:'Flamme secrète',        hint:'Triple tap sur l\'icône de série' },
   { id:'ee_accuracy',   icon:'🎯', name:'L\'œil du sniper',     hint:'Appui long 3s sur ton % de précision' },
   { id:'ee_hm',         icon:'🎭', name:'Hidden Secret',         hint:'5 taps rapides sur le logo dans la modale Hidden Movies' },
-  { id:'ee_quote',      icon:'📜', name:'La Grande Réplique',    hint:'Appui long 3s sur la citation du jour' },
+  { id:'ee_quote',      icon:'📜', name:'La Grande Réplique',    hint:'Appui long 3s sur la photo de profil' },
   { id:'ee_daily',      icon:'📅', name:'Défi de l\'ombre',     hint:'Triple tap sur la carte Défi du Jour' },
   { id:'ee_score',      icon:'🃏', name:'Les Chiffres',          hint:'7 taps sur ton score XP affiché' },
   { id:'ee_avatar',     icon:'🎪', name:'Masque et Plumes',      hint:'10 taps sur ton avatar dans la modale de progression' },
@@ -33305,8 +33352,8 @@ function eeRenderProfile(){
     });
     // 7. Citation — appui long 3s
     let _qTimer=null;
-    document.addEventListener('mousedown',e=>{ if(e.target.closest('.xpw-quote')){ if(eeIsFound('ee_quote'))return; _qTimer=setTimeout(()=>eeTrigger('ee_quote'),3000); } });
-    document.addEventListener('touchstart',e=>{ if(e.target.closest('.xpw-quote')){ if(eeIsFound('ee_quote'))return; e.preventDefault(); _qTimer=setTimeout(()=>eeTrigger('ee_quote'),3000); } },{passive:false});
+    document.addEventListener('mousedown',e=>{ if(e.target.closest('#h-icon')){ if(eeIsFound('ee_quote'))return; _qTimer=setTimeout(()=>eeTrigger('ee_quote'),3000); } });
+    document.addEventListener('touchstart',e=>{ if(e.target.closest('#h-icon')){ if(eeIsFound('ee_quote'))return; e.preventDefault(); _qTimer=setTimeout(()=>eeTrigger('ee_quote'),3000); } },{passive:false});
     document.addEventListener('mouseup',()=>clearTimeout(_qTimer)); document.addEventListener('touchend',()=>clearTimeout(_qTimer)); document.addEventListener('touchcancel',()=>clearTimeout(_qTimer));
     document.addEventListener('contextmenu',e=>{ if(e.target.closest('.xpw-quote')) e.preventDefault(); });
     // 8. Daily card — triple tap (délégation)
