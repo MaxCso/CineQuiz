@@ -527,44 +527,141 @@
      BOUTON CLASSEMENT SUR L'ACCUEIL
   ══════════════════════════════════════════ */
 
-  function injectHomeButton() {
-    // Éviter de doubler
+  async function injectHomeButton() {
     if (document.getElementById('home-ldr-btn')) return;
 
     const dailyCard = document.getElementById('daily-card');
     if (!dailyCard) return;
 
-    const btn = document.createElement('div');
-    btn.id = 'home-ldr-btn';
-    btn.onclick = () => window.openLdrScreen();
-    btn.style.cssText = `
-      margin: 0 0 9px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.07);
-      border-radius: 18px;
-      padding: 13px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: background .2s;
-    `;
-    btn.innerHTML = `
-      <div style="
-        width:38px;height:38px;border-radius:12px;
-        background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);
-        display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
-      ">🏆</div>
-      <div style="flex:1;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--gold);">CLASSEMENTS</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;">Meilleurs joueurs · Tous modes</div>
-      </div>
-      <div style="color:rgba(255,255,255,.2);font-size:16px;">›</div>
-    `;
-    btn.addEventListener('mouseover', () => btn.style.background = 'rgba(255,255,255,.05)');
-    btn.addEventListener('mouseout',  () => btn.style.background = 'rgba(255,255,255,.03)');
+    /* ── Créer le conteneur ── */
+    const wrap = document.createElement('div');
+    wrap.id = 'home-ldr-btn';
+    wrap.style.cssText = 'margin:0 0 9px;';
+    dailyCard.parentNode.insertBefore(wrap, dailyCard.nextSibling);
 
-    dailyCard.parentNode.insertBefore(btn, dailyCard.nextSibling);
+    /* ── Skeleton pendant le fetch ── */
+    wrap.innerHTML = `
+      <div style="
+        background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+        border-radius:20px;padding:16px;
+      ">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--gold);">🏆 CLASSEMENT</span>
+          <div style="width:50px;height:11px;background:rgba(255,255,255,.07);border-radius:4px;"></div>
+        </div>
+        <div style="display:flex;align-items:flex-end;justify-content:center;gap:10px;height:100px;animation:_sqPulse 1.2s ease-in-out infinite;">
+          ${[60,85,50].map(h=>`<div style="flex:1;height:${h}px;background:rgba(255,255,255,.07);border-radius:10px 10px 0 0;"></div>`).join('')}
+        </div>
+      </div>`;
+
+    /* ── Fetch data ── */
+    const s      = (typeof ls === 'function') ? ls() : {};
+    const pseudo = s.pseudo || null;
+    const board  = await sbFetchGlobal(10);
+
+    if (!board.length) {
+      wrap.innerHTML = `
+        <div onclick="window.openLdrScreen()" style="
+          background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+          border-radius:20px;padding:16px;cursor:pointer;
+          display:flex;align-items:center;gap:12px;
+        ">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏆</div>
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--gold);">CLASSEMENTS</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;">Sois le premier à apparaître !</div></div>
+          <div style="color:rgba(255,255,255,.2);font-size:16px;margin-left:auto;">›</div>
+        </div>`;
+      return;
+    }
+
+    const myRank  = pseudo ? board.findIndex(e => e.pseudo === pseudo) + 1 : 0;
+    const myEntry = pseudo ? board.find(e => e.pseudo === pseudo) : null;
+
+    /* Podium : places 2-1-3 (le 1er au centre, plus haut) */
+    const top3   = board.slice(0, 3);
+    const order  = [top3[1], top3[0], top3[2]].filter(Boolean);
+    const heights= [top3[1]?72:0, 96, top3[2]?58:0];
+    const medals = ['🥈','🥇','🥉'];
+    const colors = ['rgba(192,192,192,.80)','rgba(245,200,66,.95)','rgba(205,127,50,.80)'];
+    const bgCols = ['rgba(192,192,192,.08)','rgba(245,200,66,.12)','rgba(205,127,50,.08)'];
+    const borderCols = ['rgba(192,192,192,.20)','rgba(245,200,66,.35)','rgba(205,127,50,.20)'];
+
+    function initials(name) {
+      return String(name).slice(0,2).toUpperCase();
+    }
+
+    const podiumHTML = order.map((e,i) => {
+      if (!e) return `<div style="flex:1;"></div>`;
+      const isMe = pseudo && e.pseudo === pseudo;
+      const xp   = e.total_xp ? e.total_xp.toLocaleString()+' XP' : '—';
+      return `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <!-- Avatar initiales -->
+          <div style="
+            width:36px;height:36px;border-radius:50%;
+            background:${bgCols[i]};border:1.5px solid ${borderCols[i]};
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;font-weight:700;color:${colors[i]};
+            ${isMe?'box-shadow:0 0 0 2px rgba(245,200,66,.35);':''}
+          ">${initials(e.pseudo)}</div>
+          <!-- Pseudo -->
+          <div style="
+            font-size:10px;font-weight:${isMe?700:500};
+            color:${isMe?'rgba(255,255,255,.95)':'rgba(255,255,255,.55)'};
+            max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;
+          ">${esc(e.pseudo)}${isMe?' ◀':''}</div>
+          <!-- Colonne podium -->
+          <div style="
+            width:100%;height:${heights[i]}px;
+            background:${bgCols[i]};border:1px solid ${borderCols[i]};
+            border-radius:10px 10px 0 0;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+            position:relative;
+          ">
+            <div style="font-size:18px;line-height:1;">${medals[i]}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.5px;color:${colors[i]};">${xp}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    /* Ta position si hors top 3 */
+    const myRankHTML = myRank > 3 && myEntry ? `
+      <div style="
+        margin-top:10px;padding:8px 12px;
+        background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.15);
+        border-radius:12px;display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:rgba(245,200,66,.7);">${myRank}ème</span>
+        <span style="flex:1;font-size:12px;font-weight:700;color:rgba(255,255,255,.8);">${esc(pseudo)}</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--gold);">${myEntry.total_xp.toLocaleString()} XP</span>
+      </div>` : '';
+
+    wrap.innerHTML = `
+      <div onclick="window.openLdrScreen()" style="
+        background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+        border-radius:20px;padding:16px 16px 0;cursor:pointer;
+        transition:background .2s;overflow:hidden;
+      " onmouseover="this.style.background='rgba(255,255,255,.05)'"
+         onmouseout="this.style.background='rgba(255,255,255,.03)'">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--gold);">🏆 CLASSEMENT GLOBAL</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:4px;">
+            Voir tout <span style="font-size:14px;">›</span>
+          </span>
+        </div>
+
+        <!-- Podium -->
+        <div style="display:flex;align-items:flex-end;justify-content:center;gap:8px;">
+          ${podiumHTML}
+        </div>
+
+        ${myRankHTML}
+
+        <!-- Spacer bas -->
+        <div style="height:14px;"></div>
+      </div>`;
   }
 
   /* ══════════════════════════════════════════
