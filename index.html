@@ -961,6 +961,17 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 .vf-card.vf-ok .vf-reveal{opacity:1;color:var(--green);}
 .vf-card.vf-no .vf-reveal{opacity:1;color:var(--red);}
 
+/* ── Catégorie AUDIO — violet musique ── */
+.mc[data-cat="audio"]{
+  --mc-card-bg:linear-gradient(150deg,rgba(14,6,28,.97),rgba(10,3,20,.95));
+  --mc-card-border:rgba(167,139,250,.18);
+  --mc-color:#a78bfa;
+  --mc-glow:rgba(167,139,250,.08);
+  --mc-shadow:rgba(167,139,250,.22);
+  --mc-icon-bg:rgba(167,139,250,.12);
+  --mc-icon-border:rgba(167,139,250,.22);
+}
+
 .mc[data-mode="training"]{
   --mc-card-bg:linear-gradient(150deg,rgba(14,16,20,.97),rgba(10,12,16,.95));
   --mc-card-border:rgba(148,163,184,.18);
@@ -2270,6 +2281,13 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 .pbtn-icon{font-size:22px;position:relative;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));}
 .pbtn-text{position:relative;z-index:1;text-shadow:0 1px 2px rgba(255,200,0,.3);}
+
+/* -- CARD MODE ALÉATOIRE -- */
+@keyframes randomSpin{0%{transform:rotate(0deg) scale(1);}30%{transform:rotate(180deg) scale(1.2);}60%{transform:rotate(300deg) scale(1.1);}100%{transform:rotate(360deg) scale(1);}}
+@keyframes randomPulse{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,0);}50%{box-shadow:0 0 24px 4px rgba(168,85,247,.22);}}
+#random-mode-card:active{transform:scale(.97) !important;}
+#random-mode-card.spinning #random-mode-icon-wrap{animation:randomSpin .55s cubic-bezier(.34,1.56,.64,1);}
+#random-mode-card.pulsing{animation:randomPulse .6s ease-out;}
 
 /* -- FOND DE JEU par mode -- */
 #game-bg{
@@ -7120,10 +7138,39 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     <!-- Message du Jour (fusionné avec Anecdote) -->
     <div id="h-daily-msg" style="display:none"></div>
 
-
-
-    <!-- Suggestion de mode -->
-    <div id="h-mode-suggest" style="margin-bottom:10px;display:none;"></div>
+    <!-- Card Mode Aléatoire -->
+    <div id="random-mode-card" onclick="launchRandomMode()" style="
+      position:relative;overflow:hidden;border-radius:20px;
+      background:linear-gradient(135deg,rgba(99,102,241,.18) 0%,rgba(168,85,247,.14) 40%,rgba(236,72,153,.12) 100%);
+      border:1px solid rgba(168,85,247,.3);
+      padding:16px 18px;cursor:pointer;
+      display:flex;align-items:center;gap:16px;
+      margin-bottom:14px;
+      transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+    " ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform=''">
+      <!-- Glow fond -->
+      <div style="position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse 70% 60% at 20% 50%,rgba(168,85,247,.12) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 85% 50%,rgba(236,72,153,.08) 0%,transparent 60%);pointer-events:none;"></div>
+      <!-- Shimmer -->
+      <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;pointer-events:none;">
+        <div style="position:absolute;top:-50%;left:-30%;width:20%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);transform:skewX(-20deg);animation:pbtn-glare 4s ease-in-out 2s infinite;"></div>
+      </div>
+      <!-- Icône dé animée -->
+      <div id="random-mode-icon-wrap" style="width:52px;height:52px;border-radius:16px;background:rgba(168,85,247,.15);border:1.5px solid rgba(168,85,247,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);position:relative;z-index:1;">
+        <span id="random-mode-icon">🎲</span>
+      </div>
+      <!-- Texte -->
+      <div style="flex:1;min-width:0;position:relative;z-index:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#c084fc;">MODE ALÉATOIRE</span>
+          <span style="font-size:9px;letter-spacing:2px;font-weight:700;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.4);color:#c084fc;border-radius:8px;padding:2px 8px;">SURPRISE</span>
+        </div>
+        <div id="random-mode-label" style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.4;">Un mode tiré au sort — laisse le hasard décider !</div>
+      </div>
+      <!-- Flèche -->
+      <div style="position:relative;z-index:1;color:rgba(168,85,247,.6);flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </div>
 
     <!-- Modes -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -7175,7 +7222,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       <div class="mc" data-mode="survie" data-cat="defi" onclick="openModeInfo('survie',this)"><div class="mc-shimmer"></div><span class="mci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span class="mc-cat">Défi</span><span class="mc-label">Survie</span><span class="mnew">NEW</span></div>
     </div>
 
-    <button class="pbtn" id="pbtn-main" onclick="startGame()"><span class="pbtn-icon" id="pbtn-mode-icon">⚡</span><span class="pbtn-text">JOUER</span></button>
+
 
 
 
@@ -9837,7 +9884,7 @@ function toggleMusic(){
 }
 
 // ── GESTIONNAIRE MUSIQUE (profil) ──
-const MUSIC_MANAGER_KEYS=['replique','quiz','photo','year','home','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','blindtest','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9','jk10','jk11','jk12','jk13','jk14','jk15','jk16','jk17','jk18','jk19','jk20','jk21','jk22','jk23','jk24','jk25','jk26','jk27','jk28','jk29','jk30','jk31','jk32','jk33','jk34','jk35','jk36','jk37','jk38','jk39','jk40','jk41','jk42','jk43','jk44','jk45','jk46','jk47','jk48','jk49','jk50','jk51','jk52','jk53','jk54','jk55','jk56','jk57','jk58','jk59','jk60','jk61','jk62','jk63','jk64','jk65','jk66'];
+const MUSIC_MANAGER_KEYS=['replique','quiz','photo','year','home','acteur','bo','boxoffice','compositeur','realisateur','location','generique','casting','filmographie','vraifaux','decennie','versus','training','bonus','arcade','snake','bricks','morpion','slots','jk1','jk2','jk3','jk4','jk5','jk6','jk7','jk8','jk9','jk10','jk11','jk12','jk13','jk14','jk15','jk16','jk17','jk18','jk19','jk20','jk21','jk22','jk23','jk24','jk25','jk26','jk27','jk28','jk29','jk30','jk31','jk32','jk33','jk34','jk35','jk36','jk37','jk38','jk39','jk40','jk41','jk42','jk43','jk44','jk45','jk46','jk47','jk48','jk49','jk50','jk51','jk52','jk53','jk54','jk55','jk56','jk57','jk58','jk59','jk60','jk61','jk62','jk63','jk64','jk65','jk66'];
 
 function getAmbientKey(){
   try{return localStorage.getItem('cq_ambient_key')||'replique';}catch{return'replique';}
@@ -12497,7 +12544,9 @@ const go=id=>{
       else{gbg.classList.remove('on');}
     }
     // Musique
-    if(id==='game'){switchMusic(selMode,0.22);}
+    // Blind Test gère son propre audio (extraits iTunes/Deezer) — pas de musique de fond
+    if(id==='game'&&selMode!=='blindtest'){switchMusic(selMode,0.22);}
+    else if(id==='game'&&selMode==='blindtest'){stopMus();}
     else if(id==='home'){switchMusic('home',0.3);}
     else if(id==='arcade-menu'){if(musOn)switchMusic('arcade',0.25);}
     else if(['result','lvlup'].includes(id)){fadeMus(0.15,600);}
@@ -12570,11 +12619,48 @@ function selectMode(m,el){
   selMode=m;
   document.querySelectorAll('.mc').forEach(c=>c.classList.remove('sel'));
   if(el)el.classList.add('sel');
-  // Mettre à jour le label du bouton JOUER
-  const info=MODE_INFO[m];
-  const modeIconsMap={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',generique:'📜',location:'🌍',vraifaux:'🎯',decennie:'🗓️',blindtest:'🎵',versus:'⚔️',training:'📚',pitch:'📝',versusfilms:'📊',survie:'❤️',rebus:'🎭',pendu:'💀'};
-  const picon=document.getElementById('pbtn-mode-icon');
-  if(picon)picon.textContent=modeIconsMap[m]||'🎬';
+}
+
+// ── MODE ALÉATOIRE ──
+const RANDOM_ELIGIBLE_MODES=['quiz','photo','year','bo','boxoffice','replique','acteur','realisateur','compositeur','filmographie','casting','generique','location','vraifaux','decennie','blindtest','pitch','versusfilms','rebus','pendu'];
+const RANDOM_MODE_ICONS={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',generique:'📜',location:'🌍',vraifaux:'🎯',decennie:'🗓️',blindtest:'🎵',pitch:'📝',versusfilms:'📊',rebus:'🎭',pendu:'💀'};
+
+function launchRandomMode(){
+  const card=document.getElementById('random-mode-card');
+  const iconWrap=document.getElementById('random-mode-icon-wrap');
+  const iconEl=document.getElementById('random-mode-icon');
+  const labelEl=document.getElementById('random-mode-label');
+  if(!card)return;
+
+  // Déjà en cours d'animation → ignorer
+  if(card.classList.contains('spinning'))return;
+
+  // Animation roulette rapide sur l'icône
+  const pool=RANDOM_ELIGIBLE_MODES;
+  let ticks=0;
+  const maxTicks=10;
+  const ticker=setInterval(()=>{
+    const tmp=pool[Math.floor(Math.random()*pool.length)];
+    iconEl.textContent=RANDOM_MODE_ICONS[tmp]||'🎬';
+    ticks++;
+    if(ticks>=maxTicks){
+      clearInterval(ticker);
+      // Tirage final
+      const chosen=pool[Math.floor(Math.random()*pool.length)];
+      iconEl.textContent=RANDOM_MODE_ICONS[chosen]||'🎬';
+      const info=MODE_INFO[chosen];
+      labelEl.textContent=info?info.label:'Mode surprise !';
+      card.classList.add('spinning','pulsing');
+      setTimeout(()=>card.classList.remove('spinning','pulsing'),600);
+      // Sélectionner et lancer après un court délai pour que l'animation soit visible
+      setTimeout(()=>{
+        selectMode(chosen,document.querySelector(`.mc[data-mode="${chosen}"]`));
+        startGame();
+      },650);
+    }
+  },55);
+  card.classList.add('spinning');
+  setTimeout(()=>card.classList.remove('spinning'),600);
 }
 
 // ── MODE INFO MODAL ──
@@ -16191,43 +16277,7 @@ function renderNextBadge(s){
 let _anecIdx=0;
 
 function renderModeSuggestion(s){
-  const el=document.getElementById('h-mode-suggest');
-  if(!el)return;
-  const hist=s.history||[];
-  if(hist.length<3){el.style.display='none';return;}
-  // Trouver un mode pas joué depuis longtemps
-  const modeLabels={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',vraifaux:'Vrai ou Faux',decennie:'Décennie',blindtest:'Blind Test',versus:'Multijoueur',training:'Entraînement'};
-  const modeIcons={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',generique:'📜',location:'🌍',vraifaux:'🎯',decennie:'📅',blindtest:'🎵',versus:'⚔️',training:'📚',rebus:'🎭',pendu:'💀'};
-  const modeColors={quiz:'#f5c842',photo:'#60a5fa',year:'#a78bfa',bo:'#f472b6',boxoffice:'#34d399',replique:'#fb923c',acteur:'#e879f9',compositeur:'#a78bfa',filmographie:'#f472b6',realisateur:'#fb923c',casting:'#38bdf8',generique:'#94a3b8',location:'#34d399',vraifaux:'#10b981',decennie:'#a78bfa',blindtest:'#a78bfa',versus:'#ff6b6b',training:'#a78bfa'};
-  const allModes=Object.keys(modeLabels);
-  // Date dernière partie par mode (index dans l'historique — plus grand = plus récent)
-  const lastIdx={};
-  hist.forEach((h,i)=>{if(h.mode)lastIdx[h.mode]=i;});
-  // Trouver le mode joué et le plus ancien
-  const played=Object.keys(lastIdx);
-  if(!played.length){el.style.display='none';return;}
-  // Mode le plus ancien parmi les joués (priorité aux jamais joués)
-  const neverPlayed=allModes.filter(m=>!lastIdx[m]&&m!=='training'&&m!=='versus');
-  const suggest=neverPlayed.length>0
-    ?neverPlayed[Math.floor(Math.random()*Math.min(3,neverPlayed.length))]
-    :played.sort((a,b)=>(lastIdx[a]||0)-(lastIdx[b]||0))[0];
-  if(!suggest){el.style.display='none';return;}
-  const nGames=(lastIdx[suggest]!==undefined)?hist.length-lastIdx[suggest]:null;
-  const msg=nGames===null?'Tu n\'as pas encore essayé ce mode !':`Pas joué depuis ${nGames} partie${nGames>1?'s':''} !`;
-  const c=modeColors[suggest]||'#f5c842';
-  const cRgb=c.replace('#','').match(/../g)?.map(x=>parseInt(x,16)).join(',') || '245,200,66';
-  el.style.display='block';
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:14px;background:rgba(${cRgb},.07);border:1px solid rgba(${cRgb},.2);border-radius:18px;padding:14px 16px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;" onclick="selectModeAndOpen('${suggest}')">
-    <div style="width:48px;height:48px;border-radius:14px;background:rgba(${cRgb},.15);border:1px solid rgba(${cRgb},.3);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;animation:xpIconFloat 4s ease-in-out infinite;">${modeIcons[suggest]||'🎬'}</div>
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:8px;color:rgba(${cRgb},.65);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:3px;font-weight:700;">Essaie ce mode</div>
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">${modeLabels[suggest]}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.38);">${msg}</div>
-    </div>
-    <div style="width:28px;height:28px;border-radius:50%;background:rgba(${cRgb},.15);border:1px solid rgba(${cRgb},.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(${cRgb},.8)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>`;
+  // Card "Essaie ce mode" supprimée — fonction désactivée
 }
 
 function selectModeAndOpen(mode){
@@ -17771,10 +17821,18 @@ function loadQ(){
       q.previewUrl=url;
       _btAudio=new Audio(url);
       _btAudio.volume=0.85;
+      // Précharger l'audio sans déclencher la lecture
+      // (évite le blocage iOS en mode PWA standalone où autoplay hors geste est refusé)
+      _btAudio.load();
       _btLoaded=true;
       if(status){status.textContent='Prêt — appuie sur play !';status.className='bt-status';}
-      // Auto-play
-      _btPlay();
+      // Afficher les réponses et démarrer le timer dès que l'extrait est prêt
+      // L'utilisateur déclenche la lecture via le bouton play (geste direct → autorisé)
+      if(grid.classList.contains('bt-hidden')){
+        q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
+        grid.className='agrid bt-visible';
+        startTimer();
+      }
     });
     // Fonction play/pause
     window._btToggle=function(){

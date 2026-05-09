@@ -530,14 +530,19 @@
   async function injectHomeButton() {
     if (document.getElementById('home-ldr-btn')) return;
 
-    const dailyCard = document.getElementById('daily-card');
-    if (!dailyCard) return;
+    // Ancrage : après la card Entraînement (identifiée par train-card-stat)
+    const trainStat = document.getElementById('train-card-stat');
+    const trainCard = trainStat ? trainStat.closest('[onclick*="training"]') : null;
+    if (!trainCard) return;
 
     /* ── Créer le conteneur ── */
     const wrap = document.createElement('div');
     wrap.id = 'home-ldr-btn';
-    wrap.style.cssText = 'margin:0 0 9px;';
-    dailyCard.parentNode.insertBefore(wrap, dailyCard.nextSibling);
+    wrap.style.cssText = 'margin:14px 0 0;';
+    // Insérer après le parent qui contient toutes les cards spéciales
+    // (le div englobant Arcade + HM + Entraînement)
+    const specialSection = trainCard.parentNode;
+    specialSection.parentNode.insertBefore(wrap, specialSection.nextSibling);
 
     /* ── Skeleton pendant le fetch ── */
     wrap.innerHTML = `
