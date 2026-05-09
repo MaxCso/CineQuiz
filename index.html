@@ -22922,277 +22922,220 @@ function closeAvModal(e){
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
     let t=0;
-    const cx=W/2;
+    const cx=W/2, cy=H/2;
 
-    /* ── Centre de la spirale — positionné comme Fight Club : légèrement au-dessus du centre ── */
-    const spX=cx, spY=H*0.48;
+    /* ── Couleurs fidèles à l'image ── */
+    const BG   ='rgb(8,6,4)';       /* noir chaud */
+    const BEIGE='rgb(188,168,128)'; /* beige sable */
 
-    /* ── Rayon de la spirale — couvre tout l'écran depuis spX,spY ── */
-    const outerR=Math.hypot(Math.max(spX,W-spX), Math.max(spY,H-spY))*1.08;
-    const innerR=W*0.028; /* trou du canon */
+    /* ── Centre de la spirale — légèrement en haut ── */
+    const spX=cx, spY=H*0.42;
 
-    /* ── Rotation animée de la spirale ── */
-    let spiralRot=0;
+    /* ── Rotation de la spirale ── */
+    let rot=0;
+
+    /* ── SVG Bond — Path2D ── */
+    const _bondPath=new Path2D('M483.304 909.482C484.303 894.022 488.713 878.056 492.046 863.206C495.327 848.589 499.27 834.413 502.318 819.744C505.055 810.912 509.581 803.908 517.609 799.07C528.439 792.534 544.275 792.326 555.961 786.23C565.701 781.146 574.028 774.065 578.749 763.974C588.269 743.625 582.692 718.295 579.812 697.037C578.191 685.105 575.299 672.343 575.299 660.294C575.299 646.105 565.623 627.286 562.576 613.084C558.962 595.919 556.033 578.616 553.795 561.218C549.153 526.866 545.934 492.337 544.146 457.719C543.549 445.463 544.716 431.494 538.556 420.366C525.651 397.047 491.761 387.812 468.428 379.265C454.083 373.999 439.648 368.773 426.017 361.782C416.238 356.763 392.866 345.622 389.066 334.416C382.438 314.87 386.783 289.021 358.587 300.565C358.016 300.798 359.261 289.32 359.663 288.036C361.116 283.406 363.554 279.113 366.2 275.053C371.687 266.61 378.431 259.061 383.761 250.488C388.288 243.212 385.292 233.005 387.964 225.055L393.164 204.692C420.608 182.021 418.806 144.707 414.655 140.142C413.41 137.444 409.908 136.419 409.182 135.641C407.301 133.67 407.639 125.823 408.611 120.946C416.082 107.587 412.775 81.8295 411.05 73.1138C409.714 66.6419 406.186 59.6901 403.216 52.9717C395.642 35.7998 389.196 17.7459 367.925 11.0535C339.846 3.64773 268.888 5.96932 236.723 44.9175C208.812 73.5807 221.108 149.246 215.868 150.362C214.765 149.558 209.915 151.944 209.642 157.495C207.567 171.399 207.956 204.044 228.267 218.44C231.717 220.697 229.369 236.533 229.369 242.24C228.85 254.69 240.264 273.38 239.486 279.605C239.486 288.944 236.321 294.469 244.155 299.06C249.823 302.782 282.429 314.935 279.887 328.475C278.317 336.854 282.921 349.759 285.36 357.735C287.772 365.673 290.379 375.841 295.619 382.43C304.555 393.674 328.925 364.181 334.917 358.954C356.927 347.1 367.925 381.82 386.55 389.433C406.861 474.074 397.587 631.722 392.477 666.221C385.837 699.981 383.165 675.533 383.165 675.533C379.637 600.438 254.077 320.175 230.809 315.804C212.223 306.855 202.885 334.429 185.103 334.429C179.916 325.933 183.353 316.906 189.254 310.564C201.77 302.056 198.021 297.231 192.12 292.407C187.295 288.114 184.17 279.035 187.218 271.071C188.67 262.356 186.673 250.787 179.384 243.562C174.65 238.867 154.586 233.641 159.683 225.171C161.745 221.747 171.848 222.837 174.987 220.891C183.91 215.327 179.877 208.038 171.031 206.754C163.185 205.613 159.358 199.349 158.126 190.996C156.998 183.292 159.371 175.536 159.631 167.845C159.761 164.213 159.799 160.426 158.502 156.963C157.154 153.371 153.25 151.464 151.914 148.507C151.771 148.183 151.2 147.158 151.654 139.35C151.784 136.99 155.221 140.142 155.403 137.301C154.767 137.612 163.262 3.29755 163.275 3.01222C162.782 0.366385 142.42 -0.956537 141.175 0.794381C141.447 1.02784 133.717 135.913 133.86 136.069C133.821 138.598 138.036 136.419 137.984 138.637C138.244 140.959 137.53 147.664 137.245 150.232C117.803 164.213 130.903 204.394 102.992 212.578C84.3673 218.025 99.5938 244.341 93.2127 255.261C89.0494 262.369 81.2675 265.78 77.9213 274.21C74.7827 282.147 74.3676 291.045 74.7567 299.475C75.5349 316.803 84.3932 325.57 84.3673 349.694C84.3413 369.33 102.149 383.091 120.501 386.762C143.756 395.944 161.395 375.932 175.778 386.087C176.038 401.262 174.339 415.542 167.996 427.357C153.807 453.776 116.831 460.806 93.6796 437.72C61.761 425.308 79.2961 407.254 75.898 392.014C76.1445 393.104 39.1936 404.893 35.5491 407.332C25.2252 414.219 27.1317 423.466 27.1577 434.542C27.3782 513.969 16.73 592.605 7.23612 671.305C5.64084 684.534 4.16228 697.79 2.64482 711.019C1.49051 721.2 -1.99835 733.249 1.55537 742.976C13.2411 775.024 44.9781 801.677 72.513 818.616C91.0078 829.99 109.477 808.655 125.948 815.685C142.057 822.572 139.528 852.428 140.5 866.098C142.148 889.703 139.748 913.879 135.741 937.16C127.764 983.617 112.797 1028.61 105.78 1075.25C103.69 1088.68 102.322 1102.21 101.682 1115.78C101.423 1122.06 98.3228 1155.7 103.173 1159.57C106.221 1166.23 115.754 1165.97 114.82 1184.26C106.299 1287.51 102.097 1391.04 97.778 1494.52C93.4721 1597.93 89.1272 1701.4 80.3207 1804.55C75.7165 1858.48 65.7816 1911.85 63.6416 1966.01C61.8388 2011.41 44.7965 2059.46 57.2605 2104.35C62.6429 2123.75 53.8754 2149.21 66.5728 2165.29C65.4574 2184.11 53.9143 2192.06 51.3333 2199.16C43.7201 2227.07 64.2642 2252.93 78.4271 2262.64C107.233 2285.19 121.552 2280 139.372 2275.34C164.767 2267.71 174.922 2245.73 191.005 2226.25C198.748 2209.21 183.391 2191.54 185.078 2171.23C220.2 2164.48 216.996 1916.2 236.71 1839.41C240.705 1810.18 257.812 1706.37 265.944 1606.92C268.577 1587.14 267.513 1575.51 270.561 1555.84C286.696 1488.58 305.268 1395.04 316.267 1312.08H319.652C328.523 1377.86 329.405 1453.25 344.748 1509.76C364.748 1596.83 365.707 1616.94 350.014 1672.31C336.11 1747.95 336.214 1848.34 338.886 1924.82C341.558 2001.2 340.533 2084.36 356.058 2159.37C356.823 2163.04 358.38 2163.17 360.999 2162.96C364.501 2162.4 367.342 2182.94 367.432 2191.98C367.225 2193.48 367.731 2197.59 367.912 2199.16C370.869 2220.74 417.068 2227.2 424.02 2228.18C445.368 2231.15 469.479 2211.84 499.102 2238.92C499.076 2238.87 502.629 2239.8 503.797 2239.86C553.004 2247.83 612.872 2250.83 653.999 2223.7C661.47 2218.25 658.98 2205.33 644.934 2201.58C609.306 2193.4 581.459 2170.62 550.734 2153.43C539.632 2147.21 525.521 2131.36 528.335 2125.01C529.269 2121.82 533.744 2120.96 529.567 2107.73C494.017 1985.84 500.528 1823.54 515.755 1695.71C516.17 1681.3 527.557 1664.27 529.567 1647.25C543.951 1465.28 507.272 1291.68 507.272 1114.75C512.486 1110.85 515.028 1100.12 511.215 1091.36C504.678 1064.85 500.139 1037.84 494.666 1011.1C490.944 992.981 488.804 964.02 484.511 947.924C482.954 941.997 482.915 915.552 483.304 909.482Z');
+    const _bondPath2=new Path2D('M122.175 405.243C122.616 401.119 119.413 397.397 115.029 396.93C110.645 396.476 106.741 399.433 106.3 403.57C105.859 407.708 109.063 411.417 113.447 411.884C117.843 412.338 121.747 409.368 122.175 405.243ZM225.103 773.26C227.529 768.488 226.738 763.209 223.339 761.484C219.941 759.772 215.22 762.249 212.795 767.022C210.37 771.795 211.161 777.074 214.559 778.799C217.957 780.524 222.678 778.059 225.103 773.26Z');
+
+    /* ── SVG 007 logo ── */
+    const _007Path=new Path2D('M398.252 68.7302L422.869 33.6599H495.318C490.247 50.6114 462.867 82.7894 413.595 130.025C367.514 175.666 338.812 213.2 327.217 243.057H381.703L389.251 229.14L389.835 228.712V228.271L390.548 226.676C409.523 195.224 435.034 164.797 467.07 135.667C529.234 75.8117 560.517 31.6236 560.673 2.49355H406.501L368.227 68.7042H398.252V68.7302ZM759.356 38.4458C773.844 26.5655 781.522 14.9705 782.261 3.81648H575.173C570.815 21.4943 564.615 36.8505 555.77 50.0407H664.599C666.622 45.8255 668.646 42.7777 670.526 40.469C671.992 38.4458 675.04 37.8621 679.67 38.4458H759.356ZM619.815 78.3018L644.742 73.6716L656.778 60.4814H549.7C526.367 85.4093 524.616 102.802 544.331 112.788C546.354 112.944 546.937 111.336 546.081 107.575C544.616 102.789 545.342 97.5749 548.105 92.0628C550.128 87.5752 552.592 84.3847 555.472 82.1928H596.793L555.472 129.597C550.4 132.632 544.33 133.942 537.366 133.073H489.844L476.499 144.811H535.926C548.662 145.537 558.519 142.645 564.9 136.549L605.613 89.3002C610.84 82.1928 615.457 78.4315 619.815 78.3018ZM360.419 68.0168C365.049 33.2319 356.515 12.0782 334.778 4.24447C309.267 -5.59958 280.448 4.54278 248.114 34.8142C236.506 45.8385 225.793 58.4451 215.365 72.647C207.104 83.5157 201.008 92.9317 197.376 100.61L188.687 118.443C182.144 132.172 176.903 146.484 173.032 161.192C161.152 204.368 167.533 231.76 192.033 243.057C216.805 254.496 245.637 245.806 278.411 216.689C297.447 199.46 313.979 179.654 327.528 157.845L336.373 142.632C348.383 119.429 356.36 95.383 359.978 70.0271L360.419 68.0168ZM239.554 115.395C248.27 98.5866 259.722 80.4808 273.327 61.6357C294.779 31.3643 310.875 18.4464 321.588 22.2206C337.826 28.3164 325.79 66.2659 285.791 136.406C275.662 153.215 263.354 171.049 248.983 189.881C226.818 217.701 211.591 229.737 203.187 225.379C194.497 220.749 196.961 202.786 210.735 171.477L239.554 115.395ZM193.044 67.2776C197.83 32.6483 189.115 11.4946 167.533 3.51817C141.892 -6.19618 113.047 4.24447 81.0246 34.3732C69.4166 45.2419 58.561 57.8615 48.1203 72.0504C39.8586 82.919 33.7887 92.3351 30.1572 100.169L21.3118 117.847C14.9222 131.59 9.68608 145.841 5.65731 160.452C-6.06736 203.784 0.443466 231.176 25.086 242.486C49.5859 253.925 78.4047 245.093 111.011 216.106C130.725 198 147.235 178.584 160.438 157.275L169.128 142.048C180.967 119.378 188.945 94.8926 192.733 69.5991L193.044 67.2776ZM72.3478 114.812C81.0375 98.0029 92.3343 80.1825 105.965 61.1947C127.547 31.053 143.63 17.8627 154.369 21.6369C170.581 27.7198 158.545 65.8379 118.572 135.68C108.715 152.632 96.2511 170.465 81.8936 189.297C59.7283 217.26 44.3461 229.14 35.9676 224.808C27.2519 220.165 29.7421 202.046 43.4901 170.893L72.3478 114.812Z');
 
     /* ── Coup de feu ── */
-    let shotTimer=180, flashAlpha=0, bloodY=0, bloodActive=false;
-    const shotCooldown=400;
+    let shotTimer=240, flashAlpha=0, bloodY=0, bloodActive=false;
+    const shotCooldown=420;
 
-    /* ── Particules dorées ── */
-    const gold=Array.from({length:45},()=>({
-     x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.25, vy:-(Math.random()*0.30+0.05),
-     r:Math.random()*1.6+0.3,
-     op:Math.random()*0.20+0.04,
-     phase:Math.random()*Math.PI*2
-    }));
-
-    /* ── Spirale du gun barrel ── */
+    /* ── Spirale gun barrel — style image de référence ──
+       L'image a 3-4 GRANDES courbes beiges larges sur fond noir.
+       On les dessine comme des bandes spiralées via bezier. */
     function drawSpiral(){
-     ctx.save();
-
-     /* Fond — noir chaud */
-     ctx.fillStyle='rgb(3,2,1)';
+     ctx.fillStyle=BG;
      ctx.fillRect(0,0,W,H);
 
-     const nArcs=32;
+     /* Rayon du cercle central éclairé */
+     const innerR=W*0.20;
 
-     for(let i=0;i<nArcs;i++){
-      const prog=i/nArcs;
-      const progNext=(i+1)/nArcs;
-      const r=outerR*(1-prog)+innerR*prog;
-      const rNext=outerR*(1-progNext)+innerR*progNext;
-      const rMid=(r+rNext)*0.5;
-      const lightness=1-prog; /* 1=bord extérieur clair, 0=centre noir */
+     /* ── Zone centrale illuminée — cercle beige dégradé ── */
+     const centerG=ctx.createRadialGradient(spX,spY,0,spX,spY,innerR);
+     centerG.addColorStop(0,  'rgb(205,188,152)');
+     centerG.addColorStop(0.5,'rgb(192,172,132)');
+     centerG.addColorStop(0.85,'rgb(168,148,108)');
+     centerG.addColorStop(1,  'rgb(130,112,78)');
+     ctx.fillStyle=centerG;
+     ctx.beginPath();ctx.arc(spX,spY,innerR,0,Math.PI*2);ctx.fill();
 
-      /* Palette fidèle : beige/sable chaud → brun → noir */
-      let rc,gc,bc;
-      if(lightness>0.65){
-       const p=(lightness-0.65)/0.35;
-       rc=Math.round(168+p*38);gc=Math.round(140+p*30);bc=Math.round(88+p*18);
-      } else if(lightness>0.30){
-       const p=(lightness-0.30)/0.35;
-       rc=Math.round(62+p*106);gc=Math.round(46+p*94);bc=Math.round(24+p*64);
-      } else {
-       const p=lightness/0.30;
-       rc=Math.round(3+p*59);gc=Math.round(2+p*44);bc=Math.round(1+p*23);
-      }
+     /* ── 4 grandes bandes spiralées — comme l'image ──
+        Chaque bande part de l'extérieur et enroule vers le centre.
+        On les trace comme des régions fermées (fill) en beige. */
+     const nBands=4;
+     const outerR=Math.hypot(Math.max(spX,W-spX), Math.max(spY,H-spY))*1.15;
 
-      /* Anneau plein */
+     ctx.save();
+     ctx.translate(spX,spY);
+     ctx.rotate(rot);
+
+     for(let b=0;b<nBands;b++){
+      const angleStart=(b/nBands)*Math.PI*2;
+      const steps=120;
+
       ctx.beginPath();
-      ctx.arc(spX,spY,r,0,Math.PI*2);
-      ctx.arc(spX,spY,rNext,Math.PI*2,0,true);
-      ctx.closePath();
-      ctx.fillStyle=`rgb(${rc},${gc},${bc})`;
-      ctx.fill();
-
-      /* Séparateur sombre entre anneaux */
-      if(i<nArcs-1){
-       ctx.beginPath();ctx.arc(spX,spY,rNext,0,Math.PI*2);
-       ctx.strokeStyle=`rgba(${rc*0.35|0},${gc*0.25|0},${bc*0.15|0},0.80)`;
-       ctx.lineWidth=Math.max(0.3,2.8*(1-prog));
-       ctx.stroke();
+      /* Bord extérieur de la bande — suit la spirale de l'extérieur vers le centre */
+      for(let i=0;i<=steps;i++){
+       const prog=i/steps;
+       const angle=angleStart+prog*Math.PI*1.85; /* ~1 tour */
+       const r=outerR*(1-prog)+innerR*prog;
+       const bandWidth=r*0.22*(1-prog*0.3); /* bande plus fine au centre */
+       if(i===0) ctx.moveTo(Math.cos(angle)*(r+bandWidth), Math.sin(angle)*(r+bandWidth));
+       else ctx.lineTo(Math.cos(angle)*(r+bandWidth), Math.sin(angle)*(r+bandWidth));
       }
+      /* Bord intérieur — revient en sens inverse */
+      for(let i=steps;i>=0;i--){
+       const prog=i/steps;
+       const angle=angleStart+prog*Math.PI*1.85;
+       const r=outerR*(1-prog)+innerR*prog;
+       const bandWidth=r*0.22*(1-prog*0.3);
+       ctx.lineTo(Math.cos(angle)*(r-bandWidth*0.02), Math.sin(angle)*(r-bandWidth*0.02));
+      }
+      ctx.closePath();
 
-      /* Arc de reflet lumineux — tourne avec spiralRot */
-      const refA=spiralRot+prog*Math.PI*3.8+Math.PI*0.12;
-      const refLen=Math.PI*(0.16+lightness*0.10);
-      ctx.beginPath();ctx.arc(spX,spY,rMid,refA,refA+refLen);
-      ctx.strokeStyle=`rgba(${Math.min(255,rc+58)|0},${Math.min(255,gc+50)|0},${Math.min(255,bc+32)|0},${0.38+lightness*0.28})`;
-      ctx.lineWidth=Math.max(0.3,2.2*(1-prog*0.72));
-      ctx.stroke();
+      /* Dégradé le long de la bande — plus clair au bord, fondu côté ombre */
+      const gx1=Math.cos(angleStart)*outerR*0.5;
+      const gy1=Math.sin(angleStart)*outerR*0.5;
+      const bandG=ctx.createRadialGradient(gx1*0.3,gy1*0.3,innerR*0.5,0,0,outerR*0.9);
+      bandG.addColorStop(0,  'rgba(198,178,138,0.96)');
+      bandG.addColorStop(0.4,'rgba(182,162,122,0.88)');
+      bandG.addColorStop(0.75,'rgba(152,132,92,0.70)');
+      bandG.addColorStop(1,  'rgba(110,90,55,0.0)');
+      ctx.fillStyle=bandG;
+      ctx.fill();
+     }
 
-      /* Arc d'ombre — opposé au reflet */
-      const shdA=refA+Math.PI*0.88;
-      ctx.beginPath();ctx.arc(spX,spY,rMid,shdA,shdA+refLen*0.75);
-      ctx.strokeStyle=`rgba(0,0,0,${0.42+prog*0.32})`;
-      ctx.lineWidth=Math.max(0.3,2.8*(1-prog*0.6));
+     /* ── Ombres entre les bandes — fines lignes noires ── */
+     for(let b=0;b<nBands;b++){
+      const angleStart=(b/nBands)*Math.PI*2;
+      const steps=80;
+      ctx.beginPath();
+      for(let i=0;i<=steps;i++){
+       const prog=i/steps;
+       const angle=angleStart+prog*Math.PI*1.85;
+       const r=outerR*(1-prog)+innerR*prog;
+       if(i===0) ctx.moveTo(Math.cos(angle)*r, Math.sin(angle)*r);
+       else ctx.lineTo(Math.cos(angle)*r, Math.sin(angle)*r);
+      }
+      ctx.strokeStyle='rgba(0,0,0,0.65)';
+      ctx.lineWidth=Math.max(1.5,W*0.004);
       ctx.stroke();
      }
 
-     /* Fond noir du canon — cercle central */
-     const cg=ctx.createRadialGradient(spX,spY,0,spX,spY,innerR*3.2);
-     cg.addColorStop(0,'rgb(0,0,0)');
-     cg.addColorStop(0.55,'rgba(2,1,0,0.97)');
-     cg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=cg;
-     ctx.beginPath();ctx.arc(spX,spY,innerR*3.2,0,Math.PI*2);ctx.fill();
+     ctx.restore();
 
+     /* ── Réapplique le fond noir là où la spirale dépasse ── */
+     /* Masque circulaire — on ne voit la spirale que dans un grand cercle */
+     ctx.save();
+     ctx.globalCompositeOperation='destination-in';
+     const mask=ctx.createRadialGradient(spX,spY,outerR*0.5,spX,spY,outerR);
+     mask.addColorStop(0,'rgba(0,0,0,1)');
+     mask.addColorStop(0.85,'rgba(0,0,0,1)');
+     mask.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=mask;
+     ctx.fillRect(0,0,W,H);
+     ctx.restore();
+     /* Remet le fond noir dans les coins */
+     ctx.save();
+     ctx.globalCompositeOperation='destination-over';
+     ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
      ctx.restore();
     }
 
-    /* ── Silhouette Bond — proportions Fight Club ── */
+    /* ── Bond SVG — dans le cercle central ── */
     function drawBond(){
-     /* Taille inspirée de Fight Club : H*0.26 de hauteur, W*0.10 de largeur */
-     const bh=H*0.26, bw=W*0.10;
-     const bx=spX, by=spY+bh*0.52; /* pieds juste en dessous du centre */
+     /* SVG Bond : viewBox 659×2280 — on le scale pour tenir dans innerR */
+     const innerR=W*0.20;
+     const SVG_W=659, SVG_H=2280;
+     /* Hauteur cible : ~80% du diamètre */
+     const targetH=innerR*1.55;
+     const sc=targetH/SVG_H;
+     const targetW=SVG_W*sc;
 
      ctx.save();
-
-     /* Rim light doré — contre-jour de la spirale */
-     const rimG=ctx.createRadialGradient(bx,by-bh*0.5,bw*0.1,bx,by-bh*0.5,bw*1.8);
-     rimG.addColorStop(0,'rgba(0,0,0,0)');
-     rimG.addColorStop(0.5,`rgba(${180+Math.sin(t*0.4)*15|0},${148+Math.sin(t*0.35)*12|0},${72+Math.sin(t*0.3)*8|0},0.22)`);
-     rimG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=rimG;
-     ctx.fillRect(bx-bw*2,by-bh,bw*4,bh*1.1);
-
-     /* Silhouette — couleur légèrement plus claire que le fond noir du canon */
-     ctx.fillStyle='rgb(18,13,8)';
-
-     /* Tête */
-     ctx.beginPath();ctx.ellipse(bx-bw*0.04,by-bh*0.91,bw*0.16,bh*0.08,0,0,Math.PI*2);ctx.fill();
-
-     /* Corps smoking */
-     ctx.beginPath();
-     ctx.moveTo(bx-bw*0.22,by-bh*0.82);
-     ctx.bezierCurveTo(bx-bw*0.26,by-bh*0.60,bx-bw*0.24,by-bh*0.44,bx-bw*0.18,by-bh*0.38);
-     ctx.lineTo(bx+bw*0.16,by-bh*0.38);
-     ctx.bezierCurveTo(bx+bw*0.22,by-bh*0.44,bx+bw*0.24,by-bh*0.60,bx+bw*0.20,by-bh*0.82);
-     ctx.closePath();ctx.fill();
-
-     /* Bras gauche — tendu horizontal, tient le pistolet */
-     ctx.beginPath();
-     ctx.moveTo(bx-bw*0.20,by-bh*0.72);
-     ctx.lineTo(bx-bw*0.58,by-bh*0.60);
-     ctx.lineTo(bx-bw*0.55,by-bh*0.53);
-     ctx.lineTo(bx-bw*0.16,by-bh*0.64);
-     ctx.closePath();ctx.fill();
-
-     /* Walther PPK */
-     ctx.beginPath();
-     ctx.moveTo(bx-bw*0.60,by-bh*0.62);
-     ctx.lineTo(bx-bw*0.78,by-bh*0.56);
-     ctx.lineTo(bx-bw*0.76,by-bh*0.50);
-     ctx.lineTo(bx-bw*0.58,by-bh*0.55);
-     ctx.closePath();ctx.fill();
-     /* Canon */
-     ctx.fillRect(bx-bw*0.80,by-bh*0.575,bw*0.08,bh*0.028);
-
-     /* Bras droit — le long du corps */
-     ctx.beginPath();
-     ctx.moveTo(bx+bw*0.18,by-bh*0.76);
-     ctx.lineTo(bx+bw*0.28,by-bh*0.55);
-     ctx.lineTo(bx+bw*0.24,by-bh*0.40);
-     ctx.lineTo(bx+bw*0.14,by-bh*0.56);
-     ctx.closePath();ctx.fill();
-
-     /* Jambes */
-     ctx.beginPath();
-     ctx.moveTo(bx-bw*0.18,by-bh*0.38);
-     ctx.lineTo(bx-bw*0.22,by);
-     ctx.lineTo(bx-bw*0.05,by);
-     ctx.lineTo(bx,by-bh*0.38);
-     ctx.closePath();ctx.fill();
-     ctx.beginPath();
-     ctx.moveTo(bx,by-bh*0.38);
-     ctx.lineTo(bx+bw*0.04,by);
-     ctx.lineTo(bx+bw*0.20,by);
-     ctx.lineTo(bx+bw*0.16,by-bh*0.38);
-     ctx.closePath();ctx.fill();
-
-     /* Chaussures */
-     ctx.beginPath();ctx.ellipse(bx-bw*0.14,by+bh*0.018,bw*0.14,bh*0.022,0.1,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.ellipse(bx+bw*0.12,by+bh*0.018,bw*0.14,bh*0.022,-0.1,0,Math.PI*2);ctx.fill();
-
-     /* Liseré doré sur la silhouette — contour très fin */
-     ctx.strokeStyle=`rgba(175,142,68,${0.28+Math.sin(t*0.5)*0.06})`;
-     ctx.lineWidth=0.8;
-     /* Contour tête */
-     ctx.beginPath();ctx.ellipse(bx-bw*0.04,by-bh*0.91,bw*0.16,bh*0.08,0,0,Math.PI*2);ctx.stroke();
-     /* Contour épaules */
-     ctx.beginPath();
-     ctx.moveTo(bx-bw*0.22,by-bh*0.82);
-     ctx.bezierCurveTo(bx-bw*0.26,by-bh*0.60,bx-bw*0.24,by-bh*0.44,bx-bw*0.18,by-bh*0.38);
-     ctx.lineTo(bx+bw*0.16,by-bh*0.38);
-     ctx.bezierCurveTo(bx+bw*0.22,by-bh*0.44,bx+bw*0.24,by-bh*0.60,bx+bw*0.20,by-bh*0.82);
-     ctx.stroke();
-
+     /* Centré sur spX, spY */
+     ctx.translate(spX-targetW*0.5, spY-targetH*0.58);
+     ctx.scale(sc,sc);
+     ctx.fillStyle=BG; /* noir — silhouette sur fond beige */
+     ctx.fill(_bondPath);
+     ctx.fill(_bondPath2);
      ctx.restore();
     }
 
-    /* ── Sang dans le canon ── */
+    /* ── Sang discret ── */
     function drawBlood(){
      if(!bloodActive||bloodY<=0)return;
+     const innerR=W*0.20;
      ctx.save();
-     ctx.beginPath();ctx.arc(spX,spY,innerR*3.0,0,Math.PI*2);ctx.clip();
-     const bw=innerR*0.55;
-     const by0=spY-innerR*2.8;
-     const by1=Math.min(spY+innerR*2.8,by0+bloodY);
+     ctx.beginPath();ctx.arc(spX,spY,innerR*0.88,0,Math.PI*2);ctx.clip();
+     const bw=innerR*0.06;
+     const by0=spY-innerR*0.85;
+     const by1=Math.min(spY+innerR*0.85,by0+bloodY);
      const bg=ctx.createLinearGradient(0,by0,0,by1);
-     bg.addColorStop(0,'rgba(185,0,0,0.92)');
-     bg.addColorStop(0.5,'rgba(145,0,0,0.86)');
-     bg.addColorStop(1,'rgba(80,0,0,0.70)');
+     bg.addColorStop(0,'rgba(180,0,0,0.90)');
+     bg.addColorStop(1,'rgba(100,0,0,0.70)');
      ctx.fillStyle=bg;
      ctx.beginPath();
      ctx.moveTo(spX-bw,by0);ctx.lineTo(spX+bw,by0);
      ctx.lineTo(spX+bw*0.5,by1);ctx.lineTo(spX-bw*0.5,by1);
      ctx.closePath();ctx.fill();
-     if(bloodY>innerR*0.8){
-      ctx.beginPath();ctx.arc(spX,by1,bw*0.75+Math.sin(t*7)*0.3,0,Math.PI*2);
-      ctx.fillStyle='rgba(160,0,0,0.88)';ctx.fill();
+     if(bloodY>innerR*0.3){
+      ctx.beginPath();ctx.arc(spX,by1,bw*0.8,0,Math.PI*2);
+      ctx.fillStyle='rgba(150,0,0,0.85)';ctx.fill();
      }
+     ctx.restore();
+    }
+
+    /* ── Logo 007 SVG — bas gauche ── */
+    function draw007(){
+     const SVG_W=783, SVG_H=248;
+     const targetW=W*0.28;
+     const sc=targetW/SVG_W;
+     const px=W*0.042;
+     const py=H*0.938-SVG_H*sc;
+     ctx.save();
+     ctx.translate(px,py);ctx.scale(sc,sc);
+     ctx.fillStyle=BEIGE;
+     ctx.fill(_007Path);
      ctx.restore();
     }
 
     function frame(){
      if(stop.v)return;
 
-     /* ── Spirale ── */
-     spiralRot+=0.004; /* rotation lente */
+     /* Rotation très lente — comme le vrai gun barrel */
+     rot+=0.0025;
      drawSpiral();
-
-     /* ── Particules dorées — tombent doucement ── */
-     for(const p of gold){
-      p.phase+=0.016;
-      p.x+=p.vx+Math.sin(p.phase*0.7)*0.10;
-      p.y+=p.vy;
-      if(p.y<-p.r){p.y=H+p.r;p.x=Math.random()*W;}
-      const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3);
-      gr.addColorStop(0,`rgba(218,185,88,${p.op*(0.6+Math.sin(p.phase)*0.4)})`);
-      gr.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── Bond ── */
      drawBond();
      drawBlood();
 
-     /* ── Flash de tir ── */
+     /* Flash de tir */
      if(flashAlpha>0){
-      ctx.fillStyle=`rgba(255,230,150,${flashAlpha*0.18})`;ctx.fillRect(0,0,W,H);
-      /* Onde depuis le bout du pistolet */
-      const gunX=spX-W*0.082, gunY=spY-H*0.13*0.575;
-      const wR=innerR*(1+(1-flashAlpha)*6);
-      ctx.beginPath();ctx.arc(gunX,gunY,wR,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(255,210,80,${flashAlpha*0.60})`;ctx.lineWidth=2;ctx.stroke();
-      flashAlpha=Math.max(0,flashAlpha-0.07);
+      ctx.fillStyle=`rgba(255,235,160,${flashAlpha*0.15})`;ctx.fillRect(0,0,W,H);
+      const innerR=W*0.20;
+      const wR=innerR*(1+(1-flashAlpha)*3);
+      ctx.beginPath();ctx.arc(spX,spY,wR,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(255,210,80,${flashAlpha*0.50})`;ctx.lineWidth=2;ctx.stroke();
+      flashAlpha=Math.max(0,flashAlpha-0.06);
      }
 
-     /* ── Cycle de tir ── */
+     /* Cycle de tir */
      shotTimer++;
      if(shotTimer>=shotCooldown){
       shotTimer=0;flashAlpha=1.0;bloodY=0;bloodActive=true;
      }
      if(bloodActive){
-      if(shotTimer>10&&shotTimer<160) bloodY+=innerR*0.065;
-      else if(shotTimer>=160) bloodY=Math.max(0,bloodY-innerR*0.055);
+      if(shotTimer>8&&shotTimer<140) bloodY+=W*0.014;
+      else if(shotTimer>=140) bloodY=Math.max(0,bloodY-W*0.020);
       if(bloodY<=0&&shotTimer>200) bloodActive=false;
      }
 
-     /* ── "007" en bas gauche — discret, doré ── */
-     ctx.save();
-     ctx.font=`bold ${W*0.062}px 'Arial Black',sans-serif`;
-     ctx.textAlign='left';ctx.textBaseline='bottom';
-     ctx.fillStyle=`rgba(172,144,90,${0.60+Math.sin(t*0.35)*0.05})`;
-     ctx.fillText('007',W*0.055,H*0.948);
-     ctx.restore();
-
-     /* Vignette douce */
-     const vg=ctx.createRadialGradient(spX,spY,outerR*0.45,spX,spY,outerR*1.05);
-     vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(1,'rgba(0,0,0,0.35)');
-     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+     draw007();
 
      t+=0.016;requestAnimationFrame(frame);
     }
