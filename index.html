@@ -7707,10 +7707,13 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   <div id="landscape-overlay">
     <div class="lo-inner">
       <div class="lo-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="2" y="5" width="14" height="20" rx="2"/>
-          <path d="M16 9h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"/>
-          <path d="M9 2v3M9 19v3"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Corps téléphone portrait -->
+          <rect x="7" y="2" width="10" height="17" rx="2"/>
+          <circle cx="12" cy="17" r="0.8" fill="currentColor" stroke="none"/>
+          <!-- Flèche de rotation courbe en bas à droite -->
+          <path d="M19 14 A7 7 0 0 1 5 14"/>
+          <polyline points="19,11 19,14 22,14"/>
         </svg>
       </div>
       <div class="lo-title">Tournez votre téléphone</div>
@@ -26671,52 +26674,205 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     cv.style.opacity='0.72';
     let t=0;
 
-    /* ── Colisée pré-dessiné ── */
+    /* ══════════════════════════════════════════════
+       COLISÉE — pré-rendu statique haute fidélité
+       Gradins elliptiques + spectateurs + arches
+       ══════════════════════════════════════════════ */
     const colC=document.createElement('canvas');
     colC.width=W;colC.height=H;
     const cx2=colC.getContext('2d');
-    const arenaY=H*0.78;
 
-    /* ciel romain brûlant */
-    const sky=cx2.createLinearGradient(0,0,0,arenaY);
-    sky.addColorStop(0,'rgba(12,6,2,1)');
-    sky.addColorStop(0.4,'rgba(50,20,4,1)');
-    sky.addColorStop(0.75,'rgba(120,55,8,1)');
-    sky.addColorStop(1,'rgba(160,80,12,1)');
-    cx2.fillStyle=sky;cx2.fillRect(0,0,W,arenaY);
+    /* Horizon bas : sable occupe ~28% du bas, gradins ~42%, ciel le reste */
+    const arenaY   = H * 0.58;   /* bord haut du sable (pied des gradins) */
+    const sandBot  = H;
+    const cx       = W / 2;
 
-    /* arènes — arches en perspective */
-    const nArches=9;
-    for(let i=0;i<nArches;i++){
-     const ax=W*i/(nArches-1);
-     const aH=H*(0.08+Math.abs(i-nArches/2)/(nArches)*0.04);
-     const aW=W/(nArches)*0.7;
-     /* pilier */
-     cx2.fillStyle='rgba(45,30,12,0.88)';
-     cx2.fillRect(ax-aW*0.18,arenaY-aH*1.8,aW*0.36,aH*1.8);
-     /* arche */
-     cx2.beginPath();
-     cx2.arc(ax,arenaY-aH*1.8,aW*0.36,Math.PI,0);
-     cx2.fillStyle='rgba(55,35,14,0.82)';cx2.fill();
-     /* intérieur arche sombre */
-     cx2.beginPath();
-     cx2.arc(ax,arenaY-aH*1.8,aW*0.24,Math.PI,0);
-     cx2.fillStyle='rgba(8,5,2,0.9)';cx2.fill();
+    /* ── Ciel romain embrasé ── */
+    const sky=cx2.createLinearGradient(0,0,0,arenaY*0.9);
+    sky.addColorStop(0,  'rgba(8,4,1,1)');
+    sky.addColorStop(0.3,'rgba(35,12,3,1)');
+    sky.addColorStop(0.7,'rgba(95,38,6,1)');
+    sky.addColorStop(1,  'rgba(145,65,10,1)');
+    cx2.fillStyle=sky; cx2.fillRect(0,0,W,arenaY);
+
+    /* ── Structure du Colisée — 3 niveaux d'arches en ellipse ── */
+    /* On dessine 3 « ceintures » concentriques de bas en haut          */
+    /* Chaque ceinture = une rangée d'arches romaines en perspective     */
+
+    const levels=[
+      /* y_top,  y_bot,   rx_ext, rx_int, nArches, archH,  col_stone,             col_shadow */
+      {yt:H*0.13, yb:H*0.30, rxE:W*0.52, rxI:W*0.44, n:13, aHf:0.62, cs:'rgba(72,48,22,1)',  sh:'rgba(18,10,3,0.92)'},
+      {yt:H*0.29, yb:H*0.44, rxE:W*0.52, rxI:W*0.44, n:13, aHf:0.60, cs:'rgba(88,58,24,1)',  sh:'rgba(20,11,3,0.90)'},
+      {yt:H*0.43, yb:H*0.56, rxE:W*0.52, rxI:W*0.44, n:13, aHf:0.58, cs:'rgba(105,70,28,1)', sh:'rgba(25,14,4,0.88)'},
+    ];
+
+    /* Centre vertical de l'ellipse de la façade */
+    const ellCY = H * 0.34;
+
+    for(const lv of levels){
+      const lvH = lv.yb - lv.yt;
+      const archW = (Math.PI * lv.rxE * 2) / lv.n;   /* largeur approx d'une arche */
+      const pilW  = archW * 0.22;
+      const archHpx = lvH * lv.aHf;
+
+      for(let i=0;i<lv.n;i++){
+        /* angle sur l'ellipse — seulement la moitié avant (visible) */
+        const a = (i / lv.n) * Math.PI * 2;
+        /* position x,y projetée */
+        const px = cx + Math.cos(a) * lv.rxE;
+        const py = ellCY + Math.sin(a) * (lv.yb - ellCY) * 0.38;
+        /* masquer ce qui est « derrière » */
+        if(Math.sin(a) < -0.08) continue;
+        /* perspective : les arches sur les côtés sont plus étroites */
+        const psp = 0.45 + 0.55 * Math.abs(Math.cos(a));
+        const aw2 = archW * psp * 0.38;
+        const ah  = archHpx * (0.82 + 0.18 * psp);
+        const archTop = py - ah;
+
+        /* pierre de fond */
+        cx2.fillStyle = lv.cs;
+        cx2.fillRect(px - aw2, archTop, aw2*2, ah + 2);
+
+        /* ombre intérieure de l'arche */
+        cx2.fillStyle = lv.sh;
+        cx2.beginPath();
+        const iaw = aw2 * 0.72;
+        cx2.rect(px - iaw, archTop, iaw*2, ah * 0.85);
+        cx2.fill();
+
+        /* demi-cercle de l'arche */
+        cx2.fillStyle = lv.sh;
+        cx2.beginPath();
+        cx2.arc(px, archTop, iaw, Math.PI, 0, false);
+        cx2.fill();
+
+        /* reflet pierre sur le pilier gauche */
+        const refG = cx2.createLinearGradient(px-aw2, 0, px-aw2+pilW, 0);
+        refG.addColorStop(0, 'rgba(255,200,100,0.12)');
+        refG.addColorStop(1, 'rgba(255,200,100,0)');
+        cx2.fillStyle = refG;
+        cx2.fillRect(px-aw2, archTop, pilW, ah);
+      }
+
+      /* bandeau horizontal entre les niveaux */
+      cx2.fillStyle = 'rgba(55,35,14,0.7)';
+      cx2.fillRect(0, lv.yb - 3, W, 5);
     }
-    /* sol de l'arène (sable) */
-    const sand=cx2.createLinearGradient(0,arenaY,0,H);
-    sand.addColorStop(0,'rgba(155,105,35,1)');
-    sand.addColorStop(0.3,'rgba(130,88,25,1)');
-    sand.addColorStop(1,'rgba(90,58,14,1)');
-    cx2.fillStyle=sand;cx2.fillRect(0,arenaY,W,H-arenaY);
-    /* ellipse de l'arène */
-    cx2.strokeStyle='rgba(180,125,45,0.35)';cx2.lineWidth=2;
-    cx2.beginPath();cx2.ellipse(W/2,arenaY+8,W*0.42,22,0,0,Math.PI*2);cx2.stroke();
-    /* texture sable */
-    for(let i=0;i<120;i++){
-     cx2.fillStyle='rgba('+(100+Math.random()*40|0)+','+(65+Math.random()*25|0)+','+(15+Math.random()*15|0)+',0.18)';
-     cx2.fillRect(Math.random()*W,arenaY+Math.random()*(H-arenaY),Math.random()*8+2,1);
+
+    /* ── Gradins — rangées elliptiques de sièges ── */
+    /* Visibles dans la zone arenaY↑ bas des arches                    */
+    const standTop  = H * 0.30;
+    const standBot  = arenaY;
+    const nRows     = 12;
+
+    for(let row=0; row<nRows; row++){
+      const frac = row / nRows;
+      const rowY  = standTop + frac*(standBot - standTop);
+      const rowH  = (standBot - standTop) / nRows * 0.72;
+      /* dégradé de profondeur : rangées du haut plus sombres */
+      const darkness = 0.35 + frac * 0.55;
+      const rowRx = W * (0.50 - frac * 0.08);
+
+      /* fond de la rangée */
+      const rg = cx2.createLinearGradient(0, rowY, 0, rowY + rowH);
+      rg.addColorStop(0, `rgba(${80+frac*40|0},${50+frac*25|0},${15+frac*10|0},${darkness})`);
+      rg.addColorStop(1, `rgba(${55+frac*30|0},${35+frac*18|0},${10+frac*8|0},${darkness})`);
+
+      cx2.save();
+      cx2.beginPath();
+      cx2.ellipse(cx, rowY, rowRx, rowH * 0.35, 0, 0, Math.PI);
+      cx2.lineTo(cx - rowRx * 1.02, rowY + rowH);
+      /* base de la rangée */
+      cx2.ellipse(cx, rowY + rowH * 0.35, rowRx * 1.02, rowH * 0.18, 0, Math.PI, 0);
+      cx2.closePath();
+      cx2.fillStyle = rg;
+      cx2.fill();
+      cx2.restore();
+
+      /* ── Spectateurs — silhouettes sur chaque rangée ── */
+      /* Nombre de sièges adapté à la longueur visible de la rangée     */
+      const nSeat = Math.round(16 + frac * 10);
+      for(let s=0; s<nSeat; s++){
+        const sa = (s / nSeat) * Math.PI;          /* angle 0→π (demi-ellipse) */
+        const sx = cx + Math.cos(Math.PI - sa) * rowRx * 0.92;
+        const sy = rowY + Math.sin(sa) * rowH * 0.28;
+        const sh = rowH * (0.55 + Math.random()*0.25);   /* hauteur silhouette */
+        const sw = rowH * 0.32;
+        /* perspective latérale */
+        const side = Math.abs(Math.cos(Math.PI - sa));
+        if(side > 0.92) continue;                  /* masquer les bords extrêmes */
+
+        /* variation couleur : toges blanches, robes colorées */
+        const palette=['rgba(200,180,140,','rgba(160,130,80,','rgba(220,200,160,',
+                        'rgba(130,100,60,','rgba(190,150,90,','rgba(80,50,20,'];
+        const col = palette[Math.floor(Math.random()*palette.length)];
+        const op  = 0.55 + frac * 0.28;
+
+        /* tête */
+        cx2.fillStyle = `rgba(${140+Math.random()*40|0},${100+Math.random()*30|0},${60+Math.random()*20|0},${op})`;
+        cx2.beginPath();
+        cx2.ellipse(sx, sy - sh*0.52, sw*0.42, sw*0.52, 0, 0, Math.PI*2);
+        cx2.fill();
+
+        /* corps */
+        cx2.fillStyle = col + op + ')';
+        cx2.beginPath();
+        cx2.moveTo(sx - sw*0.5, sy);
+        cx2.lineTo(sx - sw*0.38, sy - sh*0.35);
+        cx2.lineTo(sx + sw*0.38, sy - sh*0.35);
+        cx2.lineTo(sx + sw*0.5,  sy);
+        cx2.closePath();
+        cx2.fill();
+      }
+
+      /* ligne de séparation rangée */
+      cx2.strokeStyle = `rgba(30,18,6,${0.3+frac*0.3})`;
+      cx2.lineWidth = 0.8;
+      cx2.beginPath();
+      cx2.ellipse(cx, rowY + rowH*0.9, rowRx, rowH*0.12, 0, 0, Math.PI);
+      cx2.stroke();
     }
+
+    /* ── Sable de l'arène ── */
+    const sand=cx2.createLinearGradient(0,arenaY,0,sandBot);
+    sand.addColorStop(0,  'rgba(175,118,38,1)');
+    sand.addColorStop(0.25,'rgba(155,102,30,1)');
+    sand.addColorStop(0.6, 'rgba(128,85,22,1)');
+    sand.addColorStop(1,   'rgba(95,62,14,1)');
+    cx2.fillStyle=sand; cx2.fillRect(0,arenaY,W,sandBot-arenaY);
+
+    /* ellipse de délimitation du sable */
+    cx2.strokeStyle='rgba(200,145,50,0.5)'; cx2.lineWidth=2.5;
+    cx2.setLineDash([6,4]);
+    cx2.beginPath(); cx2.ellipse(cx,arenaY+6,W*0.44,18,0,0,Math.PI*2); cx2.stroke();
+    cx2.setLineDash([]);
+
+    /* sillon central */
+    cx2.strokeStyle='rgba(140,95,28,0.4)'; cx2.lineWidth=1.2;
+    cx2.beginPath(); cx2.ellipse(cx,arenaY+14,W*0.22,8,0,0,Math.PI*2); cx2.stroke();
+
+    /* texture sable — stries */
+    for(let i=0;i<180;i++){
+      const sx2=Math.random()*W;
+      const sy2=arenaY+Math.random()*(sandBot-arenaY);
+      const len=Math.random()*14+3;
+      cx2.strokeStyle=`rgba(${95+Math.random()*50|0},${62+Math.random()*30|0},${14+Math.random()*12|0},0.22)`;
+      cx2.lineWidth=Math.random()*1.2+0.3;
+      cx2.beginPath(); cx2.moveTo(sx2,sy2); cx2.lineTo(sx2+len,sy2+Math.random()*2-1); cx2.stroke();
+    }
+
+    /* trace de sang dans le sable — ligne sombre */
+    cx2.strokeStyle='rgba(80,12,5,0.35)'; cx2.lineWidth=3; cx2.lineCap='round';
+    cx2.beginPath();
+    cx2.moveTo(cx*0.7, arenaY+H*0.06);
+    cx2.quadraticCurveTo(cx*0.9, arenaY+H*0.04, cx*1.05, arenaY+H*0.08);
+    cx2.stroke();
+
+    /* ── Ombre portée sous les gradins sur le sable ── */
+    const shadowG = cx2.createLinearGradient(0,arenaY,0,arenaY+H*0.08);
+    shadowG.addColorStop(0,'rgba(10,5,1,0.62)');
+    shadowG.addColorStop(1,'rgba(10,5,1,0)');
+    cx2.fillStyle=shadowG; cx2.fillRect(0,arenaY,W,H*0.08);
 
     /* ── Gladiateur pré-dessiné ── */
     const gladC=document.createElement('canvas');
