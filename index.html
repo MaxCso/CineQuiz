@@ -26676,705 +26676,476 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     const cx=W/2;
 
     /* ═══════════════════════════════════════════════════════
-       GLADIATOR — Colisée romain
-       Architecture : vue intérieure depuis l'arène
-       Le spectateur EST le gladiateur — il regarde les gradins
+       GLADIATOR — Inspiré de l'affiche officielle
+       Vue depuis l'arène, gladiateur en silhouette,
+       Colisée en arrière-plan, ciel rouge sang.
+       Style : minimaliste 5 couleurs, flat avec profondeur.
        ═══════════════════════════════════════════════════════ */
 
-    /* ── Layout ── */
-    const SAND_Y  = H * 0.72;   /* sol de l'arène                  */
-    const HORIZ_Y = H * 0.38;   /* ligne d'horizon (bas des gradins)*/
-    const VANISH  = cx;         /* point de fuite central           */
+    /* Palette inspirée de l'affiche */
+    const C = {
+      skyTop:    '#1a0500',   /* rouge très sombre */
+      skyMid:    '#8b1800',   /* rouge profond */
+      skyHoriz:  '#d44000',   /* orange brûlé */
+      skyLow:    '#e86010',   /* orange chaud */
+      sunWhite:  '#fff5e0',   /* soleil blanc crème */
+      coliseum:  '#6b2800',   /* brun rouge colisée */
+      coliseumD: '#3d1400',   /* brun très sombre */
+      sand:      '#5a2008',   /* sable sombre */
+      silhouette:'#1a0800',   /* silhouette quasi noire */
+      cloud:     '#c84020',   /* nuages rose-rouge */
+    };
 
-    /* ════════════════════════════════════════════════
-       PRÉ-RENDU STATIQUE : architecture + sable
-    ════════════════════════════════════════════════ */
+    /* Layout */
+    const HORIZ   = H * 0.52;   /* ligne d'horizon (haut du colisée) */
+    const SAND_Y  = H * 0.72;   /* sol de l'arène                    */
+    const SUN_X   = cx * 0.92;  /* soleil légèrement à gauche centre */
+    const SUN_Y   = HORIZ * 0.70;
+    const SUN_R   = W * 0.11;   /* gros soleil comme l'affiche       */
+
+    /* ════════════════════════════════════
+       PRÉ-RENDU STATIQUE
+    ════════════════════════════════════ */
     const bgC=document.createElement('canvas');
     bgC.width=W; bgC.height=H;
     const b=bgC.getContext('2d');
 
-    /* ── Ciel ── */
-    const sk=b.createLinearGradient(0,0,0,HORIZ_Y);
-    sk.addColorStop(0,  '#030108');
-    sk.addColorStop(0.2,'#0e0303');
-    sk.addColorStop(0.5,'#3a0f02');
-    sk.addColorStop(0.8,'#7c2e06');
-    sk.addColorStop(1,  '#b85210');
-    b.fillStyle=sk; b.fillRect(0,0,W,HORIZ_Y);
+    /* ── 1. Ciel dégradé ── */
+    const sky=b.createLinearGradient(0,0,0,HORIZ);
+    sky.addColorStop(0,   '#0e0200');
+    sky.addColorStop(0.15,'#2a0700');
+    sky.addColorStop(0.38,'#7a1400');
+    sky.addColorStop(0.62,'#c83800');
+    sky.addColorStop(0.82,'#e05810');
+    sky.addColorStop(1,   '#e87828');
+    b.fillStyle=sky; b.fillRect(0,0,W,HORIZ+2);
 
-    /* halos chaleur */
-    [[W*.72,HORIZ_Y*.62,W*.60,'rgba(200,85,8,0.30)'],
-     [W*.18,HORIZ_Y*.80,W*.50,'rgba(180,65,5,0.18)']].forEach(([hx,hy,hr,hc])=>{
-      const h2=b.createRadialGradient(hx,hy,0,hx,hy,hr);
-      h2.addColorStop(0,hc); h2.addColorStop(1,'rgba(0,0,0,0)');
-      b.fillStyle=h2; b.fillRect(0,0,W,HORIZ_Y);
-    });
-
-    /* ── Colisée : vue en perspective intérieure ──
-       On dessine depuis la gauche vers la droite une façade
-       courbe simulée par des colonnes trapézoïdales en perspective.
-       Chaque colonne est plus étroite et plus haute vers les bords,
-       plus large et basse au centre — effet de courbure de l'arène. */
-
-    /* Zone des gradins : de HORIZ_Y vers le haut */
-    const ARCH_BOT = HORIZ_Y;   /* base des arches = horizon */
-    const N_COLS   = 9;         /* nb de colonnes visibles   */
-
-    /* Couleur de pierre par niveau */
-    const STONE = [
-      [42,26,10],  /* niveau 3 (haut, sombre) */
-      [62,40,16],  /* niveau 2 */
-      [85,56,22],  /* niveau 1 (bas, plus clair) */
+    /* ── 2. Nuages impressionnistes ── */
+    /* Style affiche : formes organiques plates, teintes claires */
+    const clouds=[
+      {x:W*.12,y:HORIZ*.18,rx:W*.18,ry:H*.028,op:.55,col:'#c04428'},
+      {x:W*.42,y:HORIZ*.12,rx:W*.22,ry:H*.022,op:.50,col:'#c84830'},
+      {x:W*.78,y:HORIZ*.20,rx:W*.16,ry:H*.025,op:.48,col:'#b83c22'},
+      {x:W*.25,y:HORIZ*.30,rx:W*.28,ry:H*.020,op:.42,col:'#d86038'},
+      {x:W*.65,y:HORIZ*.28,rx:W*.20,ry:H*.018,op:.40,col:'#c85030'},
+      {x:W*.10,y:HORIZ*.42,rx:W*.14,ry:H*.016,op:.35,col:'#e07848'},
+      {x:W*.50,y:HORIZ*.44,rx:W*.32,ry:H*.015,op:.32,col:'#e07040'},
+      {x:W*.82,y:HORIZ*.38,rx:W*.15,ry:H*.018,op:.35,col:'#d06030'},
+      /* nuages clairs plus bas — chaleur de l'horizon */
+      {x:W*.30,y:HORIZ*.62,rx:W*.24,ry:H*.014,op:.28,col:'#f09060'},
+      {x:W*.72,y:HORIZ*.58,rx:W*.18,ry:H*.013,op:.25,col:'#f08858'},
+      {x:W*.50,y:HORIZ*.72,rx:W*.38,ry:H*.012,op:.22,col:'#f0a070'},
     ];
-
-    /* Pour chaque colonne, on calcule x, width, height en perspective */
-    function colParams(i){
-      /* normalise i entre -1 (bord gauche) et +1 (bord droit) */
-      const norm = (i/(N_COLS-1))*2 - 1;           /* -1…+1 */
-      const dist  = Math.abs(norm);                 /* 0=centre, 1=bord */
-      /* en perspective : les colonnes des bords semblent plus proches */
-      const persp = 1 - dist*0.55;                 /* 1 au centre, 0.45 au bord */
-      const x     = cx + norm * W*0.52;            /* position X */
-      const colW  = W*0.11 * persp;                /* largeur colonne */
-      /* hauteur : les colonnes du centre paraissent plus basses (recul) */
-      const colH  = H*0.62 * (0.55 + dist*0.45);
-      const top   = ARCH_BOT - colH;
-      return {x, colW, colH, top, persp, dist, norm};
+    for(const c of clouds){
+      b.fillStyle=c.col;
+      b.globalAlpha=c.op;
+      b.beginPath(); b.ellipse(c.x,c.y,c.rx,c.ry,0,0,Math.PI*2); b.fill();
+      /* relief : bord inférieur légèrement plus clair */
+      b.fillStyle='rgba(255,180,100,0.12)';
+      b.beginPath(); b.ellipse(c.x,c.y+c.ry*.4,c.rx*.85,c.ry*.45,0,0,Math.PI*2); b.fill();
     }
+    b.globalAlpha=1;
 
-    /* ── Fond pierre continu derrière les colonnes ── */
-    for(let lv=0;lv<3;lv++){
-      const frac = lv/2;
-      const lvBot= ARCH_BOT - H*0.62*0.20*lv;
-      const lvTop= ARCH_BOT - H*0.62*(0.20*lv + 0.22);
-      const [sr,sg2,sb]=STONE[lv];
-      const lvG=b.createLinearGradient(0,lvTop,0,lvBot);
-      lvG.addColorStop(0,`rgba(${sr-8},${sg2-5},${sb-2},0.95)`);
-      lvG.addColorStop(1,`rgba(${sr+6},${sg2+4},${sb+1},0.95)`);
-      b.fillStyle=lvG; b.fillRect(0,lvTop,W,lvBot-lvTop);
-      /* joint horizontal */
-      b.fillStyle='rgba(8,4,1,0.55)'; b.fillRect(0,lvTop,W,2);
-    }
+    /* ── 3. Soleil — disque blanc comme l'affiche ── */
+    /* Grand halo doux */
+    const sunHalo=b.createRadialGradient(SUN_X,SUN_Y,SUN_R*.1,SUN_X,SUN_Y,SUN_R*4.5);
+    sunHalo.addColorStop(0,'rgba(255,240,180,0.55)');
+    sunHalo.addColorStop(0.15,'rgba(255,200,100,0.30)');
+    sunHalo.addColorStop(0.40,'rgba(230,130,30,0.15)');
+    sunHalo.addColorStop(1,'rgba(0,0,0,0)');
+    b.fillStyle=sunHalo; b.fillRect(0,0,W,HORIZ);
 
-    /* ── Colonnes + arches ── */
-    for(let i=0;i<N_COLS;i++){
-      const {x,colW,colH,top,persp,dist} = colParams(i);
-      const [sr,sg2,sb] = STONE[1];
+    /* Disque solaire blanc */
+    const sunDisc=b.createRadialGradient(SUN_X-SUN_R*.2,SUN_Y-SUN_R*.2,0,SUN_X,SUN_Y,SUN_R);
+    sunDisc.addColorStop(0,'rgba(255,255,248,1)');
+    sunDisc.addColorStop(0.5,'rgba(255,248,225,0.98)');
+    sunDisc.addColorStop(0.85,'rgba(255,232,180,0.92)');
+    sunDisc.addColorStop(1,'rgba(245,210,130,0.82)');
+    b.fillStyle=sunDisc;
+    b.beginPath(); b.arc(SUN_X,SUN_Y,SUN_R,0,Math.PI*2); b.fill();
 
-      /* Inter-colonne : ombre profonde (l'intérieur de l'arche) */
-      if(i < N_COLS-1){
-        const nx = colParams(i+1).x;
-        const interX = x + colW*0.5;
-        const interW = nx - colW*0.5 - interX;
-        const intG=b.createLinearGradient(0,top,0,ARCH_BOT);
-        intG.addColorStop(0,'rgba(2,1,0,0.98)');
-        intG.addColorStop(0.4,'rgba(4,2,0,0.92)');
-        intG.addColorStop(1,'rgba(10,5,1,0.70)');
-        b.fillStyle=intG; b.fillRect(interX,top,interW,ARCH_BOT-top);
-      }
+    /* ── 4. Colisée en arrière-plan — silhouette sur l'horizon ── */
+    /* Vue lointaine : la façade courbe du Colisée vue depuis l'intérieur */
+    /* On dessine une courbe elliptique avec des arches en découpe */
 
-      /* Corps de la colonne */
-      const cG=b.createLinearGradient(x-colW,0,x+colW,0);
-      cG.addColorStop(0,  `rgba(${sr+20},${sg2+13},${sb+5},0.98)`);  /* bord gauche éclairé */
-      cG.addColorStop(0.35,`rgba(${sr+8},${sg2+5},${sb+2},0.97)`);
-      cG.addColorStop(0.7, `rgba(${sr},${sg2},${sb},0.96)`);
-      cG.addColorStop(1,   `rgba(${sr-8},${sg2-5},${sb-1},0.95)`);   /* bord droit ombré */
-      b.fillStyle=cG; b.fillRect(x-colW,top,colW*2,colH);
+    const COL_Y   = HORIZ;          /* bas du colisée = horizon */
+    const COL_H   = H * 0.10;       /* hauteur de la façade visible */
+    const COL_RX  = W * 0.52;       /* demi-largeur ellipse colisée */
+    const COL_CX  = cx * 1.05;      /* légèrement décalé à droite */
 
-      /* Pierre sculptée : joints horizontaux */
-      for(let bk=1;bk<5;bk++){
-        const jy=top+colH*(bk/5);
-        b.fillStyle='rgba(5,2,0,0.40)'; b.fillRect(x-colW,jy,colW*2,1.2);
-        b.fillStyle='rgba(255,180,80,0.06)'; b.fillRect(x-colW,jy+1.2,colW*2,0.8);
-      }
+    /* Corps de la façade */
+    b.fillStyle=C.coliseum;
+    b.beginPath();
+    /* Arc supérieur de l'ellipse */
+    b.ellipse(COL_CX,COL_Y,COL_RX,COL_H,0,Math.PI,0,false);
+    /* Descend sur les côtés */
+    b.lineTo(COL_CX+COL_RX,COL_Y+COL_H);
+    b.lineTo(COL_CX-COL_RX,COL_Y+COL_H);
+    b.closePath(); b.fill();
 
-      /* Arche romaine en tête de colonne */
-      /* L'arche s'appuie sur les deux colonnes adjacentes */
-      if(i < N_COLS-1){
-        const np = colParams(i+1);
-        const archCx = (x + np.x) / 2;
-        const archRx = (np.x - x) / 2 * 0.72;
-        const archRy = archRx * 0.55;
-        const archCy = Math.min(top, np.top) + 2;
+    /* Deuxième niveau — plus sombre */
+    b.fillStyle=C.coliseumD;
+    b.beginPath();
+    b.ellipse(COL_CX,COL_Y-COL_H*.55,COL_RX*.88,COL_H*.55,0,Math.PI,0,false);
+    b.lineTo(COL_CX+COL_RX*.88,COL_Y-COL_H*.55+COL_H*.55);
+    b.lineTo(COL_CX-COL_RX*.88,COL_Y-COL_H*.55+COL_H*.55);
+    b.closePath(); b.fill();
 
-        /* Voûte extérieure */
-        b.strokeStyle=`rgba(${sr+15},${sg2+10},${sb+4},0.90)`;
-        b.lineWidth = colW*0.55 * persp;
-        b.beginPath();
-        b.arc(archCx, archCy, archRx, Math.PI, 0, false);
-        b.stroke();
+    /* Arches découpées dans la façade — style affiche très stylisé */
+    const N_ARCHES=13;
+    for(let i=0;i<N_ARCHES;i++){
+      const a = (i/(N_ARCHES-1))*Math.PI;    /* 0→π sur l'ellipse */
+      const ax = COL_CX - Math.cos(a)*COL_RX*.90;
+      const ay = COL_Y  + Math.sin(a)*COL_H*.18;
 
-        /* Voûte intérieure (ombre) */
-        b.strokeStyle='rgba(3,1,0,0.85)';
-        b.lineWidth = archRx*0.48 * persp;
-        b.beginPath();
-        b.arc(archCx, archCy, archRx*0.62, Math.PI, 0, false);
-        b.stroke();
+      /* Perspective : arches du centre plus larges */
+      const persp=Math.sin(a);
+      if(persp<0.06)continue;
+      const aW=W*.032*persp;
+      const aH=COL_H*(0.55+persp*.18);
+      const aTop=ay-aH;
 
-        /* Clef de voûte (pierre centrale) */
-        b.fillStyle=`rgba(${sr+25},${sg2+17},${sb+6},0.95)`;
-        b.beginPath();
-        b.arc(archCx, archCy-archRy*0.95, colW*0.55, 0, Math.PI*2);
-        b.fill();
-      }
-
-      /* Reflet solaire sur la face gauche de chaque colonne */
-      const rfG=b.createLinearGradient(x-colW,0,x-colW+colW*0.55,0);
-      rfG.addColorStop(0,`rgba(255,195,85,${0.16*persp})`);
-      rfG.addColorStop(1,'rgba(255,195,85,0)');
-      b.fillStyle=rfG; b.fillRect(x-colW,top,colW*0.55,colH);
-
-      /* Ombre portée au pied de la colonne sur le sable */
-      if(i===Math.floor(N_COLS/2)){
-        const shad=b.createRadialGradient(x,ARCH_BOT+4,2,x,ARCH_BOT+12,colW*1.8);
-        shad.addColorStop(0,'rgba(0,0,0,0.45)'); shad.addColorStop(1,'rgba(0,0,0,0)');
-        b.fillStyle=shad; b.fillRect(x-colW*1.8,ARCH_BOT,colW*3.6,H*0.06);
-      }
-    }
-
-    /* ── Gradins : rangées en perspective ── */
-    /* Vue depuis l'arène : les gradins montent depuis HORIZ_Y vers le haut.
-       Chaque rangée est un trapèze plus large vers le bas (perspective). */
-    const N_ROWS = 14;
-    const GRAD_TOP = H*0.02;   /* sommet des gradins */
-
-    for(let row=N_ROWS-1; row>=0; row--){
-      const frac = row/N_ROWS;   /* 0=bas (proche), 1=haut (loin) */
-      /* Y de la rangée — compression vers le haut (perspective) */
-      const rowBot = HORIZ_Y - (HORIZ_Y-GRAD_TOP)*Math.pow(frac,   1.6);
-      const rowTop = HORIZ_Y - (HORIZ_Y-GRAD_TOP)*Math.pow((row+1)/N_ROWS, 1.6);
-      const rowH   = Math.max(2, rowBot-rowTop);
-
-      /* Largeur : s'élargit vers le bas (perspective) */
-      const rowWHalf = W*(0.30 + (1-frac)*0.26);
-
-      /* Couleur : sombre en haut, éclairé en bas */
-      const lum  = 0.20 + (1-frac)*0.58;
-      const rr2  = (48  + (1-frac)*52) |0;
-      const rg3  = (30  + (1-frac)*32) |0;
-      const rb2  = (8   + (1-frac)*10) |0;
-
-      /* Surface du gradin */
-      b.fillStyle=`rgba(${rr2},${rg3},${rb2},${0.78+lum*0.18})`;
+      /* Découpe sombre (l'intérieur de l'arche = ciel visible) */
+      b.fillStyle=`rgba(12,3,0,0.88)`;
       b.beginPath();
-      b.moveTo(cx-rowWHalf, rowBot);
-      b.lineTo(cx+rowWHalf, rowBot);
-      b.lineTo(cx+rowWHalf*(rowTop/rowBot*0.82+0.18), rowTop);
-      b.lineTo(cx-rowWHalf*(rowTop/rowBot*0.82+0.18), rowTop);
+      b.rect(ax-aW,aTop+aH*.28,aW*2,aH*.72);
+      b.fill();
+      b.fillStyle=`rgba(12,3,0,0.88)`;
+      b.beginPath();
+      b.arc(ax,aTop+aH*.28,aW,Math.PI,0,false);
+      b.fill();
+    }
+
+    /* Créneaux au sommet */
+    for(let i=0;i<N_ARCHES+4;i++){
+      const a=((i-.5)/(N_ARCHES+3))*Math.PI;
+      const cx2=COL_CX-Math.cos(a)*COL_RX*.92;
+      const cy2=COL_Y+Math.sin(a)*COL_H*.12-COL_H*.62;
+      const cw=W*.012*Math.sin(a);
+      const ch=COL_H*.15*Math.sin(a);
+      if(cw<1||Math.sin(a)<0.1)continue;
+      b.fillStyle=C.coliseum;
+      b.fillRect(cx2-cw*.5,cy2-ch,cw,ch);
+    }
+
+    /* Silhouette de foule dans les arches */
+    b.fillStyle='rgba(20,5,0,0.65)';
+    for(let i=0;i<N_ARCHES;i++){
+      const a=(i/(N_ARCHES-1))*Math.PI;
+      const ax=COL_CX-Math.cos(a)*COL_RX*.90;
+      const persp=Math.sin(a);
+      if(persp<0.06)continue;
+      const ay=COL_Y+Math.sin(a)*COL_H*.18;
+      for(let s=0;s<Math.round(3*persp);s++){
+        const sx=ax+(s-.5)*W*.022*persp;
+        const sh=COL_H*(0.12+Math.random()*.08)*persp;
+        b.beginPath(); b.arc(sx,ay-COL_H*.02,W*.007*persp,0,Math.PI*2); b.fill();
+        b.fillRect(sx-W*.006*persp,ay-sh*.5,W*.012*persp,sh*.5);
+      }
+    }
+
+    /* ── 5. Zone entre horizon et sable — podium ── */
+    const wallG=b.createLinearGradient(0,HORIZ,0,SAND_Y);
+    wallG.addColorStop(0,C.coliseumD);
+    wallG.addColorStop(0.5,'#2e1005');
+    wallG.addColorStop(1,'#3a1808');
+    b.fillStyle=wallG; b.fillRect(0,HORIZ,W,SAND_Y-HORIZ);
+    /* Joints pierre */
+    for(let j=1;j<4;j++){
+      const jy=HORIZ+(SAND_Y-HORIZ)*(j/4);
+      b.fillStyle='rgba(0,0,0,0.38)'; b.fillRect(0,jy,W,1.5);
+    }
+
+    /* ── 6. Sol sableux ── */
+    const sandG=b.createLinearGradient(0,SAND_Y,0,H);
+    sandG.addColorStop(0,'#4a1a06');
+    sandG.addColorStop(0.3,'#3a1404');
+    sandG.addColorStop(0.7,'#280e02');
+    sandG.addColorStop(1,'#180800');
+    b.fillStyle=sandG; b.fillRect(0,SAND_Y,W,H-SAND_Y);
+    /* Quelques stries de sable très discrètes */
+    b.globalAlpha=0.18;
+    for(let i=0;i<80;i++){
+      const sx=Math.random()*W, sy=SAND_Y+Math.random()*(H-SAND_Y);
+      b.strokeStyle=`rgba(${90+Math.random()*40|0},${48+Math.random()*24|0},${8+Math.random()*8|0},1)`;
+      b.lineWidth=.4; b.beginPath(); b.moveTo(sx,sy); b.lineTo(sx+Math.random()*18+4,sy+Math.random()-0.5); b.stroke();
+    }
+    b.globalAlpha=1;
+
+    /* ── 7. Colonne romaine à droite — gros plan comme l'affiche ── */
+    const COL_PX = W * 0.86;   /* position X */
+    const COL_PW = W * 0.16;   /* largeur */
+    const COL_PT = H * 0.00;   /* top */
+    const COL_PB = H * 0.88;   /* bottom */
+
+    /* Fût de la colonne */
+    const colG=b.createLinearGradient(COL_PX-COL_PW,0,COL_PX+COL_PW*.5,0);
+    colG.addColorStop(0,'#2a1005');
+    colG.addColorStop(0.3,'#4a2010');
+    colG.addColorStop(0.55,'#5a2a14');
+    colG.addColorStop(0.8,'#3a1808');
+    colG.addColorStop(1,'#1a0800');
+    b.fillStyle=colG; b.fillRect(COL_PX-COL_PW,COL_PT,COL_PW*1.5,COL_PB-COL_PT);
+
+    /* Cannelures verticales */
+    for(let c=0;c<5;c++){
+      const cx3=COL_PX-COL_PW+c*(COL_PW*1.5/4);
+      b.strokeStyle='rgba(0,0,0,0.45)'; b.lineWidth=2;
+      b.beginPath(); b.moveTo(cx3,COL_PT); b.lineTo(cx3,COL_PB); b.stroke();
+      b.strokeStyle='rgba(255,160,80,0.08)'; b.lineWidth=1;
+      b.beginPath(); b.moveTo(cx3+2,COL_PT); b.lineTo(cx3+2,COL_PB); b.stroke();
+    }
+    /* Entablement (corniche) */
+    b.fillStyle='#3a1808';
+    b.fillRect(COL_PX-COL_PW*1.2,H*.40,COL_PW*1.8,H*.025);
+    b.fillRect(COL_PX-COL_PW*1.0,H*.42,COL_PW*1.5,H*.018);
+    b.fillStyle='rgba(255,160,70,0.12)';
+    b.fillRect(COL_PX-COL_PW*1.2,H*.40,COL_PW*1.8,2);
+    /* Ombre colonne sur le sol */
+    const colShadow=b.createLinearGradient(COL_PX-COL_PW*1.5,0,COL_PX-COL_PW,0);
+    colShadow.addColorStop(0,'rgba(0,0,0,0.60)');
+    colShadow.addColorStop(1,'rgba(0,0,0,0)');
+    b.fillStyle=colShadow; b.fillRect(COL_PX-COL_PW*2.2,0,COL_PW*1.2,H);
+
+    /* ── 8. Silhouette gladiateur — inspirée de l'affiche ── */
+    /* Style : masse sombre, reconnaissable, quelques détails de lumière */
+    const GX = cx * 0.92;    /* légèrement à gauche du soleil */
+    const GY = SAND_Y;        /* pose au sol */
+    const GH = H * 0.34;      /* hauteur silhouette */
+    const GW = GH * 0.32;     /* largeur */
+
+    function drawSilhouette(){
+      const sc = C.silhouette;
+
+      /* Piédestal — debout sur une légère élévation */
+      b.fillStyle=sc;
+      b.beginPath(); b.ellipse(GX,GY+4,GW*.8,GH*.04,0,0,Math.PI*2); b.fill();
+
+      /* Jambes */
+      b.fillStyle=sc;
+      b.beginPath();
+      b.moveTo(GX-GW*.32,GY);
+      b.lineTo(GX-GW*.10,GY-GH*.38);
+      b.lineTo(GX+GW*.08,GY-GH*.38);
+      b.lineTo(GX+GW*.28,GY);
+      b.closePath(); b.fill();
+      /* Séparation jambes */
+      b.fillStyle='rgba(0,0,0,0.6)';
+      b.beginPath();
+      b.moveTo(GX,GY); b.lineTo(GX-GW*.02,GY-GH*.22); b.lineTo(GX+GW*.04,GY);
       b.closePath(); b.fill();
 
-      /* Nez de marche illuminé */
-      b.strokeStyle=`rgba(${rr2+35},${rg3+22},${rb2+6},${lum*0.7})`;
-      b.lineWidth=Math.max(0.5, rowH*0.18);
+      /* Sandales / pieds */
+      b.fillStyle=sc;
+      b.fillRect(GX-GW*.38,GY-GH*.04,GW*.20,GH*.04);
+      b.fillRect(GX+GW*.20,GY-GH*.04,GW*.18,GH*.04);
+
+      /* Kilt — lamelles stylisées */
+      b.fillStyle=sc;
       b.beginPath();
-      b.moveTo(cx-rowWHalf, rowBot); b.lineTo(cx+rowWHalf, rowBot);
+      b.moveTo(GX-GW*.28,GY-GH*.38);
+      b.lineTo(GX-GW*.26,GY-GH*.52);
+      b.lineTo(GX+GW*.26,GY-GH*.52);
+      b.lineTo(GX+GW*.28,GY-GH*.38);
+      b.closePath(); b.fill();
+
+      /* Corps / cuirasse */
+      b.fillStyle=sc;
+      b.beginPath();
+      b.moveTo(GX-GW*.26,GY-GH*.52);
+      b.lineTo(GX-GW*.28,GY-GH*.78);
+      b.quadraticCurveTo(GX,GY-GH*.85,GX+GW*.28,GY-GH*.78);
+      b.lineTo(GX+GW*.26,GY-GH*.52);
+      b.closePath(); b.fill();
+
+      /* Bras gauche — tient le bouclier vers le bas */
+      b.strokeStyle=sc; b.lineWidth=GW*.22; b.lineCap='round'; b.lineJoin='round';
+      b.beginPath();
+      b.moveTo(GX-GW*.24,GY-GH*.72);
+      b.lineTo(GX-GW*.42,GY-GH*.55);
+      b.lineTo(GX-GW*.46,GY-GH*.38);
+      b.stroke();
+      /* bouclier */
+      b.fillStyle=sc;
+      b.beginPath();
+      b.moveTo(GX-GW*.56,GY-GH*.52); b.lineTo(GX-GW*.36,GY-GH*.52);
+      b.lineTo(GX-GW*.34,GY-GH*.26); b.lineTo(GX-GW*.54,GY-GH*.26);
+      b.closePath(); b.fill();
+
+      /* Bras droit — légèrement levé */
+      b.strokeStyle=sc; b.lineWidth=GW*.20;
+      b.beginPath();
+      b.moveTo(GX+GW*.24,GY-GH*.72);
+      b.lineTo(GX+GW*.38,GY-GH*.62);
+      b.lineTo(GX+GW*.42,GY-GH*.48);
       b.stroke();
 
-      /* Ombre du dessous de marche */
-      b.fillStyle=`rgba(0,0,0,${0.25+frac*0.20})`;
-      b.fillRect(cx-rowWHalf, rowTop, rowWHalf*2, rowH*0.28);
+      /* Cou + tête */
+      b.fillStyle=sc;
+      b.fillRect(GX-GW*.10,GY-GH*.90,GW*.20,GH*.12);
+      b.beginPath(); b.ellipse(GX,GY-GH*.97,GW*.14,GH*.10,0,0,Math.PI*2); b.fill();
 
-      /* ── Spectateurs ── */
-      const nSeat = Math.round(8 + (1-frac)*18);
-      const seatSpan = rowWHalf*1.85;
-      for(let s=0; s<nSeat; s++){
-        const sx = cx - rowWHalf*0.88 + (s/(nSeat-1))*rowWHalf*1.76;
-        const sy = rowBot - rowH*0.15;
-        /* taille proportionnelle à la distance */
-        const sH = rowH*(1.4 + (1-frac)*0.6);
-        const sW = Math.max(2, (rowWHalf*1.6/nSeat)*0.72);
-
-        /* corps */
-        const palR=[[195,175,135],[155,122,68],[210,195,158],[120,88,40],[185,142,78]];
-        const pc=palR[Math.floor(Math.random()*palR.length)];
-        b.fillStyle=`rgba(${pc[0]},${pc[1]},${pc[2]},${0.35+(1-frac)*0.45})`;
-        b.beginPath();
-        b.moveTo(sx-sW*.5,sy); b.lineTo(sx-sW*.35,sy-sH*.40);
-        b.lineTo(sx+sW*.35,sy-sH*.40); b.lineTo(sx+sW*.5,sy);
-        b.closePath(); b.fill();
-
-        /* tête */
-        const sk2=(148+Math.random()*38)|0, sk3=(105+Math.random()*25)|0, sk4=(55+Math.random()*18)|0;
-        b.fillStyle=`rgba(${sk2},${sk3},${sk4},${0.30+(1-frac)*0.42})`;
-        b.beginPath(); b.ellipse(sx,sy-sH*.54,sW*.32,sW*.38,0,0,Math.PI*2); b.fill();
-      }
-    }
-
-    /* Bandeau de séparation gradins / ciel */
-    b.fillStyle='rgba(0,0,0,0.35)'; b.fillRect(0,HORIZ_Y-1,W,3);
-
-    /* ── Sol de l'arène ── */
-    const sanG=b.createLinearGradient(0,SAND_Y,0,H);
-    sanG.addColorStop(0,  '#d49030');
-    sanG.addColorStop(0.25,'#b87428');
-    sanG.addColorStop(0.60,'#946018');
-    sanG.addColorStop(1,   '#624010');
-    b.fillStyle=sanG; b.fillRect(0,SAND_Y,W,H-SAND_Y);
-
-    /* Zone entre HORIZ_Y et SAND_Y : mur de l'arène + podium */
-    const wallG=b.createLinearGradient(0,HORIZ_Y,0,SAND_Y);
-    wallG.addColorStop(0,'rgba(55,35,12,0.96)');
-    wallG.addColorStop(0.5,'rgba(70,44,15,0.95)');
-    wallG.addColorStop(1,'rgba(90,58,18,0.90)');
-    b.fillStyle=wallG; b.fillRect(0,HORIZ_Y,W,SAND_Y-HORIZ_Y);
-
-    /* Pierre du podium : blocs horizontaux */
-    for(let j=0;j<4;j++){
-      const jy=HORIZ_Y+(SAND_Y-HORIZ_Y)*(j/4);
-      b.fillStyle='rgba(8,4,1,0.45)'; b.fillRect(0,jy,W,1.5);
-      b.fillStyle='rgba(255,180,70,0.06)'; b.fillRect(0,jy+1.5,W,1);
-    }
-    /* Reflet doré sur le dessus du mur */
-    const wallTop=b.createLinearGradient(0,HORIZ_Y,0,HORIZ_Y+14);
-    wallTop.addColorStop(0,'rgba(255,190,70,0.22)'); wallTop.addColorStop(1,'rgba(0,0,0,0)');
-    b.fillStyle=wallTop; b.fillRect(0,HORIZ_Y,W,14);
-
-    /* Ouvertures dans le mur (entrées gladiateurs) */
-    [{x:W*.22},{x:W*.78}].forEach(gate=>{
-      const gW=W*.12, gH=(SAND_Y-HORIZ_Y)*.72, gX=gate.x-gW/2, gY=HORIZ_Y+(SAND_Y-HORIZ_Y)*.15;
-      b.fillStyle='rgba(2,1,0,0.95)';
-      b.fillRect(gX,gY,gW,gH);
-      /* arc du portail */
-      b.beginPath(); b.arc(gate.x,gY,gW/2,Math.PI,0); b.fillStyle='rgba(2,1,0,0.95)'; b.fill();
-      /* encadrement pierre */
-      b.strokeStyle='rgba(95,62,22,0.85)'; b.lineWidth=3;
-      b.beginPath(); b.arc(gate.x,gY,gW/2,Math.PI,0); b.stroke();
-      b.strokeRect(gX,gY,gW,gH);
-    });
-
-    /* Sable : ellipse d'arène */
-    b.strokeStyle='rgba(215,158,52,0.58)'; b.lineWidth=2.5;
-    b.setLineDash([9,6]);
-    b.beginPath(); b.ellipse(cx,SAND_Y+8,W*.44,20,0,0,Math.PI*2); b.stroke();
-    b.setLineDash([]);
-
-    /* Lumière rasante + ombre du mur sur le sable */
-    const rimL=b.createLinearGradient(0,SAND_Y,0,SAND_Y+H*.12);
-    rimL.addColorStop(0,'rgba(5,2,0,0.68)'); rimL.addColorStop(1,'rgba(5,2,0,0)');
-    b.fillStyle=rimL; b.fillRect(0,SAND_Y,W,H*.12);
-    const rimR=b.createLinearGradient(W,SAND_Y,W*.35,SAND_Y+H*.35);
-    rimR.addColorStop(0,'rgba(255,195,75,0.20)'); rimR.addColorStop(1,'rgba(0,0,0,0)');
-    b.fillStyle=rimR; b.fillRect(0,SAND_Y,W,H-SAND_Y);
-
-    /* Stries de sable */
-    for(let i=0;i<250;i++){
-      const sx=Math.random()*W, sy=SAND_Y+Math.random()*(H-SAND_Y);
-      b.strokeStyle=`rgba(${88+Math.random()*50|0},${55+Math.random()*30|0},${10+Math.random()*14|0},0.22)`;
-      b.lineWidth=Math.random()*.75+.15;
-      b.beginPath(); b.moveTo(sx,sy); b.lineTo(sx+Math.random()*14+2,sy+Math.random()*1.5-.75); b.stroke();
-    }
-    /* Mica */
-    for(let i=0;i<28;i++){
-      b.fillStyle=`rgba(255,215,110,${Math.random()*.16+.04})`;
-      b.beginPath(); b.arc(Math.random()*W,SAND_Y+Math.random()*(H-SAND_Y)*.55,Math.random()*1.2+.3,0,Math.PI*2); b.fill();
-    }
-
-    /* Taches de sang */
-    [{x:cx*.80,y:SAND_Y+H*.04,r:W*.025},{x:cx*1.20,y:SAND_Y+H*.07,r:W*.016},{x:cx*.96,y:SAND_Y+H*.12,r:W*.010}].forEach(bs=>{
-      const bg2=b.createRadialGradient(bs.x,bs.y,0,bs.x,bs.y,bs.r);
-      bg2.addColorStop(0,'rgba(88,7,3,0.72)'); bg2.addColorStop(.5,'rgba(65,4,1,0.42)'); bg2.addColorStop(1,'rgba(0,0,0,0)');
-      b.fillStyle=bg2; b.beginPath(); b.ellipse(bs.x,bs.y,bs.r,bs.r*.55,Math.random()*.8,0,Math.PI*2); b.fill();
-    });
-
-    /* ════════════════════════════════════════════════
-       GLADIATEUR — pré-rendu vectoriel
-    ════════════════════════════════════════════════ */
-    const gS  = Math.min(W,H)*0.22;
-    const gladC = document.createElement('canvas');
-    gladC.width  = gS*2.6; gladC.height = gS*3.0;
-    const gx = gladC.getContext('2d');
-    const gcx= gS*1.3, gcy=gS*2.75;
-
-    function drawGlad(angle){
-      gx.clearRect(0,0,gladC.width,gladC.height);
-
-      /* Ombre */
-      gx.fillStyle='rgba(0,0,0,0.35)';
-      gx.beginPath(); gx.ellipse(gcx,gcy+3,gS*.40,gS*.08,0,0,Math.PI*2); gx.fill();
-
-      /* Sandales + jambes */
-      [-1,1].forEach(side=>{
-        const lx=gcx+side*gS*.11;
-        gx.fillStyle='#b87840';
-        gx.fillRect(lx-gS*.055,gcy-gS*.45,gS*.11,gS*.45);
-        for(let s=0;s<3;s++){
-          gx.strokeStyle='#5a3510'; gx.lineWidth=gS*.022;
-          gx.beginPath(); gx.moveTo(lx-gS*.10,gcy-s*gS*.08); gx.lineTo(lx+gS*.10,gcy-s*gS*.08); gx.stroke();
-        }
-        gx.fillStyle='#4a2808'; gx.fillRect(lx-gS*.13,gcy-gS*.02,gS*.26,gS*.04);
-      });
-
-      /* Kilt cuir */
-      for(let k=-3;k<=3;k++){
-        const kx=gcx+k*gS*.075;
-        gx.fillStyle=k%2===0?'#5a3510':'#4a2808';
-        gx.beginPath();
-        gx.moveTo(kx-gS*.06,gcy-gS*.45); gx.lineTo(kx+gS*.06,gcy-gS*.45);
-        gx.lineTo(kx+gS*.04,gcy-gS*.20); gx.lineTo(kx-gS*.04,gcy-gS*.20);
-        gx.closePath(); gx.fill();
-        gx.fillStyle='#8a7030'; gx.beginPath(); gx.arc(kx,gcy-gS*.43,gS*.016,0,Math.PI*2); gx.fill();
-      }
-
-      /* Cuirasse */
-      gx.fillStyle='#28180a';
-      gx.beginPath();
-      gx.moveTo(gcx-gS*.24,gcy-gS*.45);
-      gx.lineTo(gcx-gS*.26,gcy-gS*1.02);
-      gx.quadraticCurveTo(gcx,gcy-gS*1.15,gcx+gS*.26,gcy-gS*1.02);
-      gx.lineTo(gcx+gS*.24,gcy-gS*.45);
-      gx.closePath(); gx.fill();
-      /* bandes métal */
-      for(let bk=0;bk<5;bk++){
-        const by=gcy-gS*.48-bk*gS*.115;
-        const lit=1.0+bk*.06;
-        gx.strokeStyle=`rgba(${Math.min(255,148*lit)|0},${Math.min(255,120*lit)|0},${Math.min(255,52*lit)|0},0.72)`;
-        gx.lineWidth=gS*.016; gx.beginPath(); gx.moveTo(gcx-gS*.24,by); gx.lineTo(gcx+gS*.24,by); gx.stroke();
-      }
-      /* reflet cuirasse */
-      const crf=gx.createLinearGradient(gcx-gS*.26,gcy-gS*1.02,gcx,gcy-gS*.45);
-      crf.addColorStop(0,'rgba(255,200,90,0.20)'); crf.addColorStop(1,'rgba(0,0,0,0)');
-      gx.fillStyle=crf;
-      gx.beginPath();
-      gx.moveTo(gcx-gS*.24,gcy-gS*.45); gx.lineTo(gcx-gS*.26,gcy-gS*1.02);
-      gx.quadraticCurveTo(gcx,gcy-gS*1.15,gcx+gS*.26,gcy-gS*1.02);
-      gx.lineTo(gcx+gS*.24,gcy-gS*.45); gx.closePath(); gx.fill();
-
-      /* Bras bouclier (gauche) */
-      gx.strokeStyle='#b07840'; gx.lineWidth=gS*.09; gx.lineCap='round';
-      gx.beginPath(); gx.moveTo(gcx-gS*.22,gcy-gS*.90); gx.lineTo(gcx-gS*.48,gcy-gS*.58); gx.stroke();
-      /* Bouclier scutum */
-      gx.save(); gx.translate(gcx-gS*.52,gcy-gS*.58); gx.rotate(0.18);
-      gx.fillStyle='#5a2808';
-      gx.beginPath();
-      gx.moveTo(-gS*.13,-gS*.26); gx.lineTo(gS*.13,-gS*.26);
-      gx.quadraticCurveTo(gS*.16,-gS*.13,gS*.14,gS*.26);
-      gx.lineTo(-gS*.14,gS*.26); gx.quadraticCurveTo(-gS*.16,-gS*.13,-gS*.13,-gS*.26);
-      gx.closePath(); gx.fill();
-      /* bordure */
-      gx.strokeStyle='#8a7030'; gx.lineWidth=gS*.024;
-      gx.beginPath();
-      gx.moveTo(-gS*.13,-gS*.26); gx.lineTo(gS*.13,-gS*.26);
-      gx.quadraticCurveTo(gS*.16,-gS*.13,gS*.14,gS*.26);
-      gx.lineTo(-gS*.14,gS*.26); gx.quadraticCurveTo(-gS*.16,-gS*.13,-gS*.13,-gS*.26);
-      gx.closePath(); gx.stroke();
-      /* umbo */
-      gx.fillStyle='#a09040'; gx.beginPath(); gx.arc(0,0,gS*.062,0,Math.PI*2); gx.fill();
-      gx.fillStyle='rgba(255,220,100,0.55)'; gx.beginPath(); gx.arc(-gS*.02,-gS*.022,gS*.025,0,Math.PI*2); gx.fill();
-      gx.restore();
-
-      /* Bras épée (droit) animé */
-      gx.save(); gx.translate(gcx+gS*.24,gcy-gS*.90); gx.rotate(angle);
-      gx.strokeStyle='#b07840'; gx.lineWidth=gS*.085; gx.lineCap='round';
-      gx.beginPath(); gx.moveTo(0,0); gx.lineTo(gS*.26,-gS*.24); gx.stroke();
-      /* manche */
-      gx.fillStyle='#5a3510'; gx.fillRect(-gS*.038,-(gS*.24+gS*.13),gS*.076,gS*.13);
-      /* garde */
-      gx.fillStyle='#9a8840'; gx.fillRect(-gS*.11,-(gS*.24+gS*.045),gS*.22,gS*.045);
-      /* lame gladius */
-      const bG2=gx.createLinearGradient(-gS*.022,0,gS*.022,0);
-      bG2.addColorStop(0,'rgba(215,205,165,0.96)');
-      bG2.addColorStop(0.45,'rgba(255,248,205,1)');
-      bG2.addColorStop(1,'rgba(175,162,118,0.92)');
-      gx.fillStyle=bG2;
-      gx.beginPath();
-      gx.moveTo(-gS*.022,-(gS*.24+gS*.17));
-      gx.lineTo(gS*.022,-(gS*.24+gS*.17));
-      gx.lineTo(gS*.007,-(gS*.24+gS*.58));
-      gx.lineTo(0,-(gS*.24+gS*.63));
-      gx.lineTo(-gS*.007,-(gS*.24+gS*.58));
-      gx.closePath(); gx.fill();
-      /* reflet lame */
-      gx.strokeStyle='rgba(255,255,225,0.65)'; gx.lineWidth=gS*.007;
-      gx.beginPath(); gx.moveTo(0,-(gS*.24+gS*.19)); gx.lineTo(0,-(gS*.24+gS*.57)); gx.stroke();
-      gx.restore();
-
-      /* Cou */
-      gx.fillStyle='#b07840'; gx.fillRect(gcx-gS*.07,gcy-gS*1.18,gS*.14,gS*.17);
-
-      /* Tête */
-      gx.fillStyle='#b07840';
-      gx.beginPath(); gx.ellipse(gcx,gcy-gS*1.32,gS*.135,gS*.165,0,0,Math.PI*2); gx.fill();
-
-      /* Casque galea */
-      gx.fillStyle='#6a5428';
-      gx.beginPath(); gx.arc(gcx,gcy-gS*1.30,gS*.17,Math.PI,0); gx.closePath(); gx.fill();
-      gx.fillStyle='#524018';
-      gx.beginPath(); gx.arc(gcx,gcy-gS*1.34,gS*.155,Math.PI+.25,Math.PI*2-.25); gx.closePath(); gx.fill();
+      /* Casque — silhouette reconnaissable */
+      b.fillStyle=sc;
+      b.beginPath();
+      b.arc(GX,GY-GH*.96,GW*.17,Math.PI,0); b.closePath(); b.fill();
       /* visière */
-      gx.fillStyle='#48380f';
-      gx.fillRect(gcx-gS*.17,gcy-gS*1.24,gS*.34,gS*.065);
-      gx.fillRect(gcx-gS*.15,gcy-gS*1.175,gS*.30,gS*.042);
-      /* jugulaires */
-      gx.strokeStyle='#48380f'; gx.lineWidth=gS*.020; gx.lineCap='round';
-      gx.beginPath(); gx.moveTo(gcx-gS*.15,gcy-gS*1.23); gx.lineTo(gcx-gS*.11,gcy-gS*1.10); gx.stroke();
-      gx.beginPath(); gx.moveTo(gcx+gS*.15,gcy-gS*1.23); gx.lineTo(gcx+gS*.11,gcy-gS*1.10); gx.stroke();
-      /* Panache crista — rouge */
-      const pG=gx.createLinearGradient(gcx-gS*.06,gcy-gS*1.46,gcx+gS*.06,gcy-gS*1.85);
-      pG.addColorStop(0,'rgba(145,18,8,0.95)'); pG.addColorStop(.5,'rgba(205,28,12,0.88)'); pG.addColorStop(1,'rgba(225,55,18,0.42)');
-      gx.fillStyle=pG;
-      gx.beginPath();
-      gx.moveTo(gcx-gS*.06,gcy-gS*1.42);
-      gx.quadraticCurveTo(gcx-gS*.14,gcy-gS*1.64,gcx-gS*.04,gcy-gS*1.78);
-      gx.quadraticCurveTo(gcx,gcy-gS*1.84,gcx+gS*.04,gcy-gS*1.78);
-      gx.quadraticCurveTo(gcx+gS*.14,gcy-gS*1.64,gcx+gS*.06,gcy-gS*1.42);
-      gx.closePath(); gx.fill();
-      /* reflet casque */
-      gx.fillStyle='rgba(255,210,85,0.24)';
-      gx.beginPath(); gx.ellipse(gcx-gS*.04,gcy-gS*1.40,gS*.048,gS*.028,-0.28,0,Math.PI*2); gx.fill();
+      b.fillRect(GX-GW*.18,GY-GH*.92,GW*.36,GH*.06);
+      /* panache crista */
+      b.beginPath();
+      b.moveTo(GX-GW*.06,GY-GH*1.02);
+      b.quadraticCurveTo(GX-GW*.05,GY-GH*1.22,GX,GY-GH*1.28);
+      b.quadraticCurveTo(GX+GW*.05,GY-GH*1.22,GX+GW*.06,GY-GH*1.02);
+      b.closePath(); b.fill();
+
+      /* Lumière de contour — reflet du soleil sur l'épaule et le casque */
+      b.strokeStyle='rgba(230,160,60,0.55)'; b.lineWidth=GW*.04; b.lineCap='round';
+      /* épaule gauche */
+      b.beginPath(); b.moveTo(GX-GW*.22,GY-GH*.80); b.lineTo(GX-GW*.10,GY-GH*.84); b.stroke();
+      /* sommet casque */
+      b.strokeStyle='rgba(240,180,80,0.45)'; b.lineWidth=GW*.03;
+      b.beginPath(); b.arc(GX,GY-GH*.96,GW*.16,Math.PI+.3,Math.PI*2-.4); b.stroke();
+      /* panache — reflet chaud */
+      b.strokeStyle='rgba(180,80,20,0.65)'; b.lineWidth=GW*.06;
+      b.beginPath();
+      b.moveTo(GX,GY-GH*1.02); b.quadraticCurveTo(GX+GW*.04,GY-GH*1.18,GX,GY-GH*1.26);
+      b.stroke();
     }
 
-    /* ════════════════════════════════════════════════
-       PARTICULES
-    ════════════════════════════════════════════════ */
-    /* Grains de sable bas */
-    const grains=Array.from({length:120},()=>({
-      x:Math.random()*W, y:SAND_Y+Math.random()*(H-SAND_Y)*.35,
-      vx:Math.random()*2.2+0.5, vy:-(Math.random()*.10),
-      r:Math.random()*1.3+0.2, op:Math.random()*.50+.10,
-      hue:22+Math.random()*14, wobble:Math.random()*Math.PI*2
+    drawSilhouette();
+
+    /* Débris au sol autour du gladiateur */
+    b.fillStyle=C.silhouette;
+    [{x:GX-GW*1.1,y:GY-2,w:GW*.7,a:.3},{x:GX+GW*.8,y:GY-1,w:GW*.5,a:.25},{x:GX-GW*.5,y:GY+3,w:GW*.35,a:.2}]
+    .forEach(d=>{
+      b.beginPath(); b.ellipse(d.x,d.y,d.w,d.w*.18,d.a,0,Math.PI*2); b.fill();
+    });
+
+    /* ════════════════════════════════════
+       PARTICULES dynamiques
+    ════════════════════════════════════ */
+    /* Nuages animés (léger mouvement) */
+    const animClouds=clouds.map(c=>({...c, vx:(Math.random()-.5)*.12+.04, phase:Math.random()*Math.PI*2}));
+
+    /* Poussière atmosphérique */
+    const dust=Array.from({length:35},()=>({
+      x:Math.random()*W, y:SAND_Y-Math.random()*(SAND_Y-HORIZ)*.5,
+      vx:(Math.random()-.5)*.4, vy:-(Math.random()*.30+.06),
+      r:Math.random()*2.5+.5, op:Math.random()*.12+.02, hue:16+Math.random()*12
     }));
 
-    /* Poussière montante */
-    const dust=Array.from({length:55},()=>({
-      x:Math.random()*W, y:SAND_Y-Math.random()*(SAND_Y-HORIZ_Y)*.6,
-      vx:(Math.random()-.5)*.6, vy:-(Math.random()*.55+.10),
-      r:Math.random()*2.8+.4, op:Math.random()*.18+.03, hue:28+Math.random()*16
+    /* Grains de sable */
+    const grains=Array.from({length:60},()=>({
+      x:Math.random()*W, y:SAND_Y+Math.random()*(H-SAND_Y)*.4,
+      vx:Math.random()*1.8+.4, vy:0,
+      r:Math.random()*.9+.2, op:Math.random()*.30+.08,
+      wobble:Math.random()*Math.PI*2
     }));
 
-    /* Volutes atmosphériques */
-    const puffs=Array.from({length:7},()=>({
-      x:Math.random()*W, y:SAND_Y-Math.random()*(SAND_Y-HORIZ_Y)*.5,
-      vx:(Math.random()-.5)*.25+.14, r:W*(.05+Math.random()*.09),
-      op:Math.random()*.07+.02, phase:Math.random()*Math.PI*2
+    /* Pétales / cendres */
+    const petals=Array.from({length:8},(_,i)=>({
+      x:cx+(Math.random()-.5)*W*.9, y:HORIZ+Math.random()*(SAND_Y-HORIZ)*1.2,
+      vx:(Math.random()-.5)*.45, vy:Math.random()*.28+.06,
+      rot:Math.random()*Math.PI*2, vrot:Math.random()*.03-.015,
+      w:Math.random()*7+3, h:Math.random()*3+1.5,
+      col:['rgba(160,30,8,','rgba(90,30,5,','rgba(120,50,10,'][i%3]
     }));
 
-    /* Rafales sable */
-    const streaks=Array.from({length:18},()=>({
-      x:Math.random()*W, y:SAND_Y+Math.random()*(H-SAND_Y)*.45,
-      vx:Math.random()*4+1.5, len:Math.random()*W*.09+W*.02,
-      op:Math.random()*.16+.04, life:Math.random()
-    }));
-
-    /* Étincelles */
-    const sparks=Array.from({length:14},()=>({
-      x:cx+(Math.random()-.5)*gS*1.4, y:SAND_Y+Math.random()*(H-SAND_Y)*.14,
-      vx:(Math.random()-.5)*2.2, vy:-(Math.random()*2.2+.8),
-      r:Math.random()*1.8+.4, op:Math.random()*.75+.20,
-      life:Math.random(), decay:Math.random()*.022+.010
-    }));
-
-    /* Pétales / débris */
-    const petals=Array.from({length:10},(_,i)=>({
-      x:cx+(Math.random()-.5)*W*.85, y:SAND_Y-Math.random()*(SAND_Y-HORIZ_Y)*.8,
-      vx:(Math.random()-.5)*.7, vy:Math.random()*.35+.08,
-      rot:Math.random()*Math.PI*2, vrot:Math.random()*.04-.02,
-      w:Math.random()*9+4, h:Math.random()*4+2,
-      col:['rgba(175,25,10,','rgba(195,155,55,','rgba(135,95,28,'][i%3]
-    }));
-
-    /* Torches */
-    const torches=[{x:W*.07,y:HORIZ_Y+4},{x:W*.93,y:HORIZ_Y+4}];
-    const torchPts=torches.reduce((acc,tc)=>acc.concat(
-      Array.from({length:10},()=>({
-        tx:tc.x,ty:tc.y,
-        x:tc.x+(Math.random()-.5)*6, y:tc.y-Math.random()*16,
-        vy:-(Math.random()*.7+.28), vx:(Math.random()-.5)*.35,
-        r:Math.random()*2.8+.8, op:Math.random()*.75+.20,
-        life:Math.random(), decay:Math.random()*.016+.010
-      }))
-    ),[]);
-
-    /* Foule animée */
-    const crowd=[];
-    for(let row=0;row<N_ROWS;row++){
-      const frac=row/N_ROWS;
-      const rowBot2=HORIZ_Y-(HORIZ_Y-GRAD_TOP)*Math.pow(frac,1.6);
-      const rowH2=Math.max(3,(HORIZ_Y-GRAD_TOP)*(Math.pow((row+1)/N_ROWS,1.6)-Math.pow(frac,1.6)));
-      const rowW2=W*(0.30+(1-frac)*0.26);
-      const nS=Math.round(6+(1-frac)*14);
-      for(let s=0;s<nS;s++){
-        const sx=cx-rowW2*0.85+(s/(nS-1))*rowW2*1.70;
-        const sy=rowBot2-rowH2*0.18;
-        const sH2=rowH2*(1.3+(1-frac)*.5);
-        const sW2=Math.max(2,(rowW2*1.5/nS)*.68);
-        const palR=[[195,175,135],[155,122,68],[210,195,158],[120,88,40],[185,142,78]];
-        const pc=palR[Math.floor(Math.random()*palR.length)];
-        crowd.push({x:sx,y:sy,bh:sH2,bw:sW2,
-          phase:Math.random()*Math.PI*2,
-          col:`rgba(${pc[0]},${pc[1]},${pc[2]},`,
-          op:0.30+(1-frac)*.42, frac});
-      }
-    }
-
-    /* ════════════════════════════════════════════════
+    /* ════════════════════════════════════
        BOUCLE D'ANIMATION
-    ════════════════════════════════════════════════ */
+    ════════════════════════════════════ */
     function frame(){
       if(stop.v)return;
-      ctx.fillStyle='rgba(4,2,0,0.18)'; ctx.fillRect(0,0,W,H);
 
-      /* fond statique */
+      /* Fond — léger motion blur */
+      ctx.fillStyle='rgba(3,1,0,0.15)'; ctx.fillRect(0,0,W,H);
+
+      /* ── Ciel statique ── */
       ctx.drawImage(bgC,0,0);
 
-      /* ── Soleil ── */
-      const sunX=W*.73, sunY=H*.11, sunR=W*.042;
-      const pulse=0.94+Math.sin(t*.55)*.06;
+      /* ── Soleil animé — pulsation douce ── */
+      const pulse=0.97+Math.sin(t*.50)*.03;
 
-      /* corona */
-      const cor=ctx.createRadialGradient(sunX,sunY,sunR*.4,sunX,sunY,W*.46*pulse);
-      cor.addColorStop(0,'rgba(255,220,80,0)'); cor.addColorStop(.06,'rgba(255,195,55,0.40)');
-      cor.addColorStop(.18,'rgba(235,150,25,0.20)'); cor.addColorStop(.40,'rgba(195,95,8,0.10)');
-      cor.addColorStop(.65,'rgba(155,60,4,0.05)'); cor.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=cor; ctx.fillRect(0,0,W,SAND_Y);
+      /* Halo externe animé */
+      const cHalo=ctx.createRadialGradient(SUN_X,SUN_Y,SUN_R*.5,SUN_X,SUN_Y,SUN_R*5.5*pulse);
+      cHalo.addColorStop(0,'rgba(255,230,150,0.0)');
+      cHalo.addColorStop(0.08,'rgba(255,215,100,0.38)');
+      cHalo.addColorStop(0.22,'rgba(245,170,50,0.18)');
+      cHalo.addColorStop(0.50,'rgba(210,110,15,0.08)');
+      cHalo.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=cHalo; ctx.fillRect(0,0,W,HORIZ);
 
-      /* rayons */
-      ctx.save(); ctx.translate(sunX,sunY);
-      for(let i=0;i<12;i++){
-        const a=(i/12)*Math.PI*2+t*.04;
-        const rL=W*(.13+Math.sin(t*.8+i)*.022)*pulse;
-        const rW=Math.PI/32;
-        const rG=ctx.createLinearGradient(0,0,Math.cos(a)*rL,Math.sin(a)*rL);
-        rG.addColorStop(0,'rgba(255,225,95,0.24)'); rG.addColorStop(.35,'rgba(255,185,45,0.11)'); rG.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=rG;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a-rW)*sunR*.7,Math.sin(a-rW)*sunR*.7);
-        ctx.lineTo(Math.cos(a)*rL,Math.sin(a)*rL);
-        ctx.lineTo(Math.cos(a+rW)*sunR*.7,Math.sin(a+rW)*sunR*.7);
-        ctx.closePath(); ctx.fill();
+      /* Rayons très discrets — style affiche minimaliste */
+      ctx.save(); ctx.translate(SUN_X,SUN_Y); ctx.globalAlpha=0.12+Math.sin(t*.6)*.04;
+      for(let i=0;i<8;i++){
+        const a=(i/8)*Math.PI*2+t*.025;
+        const rL=SUN_R*(3.5+Math.sin(t*.7+i)*.4);
+        ctx.strokeStyle='rgba(255,230,120,0.5)';
+        ctx.lineWidth=SUN_R*.22;
+        ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(Math.cos(a)*SUN_R*1.1,Math.sin(a)*SUN_R*1.1); ctx.lineTo(Math.cos(a)*rL,Math.sin(a)*rL); ctx.stroke();
       }
-      ctx.restore();
+      ctx.globalAlpha=1; ctx.restore();
 
-      /* halo proche */
-      const hM=ctx.createRadialGradient(sunX,sunY,sunR,sunX,sunY,sunR*5.2*pulse);
-      hM.addColorStop(0,'rgba(255,200,55,0.48)'); hM.addColorStop(.28,'rgba(238,138,18,0.22)'); hM.addColorStop(.65,'rgba(175,75,6,0.08)'); hM.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=hM; ctx.beginPath(); ctx.arc(sunX,sunY,sunR*5.2*pulse,0,Math.PI*2); ctx.fill();
+      /* Disque solaire — légère pulsation */
+      const sd=ctx.createRadialGradient(SUN_X-SUN_R*.18,SUN_Y-SUN_R*.18,0,SUN_X,SUN_Y,SUN_R*pulse);
+      sd.addColorStop(0,'rgba(255,255,252,1)');
+      sd.addColorStop(0.45,'rgba(255,250,228,0.98)');
+      sd.addColorStop(0.80,'rgba(255,235,178,0.93)');
+      sd.addColorStop(1,'rgba(248,215,128,0.85)');
+      ctx.fillStyle=sd; ctx.beginPath(); ctx.arc(SUN_X,SUN_Y,SUN_R*pulse,0,Math.PI*2); ctx.fill();
 
-      /* disque */
-      const disc=ctx.createRadialGradient(sunX-sunR*.24,sunY-sunR*.24,0,sunX,sunY,sunR*pulse);
-      disc.addColorStop(0,'rgba(255,255,225,1)'); disc.addColorStop(.32,'rgba(255,242,138,0.98)');
-      disc.addColorStop(.72,'rgba(255,198,55,0.93)'); disc.addColorStop(1,'rgba(255,158,18,0.86)');
-      ctx.fillStyle=disc; ctx.beginPath(); ctx.arc(sunX,sunY,sunR*pulse,0,Math.PI*2); ctx.fill();
-      /* limbe */
-      const limb=ctx.createRadialGradient(sunX,sunY,sunR*.62*pulse,sunX,sunY,sunR*pulse);
-      limb.addColorStop(0,'rgba(0,0,0,0)'); limb.addColorStop(1,'rgba(175,75,0,0.40)');
-      ctx.fillStyle=limb; ctx.beginPath(); ctx.arc(sunX,sunY,sunR*pulse,0,Math.PI*2); ctx.fill();
-      /* spec */
-      ctx.fillStyle='rgba(255,255,255,0.72)';
-      ctx.beginPath(); ctx.arc(sunX-sunR*.27,sunY-sunR*.27,sunR*.17,0,Math.PI*2); ctx.fill();
-
-      /* shimmer sous le soleil */
-      const shY=sunY+sunR*2.4;
-      const shG=ctx.createLinearGradient(sunX-W*.16,shY,sunX+W*.16,shY+H*.05);
-      shG.addColorStop(0,'rgba(0,0,0,0)');
-      shG.addColorStop(.42,`rgba(255,175,38,${.055+Math.sin(t*3.1)*.025})`);
-      shG.addColorStop(.58,`rgba(255,175,38,${.055+Math.sin(t*3.1+1)*.025})`);
-      shG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=shG; ctx.fillRect(sunX-W*.16,shY,W*.32,H*.05);
-
-      /* ── Foule animée ── */
-      for(const p of crowd){
-        const wave=Math.sin(t*1.75+p.phase);
-        const stand=.48+wave*.36;
-        const bh=p.bh*(.50+stand*.55);
-        const lift=p.bh*(1-stand)*.42;
-        ctx.fillStyle=p.col+p.op+')';
-        ctx.beginPath();
-        ctx.moveTo(p.x-p.bw*.5,p.y); ctx.lineTo(p.x-p.bw*.36,p.y-bh*.38);
-        ctx.lineTo(p.x+p.bw*.36,p.y-bh*.38); ctx.lineTo(p.x+p.bw*.5,p.y);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle=`rgba(${148+(Math.random()*30|0)},${105+(Math.random()*20|0)},${58+(Math.random()*15|0)},${p.op})`;
-        ctx.beginPath(); ctx.ellipse(p.x,p.y-bh*.50,p.bw*.32,p.bw*.38,0,0,Math.PI*2); ctx.fill();
-        if(stand>.60){
-          ctx.strokeStyle=p.col+(p.op*.75)+')'; ctx.lineWidth=p.bw*.20; ctx.lineCap='round';
-          ctx.beginPath(); ctx.moveTo(p.x+p.bw*.26,p.y-bh*.28); ctx.lineTo(p.x+p.bw*.46,p.y-bh*.28-lift*.75); ctx.stroke();
-        }
-      }
-
-      /* ── Torches ── */
-      for(const tp of torchPts){
-        tp.life-=tp.decay; tp.x+=tp.vx; tp.y+=tp.vy;
-        if(tp.life<=0){tp.life=.65+Math.random()*.32;tp.x=tp.tx+(Math.random()-.5)*6;tp.y=tp.ty;tp.vy=-(Math.random()*.8+.32);tp.vx=(Math.random()-.5)*.38;}
-        const fr=1-tp.life;
-        const fc=ctx.createRadialGradient(tp.x,tp.y,0,tp.x,tp.y,tp.r*(2-fr));
-        fc.addColorStop(0,`rgba(255,${238-fr*135|0},${38-fr*38|0},${tp.op*tp.life})`);
-        fc.addColorStop(.5,`rgba(215,${95-fr*55|0},8,${tp.op*tp.life*.5})`);
-        fc.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=fc; ctx.beginPath(); ctx.arc(tp.x,tp.y,tp.r*(1.8-fr*.8),0,Math.PI*2); ctx.fill();
-      }
-      torches.forEach(tc=>{
-        ctx.fillStyle='#382008'; ctx.fillRect(tc.x-2.5,tc.y,5,H*.05);
-        const tg=ctx.createRadialGradient(tc.x,tc.y,0,tc.x,tc.y,W*.07);
-        tg.addColorStop(0,'rgba(255,170,35,0.28)'); tg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=tg; ctx.fillRect(0,0,W,H);
-      });
-
-      /* ── Volutes ── */
-      for(const p of puffs){
-        p.x+=p.vx; p.phase+=.006; if(p.x>W+p.r*2)p.x=-p.r*2;
-        const pl=1+Math.sin(p.phase)*.10;
-        const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*pl);
-        pg.addColorStop(0,`rgba(162,108,42,${p.op})`); pg.addColorStop(.5,`rgba(128,82,26,${p.op*.5})`); pg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(p.x,p.y,p.r*pl*1.65,p.r*pl*.62,0,0,Math.PI*2); ctx.fill();
-      }
-
-      /* ── Gladiateur ── */
-      const sw2=-0.32+Math.sin(t*1.35)*.26;
-      drawGlad(sw2);
-      ctx.save();
-      ctx.translate(cx, Math.sin(t*.85)*gS*.018);
-      ctx.globalAlpha=0.94;
-      ctx.drawImage(gladC, -gS*1.3, SAND_Y-gS*2.62);
-      ctx.restore();
-
-      /* ── Rafales ── */
-      for(const s of streaks){
-        s.x+=s.vx; s.life-=.006;
-        if(s.x>W+s.len||s.life<=0){s.x=-s.len;s.y=SAND_Y+Math.random()*(H-SAND_Y)*.45;s.life=.5+Math.random()*.5;s.len=Math.random()*W*.09+W*.02;}
-        const sg=ctx.createLinearGradient(s.x-s.len,s.y,s.x,s.y);
-        sg.addColorStop(0,'rgba(192,142,58,0)'); sg.addColorStop(.6,`rgba(192,142,58,${s.op*s.life})`); sg.addColorStop(1,'rgba(192,142,58,0)');
-        ctx.strokeStyle=sg; ctx.lineWidth=Math.random()*1.3+.25; ctx.lineCap='round';
-        ctx.beginPath(); ctx.moveTo(s.x-s.len,s.y); ctx.lineTo(s.x,s.y); ctx.stroke();
-      }
-
-      /* ── Poussière ── */
-      for(let i=0;i<dust.length;i++){
-        const d=dust[i]; d.x+=d.vx+Math.sin(t*.4+i)*.18; d.y+=d.vy;
-        if(d.y<HORIZ_Y-20){d.y=SAND_Y+8;d.x=Math.random()*W;}
-        ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-        ctx.fillStyle=`hsla(${d.hue},50%,56%,${d.op})`; ctx.fill();
-      }
-
-      /* ── Étincelles ── */
-      for(const sp of sparks){
-        sp.life-=sp.decay; sp.x+=sp.vx; sp.y+=sp.vy; sp.vy+=.055;
-        if(sp.life<=0){sp.life=.55+Math.random()*.42;sp.x=cx+(Math.random()-.5)*gS*1.4;sp.y=SAND_Y+Math.random()*(H-SAND_Y)*.12;sp.vx=(Math.random()-.5)*2.2;sp.vy=-(Math.random()*2.2+.8);}
-        const sc=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,sp.r*2);
-        sc.addColorStop(0,`rgba(255,228,115,${sp.op*sp.life})`); sc.addColorStop(.5,`rgba(255,155,38,${sp.op*sp.life*.58})`); sc.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=sc; ctx.beginPath(); ctx.arc(sp.x,sp.y,sp.r*(1.4+sp.life),0,Math.PI*2); ctx.fill();
-      }
-
-      /* ── Pétales ── */
-      for(const p of petals){
-        p.x+=p.vx; p.y+=p.vy; p.rot+=p.vrot; if(p.y>H+18)p.y=HORIZ_Y;
-        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-        ctx.fillStyle=p.col+'0.52)'; ctx.beginPath(); ctx.ellipse(0,0,p.w,p.h,0,0,Math.PI*2); ctx.fill();
-        ctx.restore();
-      }
-
-      /* ── Grains ── */
-      for(const g of grains){
-        g.wobble+=.036; g.x+=g.vx+Math.sin(g.wobble)*.32; g.y+=g.vy+Math.cos(g.wobble*.7)*.07;
-        if(g.x>W+4){g.x=-4;g.y=SAND_Y+Math.random()*(H-SAND_Y)*.28;}
-        ctx.globalAlpha=g.op*(.68+Math.sin(g.wobble)*.28);
-        ctx.fillStyle=`hsl(${g.hue},48%,${54+Math.sin(g.wobble)*7}%)`;
-        ctx.beginPath(); ctx.arc(g.x,g.y,g.r,0,Math.PI*2); ctx.fill();
+      /* ── Nuages animés ── */
+      for(const c of animClouds){
+        c.x+=c.vx; c.phase+=.004;
+        if(c.x>W+c.rx*2) c.x=-c.rx*2;
+        const breathe=1+Math.sin(c.phase)*.04;
+        ctx.fillStyle=c.col; ctx.globalAlpha=c.op*(0.90+Math.sin(c.phase)*.10);
+        ctx.beginPath(); ctx.ellipse(c.x,c.y,c.rx*breathe,c.ry*breathe,0,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='rgba(255,180,100,0.10)';
+        ctx.beginPath(); ctx.ellipse(c.x,c.y+c.ry*.38,c.rx*.80*breathe,c.ry*.42,0,0,Math.PI*2); ctx.fill();
       }
       ctx.globalAlpha=1;
 
-      /* ── Vignette ── */
-      const vg=ctx.createRadialGradient(W/2,H*.46,H*.06,W/2,H*.46,H*.90);
-      vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(.42,'rgba(5,2,0,0.20)'); vg.addColorStop(1,'rgba(4,2,0,0.94)');
+      /* ── Poussière atmosphérique ── */
+      for(const d of dust){
+        d.x+=d.vx+Math.sin(t*.35+d.x*.01)*.15; d.y+=d.vy;
+        if(d.y<HORIZ*.3){d.y=SAND_Y+5;d.x=Math.random()*W;}
+        ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+        ctx.fillStyle=`hsla(${d.hue},45%,50%,${d.op})`; ctx.fill();
+      }
+
+      /* ── Grains de sable ── */
+      for(const g of grains){
+        g.wobble+=.032; g.x+=g.vx+Math.sin(g.wobble)*.28;
+        if(g.x>W+3){g.x=-3;g.y=SAND_Y+Math.random()*(H-SAND_Y)*.35;}
+        ctx.globalAlpha=g.op*(.65+Math.sin(g.wobble)*.25);
+        ctx.fillStyle=`hsl(16,45%,45%)`; ctx.beginPath(); ctx.arc(g.x,g.y,g.r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+
+      /* ── Pétales / cendres ── */
+      for(const p of petals){
+        p.x+=p.vx; p.y+=p.vy; p.rot+=p.vrot; if(p.y>H+12)p.y=HORIZ;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle=p.col+'0.45)'; ctx.beginPath(); ctx.ellipse(0,0,p.w,p.h,0,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+
+      /* ── Vignette chaude ── */
+      const vg=ctx.createRadialGradient(W*.44,H*.50,H*.08,W*.44,H*.50,H*.92);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(0.38,'rgba(3,1,0,0.18)');
+      vg.addColorStop(0.72,'rgba(5,1,0,0.55)');
+      vg.addColorStop(1,'rgba(4,1,0,0.96)');
       ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+
+      /* Liseré chaud sur l'horizon */
+      const horizLine=ctx.createLinearGradient(0,HORIZ-2,0,HORIZ+6);
+      horizLine.addColorStop(0,'rgba(255,160,40,0.0)');
+      horizLine.addColorStop(0.5,`rgba(255,160,40,${0.14+Math.sin(t*.5)*.05})`);
+      horizLine.addColorStop(1,'rgba(255,160,40,0.0)');
+      ctx.fillStyle=horizLine; ctx.fillRect(0,HORIZ-2,W,8);
 
       t+=.016; requestAnimationFrame(frame);
     }
