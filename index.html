@@ -26698,122 +26698,290 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
     bgC.width=W; bgC.height=H;
     const bg = bgC.getContext('2d');
 
-    /* Ciel */
+    /* ── 1. CIEL ── */
     const skyG = bg.createLinearGradient(0,0,0,sandY);
-    skyG.addColorStop(0,  '#08030a');
-    skyG.addColorStop(0.25,'#1a0804');
-    skyG.addColorStop(0.55,'#5c2205');
-    skyG.addColorStop(0.85,'#9c4a0a');
-    skyG.addColorStop(1,   '#c46010');
+    skyG.addColorStop(0,   '#04010a');
+    skyG.addColorStop(0.18,'#120408');
+    skyG.addColorStop(0.40,'#3d1203');
+    skyG.addColorStop(0.62,'#7a2e06');
+    skyG.addColorStop(0.82,'#b85010');
+    skyG.addColorStop(0.93,'#d4701a');
+    skyG.addColorStop(1,   '#e08824');
     bg.fillStyle=skyG; bg.fillRect(0,0,W,sandY);
 
-    /* ── 3 niveaux d'arches romaines ── */
-    const levels=[
-      {yt:standTop,      yb:standTop+H*.18, cs:[62,40,18], n:14, rxE:W*.50},
-      {yt:standTop+H*.17,yb:standTop+H*.34, cs:[80,52,22], n:14, rxE:W*.50},
-      {yt:standTop+H*.33,yb:standTop+H*.50, cs:[100,65,26],n:14, rxE:W*.50},
+    /* halos latéraux chaleur */
+    const haloL=bg.createRadialGradient(W*.08,sandY*.55,0,W*.08,sandY*.55,W*.55);
+    haloL.addColorStop(0,'rgba(200,80,10,0.28)'); haloL.addColorStop(1,'rgba(0,0,0,0)');
+    bg.fillStyle=haloL; bg.fillRect(0,0,W,sandY);
+    const haloR=bg.createRadialGradient(W*.82,sandY*.78,0,W*.82,sandY*.78,W*.65);
+    haloR.addColorStop(0,'rgba(220,130,20,0.32)'); haloR.addColorStop(1,'rgba(0,0,0,0)');
+    bg.fillStyle=haloR; bg.fillRect(0,0,W,sandY);
+    /* bande brillante horizon */
+    const hBand=bg.createLinearGradient(0,sandY*0.88,0,sandY);
+    hBand.addColorStop(0,'rgba(0,0,0,0)');
+    hBand.addColorStop(0.5,'rgba(240,160,40,0.14)');
+    hBand.addColorStop(1,'rgba(255,200,80,0.22)');
+    bg.fillStyle=hBand; bg.fillRect(0,sandY*0.88,W,sandY*0.12);
+
+    /* ── 2. ARCHES ROMAINES — 3 niveaux en ellipse ── */
+    /*
+       Principe : on dessine chaque arche à sa position angulaire
+       sur une demi-ellipse (0 → π côté visible).
+       px = cx + cos(a)*rxE   (position X sur l'ellipse)
+       La hauteur & largeur de l'arche diminuent sur les côtés
+       pour simuler la perspective.
+    */
+    const arcLevels = [
+      /* { y_top, height, rx ellipse, nb arches, pierre rgb, teinte } */
+      { yTop: standTop,        lvH: H*0.155, rxE: W*0.48, n: 11, cs: [52, 33, 14], label:'haut'   },
+      { yTop: standTop+H*0.15, lvH: H*0.165, rxE: W*0.48, n: 11, cs: [72, 47, 18], label:'milieu' },
+      { yTop: standTop+H*0.30, lvH: H*0.175, rxE: W*0.48, n: 11, cs: [95, 62, 24], label:'bas'    },
     ];
 
-    for(const lv of levels){
-      const lvH=lv.yb-lv.yt;
-      const archW=(Math.PI*lv.rxE*2)/lv.n;
+    for(const lv of arcLevels){
+      const archUnit = (Math.PI * lv.rxE) / lv.n;  /* largeur angulaire d'une arche */
+      const [r,g,b] = lv.cs;
 
-      for(let i=0;i<lv.n;i++){
-        const a=(i/lv.n)*Math.PI*2;
-        const px=cx+Math.cos(a)*lv.rxE;
-        const py=ellCY+Math.sin(a)*(standBot-ellCY)*0.28;
-        if(Math.sin(a)<-0.05)continue;
-        const psp=0.38+0.62*Math.abs(Math.cos(a));
-        const aw=archW*psp*0.40;
-        const ah=lvH*(0.78+0.22*psp);
-        const top=py-ah;
-        const [r,g,b]=lv.cs;
+      /* Bandeau de fond de niveau (pierre continue) */
+      const bG = bg.createLinearGradient(0, lv.yTop, 0, lv.yTop+lv.lvH);
+      bG.addColorStop(0,  `rgba(${r+12},${g+8},${b+3},0.96)`);
+      bG.addColorStop(0.5,`rgba(${r},${g},${b},0.96)`);
+      bG.addColorStop(1,  `rgba(${r-8},${g-5},${b-2},0.96)`);
+      bg.fillStyle=bG; bg.fillRect(0, lv.yTop, W, lv.lvH);
 
-        /* Maçonnerie — blocs horizontaux */
-        for(let bk=0;bk<4;bk++){
-          const by=top+bk*(ah/4);
-          const lit=bk===0?1.3:1-bk*0.08;
-          bg.fillStyle=`rgba(${Math.min(255,r*lit)|0},${Math.min(255,g*lit)|0},${Math.min(255,b*lit)|0},0.95)`;
-          bg.fillRect(px-aw, by, aw*2, ah/4+1);
-          /* joint */
-          bg.fillStyle='rgba(10,6,2,0.4)';
-          bg.fillRect(px-aw, by+ah/4-0.5, aw*2, 1);
-        }
-
-        /* Ombre intérieure arche */
-        const iaw=aw*0.68; const iah=ah*0.82;
-        bg.fillStyle='rgba(4,2,0,0.92)';
-        bg.fillRect(px-iaw, top, iaw*2, iah*0.72);
-        bg.beginPath();
-        bg.arc(px, top, iaw, Math.PI, 0); bg.fill();
-
-        /* Reflet doré sur pilier gauche */
-        const rfG=bg.createLinearGradient(px-aw,0,px-aw+aw*0.4,0);
-        rfG.addColorStop(0,'rgba(255,190,80,0.18)');
-        rfG.addColorStop(1,'rgba(255,190,80,0)');
-        bg.fillStyle=rfG; bg.fillRect(px-aw,top,aw*0.4,ah);
+      /* Fissures horizontales (joints de maçonnerie) */
+      for(let j=1;j<4;j++){
+        const jy = lv.yTop + lv.lvH*(j/4);
+        bg.strokeStyle=`rgba(10,5,1,0.55)`; bg.lineWidth=1;
+        bg.beginPath(); bg.moveTo(0,jy); bg.lineTo(W,jy); bg.stroke();
       }
 
-      /* Bandeau entablement */
-      bg.fillStyle=`rgba(${lv.cs[0]-10},${lv.cs[1]-6},${lv.cs[2]-2},0.85)`;
-      bg.fillRect(0, lv.yb-3, W, 5);
-      bg.fillStyle='rgba(255,190,80,0.12)';
-      bg.fillRect(0, lv.yb-3, W, 1.5);
+      /* Arches individuelles */
+      for(let i=0; i<lv.n; i++){
+        /* angle sur la demi-ellipse : répartition régulière */
+        const a = (i / (lv.n-1)) * Math.PI;      /* 0 (gauche) → π (droite) */
+        const px = cx - Math.cos(a) * lv.rxE;    /* − car 0=gauche sur l'écran */
+
+        /* Facteur de perspective : max au centre (a=π/2), min sur les côtés */
+        const persp = Math.sin(a);                /* 0 sur les bords, 1 au centre */
+        const aw    = archUnit * (0.30 + 0.55*persp);  /* demi-largeur arche */
+        const ah    = lv.lvH   * (0.70 + 0.28*persp);  /* hauteur arche */
+        const archTop = lv.yTop + lv.lvH - ah;
+
+        /* Piliers (rectangles latéraux) */
+        const pilW = aw * 0.38;
+        /* Ombre portée inter-piliers */
+        bg.fillStyle = `rgba(5,2,0,0.70)`;
+        bg.fillRect(px - aw + pilW, archTop, (aw-pilW)*2, ah);
+
+        /* Pierre du pilier gauche */
+        const pgG = bg.createLinearGradient(px-aw, 0, px-aw+pilW, 0);
+        pgG.addColorStop(0, `rgba(${r+18},${g+12},${b+4},0.98)`);
+        pgG.addColorStop(0.5,`rgba(${r+8},${g+5},${b+2},0.95)`);
+        pgG.addColorStop(1, `rgba(${r},${g},${b},0.90)`);
+        bg.fillStyle=pgG; bg.fillRect(px-aw, archTop, pilW, ah);
+
+        /* Pierre du pilier droit */
+        const pdG = bg.createLinearGradient(px+aw-pilW, 0, px+aw, 0);
+        pdG.addColorStop(0, `rgba(${r},${g},${b},0.90)`);
+        pdG.addColorStop(1, `rgba(${r-6},${g-4},${b-1},0.96)`);
+        bg.fillStyle=pdG; bg.fillRect(px+aw-pilW, archTop, pilW, ah);
+
+        /* Clé de voûte */
+        const archR = aw - pilW;
+        const archCy = archTop;
+        /* Intérieur sombre */
+        bg.fillStyle='rgba(3,1,0,0.95)';
+        bg.beginPath();
+        bg.arc(px, archCy, archR, Math.PI, 0, false);
+        bg.lineTo(px+archR, archCy+ah*0.72);
+        bg.lineTo(px-archR, archCy+ah*0.72);
+        bg.closePath(); bg.fill();
+        /* Pierre de l'arche (fond clair) */
+        const archFill = bg.createRadialGradient(px, archCy+archR*0.3, 0, px, archCy, archR*1.4);
+        archFill.addColorStop(0,`rgba(${r+15},${g+10},${b+3},0.30)`);
+        archFill.addColorStop(1,'rgba(0,0,0,0)');
+        bg.fillStyle=archFill;
+        bg.beginPath();
+        bg.arc(px, archCy, archR, Math.PI, 0);
+        bg.lineTo(px+archR, archCy); bg.closePath(); bg.fill();
+
+        /* Reflet lumière solaire sur le pilier gauche */
+        if(persp > 0.2){
+          const rfG2 = bg.createLinearGradient(px-aw, archTop, px-aw+pilW*0.6, archTop);
+          rfG2.addColorStop(0,`rgba(255,200,90,${0.12*persp})`);
+          rfG2.addColorStop(1,'rgba(255,200,90,0)');
+          bg.fillStyle=rfG2; bg.fillRect(px-aw, archTop, pilW*0.6, ah);
+        }
+
+        /* Ombre sous le niveau du dessus */
+        const topShad=bg.createLinearGradient(0,archTop,0,archTop+ah*0.18);
+        topShad.addColorStop(0,'rgba(0,0,0,0.45)'); topShad.addColorStop(1,'rgba(0,0,0,0)');
+        bg.fillStyle=topShad; bg.fillRect(px-aw,archTop,aw*2,ah*0.18);
+      }
+
+      /* Bandeau entablement (corniche entre niveaux) */
+      const corn = bg.createLinearGradient(0,lv.yTop+lv.lvH-5,0,lv.yTop+lv.lvH+6);
+      corn.addColorStop(0,`rgba(${r+20},${g+14},${b+5},0.95)`);
+      corn.addColorStop(0.4,`rgba(${r+10},${g+7},${b+2},0.90)`);
+      corn.addColorStop(1,`rgba(${r-5},${g-3},${b},0.85)`);
+      bg.fillStyle=corn; bg.fillRect(0,lv.yTop+lv.lvH-5,W,11);
+      bg.fillStyle='rgba(255,195,80,0.14)';
+      bg.fillRect(0,lv.yTop+lv.lvH-5,W,2);
+      bg.fillStyle='rgba(0,0,0,0.40)';
+      bg.fillRect(0,lv.yTop+lv.lvH+6,W,2);
     }
 
-    /* ── Gradins elliptiques ── */
-    const nRows=14;
-    for(let row=0;row<nRows;row++){
-      const frac=row/nRows;
-      const rowY=standTop+H*.50+frac*(standBot-standTop-H*.50);
-      const rowH=(standBot-standTop-H*.50)/nRows*0.80;
-      const rxR=W*(0.46-frac*0.06);
-      const dark=0.55+frac*0.35;
+    /* ── 3. GRADINS — 12 rangées elliptiques avec spectateurs ── */
+    const gradTop = standTop + H*0.47;   /* début des gradins visibles */
+    const gradBot = sandY;
+    const nRows   = 12;
 
+    for(let row=0; row<nRows; row++){
+      const frac = row / nRows;
+      const rowY = gradTop + frac*(gradBot-gradTop);
+      const rowH = (gradBot-gradTop)/nRows * 0.85;
+      /* les rangées du bas sont plus larges */
+      const rxR  = W*(0.44 - frac*0.04);
+      /* profondeur : haut sombre, bas éclairé */
+      const dark = 0.30 + frac*0.52;
+      const rr   = (65  + frac*42) |0;
+      const rg2  = (40  + frac*26) |0;
+      const rb   = (11  + frac*9)  |0;
+
+      /* Marche du gradin — forme elliptique */
       bg.save();
       bg.beginPath();
-      bg.ellipse(cx,rowY,rxR,rowH*0.38,0,Math.PI,0,true);
-      bg.lineTo(cx+rxR*1.03,rowY+rowH);
-      bg.ellipse(cx,rowY+rowH*0.42,rxR*1.03,rowH*0.22,0,0,Math.PI,true);
+      /* Arc supérieur */
+      bg.ellipse(cx, rowY, rxR, rowH*0.30, 0, Math.PI, 0, true);
+      /* Côté droit descend */
+      bg.lineTo(cx+rxR*1.02, rowY+rowH);
+      /* Arc inférieur (plus large) */
+      bg.ellipse(cx, rowY+rowH*0.35, rxR*1.02, rowH*0.20, 0, 0, Math.PI, true);
       bg.closePath();
-      const rg=bg.createLinearGradient(0,rowY,0,rowY+rowH);
-      rg.addColorStop(0,`rgba(${90+frac*35|0},${55+frac*20|0},${16+frac*8|0},${dark})`);
-      rg.addColorStop(1,`rgba(${65+frac*25|0},${40+frac*14|0},${11+frac*6|0},${dark})`);
-      bg.fillStyle=rg; bg.fill();
-      /* ligne de marche */
-      bg.strokeStyle=`rgba(20,11,3,${0.35+frac*0.3})`; bg.lineWidth=0.8;
-      bg.beginPath(); bg.ellipse(cx,rowY+rowH*.9,rxR,rowH*0.14,0,0,Math.PI); bg.stroke();
+      const rg3 = bg.createLinearGradient(0,rowY,0,rowY+rowH);
+      rg3.addColorStop(0, `rgba(${rr+10},${rg2+6},${rb+2},${dark})`);
+      rg3.addColorStop(0.6,`rgba(${rr},${rg2},${rb},${dark})`);
+      rg3.addColorStop(1,  `rgba(${rr-8},${rg2-5},${rb-2},${dark})`);
+      bg.fillStyle=rg3; bg.fill();
+
+      /* Nez de marche — ligne lumineuse */
+      bg.strokeStyle=`rgba(${rr+30},${rg2+20},${rb+6},${dark*0.6})`; bg.lineWidth=1;
+      bg.beginPath(); bg.ellipse(cx,rowY,rxR,rowH*0.30,0,Math.PI,0); bg.stroke();
+
+      /* ── Spectateurs sur cette rangée ── */
+      const nSeats = Math.round(14 + frac*12);  /* densité croissante vers le bas */
+      for(let s=0; s<nSeats; s++){
+        const sa = (s+0.5)/nSeats * Math.PI;    /* angle 0→π sur la demi-ellipse */
+        /* position sur la rangée */
+        const sx = cx - Math.cos(sa)*rxR*0.90;
+        const sy = rowY + Math.sin(sa)*rowH*0.22;
+
+        /* Masquer les spectateurs trop sur les bords */
+        const sideFactor = Math.sin(sa);
+        if(sideFactor < 0.08) continue;
+
+        const sh = rowH*(0.50 + Math.random()*0.30);
+        const sw = rowH*0.28 * (0.7 + sideFactor*0.3);
+        const op = (0.40 + frac*0.35) * sideFactor;
+
+        /* Palette : toges blanches, robes ocre, bruns */
+        const palettes=[
+          [`rgba(210,192,155,`,`rgba(195,178,140,`],   /* toge claire */
+          [`rgba(165,132,75,`, `rgba(150,118,62,`],    /* ocre */
+          [`rgba(130,95,45,`,  `rgba(115,82,34,`],     /* brun */
+          [`rgba(220,205,168,`,`rgba(200,185,148,`],   /* blanc cassé */
+          [`rgba(100,68,28,`,  `rgba(88,58,20,`],      /* brun foncé */
+        ];
+        const pal = palettes[Math.floor(Math.random()*palettes.length)];
+
+        /* Corps (trapèze) */
+        bg.fillStyle=pal[0]+op+')';
+        bg.beginPath();
+        bg.moveTo(sx-sw*0.52, sy);
+        bg.lineTo(sx-sw*0.38, sy-sh*0.38);
+        bg.lineTo(sx+sw*0.38, sy-sh*0.38);
+        bg.lineTo(sx+sw*0.52, sy);
+        bg.closePath(); bg.fill();
+
+        /* Tête (ovale) */
+        const skinR=(150+Math.random()*40)|0, skinG=(110+Math.random()*28)|0, skinB=(62+Math.random()*18)|0;
+        bg.fillStyle=`rgba(${skinR},${skinG},${skinB},${op})`;
+        bg.beginPath(); bg.ellipse(sx, sy-sh*0.52, sw*0.36, sw*0.44, 0, 0, Math.PI*2); bg.fill();
+      }
       bg.restore();
     }
 
-    /* Sable */
+    /* ── 4. SOL DE L'ARÈNE (sable) ── */
     const sandG=bg.createLinearGradient(0,sandY,0,H);
-    sandG.addColorStop(0,'#b87628'); sandG.addColorStop(0.3,'#9a6020');
-    sandG.addColorStop(0.7,'#7a4a14'); sandG.addColorStop(1,'#5c360c');
+    sandG.addColorStop(0,  '#c8882e');
+    sandG.addColorStop(0.18,'#b87228');
+    sandG.addColorStop(0.45,'#9a5e1c');
+    sandG.addColorStop(0.75,'#7c4814');
+    sandG.addColorStop(1,   '#5a340a');
     bg.fillStyle=sandG; bg.fillRect(0,sandY,W,H-sandY);
-    /* ellipse bord arène */
-    bg.strokeStyle='rgba(210,155,55,0.5)'; bg.lineWidth=2.5;
-    bg.setLineDash([7,5]);
-    bg.beginPath(); bg.ellipse(cx,sandY+7,W*.42,20,0,0,Math.PI*2); bg.stroke();
+
+    /* Lumière rasante droite */
+    const sunRake=bg.createLinearGradient(W,sandY,W*0.3,sandY+H*0.4);
+    sunRake.addColorStop(0,'rgba(255,200,80,0.18)');
+    sunRake.addColorStop(0.4,'rgba(220,150,40,0.08)');
+    sunRake.addColorStop(1,'rgba(0,0,0,0)');
+    bg.fillStyle=sunRake; bg.fillRect(0,sandY,W,H-sandY);
+
+    /* Ellipse de délimitation pointillée */
+    bg.strokeStyle='rgba(220,165,55,0.65)'; bg.lineWidth=2.5;
+    bg.setLineDash([10,6]);
+    bg.beginPath(); bg.ellipse(cx,sandY+8,W*0.43,22,0,0,Math.PI*2); bg.stroke();
     bg.setLineDash([]);
-    /* sillon central */
-    bg.strokeStyle='rgba(150,100,30,0.4)'; bg.lineWidth=1.5;
-    bg.beginPath(); bg.ellipse(cx,sandY+18,W*.20,9,0,0,Math.PI*2); bg.stroke();
-    /* trace de combat */
-    bg.strokeStyle='rgba(75,10,4,0.45)'; bg.lineWidth=4; bg.lineCap='round';
-    bg.beginPath(); bg.moveTo(cx*.65,sandY+H*.06);
-    bg.quadraticCurveTo(cx*.88,sandY+H*.03,cx*1.1,sandY+H*.08); bg.stroke();
-    /* stries sable */
-    for(let i=0;i<200;i++){
-      const sx=Math.random()*W, sy=sandY+Math.random()*(H-sandY);
-      bg.strokeStyle=`rgba(${95+Math.random()*45|0},${60+Math.random()*28|0},${12+Math.random()*12|0},0.2)`;
-      bg.lineWidth=Math.random()*.9+.2;
-      bg.beginPath(); bg.moveTo(sx,sy); bg.lineTo(sx+Math.random()*16+3,sy+Math.random()*2-1); bg.stroke();
+    bg.strokeStyle='rgba(180,120,35,0.30)'; bg.lineWidth=1;
+    bg.beginPath(); bg.ellipse(cx,sandY+8,W*0.40,19,0,0,Math.PI*2); bg.stroke();
+
+    /* Sillon central */
+    bg.strokeStyle='rgba(160,105,28,0.55)'; bg.lineWidth=2;
+    bg.beginPath(); bg.ellipse(cx,sandY+20,W*0.18,8,0,0,Math.PI*2); bg.stroke();
+
+    /* Traces de combat */
+    for(let t2=0;t2<8;t2++){
+      const fx=cx+(Math.random()-.5)*W*0.7, fy=sandY+H*(0.03+Math.random()*0.20);
+      bg.strokeStyle=`rgba(${100+Math.random()*40|0},${62+Math.random()*25|0},${14+Math.random()*10|0},0.28)`;
+      bg.lineWidth=1.5+Math.random()*2; bg.lineCap='round';
+      bg.beginPath(); bg.moveTo(fx,fy);
+      bg.quadraticCurveTo(fx+(Math.random()-.5)*W*0.2,fy+H*Math.random()*0.07,fx+(Math.random()-.5)*W*0.3,fy+H*(0.02+Math.random()*0.08));
+      bg.stroke();
     }
-    /* ombre gradins sur sable */
-    const shG=bg.createLinearGradient(0,sandY,0,sandY+H*.10);
-    shG.addColorStop(0,'rgba(8,4,1,0.70)'); shG.addColorStop(1,'rgba(8,4,1,0)');
-    bg.fillStyle=shG; bg.fillRect(0,sandY,W,H*.10);
+
+    /* Taches de sang */
+    [{x:cx*0.82,y:sandY+H*0.05,r:W*0.028},{x:cx*1.18,y:sandY+H*0.09,r:W*0.018},{x:cx*0.95,y:sandY+H*0.14,r:W*0.011}]
+    .forEach(bs=>{
+      const bsg=bg.createRadialGradient(bs.x,bs.y,0,bs.x,bs.y,bs.r);
+      bsg.addColorStop(0,'rgba(90,8,4,0.70)'); bsg.addColorStop(0.5,'rgba(70,5,2,0.42)'); bsg.addColorStop(1,'rgba(50,3,1,0)');
+      bg.fillStyle=bsg; bg.beginPath(); bg.ellipse(bs.x,bs.y,bs.r,bs.r*0.60,Math.random()*0.8,0,Math.PI*2); bg.fill();
+    });
+
+    /* Crêtes dunaires (stries de relief) */
+    for(let i=0;i<16;i++){
+      const sy3=sandY+H*(0.02+i*0.055); const rxw=W*(0.88-i*0.012);
+      bg.strokeStyle=`rgba(${155+i*2|0},${100+i|0},${28+i|0},${0.10+i*0.007})`; bg.lineWidth=0.7;
+      bg.beginPath(); bg.ellipse(cx,sy3,rxw*0.5,3,0,0,Math.PI); bg.stroke();
+    }
+    /* Grains fins */
+    for(let i=0;i<300;i++){
+      const sx4=Math.random()*W, sy4=sandY+Math.random()*(H-sandY);
+      bg.strokeStyle=`rgba(${90+Math.random()*55|0},${58+Math.random()*32|0},${12+Math.random()*14|0},0.20)`;
+      bg.lineWidth=Math.random()*0.8+0.15;
+      bg.beginPath(); bg.moveTo(sx4,sy4); bg.lineTo(sx4+Math.random()*12+2,sy4+Math.random()*1.5-0.75); bg.stroke();
+    }
+    /* Éclats de mica */
+    for(let i=0;i<35;i++){
+      const sx5=Math.random()*W, sy5=sandY+Math.random()*(H-sandY)*0.6;
+      bg.fillStyle=`rgba(255,220,120,${Math.random()*0.16+0.04})`;
+      bg.beginPath(); bg.arc(sx5,sy5,Math.random()*1.2+0.3,0,Math.PI*2); bg.fill();
+    }
+
+    /* Ombre des gradins sur le sable — fondue large */
+    const shG=bg.createLinearGradient(0,sandY,0,sandY+H*0.14);
+    shG.addColorStop(0,'rgba(6,3,0,0.75)'); shG.addColorStop(0.55,'rgba(6,3,0,0.18)'); shG.addColorStop(1,'rgba(6,3,0,0)');
+    bg.fillStyle=shG; bg.fillRect(0,sandY,W,H*0.14);
 
     /* ─── PRÉ-RENDU : gladiateur vectoriel détaillé ─── */
     const gladC=document.createElement('canvas');
@@ -27117,22 +27285,83 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
       /* ── Fond Colisée ── */
       ctx.drawImage(bgC,0,0);
 
-      /* ── Soleil pulsant ── */
-      const sunX=W*.74, sunY=H*.14;
-      const sunPulse=0.92+Math.sin(t*.6)*.08;
-      for(let r=4;r>=0;r--){
-        const sg=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,W*(.08+r*.07)*sunPulse);
-        const cols=[
-          ['rgba(255,230,110,0.80)','rgba(255,170,40,0.50)','rgba(200,90,10,0.20)','rgba(0,0,0,0)'],
-          ['rgba(255,210,80,0.40)','rgba(220,130,20,0.20)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
-          ['rgba(200,100,10,0.18)','rgba(150,60,5,0.08)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
-          ['rgba(160,70,5,0.10)','rgba(0,0,0,0)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
-          ['rgba(120,50,3,0.06)','rgba(0,0,0,0)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
-        ];
-        sg.addColorStop(0,cols[r][0]); sg.addColorStop(0.3,cols[r][1]);
-        sg.addColorStop(0.7,cols[r][2]); sg.addColorStop(1,cols[r][3]);
-        ctx.fillStyle=sg; ctx.fillRect(0,0,W,H*.45);
+      /* ── Soleil romain — disque + corona + rayons ── */
+      const sunX=W*.74, sunY=H*.13;
+      const sunR=W*.045;
+      const pulse=0.94+Math.sin(t*.55)*.06;
+
+      /* Corona externe — grande et douce */
+      const corona=ctx.createRadialGradient(sunX,sunY,sunR*.5,sunX,sunY,W*.48*pulse);
+      corona.addColorStop(0,  'rgba(255,220,80,0.0)');
+      corona.addColorStop(0.05,'rgba(255,200,60,0.38)');
+      corona.addColorStop(0.15,'rgba(240,160,30,0.22)');
+      corona.addColorStop(0.35,'rgba(200,100,10,0.12)');
+      corona.addColorStop(0.60,'rgba(160,65,5,0.06)');
+      corona.addColorStop(1,  'rgba(0,0,0,0)');
+      ctx.fillStyle=corona; ctx.fillRect(0,0,W,sandY);
+
+      /* Rayons divergents — 12 lames lumineuses */
+      ctx.save(); ctx.translate(sunX,sunY);
+      const nRays=12;
+      for(let i=0;i<nRays;i++){
+        const a=(i/nRays)*Math.PI*2+t*.04;
+        const rLen=W*(0.14+Math.sin(t*.8+i)*.025)*pulse;
+        const rWid=Math.PI/(nRays*2.2);
+        const rayG=ctx.createLinearGradient(0,0,Math.cos(a)*rLen,Math.sin(a)*rLen);
+        rayG.addColorStop(0,'rgba(255,230,100,0.22)');
+        rayG.addColorStop(0.3,'rgba(255,190,50,0.10)');
+        rayG.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=rayG;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a-rWid)*sunR*.8,Math.sin(a-rWid)*sunR*.8);
+        ctx.lineTo(Math.cos(a)*rLen,Math.sin(a)*rLen);
+        ctx.lineTo(Math.cos(a+rWid)*sunR*.8,Math.sin(a+rWid)*sunR*.8);
+        ctx.closePath(); ctx.fill();
       }
+      ctx.restore();
+
+      /* Halo intermédiaire chaud */
+      const haloM=ctx.createRadialGradient(sunX,sunY,sunR,sunX,sunY,sunR*5.5*pulse);
+      haloM.addColorStop(0,'rgba(255,200,60,0.45)');
+      haloM.addColorStop(0.25,'rgba(240,140,20,0.22)');
+      haloM.addColorStop(0.6,'rgba(180,80,8,0.08)');
+      haloM.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=haloM; ctx.beginPath(); ctx.arc(sunX,sunY,sunR*5.5*pulse,0,Math.PI*2); ctx.fill();
+
+      /* Disque solaire — corps brillant */
+      const disc=ctx.createRadialGradient(sunX-sunR*.25,sunY-sunR*.25,0,sunX,sunY,sunR*pulse);
+      disc.addColorStop(0,'rgba(255,255,220,1.0)');   /* cœur blanc */
+      disc.addColorStop(0.3,'rgba(255,240,140,0.98)');
+      disc.addColorStop(0.7,'rgba(255,200,60,0.92)');
+      disc.addColorStop(1,'rgba(255,160,20,0.85)');
+      ctx.fillStyle=disc;
+      ctx.beginPath(); ctx.arc(sunX,sunY,sunR*pulse,0,Math.PI*2); ctx.fill();
+
+      /* Limbe (bord sombre du disque) */
+      const limb=ctx.createRadialGradient(sunX,sunY,sunR*pulse*.65,sunX,sunY,sunR*pulse);
+      limb.addColorStop(0,'rgba(0,0,0,0)');
+      limb.addColorStop(1,'rgba(180,80,0,0.38)');
+      ctx.fillStyle=limb;
+      ctx.beginPath(); ctx.arc(sunX,sunY,sunR*pulse,0,Math.PI*2); ctx.fill();
+
+      /* Reflet spéculaire (point blanc) */
+      ctx.fillStyle='rgba(255,255,255,0.70)';
+      ctx.beginPath(); ctx.arc(sunX-sunR*.28,sunY-sunR*.28,sunR*.18,0,Math.PI*2); ctx.fill();
+
+      /* Shimmer — scintillement atmosphérique sous le soleil */
+      const shimY=sunY+sunR*2.5;
+      const shimG=ctx.createLinearGradient(sunX-W*.18,shimY,sunX+W*.18,shimY+H*.06);
+      shimG.addColorStop(0,'rgba(0,0,0,0)');
+      shimG.addColorStop(0.4,`rgba(255,180,40,${0.06+Math.sin(t*3.2)*.03})`);
+      shimG.addColorStop(0.6,`rgba(255,180,40,${0.06+Math.sin(t*3.2+1)*.03})`);
+      shimG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=shimG; ctx.fillRect(sunX-W*.18,shimY,W*.36,H*.06);
+
+      /* Halo chaud sur toute la partie haute du ciel */
+      const skyTopG=ctx.createLinearGradient(0,0,0,H*.32);
+      skyTopG.addColorStop(0,`rgba(160,70,8,${0.08+Math.sin(t*.4)*.03})`);
+      skyTopG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=skyTopG; ctx.fillRect(0,0,W,H*.32);
 
       /* ── Foule animée — vague d'ovation ── */
       for(const p of crowd){
