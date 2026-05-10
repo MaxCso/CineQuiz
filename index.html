@@ -26671,388 +26671,630 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Gladiator',
    ref:'Gladiator \u2014 Ridley Scott, 2000',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.72';
+    cv.style.opacity='1';
     let t=0;
+    const cx=W/2;
 
-    /* ══════════════════════════════════════════════
-       COLISÉE — pré-rendu statique haute fidélité
-       Gradins elliptiques + spectateurs + arches
-       ══════════════════════════════════════════════ */
-    const colC=document.createElement('canvas');
-    colC.width=W;colC.height=H;
-    const cx2=colC.getContext('2d');
+    /* ══════════════════════════════════════════════════════
+       GLADIATOR — Colisée animé complet
+       • Ciel embrasé + soleil oscillant
+       • Colisée 3 niveaux avec arches romaines en ellipse
+       • Gradins courbes avec foule animée (vagues d'ovation)
+       • Sable avec poussière, grains, rafales
+       • Gladiateur central animé (respiration + épée)
+       • Torches latérales avec flammes
+       • Confetti de pétales/sable
+       • Pluie de lumière dorée
+       ══════════════════════════════════════════════════════ */
 
-    /* Horizon bas : sable occupe ~28% du bas, gradins ~42%, ciel le reste */
-    const arenaY   = H * 0.58;   /* bord haut du sable (pied des gradins) */
-    const sandBot  = H;
-    const cx       = W / 2;
+    /* ─── Constantes de layout ─── */
+    const sandY   = H * 0.64;   /* sol de l'arène */
+    const standBot= H * 0.64;
+    const standTop= H * 0.08;
+    const ellCY   = H * 0.36;
 
-    /* ── Ciel romain embrasé ── */
-    const sky=cx2.createLinearGradient(0,0,0,arenaY*0.9);
-    sky.addColorStop(0,  'rgba(8,4,1,1)');
-    sky.addColorStop(0.3,'rgba(35,12,3,1)');
-    sky.addColorStop(0.7,'rgba(95,38,6,1)');
-    sky.addColorStop(1,  'rgba(145,65,10,1)');
-    cx2.fillStyle=sky; cx2.fillRect(0,0,W,arenaY);
+    /* ─── PRÉ-RENDU : fond statique du Colisée ─── */
+    const bgC = document.createElement('canvas');
+    bgC.width=W; bgC.height=H;
+    const bg = bgC.getContext('2d');
 
-    /* ── Structure du Colisée — 3 niveaux d'arches en ellipse ── */
-    /* On dessine 3 « ceintures » concentriques de bas en haut          */
-    /* Chaque ceinture = une rangée d'arches romaines en perspective     */
+    /* Ciel */
+    const skyG = bg.createLinearGradient(0,0,0,sandY);
+    skyG.addColorStop(0,  '#08030a');
+    skyG.addColorStop(0.25,'#1a0804');
+    skyG.addColorStop(0.55,'#5c2205');
+    skyG.addColorStop(0.85,'#9c4a0a');
+    skyG.addColorStop(1,   '#c46010');
+    bg.fillStyle=skyG; bg.fillRect(0,0,W,sandY);
 
+    /* ── 3 niveaux d'arches romaines ── */
     const levels=[
-      /* y_top,  y_bot,   rx_ext, rx_int, nArches, archH,  col_stone,             col_shadow */
-      {yt:H*0.13, yb:H*0.30, rxE:W*0.52, rxI:W*0.44, n:13, aHf:0.62, cs:'rgba(72,48,22,1)',  sh:'rgba(18,10,3,0.92)'},
-      {yt:H*0.29, yb:H*0.44, rxE:W*0.52, rxI:W*0.44, n:13, aHf:0.60, cs:'rgba(88,58,24,1)',  sh:'rgba(20,11,3,0.90)'},
-      {yt:H*0.43, yb:H*0.56, rxE:W*0.52, rxI:W*0.44, n:13, aHf:0.58, cs:'rgba(105,70,28,1)', sh:'rgba(25,14,4,0.88)'},
+      {yt:standTop,      yb:standTop+H*.18, cs:[62,40,18], n:14, rxE:W*.50},
+      {yt:standTop+H*.17,yb:standTop+H*.34, cs:[80,52,22], n:14, rxE:W*.50},
+      {yt:standTop+H*.33,yb:standTop+H*.50, cs:[100,65,26],n:14, rxE:W*.50},
     ];
 
-    /* Centre vertical de l'ellipse de la façade */
-    const ellCY = H * 0.34;
-
     for(const lv of levels){
-      const lvH = lv.yb - lv.yt;
-      const archW = (Math.PI * lv.rxE * 2) / lv.n;   /* largeur approx d'une arche */
-      const pilW  = archW * 0.22;
-      const archHpx = lvH * lv.aHf;
+      const lvH=lv.yb-lv.yt;
+      const archW=(Math.PI*lv.rxE*2)/lv.n;
 
       for(let i=0;i<lv.n;i++){
-        /* angle sur l'ellipse — seulement la moitié avant (visible) */
-        const a = (i / lv.n) * Math.PI * 2;
-        /* position x,y projetée */
-        const px = cx + Math.cos(a) * lv.rxE;
-        const py = ellCY + Math.sin(a) * (lv.yb - ellCY) * 0.38;
-        /* masquer ce qui est « derrière » */
-        if(Math.sin(a) < -0.08) continue;
-        /* perspective : les arches sur les côtés sont plus étroites */
-        const psp = 0.45 + 0.55 * Math.abs(Math.cos(a));
-        const aw2 = archW * psp * 0.38;
-        const ah  = archHpx * (0.82 + 0.18 * psp);
-        const archTop = py - ah;
+        const a=(i/lv.n)*Math.PI*2;
+        const px=cx+Math.cos(a)*lv.rxE;
+        const py=ellCY+Math.sin(a)*(standBot-ellCY)*0.28;
+        if(Math.sin(a)<-0.05)continue;
+        const psp=0.38+0.62*Math.abs(Math.cos(a));
+        const aw=archW*psp*0.40;
+        const ah=lvH*(0.78+0.22*psp);
+        const top=py-ah;
+        const [r,g,b]=lv.cs;
 
-        /* pierre de fond */
-        cx2.fillStyle = lv.cs;
-        cx2.fillRect(px - aw2, archTop, aw2*2, ah + 2);
+        /* Maçonnerie — blocs horizontaux */
+        for(let bk=0;bk<4;bk++){
+          const by=top+bk*(ah/4);
+          const lit=bk===0?1.3:1-bk*0.08;
+          bg.fillStyle=`rgba(${Math.min(255,r*lit)|0},${Math.min(255,g*lit)|0},${Math.min(255,b*lit)|0},0.95)`;
+          bg.fillRect(px-aw, by, aw*2, ah/4+1);
+          /* joint */
+          bg.fillStyle='rgba(10,6,2,0.4)';
+          bg.fillRect(px-aw, by+ah/4-0.5, aw*2, 1);
+        }
 
-        /* ombre intérieure de l'arche */
-        cx2.fillStyle = lv.sh;
-        cx2.beginPath();
-        const iaw = aw2 * 0.72;
-        cx2.rect(px - iaw, archTop, iaw*2, ah * 0.85);
-        cx2.fill();
+        /* Ombre intérieure arche */
+        const iaw=aw*0.68; const iah=ah*0.82;
+        bg.fillStyle='rgba(4,2,0,0.92)';
+        bg.fillRect(px-iaw, top, iaw*2, iah*0.72);
+        bg.beginPath();
+        bg.arc(px, top, iaw, Math.PI, 0); bg.fill();
 
-        /* demi-cercle de l'arche */
-        cx2.fillStyle = lv.sh;
-        cx2.beginPath();
-        cx2.arc(px, archTop, iaw, Math.PI, 0, false);
-        cx2.fill();
-
-        /* reflet pierre sur le pilier gauche */
-        const refG = cx2.createLinearGradient(px-aw2, 0, px-aw2+pilW, 0);
-        refG.addColorStop(0, 'rgba(255,200,100,0.12)');
-        refG.addColorStop(1, 'rgba(255,200,100,0)');
-        cx2.fillStyle = refG;
-        cx2.fillRect(px-aw2, archTop, pilW, ah);
+        /* Reflet doré sur pilier gauche */
+        const rfG=bg.createLinearGradient(px-aw,0,px-aw+aw*0.4,0);
+        rfG.addColorStop(0,'rgba(255,190,80,0.18)');
+        rfG.addColorStop(1,'rgba(255,190,80,0)');
+        bg.fillStyle=rfG; bg.fillRect(px-aw,top,aw*0.4,ah);
       }
 
-      /* bandeau horizontal entre les niveaux */
-      cx2.fillStyle = 'rgba(55,35,14,0.7)';
-      cx2.fillRect(0, lv.yb - 3, W, 5);
+      /* Bandeau entablement */
+      bg.fillStyle=`rgba(${lv.cs[0]-10},${lv.cs[1]-6},${lv.cs[2]-2},0.85)`;
+      bg.fillRect(0, lv.yb-3, W, 5);
+      bg.fillStyle='rgba(255,190,80,0.12)';
+      bg.fillRect(0, lv.yb-3, W, 1.5);
     }
 
-    /* ── Gradins — rangées elliptiques de sièges ── */
-    /* Visibles dans la zone arenaY↑ bas des arches                    */
-    const standTop  = H * 0.30;
-    const standBot  = arenaY;
-    const nRows     = 12;
+    /* ── Gradins elliptiques ── */
+    const nRows=14;
+    for(let row=0;row<nRows;row++){
+      const frac=row/nRows;
+      const rowY=standTop+H*.50+frac*(standBot-standTop-H*.50);
+      const rowH=(standBot-standTop-H*.50)/nRows*0.80;
+      const rxR=W*(0.46-frac*0.06);
+      const dark=0.55+frac*0.35;
 
-    for(let row=0; row<nRows; row++){
-      const frac = row / nRows;
-      const rowY  = standTop + frac*(standBot - standTop);
-      const rowH  = (standBot - standTop) / nRows * 0.72;
-      /* dégradé de profondeur : rangées du haut plus sombres */
-      const darkness = 0.35 + frac * 0.55;
-      const rowRx = W * (0.50 - frac * 0.08);
+      bg.save();
+      bg.beginPath();
+      bg.ellipse(cx,rowY,rxR,rowH*0.38,0,Math.PI,0,true);
+      bg.lineTo(cx+rxR*1.03,rowY+rowH);
+      bg.ellipse(cx,rowY+rowH*0.42,rxR*1.03,rowH*0.22,0,0,Math.PI,true);
+      bg.closePath();
+      const rg=bg.createLinearGradient(0,rowY,0,rowY+rowH);
+      rg.addColorStop(0,`rgba(${90+frac*35|0},${55+frac*20|0},${16+frac*8|0},${dark})`);
+      rg.addColorStop(1,`rgba(${65+frac*25|0},${40+frac*14|0},${11+frac*6|0},${dark})`);
+      bg.fillStyle=rg; bg.fill();
+      /* ligne de marche */
+      bg.strokeStyle=`rgba(20,11,3,${0.35+frac*0.3})`; bg.lineWidth=0.8;
+      bg.beginPath(); bg.ellipse(cx,rowY+rowH*.9,rxR,rowH*0.14,0,0,Math.PI); bg.stroke();
+      bg.restore();
+    }
 
-      /* fond de la rangée */
-      const rg = cx2.createLinearGradient(0, rowY, 0, rowY + rowH);
-      rg.addColorStop(0, `rgba(${80+frac*40|0},${50+frac*25|0},${15+frac*10|0},${darkness})`);
-      rg.addColorStop(1, `rgba(${55+frac*30|0},${35+frac*18|0},${10+frac*8|0},${darkness})`);
+    /* Sable */
+    const sandG=bg.createLinearGradient(0,sandY,0,H);
+    sandG.addColorStop(0,'#b87628'); sandG.addColorStop(0.3,'#9a6020');
+    sandG.addColorStop(0.7,'#7a4a14'); sandG.addColorStop(1,'#5c360c');
+    bg.fillStyle=sandG; bg.fillRect(0,sandY,W,H-sandY);
+    /* ellipse bord arène */
+    bg.strokeStyle='rgba(210,155,55,0.5)'; bg.lineWidth=2.5;
+    bg.setLineDash([7,5]);
+    bg.beginPath(); bg.ellipse(cx,sandY+7,W*.42,20,0,0,Math.PI*2); bg.stroke();
+    bg.setLineDash([]);
+    /* sillon central */
+    bg.strokeStyle='rgba(150,100,30,0.4)'; bg.lineWidth=1.5;
+    bg.beginPath(); bg.ellipse(cx,sandY+18,W*.20,9,0,0,Math.PI*2); bg.stroke();
+    /* trace de combat */
+    bg.strokeStyle='rgba(75,10,4,0.45)'; bg.lineWidth=4; bg.lineCap='round';
+    bg.beginPath(); bg.moveTo(cx*.65,sandY+H*.06);
+    bg.quadraticCurveTo(cx*.88,sandY+H*.03,cx*1.1,sandY+H*.08); bg.stroke();
+    /* stries sable */
+    for(let i=0;i<200;i++){
+      const sx=Math.random()*W, sy=sandY+Math.random()*(H-sandY);
+      bg.strokeStyle=`rgba(${95+Math.random()*45|0},${60+Math.random()*28|0},${12+Math.random()*12|0},0.2)`;
+      bg.lineWidth=Math.random()*.9+.2;
+      bg.beginPath(); bg.moveTo(sx,sy); bg.lineTo(sx+Math.random()*16+3,sy+Math.random()*2-1); bg.stroke();
+    }
+    /* ombre gradins sur sable */
+    const shG=bg.createLinearGradient(0,sandY,0,sandY+H*.10);
+    shG.addColorStop(0,'rgba(8,4,1,0.70)'); shG.addColorStop(1,'rgba(8,4,1,0)');
+    bg.fillStyle=shG; bg.fillRect(0,sandY,W,H*.10);
 
-      cx2.save();
-      cx2.beginPath();
-      cx2.ellipse(cx, rowY, rowRx, rowH * 0.35, 0, 0, Math.PI);
-      cx2.lineTo(cx - rowRx * 1.02, rowY + rowH);
-      /* base de la rangée */
-      cx2.ellipse(cx, rowY + rowH * 0.35, rowRx * 1.02, rowH * 0.18, 0, Math.PI, 0);
-      cx2.closePath();
-      cx2.fillStyle = rg;
-      cx2.fill();
-      cx2.restore();
+    /* ─── PRÉ-RENDU : gladiateur vectoriel détaillé ─── */
+    const gladC=document.createElement('canvas');
+    const gS=Math.min(W,H)*0.19;
+    gladC.width=gS*2.2; gladC.height=gS*2.6;
+    const gx=gladC.getContext('2d');
+    const gcx=gS*1.1, gcy=gS*2.3;
 
-      /* ── Spectateurs — silhouettes sur chaque rangée ── */
-      /* Nombre de sièges adapté à la longueur visible de la rangée     */
-      const nSeat = Math.round(16 + frac * 10);
-      for(let s=0; s<nSeat; s++){
-        const sa = (s / nSeat) * Math.PI;          /* angle 0→π (demi-ellipse) */
-        const sx = cx + Math.cos(Math.PI - sa) * rowRx * 0.92;
-        const sy = rowY + Math.sin(sa) * rowH * 0.28;
-        const sh = rowH * (0.55 + Math.random()*0.25);   /* hauteur silhouette */
-        const sw = rowH * 0.32;
-        /* perspective latérale */
-        const side = Math.abs(Math.cos(Math.PI - sa));
-        if(side > 0.92) continue;                  /* masquer les bords extrêmes */
+    function drawGladiator(gx, gcx, gcy, gS, swordAngle){
+      gx.clearRect(0,0,gladC.width,gladC.height);
+      const stone='#1a0e05'; const metal='#8a7840'; const leather='#5a3510';
+      const blood='rgba(100,8,4,0.7)'; const cream='#c8a060'; const red='#8a1808';
 
-        /* variation couleur : toges blanches, robes colorées */
-        const palette=['rgba(200,180,140,','rgba(160,130,80,','rgba(220,200,160,',
-                        'rgba(130,100,60,','rgba(190,150,90,','rgba(80,50,20,'];
-        const col = palette[Math.floor(Math.random()*palette.length)];
-        const op  = 0.55 + frac * 0.28;
+      /* Ombre portée */
+      gx.save(); gx.globalAlpha=0.38;
+      gx.fillStyle='rgba(0,0,0,0.6)';
+      gx.beginPath(); gx.ellipse(gcx,gcy+2,gS*.38,gS*.07,0,0,Math.PI*2); gx.fill();
+      gx.restore();
 
-        /* tête */
-        cx2.fillStyle = `rgba(${140+Math.random()*40|0},${100+Math.random()*30|0},${60+Math.random()*20|0},${op})`;
-        cx2.beginPath();
-        cx2.ellipse(sx, sy - sh*0.52, sw*0.42, sw*0.52, 0, 0, Math.PI*2);
-        cx2.fill();
+      /* Sandales + jambières */
+      for(let leg=-1;leg<=1;leg+=2){
+        const lx=gcx+leg*gS*.10;
+        /* tibia */
+        gx.fillStyle='#c0904a';
+        gx.fillRect(lx-gS*.055, gcy-gS*.42, gS*.11, gS*.42);
+        /* lanière sandales */
+        for(let s=0;s<3;s++){
+          gx.strokeStyle=leather; gx.lineWidth=gS*.025;
+          const sy=gcy-s*gS*.07;
+          gx.beginPath(); gx.moveTo(lx-gS*.10,sy); gx.lineTo(lx+gS*.10,sy); gx.stroke();
+        }
+        /* semelle */
+        gx.fillStyle=leather;
+        gx.fillRect(lx-gS*.13, gcy-gS*.03, gS*.26, gS*.03);
+      }
+
+      /* Kilt cuir (ptéryges) — lamelles */
+      for(let k=-3;k<=3;k++){
+        const kx=gcx+k*gS*.07;
+        gx.fillStyle=k%2===0?leather:'#4a2a0c';
+        gx.beginPath();
+        gx.moveTo(kx-gS*.06, gcy-gS*.42);
+        gx.lineTo(kx+gS*.06, gcy-gS*.42);
+        gx.lineTo(kx+gS*.04, gcy-gS*.18);
+        gx.lineTo(kx-gS*.04, gcy-gS*.18);
+        gx.closePath(); gx.fill();
+        /* rivets */
+        gx.fillStyle=metal;
+        gx.beginPath(); gx.arc(kx,gcy-gS*.40,gS*.018,0,Math.PI*2); gx.fill();
+      }
+
+      /* Cuirasse (lorica segmentata) */
+      gx.fillStyle='#2a1a08';
+      gx.beginPath();
+      gx.moveTo(gcx-gS*.22,gcy-gS*.42);
+      gx.lineTo(gcx-gS*.24,gcy-gS*.96);
+      gx.quadraticCurveTo(gcx,gcy-gS*1.08,gcx+gS*.24,gcy-gS*.96);
+      gx.lineTo(gcx+gS*.22,gcy-gS*.42);
+      gx.closePath(); gx.fill();
+      /* Bandes métal sur cuirasse */
+      for(let b=0;b<4;b++){
+        const by=gcy-gS*.45-b*gS*.12;
+        gx.strokeStyle=`rgba(${140+b*12},${115+b*8},${50+b*6},0.7)`;
+        gx.lineWidth=gS*.018;
+        gx.beginPath();
+        gx.moveTo(gcx-gS*.22,by); gx.lineTo(gcx+gS*.22,by); gx.stroke();
+      }
+      /* Reflet lumière sur cuirasse */
+      const crf=gx.createLinearGradient(gcx-gS*.24,gcy-gS*.96,gcx+gS*.24,gcy-gS*.42);
+      crf.addColorStop(0,'rgba(255,200,100,0.18)'); crf.addColorStop(0.5,'rgba(255,200,100,0.05)'); crf.addColorStop(1,'rgba(0,0,0,0)');
+      gx.fillStyle=crf;
+      gx.beginPath();
+      gx.moveTo(gcx-gS*.22,gcy-gS*.42); gx.lineTo(gcx-gS*.24,gcy-gS*.96);
+      gx.quadraticCurveTo(gcx,gcy-gS*1.08,gcx+gS*.24,gcy-gS*.96);
+      gx.lineTo(gcx+gS*.22,gcy-gS*.42); gx.closePath(); gx.fill();
+
+      /* Bouclier scutum (bras gauche) */
+      gx.save(); gx.translate(gcx-gS*.44, gcy-gS*.55); gx.rotate(0.15);
+      /* corps bouclier */
+      gx.fillStyle='#5a2808';
+      gx.beginPath();
+      (function rrect(c,x,y,w,h,r){c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);})(gx,-gS*.12,-gS*.24,gS*.24,gS*.48,gS*.04);
+      gx.fill();
+      /* bordure métal */
+      gx.strokeStyle=metal; gx.lineWidth=gS*.025;
+      gx.beginPath();
+      (function rrect(c,x,y,w,h,r){c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);})(gx,-gS*.12,-gS*.24,gS*.24,gS*.48,gS*.04);
+      gx.stroke();
+      /* umbo (bosse centrale) */
+      gx.fillStyle=metal;
+      gx.beginPath(); gx.arc(0,0,gS*.06,0,Math.PI*2); gx.fill();
+      gx.fillStyle='rgba(255,210,100,0.5)';
+      gx.beginPath(); gx.arc(-gS*.02,-gS*.02,gS*.025,0,Math.PI*2); gx.fill();
+      /* décor aquila sur bouclier */
+      gx.strokeStyle='rgba(200,160,60,0.6)'; gx.lineWidth=gS*.012;
+      gx.beginPath(); gx.moveTo(-gS*.06,-gS*.14); gx.lineTo(0,-gS*.04); gx.lineTo(gS*.06,-gS*.14); gx.stroke();
+      gx.restore();
+
+      /* Bras bouclier */
+      gx.strokeStyle='#b07840'; gx.lineWidth=gS*.09; gx.lineCap='round';
+      gx.beginPath(); gx.moveTo(gcx-gS*.20,gcy-gS*.88); gx.lineTo(gcx-gS*.44,gcy-gS*.55); gx.stroke();
+
+      /* Épée gladius (bras droit animé) */
+      gx.save(); gx.translate(gcx+gS*.22,gcy-gS*.88); gx.rotate(swordAngle);
+      /* avant-bras */
+      gx.strokeStyle='#b07840'; gx.lineWidth=gS*.08; gx.lineCap='round';
+      gx.beginPath(); gx.moveTo(0,0); gx.lineTo(gS*.22,-gS*.22); gx.stroke();
+      /* manche */
+      gx.fillStyle=leather;
+      gx.fillRect(-gS*.04,-(gS*.22+gS*.12),gS*.08,gS*.12);
+      /* garde */
+      gx.fillStyle=metal;
+      gx.fillRect(-gS*.10,-(gS*.22+gS*.04),gS*.20,gS*.04);
+      /* lame */
+      const bladeG=gx.createLinearGradient(-gS*.025,0,gS*.025,0);
+      bladeG.addColorStop(0,'rgba(220,210,170,0.95)');
+      bladeG.addColorStop(0.4,'rgba(255,245,200,1)');
+      bladeG.addColorStop(1,'rgba(180,165,120,0.9)');
+      gx.fillStyle=bladeG;
+      gx.beginPath();
+      gx.moveTo(-gS*.025,-(gS*.22+gS*.16));
+      gx.lineTo(gS*.025,-(gS*.22+gS*.16));
+      gx.lineTo(gS*.008,-(gS*.22+gS*.55));
+      gx.lineTo(0,-(gS*.22+gS*.60));
+      gx.lineTo(-gS*.008,-(gS*.22+gS*.55));
+      gx.closePath(); gx.fill();
+      /* reflet lame */
+      gx.strokeStyle='rgba(255,255,220,0.6)'; gx.lineWidth=gS*.008;
+      gx.beginPath(); gx.moveTo(0,-(gS*.22+gS*.18)); gx.lineTo(0,-(gS*.22+gS*.55)); gx.stroke();
+      /* sang sur lame */
+      gx.fillStyle='rgba(120,8,4,0.55)';
+      gx.beginPath(); gx.ellipse(gS*.015,-(gS*.22+gS*.25),gS*.015,gS*.018,0.3,0,Math.PI*2); gx.fill();
+      gx.restore();
+
+      /* Cou + tête */
+      gx.fillStyle='#b07840';
+      gx.fillRect(gcx-gS*.07,gcy-gS*1.12,gS*.14,gS*.16);
+      /* visage */
+      gx.fillStyle='#b07840';
+      gx.beginPath(); gx.ellipse(gcx,gcy-gS*1.26,gS*.13,gS*.16,0,0,Math.PI*2); gx.fill();
+
+      /* Casque galea */
+      gx.fillStyle='#6a5428';
+      gx.beginPath();
+      gx.arc(gcx,gcy-gS*1.24,gS*.16,Math.PI,0); gx.closePath(); gx.fill();
+      /* calotte */
+      gx.fillStyle='#5a4420';
+      gx.beginPath(); gx.arc(gcx,gcy-gS*1.28,gS*.15,Math.PI+0.3,Math.PI*2-0.3); gx.closePath(); gx.fill();
+      /* visière */
+      gx.fillStyle='#4a3815';
+      gx.fillRect(gcx-gS*.16,gcy-gS*1.18,gS*.32,gS*.06);
+      gx.fillRect(gcx-gS*.14,gcy-gS*1.12,gS*.28,gS*.04);
+      /* jugulaires */
+      gx.strokeStyle='#4a3815'; gx.lineWidth=gS*.022;
+      gx.beginPath(); gx.moveTo(gcx-gS*.14,gcy-gS*1.16); gx.lineTo(gcx-gS*.10,gcy-gS*1.05); gx.stroke();
+      gx.beginPath(); gx.moveTo(gcx+gS*.14,gcy-gS*1.16); gx.lineTo(gcx+gS*.10,gcy-gS*1.05); gx.stroke();
+      /* panache crista — rouge sang */
+      const plumeG=gx.createLinearGradient(gcx-gS*.06,gcy-gS*1.44,gcx+gS*.06,gcy-gS*1.72);
+      plumeG.addColorStop(0,'rgba(140,20,8,0.9)');
+      plumeG.addColorStop(0.4,'rgba(200,30,12,0.85)');
+      plumeG.addColorStop(1,'rgba(220,60,20,0.4)');
+      gx.fillStyle=plumeG;
+      gx.beginPath();
+      gx.moveTo(gcx-gS*.06,gcy-gS*1.40);
+      gx.quadraticCurveTo(gcx-gS*.12,gcy-gS*1.60,gcx-gS*.04,gcy-gS*1.72);
+      gx.quadraticCurveTo(gcx,gcy-gS*1.78,gcx+gS*.04,gcy-gS*1.72);
+      gx.quadraticCurveTo(gcx+gS*.12,gcy-gS*1.60,gcx+gS*.06,gcy-gS*1.40);
+      gx.closePath(); gx.fill();
+      /* reflet casque */
+      gx.fillStyle='rgba(255,200,80,0.22)';
+      gx.beginPath(); gx.ellipse(gcx-gS*.04,gcy-gS*1.34,gS*.05,gS*.03,-0.3,0,Math.PI*2); gx.fill();
+    }
+
+    /* Pré-dessiner le gladiateur (position neutre) */
+    drawGladiator(gx, gcx, gcy, gS, -0.35);
+
+    /* ─── PARTICULES dynamiques ─── */
+
+    /* Grains de sable ras du sol */
+    const grains=Array.from({length:140},()=>({
+      x:Math.random()*W,
+      y:sandY+Math.random()*(H-sandY)*.30,
+      vx:Math.random()*2.2+0.6,
+      vy:-(Math.random()*.12),
+      r:Math.random()*1.4+0.2,
+      op:Math.random()*.55+.12,
+      hue:22+Math.random()*16,
+      wobble:Math.random()*Math.PI*2
+    }));
+
+    /* Poussière qui monte */
+    const dust=Array.from({length:70},()=>({
+      x:Math.random()*W,
+      y:sandY-Math.random()*(H-sandY)*.25,
+      vx:(Math.random()-.5)*.7,
+      vy:-(Math.random()*.6+.12),
+      r:Math.random()*3+.5,
+      op:Math.random()*.22+.04,
+      hue:28+Math.random()*18
+    }));
+
+    /* Grosses volutes */
+    const puffs=Array.from({length:9},(_,i)=>({
+      x:Math.random()*W,
+      y:sandY-Math.random()*H*.15,
+      vx:(Math.random()-.5)*.3+.18,
+      r:W*(.06+Math.random()*.10),
+      op:Math.random()*.09+.02,
+      phase:Math.random()*Math.PI*2
+    }));
+
+    /* Rafales horizontales */
+    const streaks=Array.from({length:22},()=>({
+      x:Math.random()*W,
+      y:sandY+Math.random()*(H-sandY)*.5,
+      vx:Math.random()*4+1.8,
+      len:Math.random()*W*.10+W*.025,
+      op:Math.random()*.18+.04,
+      life:Math.random()
+    }));
+
+    /* Étincelles — projections lumineuses */
+    const sparks=Array.from({length:18},()=>({
+      x:cx+(Math.random()-.5)*gS*1.5,
+      y:sandY+Math.random()*(H-sandY)*.15,
+      vx:(Math.random()-.5)*2.5,
+      vy:-(Math.random()*2.5+1.0),
+      r:Math.random()*2.2+0.5,
+      op:Math.random()*.8+.2,
+      life:Math.random(),
+      decay:Math.random()*.025+.012
+    }));
+
+    /* Pétales / débris de combat */
+    const petals=Array.from({length:14},(_,i)=>({
+      x:cx+(Math.random()-.5)*W*.8,
+      y:sandY-Math.random()*H*.5,
+      vx:(Math.random()-.5)*.8,
+      vy:Math.random()*.4+.1,
+      rot:Math.random()*Math.PI*2,
+      vrot:Math.random()*.04-.02,
+      w:Math.random()*10+5,
+      h:Math.random()*5+2,
+      col:['rgba(180,28,12,','rgba(200,160,60,','rgba(140,100,30,'][i%3]
+    }));
+
+    /* Foule — spectateurs animés : positions pré-calculées */
+    const crowd=[];
+    for(let row=0;row<14;row++){
+      const frac=row/14;
+      const rowY=standTop+H*.50+frac*(standBot-standTop-H*.50);
+      const rxR=W*(.44-frac*.06);
+      const rowH=(standBot-standTop-H*.50)/14*.80;
+      const nS=Math.round(18+frac*12);
+      for(let s=0;s<nS;s++){
+        const sa=(s/nS)*Math.PI;
+        const sx=cx+Math.cos(Math.PI-sa)*rxR*.90;
+        const sy=rowY+Math.sin(sa)*rowH*.28;
+        const side=Math.abs(Math.cos(Math.PI-sa));
+        if(side>.92)continue;
+        crowd.push({
+          x:sx, y:sy,
+          bh:rowH*(.52+Math.random()*.28),
+          bw:rowH*.30,
+          phase:Math.random()*Math.PI*2,  /* déphasage ovation */
+          col:['rgba(200,178,138,','rgba(155,128,78,','rgba(218,198,158,',
+               'rgba(128,98,58,', 'rgba(185,148,88,'][Math.floor(Math.random()*5)],
+          op:0.55+frac*.28
+        });
+      }
+    }
+
+    /* Torches latérales */
+    const torches=[
+      {x:W*.08, y:H*.44},
+      {x:W*.92, y:H*.44},
+      {x:W*.04, y:H*.58},
+      {x:W*.96, y:H*.58},
+    ];
+    const torchParticles=torches.reduce((acc,torch)=>acc.concat(
+      Array.from({length:12},()=>({
+        tx:torch.x, ty:torch.y,
+        x:torch.x+(Math.random()-.5)*8,
+        y:torch.y-Math.random()*20,
+        vy:-(Math.random()*.8+.3),
+        vx:(Math.random()-.5)*.4,
+        r:Math.random()*3+1,
+        op:Math.random()*.8+.2,
+        life:Math.random(),
+        decay:Math.random()*.018+.01
+      }))
+    ),[]);
+
+    /* ─── Boucle d'animation ─── */
+    function frame(){
+      if(stop.v)return;
+
+      /* Motion blur léger */
+      ctx.fillStyle='rgba(6,3,0,0.18)'; ctx.fillRect(0,0,W,H);
+
+      /* ── Fond Colisée ── */
+      ctx.drawImage(bgC,0,0);
+
+      /* ── Soleil pulsant ── */
+      const sunX=W*.74, sunY=H*.14;
+      const sunPulse=0.92+Math.sin(t*.6)*.08;
+      for(let r=4;r>=0;r--){
+        const sg=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,W*(.08+r*.07)*sunPulse);
+        const cols=[
+          ['rgba(255,230,110,0.80)','rgba(255,170,40,0.50)','rgba(200,90,10,0.20)','rgba(0,0,0,0)'],
+          ['rgba(255,210,80,0.40)','rgba(220,130,20,0.20)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
+          ['rgba(200,100,10,0.18)','rgba(150,60,5,0.08)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
+          ['rgba(160,70,5,0.10)','rgba(0,0,0,0)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
+          ['rgba(120,50,3,0.06)','rgba(0,0,0,0)','rgba(0,0,0,0)','rgba(0,0,0,0)'],
+        ];
+        sg.addColorStop(0,cols[r][0]); sg.addColorStop(0.3,cols[r][1]);
+        sg.addColorStop(0.7,cols[r][2]); sg.addColorStop(1,cols[r][3]);
+        ctx.fillStyle=sg; ctx.fillRect(0,0,W,H*.45);
+      }
+
+      /* ── Foule animée — vague d'ovation ── */
+      for(const p of crowd){
+        /* Ondulation de debout/assis : chaque spectateur a un déphasage */
+        const wave=Math.sin(t*1.8+p.phase);  /* -1 → 1 */
+        const stand=0.5+wave*0.38;            /* 0.12 → 0.88 : proportion debout */
+        const bh=p.bh*(0.55+stand*0.55);
+        const lift=p.bh*(1-stand)*0.45;       /* soulèvement du bras */
 
         /* corps */
-        cx2.fillStyle = col + op + ')';
-        cx2.beginPath();
-        cx2.moveTo(sx - sw*0.5, sy);
-        cx2.lineTo(sx - sw*0.38, sy - sh*0.35);
-        cx2.lineTo(sx + sw*0.38, sy - sh*0.35);
-        cx2.lineTo(sx + sw*0.5,  sy);
-        cx2.closePath();
-        cx2.fill();
+        ctx.fillStyle=p.col+p.op+')';
+        ctx.beginPath();
+        ctx.moveTo(p.x-p.bw*.5, p.y);
+        ctx.lineTo(p.x-p.bw*.38, p.y-bh*.35);
+        ctx.lineTo(p.x+p.bw*.38, p.y-bh*.35);
+        ctx.lineTo(p.x+p.bw*.5,  p.y);
+        ctx.closePath(); ctx.fill();
+
+        /* tête */
+        ctx.fillStyle=`rgba(${155+Math.random()*30|0},${110+Math.random()*20|0},${65+Math.random()*15|0},${p.op})`;
+        ctx.beginPath(); ctx.ellipse(p.x, p.y-bh*.48, p.bw*.38, p.bw*.44, 0, 0, Math.PI*2); ctx.fill();
+
+        /* bras levé quand debout */
+        if(stand>.62){
+          ctx.strokeStyle=p.col+(p.op*.8)+')';
+          ctx.lineWidth=p.bw*.22; ctx.lineCap='round';
+          ctx.beginPath();
+          ctx.moveTo(p.x+p.bw*.28, p.y-bh*.30);
+          ctx.lineTo(p.x+p.bw*.48, p.y-bh*.30-lift*.8);
+          ctx.stroke();
+        }
       }
 
-      /* ligne de séparation rangée */
-      cx2.strokeStyle = `rgba(30,18,6,${0.3+frac*0.3})`;
-      cx2.lineWidth = 0.8;
-      cx2.beginPath();
-      cx2.ellipse(cx, rowY + rowH*0.9, rowRx, rowH*0.12, 0, 0, Math.PI);
-      cx2.stroke();
-    }
+      /* ── Torches — flammes animées ── */
+      for(const tp of torchParticles){
+        tp.life-=tp.decay; tp.x+=tp.vx; tp.y+=tp.vy;
+        if(tp.life<=0){
+          tp.life=0.7+Math.random()*.3;
+          tp.x=tp.tx+(Math.random()-.5)*7;
+          tp.y=tp.ty;
+          tp.vy=-(Math.random()*.9+.4);
+          tp.vx=(Math.random()-.5)*.5;
+        }
+        const frac2=1-tp.life;
+        const fc=ctx.createRadialGradient(tp.x,tp.y,0,tp.x,tp.y,tp.r*(2-frac2));
+        fc.addColorStop(0,`rgba(255,${240-frac2*140|0},${40-frac2*40|0},${tp.op*tp.life})`);
+        fc.addColorStop(0.5,`rgba(220,${100-frac2*60|0},10,${tp.op*tp.life*.5})`);
+        fc.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=fc;
+        ctx.beginPath(); ctx.arc(tp.x,tp.y,tp.r*(1.8-frac2*.8),0,Math.PI*2); ctx.fill();
+      }
+      /* corps torche */
+      for(const torch of torches){
+        ctx.fillStyle='#3a2008';
+        ctx.fillRect(torch.x-3,torch.y,6,H*.06);
+        ctx.fillStyle='rgba(255,180,60,0.25)';
+        const tg=ctx.createRadialGradient(torch.x,torch.y,0,torch.x,torch.y,W*.08);
+        tg.addColorStop(0,'rgba(255,180,40,0.30)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=tg; ctx.fillRect(0,0,W,H);
+      }
 
-    /* ── Sable de l'arène ── */
-    const sand=cx2.createLinearGradient(0,arenaY,0,sandBot);
-    sand.addColorStop(0,  'rgba(175,118,38,1)');
-    sand.addColorStop(0.25,'rgba(155,102,30,1)');
-    sand.addColorStop(0.6, 'rgba(128,85,22,1)');
-    sand.addColorStop(1,   'rgba(95,62,14,1)');
-    cx2.fillStyle=sand; cx2.fillRect(0,arenaY,W,sandBot-arenaY);
+      /* ── Volutes de poussière atmosphérique ── */
+      for(const p of puffs){
+        p.x+=p.vx; p.phase+=.007;
+        if(p.x>W+p.r*2)p.x=-p.r*2;
+        const pulse=1+Math.sin(p.phase)*.12;
+        const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*pulse);
+        pg.addColorStop(0,`rgba(165,112,45,${p.op})`);
+        pg.addColorStop(.5,`rgba(130,85,28,${p.op*.5})`);
+        pg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=pg;
+        ctx.beginPath(); ctx.ellipse(p.x,p.y,p.r*pulse*1.7,p.r*pulse*.68,0,0,Math.PI*2); ctx.fill();
+      }
 
-    /* ellipse de délimitation du sable */
-    cx2.strokeStyle='rgba(200,145,50,0.5)'; cx2.lineWidth=2.5;
-    cx2.setLineDash([6,4]);
-    cx2.beginPath(); cx2.ellipse(cx,arenaY+6,W*0.44,18,0,0,Math.PI*2); cx2.stroke();
-    cx2.setLineDash([]);
+      /* ── Gladiateur — animation respiration + épée ── */
+      const breathe=Math.sin(t*.9)*.018;
+      const swordAngle=-0.35+Math.sin(t*1.4)*.28;  /* oscillation épée */
+      drawGladiator(gx, gcx, gcy, gS, swordAngle);
+      ctx.save();
+      ctx.translate(0, Math.sin(t*.9)*gS*.022);  /* souffle corps */
+      ctx.globalAlpha=0.92;
+      ctx.drawImage(gladC, cx-gS*1.1, sandY-gS*2.28);
+      ctx.restore();
 
-    /* sillon central */
-    cx2.strokeStyle='rgba(140,95,28,0.4)'; cx2.lineWidth=1.2;
-    cx2.beginPath(); cx2.ellipse(cx,arenaY+14,W*0.22,8,0,0,Math.PI*2); cx2.stroke();
+      /* ── Rafales horizontales ── */
+      for(const s of streaks){
+        s.x+=s.vx; s.life-=.007;
+        if(s.x>W+s.len||s.life<=0){
+          s.x=-s.len; s.y=sandY+Math.random()*(H-sandY)*.5;
+          s.life=.5+Math.random()*.5; s.len=Math.random()*W*.10+W*.025;
+        }
+        const sg=ctx.createLinearGradient(s.x-s.len,s.y,s.x,s.y);
+        sg.addColorStop(0,'rgba(195,145,60,0)');
+        sg.addColorStop(.6,`rgba(195,145,60,${s.op*s.life})`);
+        sg.addColorStop(1,'rgba(195,145,60,0)');
+        ctx.strokeStyle=sg; ctx.lineWidth=Math.random()*1.4+.3; ctx.lineCap='round';
+        ctx.beginPath(); ctx.moveTo(s.x-s.len,s.y); ctx.lineTo(s.x,s.y); ctx.stroke();
+      }
 
-    /* texture sable — stries */
-    for(let i=0;i<180;i++){
-      const sx2=Math.random()*W;
-      const sy2=arenaY+Math.random()*(sandBot-arenaY);
-      const len=Math.random()*14+3;
-      cx2.strokeStyle=`rgba(${95+Math.random()*50|0},${62+Math.random()*30|0},${14+Math.random()*12|0},0.22)`;
-      cx2.lineWidth=Math.random()*1.2+0.3;
-      cx2.beginPath(); cx2.moveTo(sx2,sy2); cx2.lineTo(sx2+len,sy2+Math.random()*2-1); cx2.stroke();
-    }
+      /* ── Poussière qui monte ── */
+      for(let i=0;i<dust.length;i++){
+        const d=dust[i];
+        d.x+=d.vx+Math.sin(t*.4+i)*.2; d.y+=d.vy;
+        if(d.y<sandY-H*.28){d.y=sandY+10;d.x=Math.random()*W;}
+        ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+        ctx.fillStyle=`hsla(${d.hue},52%,58%,${d.op})`; ctx.fill();
+      }
 
-    /* trace de sang dans le sable — ligne sombre */
-    cx2.strokeStyle='rgba(80,12,5,0.35)'; cx2.lineWidth=3; cx2.lineCap='round';
-    cx2.beginPath();
-    cx2.moveTo(cx*0.7, arenaY+H*0.06);
-    cx2.quadraticCurveTo(cx*0.9, arenaY+H*0.04, cx*1.05, arenaY+H*0.08);
-    cx2.stroke();
+      /* ── Étincelles autour du gladiateur ── */
+      for(const sp of sparks){
+        sp.life-=sp.decay; sp.x+=sp.vx; sp.y+=sp.vy; sp.vy+=.06;
+        if(sp.life<=0){
+          sp.life=.6+Math.random()*.4;
+          sp.x=cx+(Math.random()-.5)*gS*1.5;
+          sp.y=sandY+Math.random()*(H-sandY)*.12;
+          sp.vx=(Math.random()-.5)*2.5;
+          sp.vy=-(Math.random()*2.5+1);
+        }
+        const sc=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,sp.r*2);
+        sc.addColorStop(0,`rgba(255,230,120,${sp.op*sp.life})`);
+        sc.addColorStop(.5,`rgba(255,160,40,${sp.op*sp.life*.6})`);
+        sc.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=sc;
+        ctx.beginPath(); ctx.arc(sp.x,sp.y,sp.r*(1.5+sp.life),0,Math.PI*2); ctx.fill();
+      }
 
-    /* ── Ombre portée sous les gradins sur le sable ── */
-    const shadowG = cx2.createLinearGradient(0,arenaY,0,arenaY+H*0.08);
-    shadowG.addColorStop(0,'rgba(10,5,1,0.62)');
-    shadowG.addColorStop(1,'rgba(10,5,1,0)');
-    cx2.fillStyle=shadowG; cx2.fillRect(0,arenaY,W,H*0.08);
+      /* ── Pétales / débris ── */
+      for(const p of petals){
+        p.x+=p.vx; p.y+=p.vy; p.rot+=p.vrot;
+        if(p.y>H+20)p.y=sandY-H*.5;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle=p.col+'0.55)';
+        ctx.beginPath(); ctx.ellipse(0,0,p.w,p.h,0,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
 
-    /* ── Gladiateur pré-dessiné ── */
-    const gladC=document.createElement('canvas');
-    const gS=Math.min(W,H)*0.22;
-    gladC.width=gS*1.4;gladC.height=gS*2;
-    const gx2=gladC.getContext('2d');
-    const gcx=gS*0.7,gcy=gS*1.6;
-    gx2.fillStyle='rgba(8,5,2,0.90)';
-    gx2.strokeStyle='rgba(8,5,2,0.90)';
-    gx2.lineWidth=3;gx2.lineCap='round';
-    /* jambes */
-    gx2.fillRect(gcx-gS*0.12,gcy-gS*0.38,gS*0.11,gS*0.38);
-    gx2.fillRect(gcx+gS*0.01,gcy-gS*0.38,gS*0.11,gS*0.38);
-    /* sandales */
-    gx2.fillRect(gcx-gS*0.15,gcy-gS*0.04,gS*0.14,gS*0.04);
-    gx2.fillRect(gcx-gS*0.02,gcy-gS*0.04,gS*0.14,gS*0.04);
-    /* corps + tunique */
-    gx2.beginPath();
-    gx2.moveTo(gcx-gS*0.18,gcy-gS*0.38);
-    gx2.lineTo(gcx-gS*0.20,gcy-gS*0.88);
-    gx2.lineTo(gcx+gS*0.20,gcy-gS*0.88);
-    gx2.lineTo(gcx+gS*0.18,gcy-gS*0.38);
-    gx2.closePath();gx2.fill();
-    /* tête + casque */
-    gx2.beginPath();gx2.ellipse(gcx,gcy-gS*1.02,gS*0.12,gS*0.14,0,0,Math.PI*2);gx2.fill();
-    /* panache du casque */
-    gx2.strokeStyle='rgba(160,25,10,0.85)';gx2.lineWidth=2.5;
-    gx2.beginPath();
-    gx2.moveTo(gcx-gS*0.08,gcy-gS*1.12);
-    gx2.quadraticCurveTo(gcx,gcy-gS*1.45,gcx+gS*0.06,gcy-gS*1.16);
-    gx2.stroke();
-    gx2.strokeStyle='rgba(8,5,2,0.90)';gx2.lineWidth=3;
-    /* bras gauche — bouclier */
-    gx2.beginPath();
-    gx2.moveTo(gcx-gS*0.18,gcy-gS*0.82);
-    gx2.lineTo(gcx-gS*0.38,gcy-gS*0.55);
-    gx2.stroke();
-    gx2.fillStyle='rgba(90,55,15,0.85)';
-    gx2.beginPath();gx2.ellipse(gcx-gS*0.42,gcy-gS*0.50,gS*0.10,gS*0.16,0.3,0,Math.PI*2);gx2.fill();
-    gx2.strokeStyle='rgba(160,120,40,0.6)';gx2.lineWidth=1.5;
-    gx2.beginPath();gx2.ellipse(gcx-gS*0.42,gcy-gS*0.50,gS*0.10,gS*0.16,0.3,0,Math.PI*2);gx2.stroke();
-    /* bras droit — épée levée */
-    gx2.strokeStyle='rgba(8,5,2,0.90)';gx2.lineWidth=3;
-    gx2.beginPath();
-    gx2.moveTo(gcx+gS*0.18,gcy-gS*0.82);
-    gx2.lineTo(gcx+gS*0.32,gcy-gS*1.05);
-    gx2.stroke();
-    /* épée */
-    gx2.strokeStyle='rgba(160,145,100,0.88)';gx2.lineWidth=2;
-    gx2.beginPath();
-    gx2.moveTo(gcx+gS*0.32,gcy-gS*1.05);
-    gx2.lineTo(gcx+gS*0.42,gcy-gS*1.38);
-    gx2.stroke();
-    /* garde de l'épée */
-    gx2.strokeStyle='rgba(120,95,40,0.8)';gx2.lineWidth=3;
-    gx2.beginPath();
-    gx2.moveTo(gcx+gS*0.26,gcy-gS*1.08);
-    gx2.lineTo(gcx+gS*0.40,gcy-gS*1.03);
-    gx2.stroke();
+      /* ── Grains de sable bas ── */
+      for(const g of grains){
+        g.wobble+=.038; g.x+=g.vx+Math.sin(g.wobble)*.35;
+        g.y+=g.vy+Math.cos(g.wobble*.7)*.08;
+        if(g.x>W+5){g.x=-5;g.y=sandY+Math.random()*(H-sandY)*.24;}
+        if(g.y<sandY-6){g.y=sandY+Math.random()*8;}
+        ctx.globalAlpha=g.op*(.7+Math.sin(g.wobble)*.3);
+        ctx.fillStyle=`hsl(${g.hue},50%,${56+Math.sin(g.wobble)*8}%)`;
+        ctx.beginPath(); ctx.arc(g.x,g.y,g.r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
 
-    /* ── Sable et poussière — 3 couches ── */
+      /* ── Halo de lumière solaire depuis le haut ── */
+      const topG=ctx.createLinearGradient(0,0,0,H*.30);
+      topG.addColorStop(0,`rgba(180,90,10,${.10+Math.sin(t*.4)*.04})`);
+      topG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=topG; ctx.fillRect(0,0,W,H*.30);
 
-    /* Couche 1 : grains de sable fins au ras du sol */
-    const sandGrains=Array.from({length:120},()=>({
-     x:Math.random()*W,
-     y:arenaY+Math.random()*(H-arenaY)*0.25,
-     vx:Math.random()*1.8+0.4,
-     vy:-(Math.random()*0.15),
-     r:Math.random()*1.2+0.2,
-     op:Math.random()*0.55+0.15,
-     hue:22+Math.random()*18,
-     wobble:Math.random()*Math.PI*2
-    }));
+      /* ── Vignette chaude finale ── */
+      const vg=ctx.createRadialGradient(W/2,H*.44,H*.04,W/2,H*.44,H*.92);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(.45,'rgba(6,2,0,0.22)');
+      vg.addColorStop(1,'rgba(5,2,0,0.95)');
+      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 
-    /* Couche 2 : particules moyennes qui montent */
-    const dust=Array.from({length:65},()=>({
-     x:Math.random()*W,
-     y:arenaY+Math.random()*(H-arenaY)*0.6,
-     vx:(Math.random()-0.5)*0.6,
-     vy:-(Math.random()*0.5+0.1),
-     r:Math.random()*2.5+0.5,
-     op:Math.random()*0.28+0.06,
-     hue:25+Math.random()*20
-    }));
-
-    /* Couche 3 : grosses volutes atmosphériques */
-    const puffs=Array.from({length:8},(_,i)=>({
-     x:Math.random()*W,
-     y:arenaY-Math.random()*H*0.12,
-     vx:(Math.random()-0.5)*0.25+0.15,
-     r:W*(0.06+Math.random()*0.10),
-     op:Math.random()*0.07+0.02,
-     phase:Math.random()*Math.PI*2
-    }));
-
-    /* Rafales horizontales (streaks) */
-    const streaks=Array.from({length:18},()=>({
-     x:Math.random()*W,
-     y:arenaY+Math.random()*(H-arenaY)*0.5,
-     vx:Math.random()*3.5+1.5,
-     len:Math.random()*W*0.08+W*0.02,
-     op:Math.random()*0.18+0.04,
-     life:Math.random()
-    }));
-
-    function frame(){
-     if(stop.v)return;
-     ctx.fillStyle='rgba(6,3,0,0.16)';ctx.fillRect(0,0,W,H);
-
-     /* fond + arènes */
-     ctx.drawImage(colC,0,0);
-
-     /* soleil romain */
-     const sunX=W*0.72,sunY=H*0.15;
-     const sunG=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,W*0.35);
-     sunG.addColorStop(0,'rgba(255,'+(200+Math.sin(t*0.4)*18|0)+',80,'+(0.55+Math.sin(t*0.5)*0.08)+')');
-     sunG.addColorStop(0.2,'rgba(220,120,15,0.28)');
-     sunG.addColorStop(0.55,'rgba(160,70,5,0.10)');
-     sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H*0.55);
-
-     /* gladiateur */
-     ctx.save();ctx.globalAlpha=0.88;
-     ctx.drawImage(gladC,W*0.5-gS*0.7,arenaY-gS*1.62);
-     ctx.restore();
-
-     /* ── Volutes atmosphériques (fond, dessinées en premier) ── */
-     for(const p of puffs){
-      p.x+=p.vx;p.phase+=0.008;
-      if(p.x>W+p.r*2)p.x=-p.r*2;
-      const pulse=1+Math.sin(p.phase)*0.12;
-      const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*pulse);
-      pg.addColorStop(0,`rgba(160,110,45,${p.op})`);
-      pg.addColorStop(0.5,`rgba(130,85,28,${p.op*0.5})`);
-      pg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=pg;ctx.beginPath();ctx.ellipse(p.x,p.y,p.r*pulse*1.6,p.r*pulse*0.7,0,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── Rafales horizontales ── */
-     for(const s of streaks){
-      s.x+=s.vx;s.life-=0.008;
-      if(s.x>W+s.len||s.life<=0){s.x=-s.len;s.y=arenaY+Math.random()*(H-arenaY)*0.5;s.life=0.6+Math.random()*0.4;s.len=Math.random()*W*0.08+W*0.02;}
-      const sg=ctx.createLinearGradient(s.x-s.len,s.y,s.x,s.y);
-      sg.addColorStop(0,'rgba(190,140,60,0)');
-      sg.addColorStop(0.6,`rgba(190,140,60,${s.op*s.life})`);
-      sg.addColorStop(1,'rgba(190,140,60,0)');
-      ctx.strokeStyle=sg;ctx.lineWidth=Math.random()*1.2+0.3;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(s.x-s.len,s.y);ctx.lineTo(s.x,s.y);ctx.stroke();
-     }
-
-     /* ── Particules moyennes qui montent ── */
-     for(let i=0;i<dust.length;i++){
-      const d=dust[i];
-      d.x+=d.vx+Math.sin(t*0.4+i)*0.18;d.y+=d.vy;
-      if(d.y<arenaY-20){d.y=arenaY+Math.random()*20;d.x=Math.random()*W;}
-      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle=`hsla(${d.hue},55%,60%,${d.op})`;ctx.fill();
-     }
-
-     /* ── Grains de sable fins au ras du sol ── */
-     for(const g of sandGrains){
-      g.wobble+=0.04;
-      g.x+=g.vx+Math.sin(g.wobble)*0.3;
-      g.y+=g.vy+Math.cos(g.wobble*0.7)*0.08;
-      if(g.x>W+5){g.x=-5;g.y=arenaY+Math.random()*(H-arenaY)*0.22;}
-      if(g.y<arenaY-8){g.y=arenaY+Math.random()*10;}
-      ctx.globalAlpha=g.op*(0.7+Math.sin(g.wobble)*0.3);
-      ctx.fillStyle=`hsl(${g.hue},52%,${58+Math.sin(g.wobble)*8}%)`;
-      ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();
-     }
-     ctx.globalAlpha=1;
-
-     /* vignette chaude */
-     const vg=ctx.createRadialGradient(W/2,H*0.42,H*0.06,W/2,H*0.42,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.5,'rgba(8,3,0,0.28)');
-     vg.addColorStop(1,'rgba(8,3,0,0.90)');
-     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-
-     t+=0.016;requestAnimationFrame(frame);
+      t+=.016; requestAnimationFrame(frame);
     }
     frame();
    }
