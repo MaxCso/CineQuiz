@@ -34184,99 +34184,167 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Eternal Sunshine',
    ref:'Eternal Sunshine of the Spotless Mind \u2014 Michel Gondry, 2004',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.75';
+    cv.style.opacity='1';
     let t=0;
-    const cx=W/2, cy=H/2;
+    const cx=W/2;
 
-    /* Particules mémoire — s'effacent progressivement */
-    const memories=Array.from({length:60},(_,i)=>({
+    /* ── Flocons légers ── */
+    const flakes=Array.from({length:38},()=>({
      x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.45, vy:(Math.random()-0.5)*0.35,
-     r:Math.random()*40+15, alpha:Math.random()*0.30+0.08,
-     hue:Math.random()*60+180, fade:Math.random()*0.002+0.0005,
-     born:i/60
+     vy:0.28+Math.random()*0.55, vx:(Math.random()-0.5)*0.22,
+     r:Math.random()*1.8+0.4, op:Math.random()*0.35+0.08
     }));
 
-    /* Flocons de neige (scène plage enneigée) */
-    const flakes=Array.from({length:50},()=>({
-     x:Math.random()*W, y:Math.random()*H,
-     vy:0.5+Math.random()*1.0, vx:(Math.random()-0.5)*0.4,
-     r:Math.random()*2+0.5, op:Math.random()*0.55+0.15
-    }));
+    /* ── Dessine les fissures dans la glace ── */
+    function drawCracks(ox,oy,scale){
+     ctx.save();
+     ctx.translate(ox,oy);
+     ctx.scale(scale,scale);
+     ctx.strokeStyle='rgba(160,185,210,0.55)';
+     ctx.lineWidth=1.2; ctx.lineCap='round';
+     /* Bras principaux */
+     const arms=[
+      [0,0, -55,-28],  [0,0, -30,-65],  [0,0,  18,-72],
+      [0,0,  58,-18],  [0,0,  42, 38],  [0,0, -20, 55],
+      [0,0, -62, 12]
+     ];
+     for(const [x1,y1,x2,y2] of arms){
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      /* Petites branches */
+      const mx=(x1+x2)*.55, my=(y1+y2)*.55;
+      const nx=-(y2-y1)*.28, ny=(x2-x1)*.28;
+      ctx.lineWidth=0.7;
+      ctx.beginPath(); ctx.moveTo(mx,my); ctx.lineTo(mx+nx,my+ny); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(mx,my); ctx.lineTo(mx-nx*.6,my-ny*.6); ctx.stroke();
+      ctx.lineWidth=1.2;
+     }
+     ctx.restore();
+    }
+
+    /* ── Dessine les deux personnages vus du dessus ── */
+    function drawCouple(t){
+     /* Centre légèrement décalé vers le haut-droite comme l'affiche */
+     const px=cx+W*0.04, py=H*0.30;
+     /* Légère respiration */
+     const breath=Math.sin(t*0.5)*1.2;
+
+     ctx.save();
+     ctx.translate(px,py);
+     ctx.rotate(-0.25); /* couple légèrement penché */
+
+     /* ──── Clément (manteau sombre, à droite) ──── */
+     ctx.save();
+     ctx.translate(W*0.07,0+breath*.3);
+     /* Jambes */
+     ctx.fillStyle='#5a3a22';
+     ctx.beginPath(); ctx.ellipse(-W*.025,H*.09,W*.022,H*.065,0.12,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.ellipse( W*.010,H*.10,W*.020,H*.062,0.05,0,Math.PI*2); ctx.fill();
+     /* Chaussures */
+     ctx.fillStyle='#2a1a0e';
+     ctx.beginPath(); ctx.ellipse(-W*.028,H*.148,W*.020,H*.022,-0.1,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.ellipse( W*.012,H*.155,W*.018,H*.020,-0.05,0,Math.PI*2); ctx.fill();
+     /* Manteau sombre */
+     ctx.fillStyle='#2e3028';
+     ctx.beginPath();
+     ctx.moveTo(-W*.048,-H*.045); ctx.lineTo(-W*.055, H*.085);
+     ctx.lineTo( W*.050, H*.090); ctx.lineTo( W*.052,-H*.042);
+     ctx.closePath(); ctx.fill();
+     /* Col écharpe */
+     ctx.fillStyle='#7a3030';
+     ctx.beginPath(); ctx.ellipse(0,-H*.038,W*.022,H*.016,0,0,Math.PI*2); ctx.fill();
+     /* Tête + bonnet */
+     ctx.fillStyle='#c8a882';
+     ctx.beginPath(); ctx.arc(0,-H*.072,W*.032,0,Math.PI*2); ctx.fill();
+     ctx.fillStyle='#3a3a2a';
+     ctx.beginPath(); ctx.ellipse(0,-H*.088,W*.036,H*.028,0,0,Math.PI*2); ctx.fill();
+     ctx.restore();
+
+     /* ──── Clémentine (manteau rose, à gauche, tête sur son épaule) ──── */
+     ctx.save();
+     ctx.translate(-W*0.06, H*0.01+breath*.5);
+     /* Jambes */
+     ctx.fillStyle='#1a1a2a';
+     ctx.beginPath(); ctx.ellipse(-W*.018,H*.09,-0.18,0,W*.020,H*.060,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.ellipse( W*.022,H*.082,W*.018,H*.058,0.10,0,Math.PI*2); ctx.fill();
+     /* Boots */
+     ctx.fillStyle='#c8a860';
+     ctx.beginPath(); ctx.ellipse(-W*.020,H*.145,W*.018,H*.028,-0.08,0,Math.PI*2); ctx.fill();
+     ctx.fillStyle='#d4b878';
+     ctx.beginPath(); ctx.ellipse( W*.024,H*.136,W*.017,H*.026, 0.12,0,Math.PI*2); ctx.fill();
+     /* Manteau rose */
+     ctx.fillStyle='#b87868';
+     ctx.beginPath();
+     ctx.moveTo(-W*.052,-H*.050); ctx.lineTo(-W*.058, H*.080);
+     ctx.lineTo( W*.048, H*.075); ctx.lineTo( W*.050,-H*.048);
+     ctx.closePath(); ctx.fill();
+     /* Mitaine teal */
+     ctx.fillStyle='#3a8888';
+     ctx.beginPath(); ctx.ellipse(-W*.048, H*.010,W*.022,H*.030, 0.3,0,Math.PI*2); ctx.fill();
+     /* Tête appuyée (inclinée) */
+     ctx.save();
+     ctx.translate(W*.048,-H*.080);
+     ctx.rotate(0.35);
+     ctx.fillStyle='#c8a882';
+     ctx.beginPath(); ctx.arc(0,0,W*.030,0,Math.PI*2); ctx.fill();
+     /* Cheveux bleus — masse */
+     ctx.fillStyle='#2244cc';
+     ctx.beginPath();
+     ctx.arc(0,-W*.008,W*.035,Math.PI,0); ctx.closePath(); ctx.fill();
+     ctx.fillStyle='#1a38bb';
+     ctx.beginPath();
+     ctx.ellipse(-W*.018,-W*.008,W*.028,W*.022,-0.3,0,Math.PI*2); ctx.fill();
+     ctx.restore();
+     ctx.restore();
+
+     ctx.restore();
+    }
 
     function frame(){
      if(stop.v)return;
 
-     /* Ciel hiver bleu-gris */
-     const sky=ctx.createLinearGradient(0,0,0,H);
-     sky.addColorStop(0,'rgba(20,28,45,0.20)'); sky.addColorStop(0.5,'rgba(30,40,58,0.18)'); sky.addColorStop(1,'rgba(12,18,28,0.20)');
-     ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
+     /* ── Fond : blanc glacé → bleu nuit ── */
+     const bg=ctx.createLinearGradient(0,0,0,H);
+     bg.addColorStop(0,  '#e8eef4');
+     bg.addColorStop(0.38,'#c8d8e8');
+     bg.addColorStop(0.62,'#5880aa');
+     bg.addColorStop(0.82,'#1a2e50');
+     bg.addColorStop(1,  '#0a1628');
+     ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-     /* Particules mémoire */
-     for(const m of memories){
-      m.x+=m.vx; m.y+=m.vy; m.alpha-=m.fade;
-      if(m.alpha<=0){ m.x=Math.random()*W; m.y=Math.random()*H; m.alpha=0.25+Math.random()*0.20; }
-      if(m.x<-m.r)m.x=W+m.r; if(m.x>W+m.r)m.x=-m.r;
-      if(m.y<-m.r)m.y=H+m.r; if(m.y>H+m.r)m.y=-m.r;
-      const mg=ctx.createRadialGradient(m.x,m.y,2,m.x,m.y,m.r);
-      mg.addColorStop(0,`hsla(${m.hue},55%,68%,${m.alpha})`);
-      mg.addColorStop(0.5,`hsla(${m.hue},45%,55%,${m.alpha*0.4})`);
-      mg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(m.x,m.y,m.r,0,Math.PI*2); ctx.fill();
+     /* ── Texture glace (légère) ── */
+     ctx.fillStyle='rgba(255,255,255,0.12)';
+     ctx.fillRect(0,0,W,H*0.55);
+
+     /* ── Fissures — centrées sous les personnages ── */
+     drawCracks(cx-W*0.02, H*0.40, W/280);
+
+     /* ── Étoiles dans la partie basse ── */
+     ctx.fillStyle='rgba(255,255,255,0.55)';
+     for(let i=0;i<40;i++){
+      const sx=((i*137+31)%W), sy=H*0.62+((i*97+53)%(H*0.35));
+      const sr=((i*53)%10<2)?1.2:0.5;
+      const sa=0.2+((i*71)%10)*.06;
+      ctx.globalAlpha=sa*(0.6+Math.sin(t*0.8+i)*0.4);
+      ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
      }
+     ctx.globalAlpha=1;
 
-     /* Sol neige */
-     const snow=ctx.createLinearGradient(0,H*0.72,0,H);
-     snow.addColorStop(0,'rgba(80,95,115,0.92)'); snow.addColorStop(0.4,'rgba(55,70,90,0.95)'); snow.addColorStop(1,'rgba(30,40,55,0.98)');
-     ctx.fillStyle=snow; ctx.fillRect(0,H*0.72,W,H*0.28);
-
-     /* Dunes de neige */
-     ctx.fillStyle='rgba(88,104,125,0.95)';
-     ctx.beginPath(); ctx.moveTo(0,H*0.72);
-     for(let x=0;x<=W;x+=4) ctx.lineTo(x,H*0.72+Math.sin(x*0.02+t*0.3)*8+Math.sin(x*0.05)*5);
-     ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
-
-     /* Flocons */
+     /* ── Flocons ── */
      for(const f of flakes){
       f.x+=f.vx; f.y+=f.vy;
-      if(f.y>H*0.72){f.y=0;f.x=Math.random()*W;}
-      ctx.fillStyle=`rgba(200,215,230,${f.op})`; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
+      if(f.y>H*0.58){f.y=-2;f.x=Math.random()*W;}
+      ctx.fillStyle=`rgba(255,255,255,${f.op*(0.5+Math.sin(t*0.4+f.x)*0.5)})`;
+      ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
      }
 
-     /* Deux silhouettes — couple sur la plage */
-     const baseY=H*0.72;
-     for(const [px,dir] of [[cx-W*0.10,-1],[cx+W*0.10,1]]){
-      ctx.save(); ctx.translate(px,baseY); ctx.scale(dir,1);
-      /* Corps */
-      ctx.fillStyle='rgba(15,18,25,0.88)';
-      ctx.beginPath(); ctx.roundRect(-W*0.020,-H*0.18,W*0.040,H*0.16,3); ctx.fill();
-      /* Tête */
-      ctx.beginPath(); ctx.arc(0,-H*0.185,W*0.026,0,Math.PI*2); ctx.fill();
-      /* Bras vers l'autre */
-      ctx.strokeStyle='rgba(15,18,25,0.82)'; ctx.lineWidth=3; ctx.lineCap='round';
-      ctx.beginPath(); ctx.moveTo(W*0.020,-H*0.14); ctx.lineTo(W*0.055,-H*0.11+Math.sin(t*0.8)*2); ctx.stroke();
-      ctx.restore();
-     }
-     /* Mains liées */
-     ctx.strokeStyle='rgba(15,18,25,0.70)'; ctx.lineWidth=2.5; ctx.lineCap='round';
-     ctx.beginPath(); ctx.moveTo(cx-W*0.045,baseY-H*0.11+Math.sin(t*0.8)*2); ctx.lineTo(cx+W*0.045,baseY-H*0.11+Math.sin(t*0.8)*2); ctx.stroke();
+     /* ── Couple ── */
+     drawCouple(t);
 
-     /* Halo bleu-froid autour du couple */
-     const coupleG=ctx.createRadialGradient(cx,baseY-H*0.10,10,cx,baseY-H*0.10,W*0.30);
-     coupleG.addColorStop(0,`rgba(100,140,200,${0.14+Math.sin(t*0.6)*0.05})`);
-     coupleG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=coupleG; ctx.fillRect(0,H*0.35,W,H*0.45);
-
-     /* Lumière orange souvenir en haut */
-     const warmG=ctx.createRadialGradient(cx*1.2,H*0.15,5,cx*1.2,H*0.18,W*0.30);
-     warmG.addColorStop(0,`rgba(240,140,60,${0.16+Math.sin(t*0.5)*0.06})`);
-     warmG.addColorStop(0.5,'rgba(180,80,20,0.08)'); warmG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=warmG; ctx.fillRect(0,0,W,H*0.45);
-
-     /* Vignette douce */
-     const vg=ctx.createRadialGradient(cx,cy,H*0.06,cx,cy,H*0.90);
-     vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(0.5,'rgba(0,0,0,0.10)'); vg.addColorStop(1,'rgba(0,0,0,0.92)');
-     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+     /* ── Fondu bas vers noir (pour laisser place au logo CinéQuiz) ── */
+     const fade=ctx.createLinearGradient(0,H*0.75,0,H);
+     fade.addColorStop(0,'rgba(0,0,0,0)');
+     fade.addColorStop(1,'rgba(0,0,0,0.85)');
+     ctx.fillStyle=fade; ctx.fillRect(0,H*0.75,W,H*0.25);
 
      t+=0.014; requestAnimationFrame(frame);
     }
