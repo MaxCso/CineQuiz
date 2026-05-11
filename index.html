@@ -40217,97 +40217,170 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Vanilla Sky',
    ref:'Vanilla Sky \u2014 Cameron Crowe, 2001',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.82';
+    cv.style.opacity='1.0';
+
+    /* ── Désactiver complètement les orbes — fond crème pur ── */
+    let _vsStyle=document.getElementById('_vs_splash_style');
+    if(!_vsStyle){_vsStyle=document.createElement('style');_vsStyle.id='_vs_splash_style';document.head.appendChild(_vsStyle);}
+    _vsStyle.textContent=`
+      #splash-bg::before{background:none!important;}
+      #splash-bg::after{background:none!important;}
+      #splash-bg-anim::before{background:none!important;}
+      #splash-bg-anim::after{background:none!important;}
+      #splash{background:#f0e8d5!important;}
+      #splash-bg{background:none!important;}
+    `;
+    const _vsWatch=setInterval(()=>{if(stop.v){_vsStyle.textContent='';clearInterval(_vsWatch);}},200);
+
     let t=0;
-    const cx=W/2,cy=H/2;
-    /* Times Square vide — matin tôt */
-    const buildings=[
-     {x:0,w:W*0.22,h:H*0.62},{x:W*0.20,w:W*0.16,h:H*0.48},{x:W*0.34,w:W*0.24,h:H*0.70},
-     {x:W*0.56,w:W*0.18,h:H*0.54},{x:W*0.72,w:W*0.16,h:H*0.66},{x:W*0.86,w:W*0.15,h:H*0.44},
+    const cx=W/2;
+
+    /* ── Palette affiche ── */
+    const CREAM  ='#f0e8d5';
+    const BG_COL =[240,232,213]; /* crème vanille */
+
+    /* ── Skyline NYC — 3 couches de profondeur ── */
+    /* Couche arrière — plus sombre, plus petite */
+    const bldBack=[
+     {x:W*0.00,w:W*0.10,h:H*0.14},{x:W*0.08,w:W*0.06,h:H*0.18},
+     {x:W*0.13,w:W*0.08,h:H*0.12},{x:W*0.20,w:W*0.05,h:H*0.22},/* antenne */
+     {x:W*0.24,w:W*0.10,h:H*0.16},{x:W*0.33,w:W*0.07,h:H*0.11},
+     {x:W*0.39,w:W*0.12,h:H*0.19},{x:W*0.50,w:W*0.08,h:H*0.13},
+     {x:W*0.57,w:W*0.11,h:H*0.17},{x:W*0.67,w:W*0.06,h:H*0.21},
+     {x:W*0.72,w:W*0.09,h:H*0.15},{x:W*0.80,w:W*0.07,h:H*0.12},
+     {x:W*0.86,w:W*0.08,h:H*0.18},{x:W*0.93,w:W*0.08,h:H*0.13},
     ];
-    const horizY=H*0.44;
-    /* Ciel pastel/vanilla — soleil levant doux */
-    /* Néons de Times Square — éteints mais présents */
-    const signs=[
-     {x:W*0.14,y:horizY-H*0.18,w:W*0.14,h:H*0.06,color:'rgba(200,40,40,0.18)',label:'BROADWAY'},
-     {x:W*0.42,y:horizY-H*0.22,w:W*0.18,h:H*0.07,color:'rgba(40,160,200,0.15)',label:'OPEN 24H'},
-     {x:W*0.72,y:horizY-H*0.16,w:W*0.16,h:H*0.05,color:'rgba(200,180,20,0.18)',label:'HOTEL'},
+    /* Couche milieu */
+    const bldMid=[
+     {x:-W*0.02,w:W*0.14,h:H*0.20},{x:W*0.11,w:W*0.09,h:H*0.26},
+     {x:W*0.19,w:W*0.07,h:H*0.18},{x:W*0.25,w:W*0.13,h:H*0.30},
+     /* Empire State au centre-gauche — reconnaissable */
+     {x:W*0.33,w:W*0.09,h:H*0.34,empire:true},
+     {x:W*0.41,w:W*0.11,h:H*0.22},{x:W*0.51,w:W*0.08,h:H*0.28},
+     {x:W*0.58,w:W*0.13,h:H*0.24},{x:W*0.70,w:W*0.08,h:H*0.20},
+     {x:W*0.77,w:W*0.12,h:H*0.32},{x:W*0.88,w:W*0.15,h:H*0.22},
     ];
-    /* Particules rêve — flottent dans l'air */
-    const dreamParts=Array.from({length:35},()=>({
-     x:Math.random()*W,y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.15,vy:-(Math.random()*0.12+0.02),
-     r:Math.random()*3+0.8,op:Math.random()*0.25+0.05,hue:30+Math.random()*60,phase:Math.random()*Math.PI*2
+    /* Couche avant — plus claire, plus grande */
+    const bldFront=[
+     {x:-W*0.03,w:W*0.18,h:H*0.28},{x:W*0.14,w:W*0.12,h:H*0.22},
+     {x:W*0.25,w:W*0.16,h:H*0.18},{x:W*0.40,w:W*0.14,h:H*0.25},
+     {x:W*0.53,w:W*0.10,h:H*0.20},{x:W*0.62,w:W*0.18,h:H*0.30},
+     {x:W*0.79,w:W*0.12,h:H*0.22},{x:W*0.90,w:W*0.13,h:H*0.18},
+    ];
+    const skylineBase=H*0.88; /* base des buildings en bas */
+
+    /* ── Silhouette qui chute — au centre, légèrement au-dessus mi-écran ── */
+    const figure={
+     y:H*0.38,      /* position Y de départ */
+     vy:0.18,       /* vitesse de chute très lente */
+     rot:0.22,      /* angle de rotation (comme sur l'affiche) */
+     vrot:0.002,    /* légère rotation continue */
+    };
+
+    /* ── Particules dorées/crème flottant vers le haut ── */
+    const dust=Array.from({length:30},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H,
+     r:Math.random()*1.8+0.4,
+     vy:-(0.15+Math.random()*0.25),
+     vx:(Math.random()-0.5)*0.08,
+     op:Math.random()*0.35+0.08,
+     ph:Math.random()*Math.PI*2,
     }));
-    /* Masque — symbole */
-    let maskPulse=0;
+
+    function drawBuilding(bld,col,baseY){
+     const top=baseY-bld.h;
+     ctx.fillStyle=col;
+     ctx.fillRect(bld.x,top,bld.w,bld.h);
+     /* Antenne Empire State */
+     if(bld.empire){
+      ctx.fillRect(bld.x+bld.w*0.42,top-H*0.06,bld.w*0.08,H*0.06);
+      ctx.fillRect(bld.x+bld.w*0.44,top-H*0.09,bld.w*0.04,H*0.03);
+     }
+    }
+
+    /* Dessine la silhouette qui tombe (de face, bras écartés) */
+    function drawFigure(fx,fy,rot){
+     ctx.save();ctx.translate(fx,fy);ctx.rotate(rot);
+     const s=W*0.032;
+     ctx.fillStyle='rgba(80,55,30,0.92)';
+     /* Corps */
+     ctx.beginPath();ctx.roundRect(-s*0.18,-s*0.5,s*0.36,s,2);ctx.fill();
+     /* Tête */
+     ctx.beginPath();ctx.arc(0,-s*0.68,s*0.22,0,Math.PI*2);ctx.fill();
+     /* Bras gauche écarté */
+     ctx.beginPath();ctx.roundRect(-s*0.90,-s*0.28,s*0.72,s*0.16,2);ctx.fill();
+     /* Bras droit écarté */
+     ctx.beginPath();ctx.roundRect(s*0.18,-s*0.28,s*0.72,s*0.16,2);ctx.fill();
+     /* Jambes légèrement écartées */
+     ctx.beginPath();ctx.roundRect(-s*0.22,s*0.50,s*0.18,s*0.55,2);ctx.fill();
+     ctx.beginPath();ctx.roundRect(s*0.04,s*0.50,s*0.18,s*0.55,2);ctx.fill();
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(8,7,6,0.20)';ctx.fillRect(0,0,W,H);
-     /* Ciel vanilla/pastel — soleil levant */
-     const sky=ctx.createLinearGradient(0,0,0,horizY);
-     sky.addColorStop(0,'rgba(140,120,90,0.92)');sky.addColorStop(0.25,'rgba(200,175,120,0.85)');sky.addColorStop(0.55,'rgba(230,210,160,0.80)');sky.addColorStop(0.78,'rgba(245,230,185,0.76)');sky.addColorStop(1,'rgba(255,240,195,0.72)');
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
-     /* Soleil pâle et doux */
-     const sunG=ctx.createRadialGradient(cx*0.90,horizY*0.55,4,cx*0.90,horizY*0.55,W*0.22);
-     sunG.addColorStop(0,`rgba(255,240,180,${0.60+Math.sin(t*0.15)*0.06})`);sunG.addColorStop(0.3,'rgba(255,220,140,0.28)');sunG.addColorStop(0.65,'rgba(240,200,110,0.10)');sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG;ctx.beginPath();ctx.arc(cx*0.90,horizY*0.55,W*0.048,0,Math.PI*2);ctx.fill();
-     /* Immeubles déserts — teinte chaude */
-     for(const b of buildings){
-      const by=horizY-b.h;
-      const bg=ctx.createLinearGradient(b.x,by,b.x,horizY);
-      bg.addColorStop(0,'rgba(30,25,18,0.96)');bg.addColorStop(0.5,'rgba(22,18,12,0.97)');bg.addColorStop(1,'rgba(14,10,6,0.98)');
-      ctx.fillStyle=bg;ctx.fillRect(b.x,by,b.w,b.h);
-      /* Fenêtres teintées chaud */
-      const fw=b.w/(Math.floor(b.w/(W*0.028))+1)*0.44;
-      const fh=H*0.016;
-      const gc=b.w/(Math.floor(b.w/(W*0.028))+1);
-      const gr=b.h/(Math.floor(b.h/(H*0.048))+1);
-      for(let r=1;r<Math.floor(b.h/gr);r++){
-       for(let c=1;c<Math.floor(b.w/gc);c++){
-        const wx=b.x+c*gc-fw/2,wy=by+r*gr;if(wy>horizY-10||wy<by+5)continue;
-        ctx.fillStyle=`rgba(255,210,140,${0.04+Math.sin(r+c+t*0.02)*0.03})`;
-        ctx.fillRect(wx,wy,fw,fh);
-       }
-      }
+
+     /* ── FOND CRÈME VANILLE PLEIN ── */
+     const [r,g,b]=BG_COL;
+     /* Très légère variation lumineuse */
+     const breathe=Math.sin(t*0.3)*4;
+     ctx.fillStyle=`rgb(${r+breathe|0},${g+breathe*0.8|0},${b+breathe*0.5|0})`;
+     ctx.fillRect(0,0,W,H);
+
+     /* Légère chaleur au centre (soleil diffus) */
+     const sunG=ctx.createRadialGradient(cx,H*0.30,20,cx,H*0.30,W*0.70);
+     sunG.addColorStop(0,`rgba(255,240,200,${0.18+Math.sin(t*0.2)*0.03})`);
+     sunG.addColorStop(0.5,'rgba(248,235,195,0.06)');
+     sunG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H);
+
+     /* ── SKYLINE — couche arrière (brun foncé) ── */
+     for(const b of bldBack)drawBuilding(b,'rgba(168,128,88,0.65)',skylineBase);
+
+     /* ── SKYLINE — couche milieu (brun moyen) ── */
+     for(const b of bldMid)drawBuilding(b,'rgba(185,145,95,0.82)',skylineBase);
+
+     /* ── SKYLINE — couche avant (beige clair) ── */
+     for(const b of bldFront)drawBuilding(b,'rgba(215,190,148,0.95)',skylineBase);
+
+     /* ── PARTICULES de poussière dorée ── */
+     for(const d of dust){
+      d.y+=d.vy;d.x+=d.vx;d.ph+=0.03;
+      if(d.y<-10){d.y=H+10;d.x=Math.random()*W;}
+      const alpha=d.op*(0.5+0.5*Math.sin(d.ph));
+      ctx.fillStyle=`rgba(190,155,90,${alpha})`;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
      }
-     /* Néons éteints — fantômes de couleur */
-     for(const s of signs){
-      ctx.strokeStyle=s.color;ctx.lineWidth=1;ctx.strokeRect(s.x,s.y,s.w,s.h);
-      ctx.fillStyle=s.color;ctx.font=`bold ${W*0.022}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(s.label,s.x+s.w/2,s.y+s.h/2);
-     }
-     /* Sol Times Square désert */
-     const street=ctx.createLinearGradient(0,horizY,0,H);
-     street.addColorStop(0,'rgba(22,18,12,0.94)');street.addColorStop(0.4,'rgba(16,13,8,0.97)');street.addColorStop(1,'rgba(10,8,5,0.99)');
-     ctx.fillStyle=street;ctx.fillRect(0,horizY,W,H-horizY);
-     /* Reflet doux sur asphalte */
-     const ref=ctx.createLinearGradient(0,horizY,0,horizY+H*0.12);
-     ref.addColorStop(0,`rgba(240,215,155,${0.05+Math.sin(t*0.18)*0.015})`);ref.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=ref;ctx.fillRect(0,horizY,W,H*0.12);
-     /* Particules rêve */
-     for(const dp of dreamParts){
-      dp.x+=dp.vx;dp.y+=dp.vy;dp.phase+=0.022;
-      if(dp.y<-10)dp.y=H+10;if(dp.x<0)dp.x=W;if(dp.x>W)dp.x=0;
-      const da=dp.op*(0.55+0.45*Math.sin(dp.phase));
-      ctx.fillStyle=`hsla(${dp.hue},60%,70%,${da})`;ctx.beginPath();ctx.arc(dp.x,dp.y,dp.r,0,Math.PI*2);ctx.fill();
-     }
-     /* Silhouette seule au milieu de Times Square vide */
-     maskPulse+=0.018;
-     const fx=cx,fy=horizY+H*0.12;
-     const fh=H*0.18,fw=W*0.036;
-     ctx.fillStyle='rgba(5,4,3,0.98)';
-     ctx.beginPath();ctx.roundRect(fx-fw/2,fy-fh*0.70,fw,fh*0.62,2);ctx.fill();
-     ctx.beginPath();ctx.arc(fx,fy-fh*0.78,fw*0.45,0,Math.PI*2);ctx.fill();
-     /* Lueur dorée autour de la silhouette — rêve */
-     const aura=ctx.createRadialGradient(fx,fy-fh*0.40,4,fx,fy-fh*0.40,W*0.14);
-     aura.addColorStop(0,`rgba(255,220,120,${0.06+Math.sin(maskPulse)*0.03})`);aura.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=aura;ctx.beginPath();ctx.arc(fx,fy-fh*0.40,W*0.14,0,Math.PI*2);ctx.fill();
-     /* Vignette chaude */
-     const vg=ctx.createRadialGradient(cx,cy,H*0.05,cx,cy,H*0.92);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.44,'rgba(0,0,0,0.18)');vg.addColorStop(1,'rgba(0,0,0,0.94)');
+
+     /* ── SILHOUETTE QUI CHUTE ── */
+     figure.y+=figure.vy;
+     figure.rot+=figure.vrot;
+     /* Légère oscillation sinusoïdale horizontale (rêve) */
+     const figX=cx+Math.sin(t*0.4)*W*0.03;
+     /* Reset si sort de l'écran */
+     if(figure.y>skylineBase-H*0.12){figure.y=H*0.15;figure.rot=0.22;}
+     drawFigure(figX,figure.y,figure.rot);
+
+     /* ── VIGNETTE très douce — tons crème ── */
+     const vg=ctx.createRadialGradient(cx,H*0.45,H*0.10,cx,H*0.45,H*0.85);
+     vg.addColorStop(0,'rgba(200,175,130,0)');
+     vg.addColorStop(0.55,'rgba(180,148,95,0.06)');
+     vg.addColorStop(1,'rgba(140,105,55,0.55)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<45;i++){const g=8+Math.random()*18|0;ctx.fillStyle=`rgba(${g+6},${g+4},${g},${Math.random()*0.018})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+
+     /* Vignette latérale chaude */
+     const vgL=ctx.createLinearGradient(0,0,W*0.15,0);
+     vgL.addColorStop(0,'rgba(160,125,70,0.40)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.15,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.85,0);
+     vgR.addColorStop(0,'rgba(160,125,70,0.40)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.85,0,W*0.15,H);
+     /* Bas très sombre */
+     const vgB=ctx.createLinearGradient(0,H,0,H*0.78);
+     vgB.addColorStop(0,'rgba(80,55,25,0.72)');vgB.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgB;ctx.fillRect(0,H*0.78,W,H*0.22);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
