@@ -38339,104 +38339,207 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Mystic River',
    ref:'Mystic River \u2014 Clint Eastwood, 2003',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.78';
+    cv.style.opacity='1.0';
+
+    /* ── Palette sombre bleu-ardoise ciblée sur ce film ── */
+    let _mrStyle=document.getElementById('_mr_splash_style');
+    if(!_mrStyle){_mrStyle=document.createElement('style');_mrStyle.id='_mr_splash_style';document.head.appendChild(_mrStyle);}
+    _mrStyle.textContent=`
+      #splash-bg::before{background:
+        radial-gradient(ellipse 70% 50% at 50% 70%, rgba(30,60,110,.55) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(15,35,75,.35) 0%, transparent 60%)
+        !important;}
+      #splash-bg::after{background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 20%, rgba(0,0,0,.80) 100%)
+        !important;}
+      #splash-bg-anim::before{background:
+        radial-gradient(ellipse 70% 50% at 50% 70%, rgba(30,60,110,.55) 0%, transparent 65%)
+        !important;}
+      #splash-bg-anim::after{background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 20%, rgba(0,0,0,.80) 100%)
+        !important;}
+      #splash{background:#04070c!important;}
+    `;
+    const _mrWatch=setInterval(()=>{if(stop.v){_mrStyle.textContent='';clearInterval(_mrWatch);}},200);
+
     let t=0;
     const cx=W/2;
-    const riverY=H*0.52;
-    /* Rivière — vagues douces */
-    const wavePoints=Array.from({length:32},(_,i)=>({x:i*(W/31),phase:Math.random()*Math.PI*2,amp:Math.random()*4+2}));
-    /* Brume sur la rivière */
-    const mistPuffs=Array.from({length:10},(_,i)=>({x:i*(W/9)+Math.random()*W*0.08,y:riverY,r:W*0.06+Math.random()*W*0.08,op:Math.random()*0.08+0.02,vx:(Math.random()-0.5)*0.08}));
-    /* Reflets dans l'eau */
-    const reflections=[];
-    /* Arbres en bordure */
-    const treeLine=Array.from({length:20},(_,i)=>({x:i*(W/19),h:H*0.14+Math.random()*H*0.10,w:W*0.024+Math.random()*W*0.016}));
-    /* Détail pavé côté */
-    const cracks=Array.from({length:14},()=>({x:Math.random()*W,y:H*0.72+Math.random()*H*0.22,len:Math.random()*20+8,angle:Math.random()*Math.PI}));
+    /* La ligne d'eau est au centre — noir au-dessus, eau bleue en-dessous */
+    const waterY=H*0.48;
+
+    /* Points d'ondulation de la surface */
+    const waveNodes=Array.from({length:48},(_,i)=>({
+     x:i*(W/47),
+     phase:Math.random()*Math.PI*2,
+     freq:0.8+Math.random()*0.6,
+     amp:2.5+Math.random()*3.0,
+    }));
+
+    /* 3 silhouettes — positions horizontales comme sur l'affiche */
+    const silhouettes=[
+     {x:cx-W*0.22, w:W*0.10, h:H*0.20},
+     {x:cx,        w:W*0.12, h:H*0.22},
+     {x:cx+W*0.22, w:W*0.10, h:H*0.19},
+    ];
+
+    /* Particules lumineuses à la surface (reflets) */
+    const glints=Array.from({length:18},()=>({
+     x:Math.random()*W,
+     y:waterY+Math.random()*H*0.12,
+     r:Math.random()*2.2+0.5,
+     ph:Math.random()*Math.PI*2,
+     spd:0.03+Math.random()*0.05,
+     op:Math.random()*0.4+0.1,
+    }));
+
+    /* Fonction utilitaire : surface de l'eau à x donné */
+    function waterSurface(x){
+     let y=waterY;
+     for(const n of waveNodes){
+      const dx=Math.abs(x-n.x)/W;
+      y+=Math.sin(t*n.freq+n.phase+x*0.018)*n.amp*Math.exp(-dx*3.5);
+     }
+     return y;
+    }
+
+    /* Dessine une silhouette debout (simple et lisible) */
+    function drawSilhouette(sx,sw,sh,alpha){
+     ctx.save();
+     ctx.fillStyle=`rgba(4,6,10,${alpha})`;
+     /* Corps */
+     const hw=sw*0.38;
+     ctx.beginPath();
+     ctx.roundRect(sx-hw,-sh+waterY,hw*2,sh*0.72,3);
+     ctx.fill();
+     /* Tête */
+     ctx.beginPath();
+     ctx.arc(sx,-sh+waterY+sh*0.08,sw*0.22,0,Math.PI*2);
+     ctx.fill();
+     ctx.restore();
+    }
+
+    /* Dessine le reflet ondulé d'une silhouette dans l'eau */
+    function drawReflection(sx,sw,sh){
+     ctx.save();
+     /* On dessine ligne par ligne avec distorsion horizontale */
+     const steps=Math.ceil(sh*0.85);
+     for(let i=0;i<steps;i++){
+      const progress=i/steps; /* 0=surface, 1=profond */
+      const wy=waterY+i;
+      /* Distorsion horizontale croissante avec la profondeur */
+      const distort=Math.sin(t*1.2+wy*0.08+sx*0.01)*sw*(0.04+progress*0.18);
+      const alpha=Math.max(0,(0.72-progress*0.65));
+      const hw=sw*0.38*(1-progress*0.15);
+      ctx.fillStyle=`rgba(4,8,14,${alpha})`;
+      ctx.fillRect(sx-hw+distort,wy,hw*2,1.5);
+     }
+     /* Reflet tête */
+     for(let i=0;i<Math.ceil(sw*0.5);i++){
+      const wy=waterY+sh*0.85+i;
+      const distort=Math.sin(t*1.4+wy*0.10)*sw*0.12;
+      const alpha=Math.max(0,0.55-i/(sw*0.5)*0.55);
+      ctx.fillStyle=`rgba(4,8,14,${alpha})`;
+      ctx.fillRect(sx-sw*0.22+distort,wy,sw*0.44,1.5);
+     }
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(5,6,8,0.28)';ctx.fillRect(0,0,W,H);
-     /* Ciel couvert — lourd et gris */
-     const sky=ctx.createLinearGradient(0,0,0,riverY);
-     sky.addColorStop(0,'rgba(10,12,16,0.97)');sky.addColorStop(0.4,'rgba(18,20,26,0.92)');sky.addColorStop(0.8,'rgba(26,28,34,0.88)');sky.addColorStop(1,'rgba(32,34,40,0.85)');
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,riverY);
-     /* Nuages lourds */
-     for(let ci=0;ci<5;ci++){
-      const cgx=cx-W*0.40+ci*W*0.22,cgy=H*(0.08+ci*0.04);
-      const cg=ctx.createRadialGradient(cgx,cgy,5,cgx,cgy,W*0.22);
-      cg.addColorStop(0,`rgba(30,32,40,${0.18+Math.sin(t*0.15+ci)*0.04})`);cg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=cg;ctx.beginPath();ctx.ellipse(cgx,cgy,W*0.22,H*0.06,0,0,Math.PI*2);ctx.fill();
+
+     /* ── HAUT : ciel/rive noir profond ── */
+     const skyG=ctx.createLinearGradient(0,0,0,waterY);
+     skyG.addColorStop(0,'rgba(2,3,5,1.0)');
+     skyG.addColorStop(0.6,'rgba(4,6,10,1.0)');
+     skyG.addColorStop(1,'rgba(6,9,15,1.0)');
+     ctx.fillStyle=skyG;ctx.fillRect(0,0,W,waterY+4);
+
+     /* ── BAS : eau bleu-ardoise ── */
+     const waterG=ctx.createLinearGradient(0,waterY,0,H);
+     waterG.addColorStop(0,'rgba(28,52,95,1.0)');
+     waterG.addColorStop(0.3,'rgba(22,44,82,1.0)');
+     waterG.addColorStop(0.7,'rgba(16,34,65,1.0)');
+     waterG.addColorStop(1,'rgba(10,20,42,1.0)');
+     ctx.fillStyle=waterG;ctx.fillRect(0,waterY,W,H-waterY);
+
+     /* ── REFLETS des silhouettes dans l'eau ── */
+     for(const s of silhouettes)drawReflection(s.x,s.w,s.h);
+
+     /* ── SILHOUETTES debout sur la rive (zone de jonction) ── */
+     for(const s of silhouettes)drawSilhouette(s.x,s.w,s.h,0.95);
+
+     /* ── LIGNE D'EAU ondulée ── */
+     /* On redessine une fine bande de ciel par-dessus pour masquer proprement */
+     ctx.save();
+     ctx.beginPath();
+     ctx.moveTo(0,0);
+     for(let x=0;x<=W;x+=3){
+      ctx.lineTo(x,waterSurface(x));
      }
-     /* Berge loin */
-     ctx.fillStyle='rgba(12,14,12,0.96)';
-     ctx.beginPath();ctx.moveTo(0,riverY);
-     for(let i=0;i<=W;i+=4)ctx.lineTo(i,riverY-Math.sin(i*0.022+t*0.05)*3-Math.sin(i*0.010)*4);
-     ctx.lineTo(W,0);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
-     /* Arbres sur berge */
-     for(const tr of treeLine){
-      ctx.fillStyle='rgba(8,10,7,0.98)';
-      const ty=riverY-H*0.02;
-      ctx.beginPath();ctx.moveTo(tr.x,ty);ctx.lineTo(tr.x-tr.w,ty-tr.h);ctx.lineTo(tr.x+tr.w,ty-tr.h);ctx.closePath();ctx.fill();
-      ctx.beginPath();ctx.moveTo(tr.x,ty-tr.h*0.44);ctx.lineTo(tr.x-tr.w*1.4,ty-tr.h*0.18);ctx.lineTo(tr.x+tr.w*1.4,ty-tr.h*0.18);ctx.closePath();ctx.fill();
+     ctx.lineTo(W,0);ctx.closePath();
+     const maskG=ctx.createLinearGradient(0,waterY-8,0,waterY+2);
+     maskG.addColorStop(0,'rgba(4,6,10,1.0)');
+     maskG.addColorStop(1,'rgba(4,6,10,1.0)');
+     ctx.fillStyle=maskG;ctx.fill();
+     ctx.restore();
+
+     /* Ligne de surface lumineuse très fine */
+     ctx.save();
+     ctx.strokeStyle='rgba(55,90,145,0.35)';ctx.lineWidth=1.2;
+     ctx.beginPath();
+     for(let x=0;x<=W;x+=3){
+      const y=waterSurface(x);
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
      }
-     /* Rivière */
-     const riverG=ctx.createLinearGradient(0,riverY,0,H*0.72);
-     riverG.addColorStop(0,'rgba(14,20,28,0.94)');riverG.addColorStop(0.5,'rgba(10,16,24,0.96)');riverG.addColorStop(1,'rgba(7,11,18,0.98)');
-     ctx.fillStyle=riverG;ctx.fillRect(0,riverY,W,H*0.72-riverY);
-     /* Ondulations surface */
-     for(let wi=0;wi<3;wi++){
-      ctx.strokeStyle=`rgba(40,55,70,${0.22-wi*0.05})`;ctx.lineWidth=0.8;
+     ctx.stroke();
+     ctx.restore();
+
+     /* ── ONDULATIONS horizontales dans l'eau ── */
+     for(let row=1;row<6;row++){
+      const rowY=waterY+H*0.04*row;
+      const rowAlpha=0.06-row*0.008;
+      ctx.save();
+      ctx.strokeStyle=`rgba(50,85,140,${rowAlpha})`;ctx.lineWidth=0.8;
       ctx.beginPath();
-      for(let i=0;i<wavePoints.length;i++){
-       const wp=wavePoints[i];
-       const wy=riverY+H*0.02+wi*H*0.04+Math.sin(t*0.5+wp.phase+wi)*wp.amp;
-       i===0?ctx.moveTo(wp.x,wy):ctx.lineTo(wp.x,wy);
+      for(let x=0;x<=W;x+=4){
+       const disp=Math.sin(t*0.9+x*0.022+row*1.1)*3.5;
+       x===0?ctx.moveTo(x,rowY+disp):ctx.lineTo(x,rowY+disp);
       }
       ctx.stroke();
+      ctx.restore();
      }
-     /* Lueur de lune sur l'eau */
-     const moonRef=ctx.createRadialGradient(cx,riverY+H*0.05,2,cx,riverY+H*0.05,W*0.20);
-     moonRef.addColorStop(0,`rgba(120,140,160,${0.10+Math.sin(t*0.3)*0.03})`);moonRef.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=moonRef;ctx.beginPath();ctx.ellipse(cx,riverY+H*0.06,W*0.14,H*0.03,0,0,Math.PI*2);ctx.fill();
-     /* Brume */
-     for(const m of mistPuffs){
-      m.x+=m.vx;if(m.x>W+m.r)m.x=-m.r;if(m.x<-m.r)m.x=W+m.r;
-      const mg=ctx.createRadialGradient(m.x,m.y,3,m.x,m.y,m.r);
-      mg.addColorStop(0,`rgba(60,70,80,${m.op})`);mg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=mg;ctx.beginPath();ctx.ellipse(m.x,m.y,m.r,m.r*0.38,0,0,Math.PI*2);ctx.fill();
+
+     /* ── PARTICULES lumineuses à la surface (reflets) ── */
+     for(const g of glints){
+      g.ph+=g.spd;
+      g.x+=Math.sin(g.ph*0.3)*0.15;
+      if(g.x>W)g.x=0;if(g.x<0)g.x=W;
+      const pulse=Math.abs(Math.sin(g.ph));
+      const gy=g.y+Math.sin(g.ph*0.7)*3;
+      const grd=ctx.createRadialGradient(g.x,gy,0,g.x,gy,g.r*3.5);
+      grd.addColorStop(0,`rgba(140,185,240,${g.op*pulse})`);
+      grd.addColorStop(0.4,`rgba(90,140,210,${g.op*pulse*0.4})`);
+      grd.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=grd;
+      ctx.beginPath();ctx.arc(g.x,gy,g.r*3.5,0,Math.PI*2);ctx.fill();
      }
-     /* Quai / trottoir */
-     const quay=ctx.createLinearGradient(0,H*0.72,0,H);
-     quay.addColorStop(0,'rgba(18,18,18,0.96)');quay.addColorStop(1,'rgba(10,10,10,0.99)');
-     ctx.fillStyle=quay;ctx.fillRect(0,H*0.72,W,H*0.28);
-     /* Ligne du quai */
-     ctx.strokeStyle='rgba(35,35,35,0.80)';ctx.lineWidth=2;
-     ctx.beginPath();ctx.moveTo(0,H*0.72);ctx.lineTo(W,H*0.72);ctx.stroke();
-     /* Fissures pavé */
-     ctx.strokeStyle='rgba(8,8,8,0.55)';ctx.lineWidth=0.7;
-     for(const c of cracks){ctx.beginPath();ctx.moveTo(c.x,c.y);ctx.lineTo(c.x+Math.cos(c.angle)*c.len,c.y+Math.sin(c.angle)*c.len);ctx.stroke();}
-     /* Silhouette seule sur le quai */
-     const fx=cx-W*0.08,fy=H*0.72;
-     const fh=H*0.16,fw=W*0.034;
-     ctx.fillStyle='rgba(4,4,4,0.99)';
-     ctx.beginPath();ctx.roundRect(fx-fw/2,fy-fh*0.70,fw,fh*0.62,2);ctx.fill();
-     ctx.beginPath();ctx.arc(fx,fy-fh*0.78,fw*0.45,0,Math.PI*2);ctx.fill();
-     /* Reflet dans l'eau de la silhouette */
-     ctx.save();ctx.translate(fx,riverY+(riverY-fy));ctx.scale(1,-0.35);
-     ctx.globalAlpha=0.10;
-     ctx.fillStyle='rgba(4,4,4,0.99)';
-     ctx.beginPath();ctx.roundRect(-fw/2,-fh*0.70,fw,fh*0.62,2);ctx.fill();
-     ctx.beginPath();ctx.arc(0,-fh*0.78,fw*0.45,0,Math.PI*2);ctx.fill();
-     ctx.restore();ctx.globalAlpha=1;
-     /* Lune dans le ciel */
-     const moonG=ctx.createRadialGradient(cx+W*0.30,H*0.08,3,cx+W*0.30,H*0.08,W*0.09);
-     moonG.addColorStop(0,`rgba(185,195,210,${0.55+Math.sin(t*0.18)*0.06})`);moonG.addColorStop(0.3,'rgba(120,130,145,0.14)');moonG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=moonG;ctx.beginPath();ctx.arc(cx+W*0.30,H*0.08,W*0.036,0,Math.PI*2);ctx.fill();
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.04,cx,H*0.50,H*0.90);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.42,'rgba(0,0,0,0.30)');vg.addColorStop(1,'rgba(0,0,0,0.98)');
+
+     /* ── VIGNETTE — très sombre sur les bords ── */
+     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.08,cx,H*0.48,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.45,'rgba(0,0,0,0.18)');
+     vg.addColorStop(1,'rgba(0,0,0,0.95)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<55;i++){const g=7+Math.random()*18|0;ctx.fillStyle=`rgba(${g},${g+1},${g+2},${Math.random()*0.024})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+     /* Vignette latérale */
+     const vgL=ctx.createLinearGradient(0,0,W*0.20,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.65)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.20,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.80,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.65)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.80,0,W*0.20,H);
+
+     /* Grain film */
+     for(let i=0;i<45;i++){const g=3+Math.random()*10|0;ctx.fillStyle=`rgba(${g},${g+1},${g+2},${Math.random()*0.018})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
