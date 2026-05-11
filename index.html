@@ -39185,100 +39185,216 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'The Place Beyond the Pines',
    ref:'The Place Beyond the Pines \u2014 Derek Cianfrance, 2012',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.80';
+    cv.style.opacity='1.0';
+
+    /* ── Palette vert-sauge minimaliste — ciblée sur ce film uniquement ── */
+    let _pinesStyle=document.getElementById('_pines_splash_style');
+    if(!_pinesStyle){_pinesStyle=document.createElement('style');_pinesStyle.id='_pines_splash_style';document.head.appendChild(_pinesStyle);}
+    _pinesStyle.textContent=`
+      #splash-bg::before{background:
+        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(95,130,90,.45) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 50% at 20% 60%, rgba(60,95,55,.30) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 45% at 80% 55%, rgba(50,85,45,.25) 0%, transparent 58%)
+        !important;}
+      #splash-bg::after{background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, rgba(0,0,0,.55) 100%)
+        !important;}
+      #splash-bg-anim::before{background:
+        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(95,130,90,.45) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 50% at 20% 60%, rgba(60,95,55,.30) 0%, transparent 60%)
+        !important;}
+      #splash-bg-anim::after{background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 30%, rgba(0,0,0,.55) 100%)
+        !important;}
+      #splash{background:#3d5c38!important;}
+    `;
+    const _stopWatch=setInterval(()=>{if(stop.v){_pinesStyle.textContent='';clearInterval(_stopWatch);}},200);
+
     let t=0;
     const cx=W/2;
-    /* Route de nuit — moto */
-    const horizY=H*0.45;
-    /* Pins en silhouette */
-    const pines=Array.from({length:30},(_,i)=>({
-     x:i*(W/29),h:H*(0.18+Math.random()*0.20),
-     w:W*(0.018+Math.random()*0.012),layer:Math.random()<0.5?0:1
+
+    /* ── Couleurs de l'affiche ── */
+    const SKY_TOP   ='rgba(132,172,118,1.0)'; /* vert sauge clair */
+    const SKY_BOT   ='rgba(95,138,80,1.0)';  /* vert légèrement plus sombre à l'horizon */
+    const PINE_FAR  ='rgba(72,105,58,1.0)';  /* vert forêt lointain */
+    const PINE_MID  ='rgba(52,82,40,1.0)';   /* vert forêt moyen */
+    const PINE_NEAR ='rgba(30,52,22,1.0)';   /* vert forêt sombre au premier plan */
+    const ROAD_COL  ='rgba(160,165,155,1.0)';/* gris béton */
+    const YELLOW    ='rgba(240,195,0,1.0)';  /* double ligne jaune */
+
+    /* Horizon : les pins arrivent jusqu'à ~55% de la hauteur */
+    const treeTop=H*0.28; /* sommet des arbres les plus hauts */
+    const groundY=H*0.60; /* ligne de sol / base des arbres */
+
+    /* ── Génération des pins géométriques (triangles stylisés) ── */
+    /* Couche 0 : lointain — petits, clairs */
+    const pinesFar=Array.from({length:22},(_,i)=>({
+     x:(i/(21))*W*1.1-W*0.05,
+     baseY:groundY+H*0.02,
+     h:H*(0.14+Math.random()*0.08),
+     w:W*(0.045+Math.random()*0.025),
     }));
-    /* Ligne jaune route — défilement */
-    const dashOff={v:0};
-    /* Phares de moto */
-    const moto={x:cx,y:horizY+H*0.24,speed:0};
-    /* Pluie fine */
-    const rain=Array.from({length:80},()=>({x:Math.random()*W*1.3-W*0.15,y:Math.random()*H,len:Math.random()*12+5,spd:Math.random()*5+6,op:Math.random()*0.12+0.04}));
-    /* Forêt — lueurs de phares intermittentes sur les arbres */
-    function drawPine(x,base,h,w){
-     ctx.beginPath();ctx.moveTo(x,base);ctx.lineTo(x-w,base-h*0.55);ctx.lineTo(x-w*0.6,base-h*0.55);ctx.lineTo(x-w*0.8,base-h);ctx.lineTo(x+w*0.8,base-h);ctx.lineTo(x+w*0.6,base-h*0.55);ctx.lineTo(x+w,base-h*0.55);ctx.closePath();ctx.fill();
+    /* Couche 1 : milieu */
+    const pinesMid=Array.from({length:16},(_,i)=>({
+     x:(i/(15))*W*1.05-W*0.025,
+     baseY:groundY+H*0.04,
+     h:H*(0.22+Math.random()*0.10),
+     w:W*(0.062+Math.random()*0.030),
+    }));
+    /* Couche 2 : avant-plan — grands, sombres, sur les bords */
+    const pinesNear=[];
+    for(let i=0;i<7;i++){
+     pinesNear.push({x:i*(W*0.095)-W*0.02,baseY:H,h:H*(0.42+Math.random()*0.18),w:W*(0.072+Math.random()*0.035)});
     }
+    for(let i=0;i<7;i++){
+     pinesNear.push({x:W*0.58+i*(W*0.095),baseY:H,h:H*(0.42+Math.random()*0.18),w:W*(0.072+Math.random()*0.035)});
+    }
+
+    /* ── Route sinueuse — points de contrôle ── */
+    /* La route part du bas au centre, monte en ondulant légèrement, disparaît entre les arbres */
+    const roadW0=W*0.38; /* largeur en bas */
+    const roadW1=W*0.06; /* largeur à l'horizon */
+    const roadVanishY=groundY-H*0.02;
+    /* Courbe de la route : légère sinuosité via deux points de contrôle */
+    const roadCtrlX=cx+W*0.06; /* léger décalage pour donner la courbe */
+
+    /* Pré-calcul des bords de la route à différentes hauteurs pour remplissage */
+    function roadLeft(y){
+     const p=(y-H)/(roadVanishY-H); /* 0=bas, 1=horizon */
+     const w=roadW0+(roadW1-roadW0)*p;
+     const mid=cx+(roadCtrlX-cx)*p*0.5;
+     return mid-w/2;
+    }
+    function roadRight(y){
+     const p=(y-H)/(roadVanishY-H);
+     const w=roadW0+(roadW1-roadW0)*p;
+     const mid=cx+(roadCtrlX-cx)*p*0.5;
+     return mid+w/2;
+    }
+
+    /* Ligne jaune — offset par rapport au centre */
+    const yellowOff=W*0.025;
+
+    /* Animation légère : les lignes jaunes "avancent" vers l'observateur */
+    const dashPhase={v:0};
+
+    function drawTrianglePine(x,baseY,h,w,color){
+     ctx.fillStyle=color;
+     ctx.beginPath();
+     /* Triangle principal */
+     ctx.moveTo(x,baseY-h);
+     ctx.lineTo(x-w*0.5,baseY);
+     ctx.lineTo(x+w*0.5,baseY);
+     ctx.closePath();
+     ctx.fill();
+     /* Petit triangle interne plus sombre pour la profondeur */
+     ctx.fillStyle=color.replace(/[\d.]+,[\d.]+,[\d.]+/,m=>{
+      const [r,g,b]=m.split(',').map(Number);
+      return `${Math.max(0,r-18)},${Math.max(0,g-18)},${Math.max(0,b-14)}`;
+     });
+     ctx.beginPath();
+     ctx.moveTo(x,baseY-h*0.55);
+     ctx.lineTo(x-w*0.28,baseY);
+     ctx.lineTo(x+w*0.28,baseY);
+     ctx.closePath();
+     ctx.fill();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(4,5,6,0.26)';ctx.fillRect(0,0,W,H);
-     /* Ciel nuit humide */
-     const sky=ctx.createLinearGradient(0,0,0,horizY);
-     sky.addColorStop(0,'rgba(2,3,5,0.98)');sky.addColorStop(0.4,'rgba(5,7,10,0.94)');sky.addColorStop(0.75,'rgba(9,12,16,0.90)');sky.addColorStop(1,'rgba(14,18,22,0.86)');
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
-     /* Pins arrière */
-     ctx.fillStyle='rgba(4,7,4,0.98)';
-     for(const p of pines.filter(p=>p.layer===0))drawPine(p.x,horizY,p.h,p.w);
-     /* Sol asphalte mouillé */
-     const road=ctx.createLinearGradient(0,horizY,0,H);
-     road.addColorStop(0,'rgba(16,16,18,0.96)');road.addColorStop(0.3,'rgba(12,12,14,0.97)');road.addColorStop(1,'rgba(7,7,9,0.99)');
-     ctx.fillStyle=road;ctx.fillRect(0,horizY,W,H-horizY);
-     /* Route en perspective */
-     const rw0=W*0.020,rw1=W*0.30;
-     ctx.fillStyle='rgba(22,22,25,0.95)';
-     ctx.beginPath();ctx.moveTo(cx-rw0,horizY);ctx.lineTo(cx+rw0,horizY);ctx.lineTo(cx+rw1,H);ctx.lineTo(cx-rw1,H);ctx.closePath();ctx.fill();
-     /* Reflet phares sur asphalte mouillé */
-     const roadRefl=ctx.createRadialGradient(cx,horizY+H*0.30,5,cx,horizY+H*0.30,W*0.30);
-     roadRefl.addColorStop(0,`rgba(180,155,100,${0.12+Math.sin(t*0.4)*0.04})`);roadRefl.addColorStop(0.4,'rgba(120,100,60,0.05)');roadRefl.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=roadRefl;ctx.beginPath();ctx.ellipse(cx,horizY+H*0.35,W*0.22,H*0.12,0,0,Math.PI*2);ctx.fill();
-     /* Tirets de route */
-     dashOff.v=(dashOff.v+0.8)%40;
-     ctx.strokeStyle='rgba(190,175,110,0.42)';ctx.lineWidth=1.5;ctx.setLineDash([16,24]);ctx.lineDashOffset=-dashOff.v;
-     ctx.beginPath();ctx.moveTo(cx,horizY);ctx.lineTo(cx,H);ctx.stroke();ctx.setLineDash([]);
-     /* Phares moto — cône de lumière */
-     const lConeG=ctx.createRadialGradient(moto.x,moto.y-H*0.04,3,moto.x,moto.y-H*0.04,W*0.42);
-     lConeG.addColorStop(0,`rgba(220,200,150,${0.30+Math.sin(t*0.2)*0.04})`);lConeG.addColorStop(0.25,'rgba(180,160,110,0.14)');lConeG.addColorStop(0.6,'rgba(120,100,60,0.05)');lConeG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.save();ctx.translate(moto.x,moto.y-H*0.04);
-     ctx.fillStyle=lConeG;ctx.beginPath();ctx.moveTo(-W*0.022,0);ctx.lineTo(-W*0.38,-H*0.42);ctx.lineTo(W*0.38,-H*0.42);ctx.lineTo(W*0.022,0);ctx.closePath();ctx.fill();ctx.restore();
-     /* Lueurs phares sur pins latéraux */
-     const pineGlowG=ctx.createRadialGradient(moto.x,moto.y,5,moto.x,moto.y,W*0.45);
-     pineGlowG.addColorStop(0,`rgba(180,160,100,${0.06+Math.sin(t*0.2)*0.02})`);pineGlowG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=pineGlowG;ctx.fillRect(0,horizY-H*0.20,W,H*0.30);
-     /* Silhouette moto + conducteur */
-     ctx.fillStyle='rgba(4,4,5,0.98)';
-     /* Roues */
-     ctx.beginPath();ctx.arc(moto.x-W*0.055,moto.y+H*0.022,W*0.038,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.arc(moto.x+W*0.055,moto.y+H*0.022,W*0.038,0,Math.PI*2);ctx.fill();
-     /* Carénage */
-     ctx.beginPath();ctx.roundRect(moto.x-W*0.068,moto.y-H*0.018,W*0.136,H*0.040,4);ctx.fill();
-     /* Guidon */
-     ctx.strokeStyle='rgba(4,4,5,0.98)';ctx.lineWidth=3;ctx.lineCap='round';
-     ctx.beginPath();ctx.moveTo(moto.x-W*0.050,moto.y-H*0.018);ctx.lineTo(moto.x-W*0.065,moto.y-H*0.040);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(moto.x+W*0.050,moto.y-H*0.018);ctx.lineTo(moto.x+W*0.065,moto.y-H*0.040);ctx.stroke();
-     /* Conducteur */
-     ctx.fillStyle='rgba(4,4,5,0.98)';
-     ctx.beginPath();ctx.roundRect(moto.x-W*0.028,moto.y-H*0.105,W*0.056,H*0.090,2);ctx.fill();
-     ctx.beginPath();ctx.arc(moto.x,moto.y-H*0.116,W*0.030,0,Math.PI*2);ctx.fill();
-     /* Casque */
-     ctx.beginPath();ctx.ellipse(moto.x,moto.y-H*0.128,W*0.036,W*0.024,0,0,Math.PI);ctx.fill();
-     ctx.beginPath();ctx.roundRect(moto.x-W*0.036,moto.y-H*0.126,W*0.072,W*0.022,2);ctx.fill();
-     /* Phares */
-     for(const hx of [-W*0.065,W*0.065]){
-      const hg=ctx.createRadialGradient(moto.x+hx,moto.y-H*0.004,1,moto.x+hx,moto.y-H*0.004,W*0.025);
-      hg.addColorStop(0,`rgba(240,225,170,${0.80+Math.sin(t*1.5)*0.10})`);hg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(moto.x+hx,moto.y-H*0.004,W*0.025,0,Math.PI*2);ctx.fill();
+
+     /* ── CIEL vert-sauge uniforme avec très légère respiration ── */
+     const breathe=Math.sin(t*0.4)*0.015;
+     const skyR=Math.round(132+breathe*8);
+     const skyG=Math.round(172+breathe*10);
+     const skyB=Math.round(118+breathe*6);
+     const skyGrad=ctx.createLinearGradient(0,0,0,groundY);
+     skyGrad.addColorStop(0,`rgb(${skyR},${skyG},${skyB})`);
+     skyGrad.addColorStop(1,`rgb(${Math.round(skyR*0.75)},${Math.round(skyG*0.82)},${Math.round(skyB*0.72)})`);
+     ctx.fillStyle=skyGrad;
+     ctx.fillRect(0,0,W,groundY);
+
+     /* ── SOL sous les arbres ── */
+     const groundGrad=ctx.createLinearGradient(0,groundY,0,H);
+     groundGrad.addColorStop(0,'rgba(45,65,38,1.0)');
+     groundGrad.addColorStop(1,'rgba(30,48,25,1.0)');
+     ctx.fillStyle=groundGrad;
+     ctx.fillRect(0,groundY,W,H-groundY);
+
+     /* ── ROUTE — remplissage gris ── */
+     ctx.fillStyle=ROAD_COL;
+     ctx.beginPath();
+     ctx.moveTo(roadLeft(H),H);
+     /* Côté gauche — montée vers l'horizon */
+     for(let y=H;y>=roadVanishY;y-=4){ctx.lineTo(roadLeft(y),y);}
+     ctx.lineTo(roadLeft(roadVanishY),roadVanishY);
+     ctx.lineTo(roadRight(roadVanishY),roadVanishY);
+     for(let y=roadVanishY;y<=H;y+=4){ctx.lineTo(roadRight(y),y);}
+     ctx.closePath();
+     ctx.fill();
+
+     /* Légère ombre sur les bords de la route */
+     const rEdgL=ctx.createLinearGradient(roadLeft(H),0,roadLeft(H)+W*0.06,0);
+     rEdgL.addColorStop(0,'rgba(0,0,0,0.18)');rEdgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=rEdgL;
+     ctx.beginPath();
+     for(let y=H;y>=roadVanishY;y-=4){ctx.lineTo(roadLeft(y),y);}
+     ctx.lineTo(roadLeft(roadVanishY),roadVanishY);
+     ctx.lineTo(roadLeft(roadVanishY)+W*0.04,roadVanishY);
+     for(let y=roadVanishY;y<=H;y+=4){ctx.lineTo(roadLeft(y)+W*0.04*(1-(y-roadVanishY)/(H-roadVanishY)),y);}
+     ctx.closePath();ctx.fill();
+
+     /* ── DOUBLE LIGNE JAUNE — animée ── */
+     dashPhase.v=(dashPhase.v+0.5)%(H*0.06);
+     ctx.save();
+     ctx.strokeStyle=YELLOW;
+     ctx.lineWidth=Math.max(1.5, W*0.008);
+     ctx.setLineDash([H*0.04,H*0.025]);
+     /* Ligne gauche */
+     ctx.beginPath();
+     for(let y=H;y>=roadVanishY;y-=3){
+      const p=(y-H)/(roadVanishY-H);
+      const mid=cx+(roadCtrlX-cx)*p*0.5;
+      const off=yellowOff*(1-p*0.7);
+      ctx.lineWidth=Math.max(1, W*0.009*(1-p*0.85));
+      if(y===H)ctx.moveTo(mid-off,y);else ctx.lineTo(mid-off,y);
      }
-     /* Pins avant */
-     ctx.fillStyle='rgba(3,5,3,0.99)';
-     for(const p of pines.filter(p=>p.layer===1))drawPine(p.x,horizY,p.h*0.65,p.w*0.75);
-     /* Pluie fine */
-     ctx.strokeStyle='rgba(140,160,180,0.10)';ctx.lineWidth=0.7;
-     for(const r of rain){
-      r.y+=r.spd;r.x-=r.spd*0.12;if(r.y>H){r.y=-r.len;r.x=Math.random()*W*1.3-W*0.15;}
-      ctx.globalAlpha=r.op;ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x+r.len*0.12,r.y+r.len);ctx.stroke();
+     ctx.lineDashOffset=dashPhase.v;
+     ctx.stroke();
+     /* Ligne droite */
+     ctx.beginPath();
+     for(let y=H;y>=roadVanishY;y-=3){
+      const p=(y-H)/(roadVanishY-H);
+      const mid=cx+(roadCtrlX-cx)*p*0.5;
+      const off=yellowOff*(1-p*0.7);
+      if(y===H)ctx.moveTo(mid+off,y);else ctx.lineTo(mid+off,y);
      }
-     ctx.globalAlpha=1;
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.52,H*0.05,cx,H*0.52,H*0.90);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.42,'rgba(0,0,0,0.28)');vg.addColorStop(1,'rgba(0,0,0,0.97)');
+     ctx.lineDashOffset=dashPhase.v;
+     ctx.stroke();
+     ctx.restore();
+
+     /* ── PINS — couche lointain ── */
+     for(const p of pinesFar)drawTrianglePine(p.x,p.baseY,p.h,p.w,PINE_FAR);
+     /* ── PINS — couche milieu ── */
+     for(const p of pinesMid)drawTrianglePine(p.x,p.baseY,p.h,p.w,PINE_MID);
+     /* ── PINS — avant-plan ── */
+     for(const p of pinesNear)drawTrianglePine(p.x,p.baseY,p.h,p.w,PINE_NEAR);
+
+     /* ── VIGNETTE douce — assombrit les bords et le bas ── */
+     const vg=ctx.createRadialGradient(cx,H*0.45,H*0.10,cx,H*0.45,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.55,'rgba(0,0,0,0.12)');
+     vg.addColorStop(1,'rgba(0,0,0,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<55;i++){const g=4+Math.random()*14|0;ctx.fillStyle=`rgba(${g},${g+1},${g+2},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+
+     /* Vignette latérale supplémentaire */
+     const vgL=ctx.createLinearGradient(0,0,W*0.18,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.35)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.18,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.82,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.35)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.82,0,W*0.18,H);
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
