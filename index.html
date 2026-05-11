@@ -39097,99 +39097,322 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Jarhead',
    ref:'Jarhead \u2014 Sam Mendes, 2005',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.80';
+    cv.style.opacity='1.0';
+
+    let _jhStyle=document.getElementById('_jh_splash_style');
+    if(!_jhStyle){_jhStyle=document.createElement('style');_jhStyle.id='_jh_splash_style';document.head.appendChild(_jhStyle);}
+    _jhStyle.textContent=`
+      #splash-bg::before{background:none!important;}
+      #splash-bg::after{background:none!important;}
+      #splash-bg-anim::before{background:none!important;}
+      #splash-bg-anim::after{background:none!important;}
+      #splash{background:#1a0a02!important;}
+      #splash-bg{background:none!important;}
+    `;
+    const _jhWatch=setInterval(()=>{if(stop.v){_jhStyle.textContent='';clearInterval(_jhWatch);}},200);
+
     let t=0;
     const cx=W/2;
-    /* Désert irakien — puits en feu */
-    const wellFires=Array.from({length:6},(_,i)=>({
-     x:W*(0.08+i*0.168),y:H*0.58,
-     flameParticles:Array.from({length:14},()=>({
-      x:0,y:0,vx:(Math.random()-0.5)*1.2,vy:-(Math.random()*2.5+1.0),
-      r:Math.random()*16+6,life:Math.random(),maxLife:0.5+Math.random()*0.4,hue:10+Math.random()*30
-     }))
+    const groundY=H*0.80;
+
+    /* ── COLONNE DE FEU — position gauche ── */
+    const FX=W*0.26; /* centre horizontal de la colonne */
+    const F_BASE=groundY;
+    const F_WIDTH=W*0.055; /* largeur de la colonne à la base */
+    const F_HEIGHT=H*0.55; /* hauteur totale de la colonne */
+
+    /* Particules de flamme — montent le long de la colonne */
+    const flameP=Array.from({length:60},()=>({
+     /* Position relative dans la colonne */
+     yOff:Math.random()*F_HEIGHT, /* distance depuis la base */
+     xOff:(Math.random()-0.5)*F_WIDTH,
+     vy:Math.random()*2.5+1.5,   /* vitesse de montée */
+     r:Math.random()*F_WIDTH*0.8+F_WIDTH*0.2,
+     hot:Math.random(),           /* 0=rouge sombre, 1=jaune vif */
+     ph:Math.random()*Math.PI*2,
     }));
-    /* Sable — particules basses */
-    const sand=Array.from({length:55},()=>({
-     x:Math.random()*W,y:H*0.62+Math.random()*H*0.34,
-     vx:(Math.random()-0.5)*0.55,r:Math.random()*1.8+0.4,op:Math.random()*0.14+0.04
+
+    /* ── Nuages de fumée — montants depuis la colonne, partant vers la droite ── */
+    const smokeCols=Array.from({length:20},(_,i)=>({
+     x:FX+(Math.random()-0.3)*W*0.15,
+     y:groundY-F_HEIGHT*0.5-Math.random()*F_HEIGHT*0.5,
+     r:W*(0.07+Math.random()*0.14),
+     vx:0.15+Math.random()*0.20, /* fumée part vers la droite */
+     vy:-(0.05+Math.random()*0.08),
+     op:0.30+Math.random()*0.35,
+     /* Couleur : sable chaud éclairé */
+     tone:Math.random(), /* 0=brun sombre, 1=beige lumineux */
     }));
-    /* Silhouettes soldats avec masque à gaz */
-    const marines=Array.from({length:4},(_,i)=>({x:W*(0.14+i*0.24),bob:Math.random()*Math.PI*2}));
+
+    /* ── Cendres ── */
+    const ashes=Array.from({length:30},()=>({
+     x:Math.random()*W,y:Math.random()*H,
+     vx:(Math.random()-0.5)*0.3,vy:Math.random()*0.35+0.08,
+     r:Math.random()*1.5+0.3,op:Math.random()*0.30+0.05,
+    }));
+
+    /* ── Silhouettes lointaines ── */
+    const far=Array.from({length:6},(_,i)=>({
+     x:W*(0.08+i*0.13),
+     h:H*(0.025+Math.random()*0.012),
+    }));
+
+    /* ════ COLONNE DE FEU ════ */
+    function drawFireColumn(){
+     /* Lueur orange au sol sous la flamme */
+     const baseGlow=ctx.createRadialGradient(FX,F_BASE,4,FX,F_BASE,W*0.35);
+     baseGlow.addColorStop(0,`rgba(255,140,10,${0.55+Math.sin(t*1.8)*0.08})`);
+     baseGlow.addColorStop(0.25,`rgba(220,80,5,0.28)`);
+     baseGlow.addColorStop(0.55,'rgba(160,40,2,0.10)');
+     baseGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=baseGlow;ctx.fillRect(0,0,W,H);
+
+     /* Lumière globale de la flamme sur tout le ciel */
+     const skyLight=ctx.createRadialGradient(FX,F_BASE-F_HEIGHT*0.3,F_WIDTH,FX,F_BASE-F_HEIGHT*0.1,W*0.90);
+     skyLight.addColorStop(0,`rgba(200,100,10,${0.32+Math.sin(t*1.2)*0.06})`);
+     skyLight.addColorStop(0.30,'rgba(150,60,5,0.15)');
+     skyLight.addColorStop(0.65,'rgba(80,25,2,0.06)');
+     skyLight.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=skyLight;ctx.fillRect(0,0,W,H);
+
+     /* Particules de flamme — colonne verticale */
+     for(const fp of flameP){
+      fp.yOff+=fp.vy;
+      fp.ph+=0.06;
+      /* Reset quand la particule sort par le haut */
+      if(fp.yOff>F_HEIGHT){
+       fp.yOff=Math.random()*F_HEIGHT*0.15;
+       fp.xOff=(Math.random()-0.5)*F_WIDTH*0.8;
+       fp.vy=Math.random()*2.5+1.5;
+       fp.r=Math.random()*F_WIDTH*0.8+F_WIDTH*0.2;
+       fp.hot=Math.random();
+      }
+      const prog=fp.yOff/F_HEIGHT; /* 0=bas, 1=haut */
+      /* La colonne se rétrécit vers le haut */
+      const colWidth=F_WIDTH*(1.0-prog*0.65);
+      const px=FX+fp.xOff*(1-prog*0.5);
+      const py=F_BASE-fp.yOff;
+      /* Rayon diminue vers le haut */
+      const radius=fp.r*(0.4+Math.random()*0.2)*(1-prog*0.55);
+      /* Alpha max au bas, s'efface vers le haut */
+      const alpha=Math.max(0,0.90-prog*0.75)*(0.7+Math.sin(fp.ph)*0.3);
+      /* Couleur : bas=blanc/jaune vif, milieu=orange, haut=rouge sombre */
+      let r,g,b;
+      if(fp.hot>0.65&&prog<0.35){
+       /* Cœur très chaud — blanc/jaune */
+       r=255;g=Math.round(220+fp.hot*35);b=Math.round(fp.hot*120);
+      } else if(prog<0.55){
+       /* Milieu — orange vif */
+       r=255;g=Math.round(130-prog*80);b=8;
+      } else {
+       /* Haut — rouge sombre qui s'éteint */
+       r=Math.round(200-prog*100);g=Math.round(40-prog*30);b=4;
+      }
+      /* Clipping dans la colonne — on réduit l'étalement horizontal */
+      const clampX=Math.max(FX-colWidth*1.5,Math.min(FX+colWidth*1.5,px));
+      const fg=ctx.createRadialGradient(clampX,py,1,clampX,py,radius);
+      fg.addColorStop(0,`rgba(${r},${g},${b},${alpha})`);
+      fg.addColorStop(0.5,`rgba(${r},${Math.max(0,g-60)},0,${alpha*0.45})`);
+      fg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(clampX,py,radius,0,Math.PI*2);ctx.fill();
+     }
+    }
+
+    /* ════ SILHOUETTE SOLDAT — réaliste, de dos ════ */
+    function drawSoldier(){
+     /* Soldat en bas à droite, bien grand */
+     const SX=W*0.74, SB=groundY; /* base des pieds */
+     const SH=H*0.30; /* hauteur totale */
+     const s=SH/10; /* unité de scale */
+
+     ctx.fillStyle='rgba(3,2,1,1.0)';
+     ctx.strokeStyle='rgba(3,2,1,1.0)';
+     ctx.lineCap='round';ctx.lineJoin='round';
+
+     /* ── PIEDS ── */
+     ctx.beginPath();ctx.ellipse(SX-s*0.6,SB,s*0.75,s*0.22,0.15,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(SX+s*0.5,SB,s*0.70,s*0.20,-0.10,0,Math.PI*2);ctx.fill();
+
+     /* ── JAMBES ── */
+     /* Jambe gauche légèrement écartée */
+     ctx.beginPath();
+     ctx.moveTo(SX-s*0.6,SB);
+     ctx.quadraticCurveTo(SX-s*0.75,SB-s*2.2,SX-s*0.55,SB-s*4.0);
+     ctx.lineWidth=s*0.72;ctx.stroke();
+     /* Jambe droite */
+     ctx.beginPath();
+     ctx.moveTo(SX+s*0.5,SB);
+     ctx.quadraticCurveTo(SX+s*0.38,SB-s*2.0,SX+s*0.30,SB-s*4.0);
+     ctx.lineWidth=s*0.70;ctx.stroke();
+
+     /* ── BASSIN ── */
+     ctx.beginPath();ctx.ellipse(SX-s*0.12,SB-s*4.0,s*0.92,s*0.55,0,0,Math.PI*2);ctx.fill();
+
+     /* ── TORSE + GILET TACTIQUE épais ── */
+     /* Corps principal */
+     ctx.beginPath();
+     ctx.moveTo(SX-s*1.05,SB-s*4.2);
+     ctx.quadraticCurveTo(SX-s*1.10,SB-s*6.8,SX-s*0.90,SB-s*8.0);
+     ctx.quadraticCurveTo(SX-s*0.20,SB-s*8.5,SX+s*0.55,SB-s*8.0);
+     ctx.quadraticCurveTo(SX+s*0.88,SB-s*6.6,SX+s*0.85,SB-s*4.2);
+     ctx.closePath();ctx.fill();
+
+     /* ── SAC À DOS ── */
+     ctx.beginPath();ctx.roundRect(SX-s*0.85,SB-s*7.8,s*1.60,s*3.0,s*0.3);ctx.fill();
+
+     /* ── ÉPAULES ── */
+     ctx.beginPath();ctx.ellipse(SX-s*0.20,SB-s*8.0,s*1.22,s*0.45,0,0,Math.PI*2);ctx.fill();
+
+     /* ── BRAS GAUCHE — tient le fusil ── */
+     ctx.lineWidth=s*0.55;
+     ctx.beginPath();
+     ctx.moveTo(SX-s*1.05,SB-s*7.5);
+     ctx.quadraticCurveTo(SX-s*1.35,SB-s*6.0,SX-s*1.20,SB-s*4.8);
+     ctx.stroke();
+     /* Main / poignée */
+     ctx.beginPath();ctx.arc(SX-s*1.20,SB-s*4.8,s*0.35,0,Math.PI*2);ctx.fill();
+
+     /* ── BRAS DROIT ── */
+     ctx.lineWidth=s*0.52;
+     ctx.beginPath();
+     ctx.moveTo(SX+s*0.85,SB-s*7.5);
+     ctx.quadraticCurveTo(SX+s*1.05,SB-s*5.8,SX+s*0.95,SB-s*4.6);
+     ctx.stroke();
+
+     /* ── FUSIL ── */
+     /* Corps du fusil */
+     ctx.lineWidth=s*0.30;
+     ctx.beginPath();
+     ctx.moveTo(SX-s*1.20,SB-s*4.8);
+     ctx.lineTo(SX-s*2.85,SB-s*5.35);
+     ctx.stroke();
+     /* Canon */
+     ctx.lineWidth=s*0.18;
+     ctx.beginPath();
+     ctx.moveTo(SX-s*1.20,SB-s*4.8);
+     ctx.lineTo(SX-s*3.20,SB-s*5.45);
+     ctx.stroke();
+     /* Crosse */
+     ctx.lineWidth=s*0.38;
+     ctx.beginPath();
+     ctx.moveTo(SX-s*0.95,SB-s*4.75);
+     ctx.quadraticCurveTo(SX-s*0.60,SB-s*4.20,SX-s*0.50,SB-s*4.00);
+     ctx.stroke();
+     /* Chargeur */
+     ctx.beginPath();ctx.roundRect(SX-s*1.55,SB-s*5.15,s*0.28,s*0.68,s*0.05);ctx.fill();
+
+     /* ── COU ── */
+     ctx.beginPath();ctx.roundRect(SX-s*0.32,SB-s*9.0,s*0.65,s*1.05,s*0.15);ctx.fill();
+
+     /* ── TÊTE ── */
+     ctx.beginPath();ctx.ellipse(SX,SB-s*9.60,s*0.72,s*0.78,0,0,Math.PI*2);ctx.fill();
+
+     /* ── CASQUE MILITAIRE ── */
+     /* Bord du casque */
+     ctx.beginPath();ctx.ellipse(SX,SB-s*9.88,s*0.95,s*0.28,0,0,Math.PI*2);ctx.fill();
+     /* Calotte — dôme aplati */
+     ctx.beginPath();
+     ctx.moveTo(SX-s*0.95,SB-s*9.88);
+     ctx.quadraticCurveTo(SX-s*0.98,SB-s*11.0,SX,SB-s*11.2);
+     ctx.quadraticCurveTo(SX+s*0.98,SB-s*11.0,SX+s*0.95,SB-s*9.88);
+     ctx.closePath();ctx.fill();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(12,8,3,0.24)';ctx.fillRect(0,0,W,H);
-     /* Ciel orange-brun apocalyptique */
-     const sky=ctx.createLinearGradient(0,0,0,H*0.58);
-     sky.addColorStop(0,'rgba(18,10,4,0.97)');sky.addColorStop(0.30,'rgba(45,22,6,0.93)');sky.addColorStop(0.60,'rgba(80,38,8,0.88)');sky.addColorStop(0.85,'rgba(110,52,10,0.85)');sky.addColorStop(1,'rgba(130,60,12,0.82)');
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.58);
-     /* Nuages de fumée noire */
-     for(let ci=0;ci<7;ci++){
-      const scx=W*(0.05+ci*0.14)+Math.sin(t*0.08+ci)*W*0.02;
-      const scy=H*(0.06+Math.sin(ci*0.9)*0.08);
-      const sr=W*(0.08+Math.random()*0.06);
-      const sg=ctx.createRadialGradient(scx,scy,4,scx,scy,sr);
-      sg.addColorStop(0,`rgba(12,8,4,${0.35+Math.sin(t*0.12+ci)*0.05})`);sg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(scx,scy,sr,0,Math.PI*2);ctx.fill();
-     }
-     /* Sol désertique */
-     const floor=ctx.createLinearGradient(0,H*0.58,0,H);
-     floor.addColorStop(0,'rgba(75,42,12,0.96)');floor.addColorStop(0.35,'rgba(58,32,8,0.98)');floor.addColorStop(1,'rgba(38,20,5,0.99)');
-     ctx.fillStyle=floor;ctx.fillRect(0,H*0.58,W,H*0.42);
-     /* Craquelures sol */
-     ctx.strokeStyle='rgba(28,14,4,0.45)';ctx.lineWidth=0.7;
-     for(let ci=0;ci<16;ci++){const cfx=Math.random()*W,cfy=H*0.62+Math.random()*H*0.30;ctx.beginPath();ctx.moveTo(cfx,cfy);ctx.lineTo(cfx+(Math.random()-0.5)*28,cfy+(Math.random()-0.5)*18);ctx.stroke();}
-     /* Puits en feu */
-     for(const well of wellFires){
-      /* Puit */
-      ctx.fillStyle='rgba(22,12,4,0.96)';ctx.beginPath();ctx.roundRect(well.x-W*0.022,well.y-H*0.05,W*0.044,H*0.05,2);ctx.fill();
-      /* Flammes */
-      for(const fp of well.flameParticles){
-       fp.life+=0.030;fp.x+=fp.vx;fp.y+=fp.vy;
-       if(fp.life>fp.maxLife){fp.life=0;fp.x=0;fp.y=0;fp.vx=(Math.random()-0.5)*1.2;fp.vy=-(Math.random()*2.5+1.0);fp.r=Math.random()*16+6;}
-       const fa=Math.max(0,(1-fp.life/fp.maxLife)*0.75);
-       const fg=ctx.createRadialGradient(well.x+fp.x,well.y+fp.y,1,well.x+fp.x,well.y+fp.y,fp.r);
-       fg.addColorStop(0,`rgba(255,${140+fp.hue*2},20,${fa})`);fg.addColorStop(0.5,`rgba(220,60,10,${fa*0.55})`);fg.addColorStop(1,'rgba(0,0,0,0)');
-       ctx.fillStyle=fg;ctx.beginPath();ctx.arc(well.x+fp.x,well.y+fp.y,fp.r,0,Math.PI*2);ctx.fill();
+
+     /* ── CIEL — très sombre, éclairé par les flammes ── */
+     const skyG=ctx.createLinearGradient(0,0,0,groundY);
+     skyG.addColorStop(0,'rgba(8,4,1,1.0)');
+     skyG.addColorStop(0.25,'rgba(18,8,2,1.0)');
+     skyG.addColorStop(0.55,'rgba(35,16,4,1.0)');
+     skyG.addColorStop(0.80,'rgba(50,22,5,1.0)');
+     skyG.addColorStop(1,'rgba(38,16,3,1.0)');
+     ctx.fillStyle=skyG;ctx.fillRect(0,0,W,groundY+2);
+
+     /* ── FUMÉE — nuages chauds qui partent vers la droite ── */
+     for(const sc of smokeCols){
+      sc.x+=sc.vx;sc.y+=sc.vy;
+      /* Reset si sort de l'écran */
+      if(sc.x>W+sc.r||sc.y<-sc.r){
+       sc.x=FX+(Math.random()-0.3)*W*0.10;
+       sc.y=groundY-F_HEIGHT*(0.3+Math.random()*0.5);
+       sc.vx=0.15+Math.random()*0.20;sc.vy=-(0.05+Math.random()*0.08);
       }
-      /* Lueur orange sur sol autour */
-      const wg=ctx.createRadialGradient(well.x,well.y,4,well.x,well.y,W*0.10);
-      wg.addColorStop(0,`rgba(255,120,20,${0.14+Math.sin(t*2.2+well.x)*0.06})`);wg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=wg;ctx.beginPath();ctx.ellipse(well.x,well.y+H*0.02,W*0.08,H*0.025,0,0,Math.PI*2);ctx.fill();
+      const smR=sc.tone>0.5
+       ?Math.round(148+sc.tone*60) /* beige lumineux */
+       :Math.round(70+sc.tone*70); /* brun sombre */
+      const smG2=sc.tone>0.5
+       ?Math.round(80+sc.tone*35)
+       :Math.round(30+sc.tone*35);
+      const smB=sc.tone>0.5?Math.round(18+sc.tone*12):8;
+      const smGrd=ctx.createRadialGradient(sc.x,sc.y,sc.r*0.05,sc.x,sc.y,sc.r);
+      smGrd.addColorStop(0,`rgba(${smR},${smG2},${smB},${sc.op})`);
+      smGrd.addColorStop(0.55,`rgba(${smR},${smG2},${smB},${sc.op*0.40})`);
+      smGrd.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=smGrd;
+      ctx.beginPath();ctx.ellipse(sc.x,sc.y,sc.r*1.35,sc.r*0.80,0,0,Math.PI*2);ctx.fill();
      }
-     /* Marines silhouettes avec masque à gaz */
-     for(const m of marines){
-      const bob=Math.sin(t*0.4+m.bob)*2;
-      const mh=H*0.18,mw=W*0.040;
-      ctx.fillStyle='rgba(5,5,4,0.98)';
-      /* Corps */
-      ctx.beginPath();ctx.roundRect(m.x-mw/2,H*0.58-mh*0.68+bob,mw,mh*0.60,2);ctx.fill();
-      /* Tête + masque à gaz */
-      ctx.beginPath();ctx.arc(m.x,H*0.58-mh*0.76+bob,mw*0.52,0,Math.PI*2);ctx.fill();
-      /* Casque */
-      ctx.beginPath();ctx.ellipse(m.x,H*0.58-mh*0.84+bob,mw*0.65,mw*0.30,0,Math.PI,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.roundRect(m.x-mw*0.55,H*0.58-mh*0.82+bob,mw*1.10,mw*0.28,1);ctx.fill();
-      /* Trompe masque */
-      ctx.beginPath();ctx.roundRect(m.x-mw*0.15,H*0.58-mh*0.68+bob,mw*0.30,mw*0.35,2);ctx.fill();
-      /* Fusil */
-      ctx.strokeStyle='rgba(8,7,5,0.96)';ctx.lineWidth=3;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(m.x+mw*0.5,H*0.58-mh*0.44+bob);ctx.lineTo(m.x+mw*0.5+W*0.08,H*0.58-mh*0.50+bob);ctx.stroke();
+
+     /* ── COLONNE DE FEU ── */
+     drawFireColumn();
+
+     /* ── SOL NOIR ── */
+     ctx.fillStyle='rgba(4,2,0,1.0)';
+     ctx.fillRect(0,groundY,W,H-groundY);
+
+     /* Reflet flamme sur le sol */
+     const gr=ctx.createRadialGradient(FX,groundY+5,3,FX,groundY+5,W*0.28);
+     gr.addColorStop(0,`rgba(200,85,8,${0.22+Math.sin(t*1.8)*0.06})`);
+     gr.addColorStop(0.45,'rgba(120,40,3,0.07)');gr.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(FX,groundY+4,W*0.22,H*0.025,0,0,Math.PI*2);ctx.fill();
+
+     /* ── SILHOUETTES LOINTAINES ── */
+     ctx.fillStyle='rgba(3,2,0,1.0)';
+     for(const f of far){
+      ctx.beginPath();ctx.roundRect(f.x-f.h*0.14,groundY-f.h,f.h*0.28,f.h,1);ctx.fill();
+      ctx.beginPath();ctx.arc(f.x,groundY-f.h*1.10,f.h*0.17,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(f.x,groundY-f.h*1.20,f.h*0.21,f.h*0.07,0,Math.PI,Math.PI*2);ctx.fill();
      }
-     /* Sable volant */
-     for(const s of sand){s.x+=s.vx;if(s.x<0)s.x=W;if(s.x>W)s.x=0;ctx.fillStyle=`rgba(160,100,40,${s.op})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();}
-     /* Lueur générale orange du ciel sur tout */
-     const ambG=ctx.createLinearGradient(0,0,0,H);
-     ambG.addColorStop(0,'rgba(120,50,10,0.05)');ambG.addColorStop(0.5,'rgba(0,0,0,0)');ambG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=ambG;ctx.fillRect(0,0,W,H);
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.05,cx,H*0.50,H*0.92);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.46,'rgba(0,0,0,0.28)');vg.addColorStop(1,'rgba(0,0,0,0.97)');
+
+     /* ── SOLDAT PRINCIPAL ── */
+     drawSoldier();
+
+     /* ── CENDRES ── */
+     for(const a of ashes){
+      a.x+=a.vx;a.y+=a.vy;
+      if(a.y>H){a.y=0;a.x=Math.random()*W;}
+      ctx.fillStyle=`rgba(55,25,4,${a.op})`;
+      ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── VIGNETTE ── */
+     const vg=ctx.createRadialGradient(cx,H*0.45,H*0.10,cx,H*0.45,H*0.86);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.50,'rgba(0,0,0,0.12)');
+     vg.addColorStop(1,'rgba(0,0,0,0.95)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<55;i++){const g=10+Math.random()*20|0;ctx.fillStyle=`rgba(${g+8},${g+3},${g},${Math.random()*0.024})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+     const vgL=ctx.createLinearGradient(0,0,W*0.14,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.78)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.14,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.86,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.78)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.86,0,W*0.14,H);
+
+     /* Grain */
+     for(let i=0;i<45;i++){
+      const g=6+Math.random()*16|0;
+      ctx.fillStyle=`rgba(${g+6},${g+2},${g},${Math.random()*0.022})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);
+     }
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
   },
+
+
 
   /* ══ THE PLAYER ══ */
   {
