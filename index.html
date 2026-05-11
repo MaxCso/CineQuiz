@@ -35245,95 +35245,234 @@ const _rW=[new Path2D('M175.893 0.201925C171.093 0.601925 166.426 1.40193 165.49
    name:'Le Bon, la Brute et le Truand',
    ref:'Le Bon, la Brute et le Truand \u2014 Sergio Leone, 1966',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.82';
+    cv.style.opacity='1.0';
+
+    /* ── Palette sépia — orbes supprimées ── */
+    let _gbuStyle=document.getElementById('_gbu_splash_style');
+    if(!_gbuStyle){_gbuStyle=document.createElement('style');_gbuStyle.id='_gbu_splash_style';document.head.appendChild(_gbuStyle);}
+    _gbuStyle.textContent=`
+      #splash-bg::before{background:none!important;}
+      #splash-bg::after{background:none!important;}
+      #splash-bg-anim::before{background:none!important;}
+      #splash-bg-anim::after{background:none!important;}
+      #splash{background:#c8974a!important;}
+      #splash-bg{background:none!important;}
+    `;
+    const _gbuWatch=setInterval(()=>{if(stop.v){_gbuStyle.textContent='';clearInterval(_gbuWatch);}},200);
+
     let t=0;
     const cx=W/2;
 
-    /* Poussière western */
-    const tumbleweeds=[{x:-W*0.1,y:H*0.72,vx:0.85,vy:0,phase:0}];
-    let tTimer=180;
+    /* ── Poussière qui flotte ── */
+    const dust=Array.from({length:35},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H,
+     r:Math.random()*1.5+0.4,
+     vx:(Math.random()-0.5)*0.18,
+     vy:-(Math.random()*0.08+0.02),
+     op:Math.random()*0.22+0.06,
+     ph:Math.random()*Math.PI*2,
+    }));
 
-    /* Mouches / chaleur */
-    const heat=Array.from({length:20},()=>({x:Math.random()*W,y:H*0.35+Math.random()*H*0.45,vx:(Math.random()-0.5)*0.6,vy:(Math.random()-0.5)*0.5,phase:Math.random()*Math.PI*2}));
+    /* ── Herbes sèches au sol ── */
+    const groundY=H*0.78;
+    const grasses=Array.from({length:28},(_,i)=>({
+     x:W*(0.02+i*0.036),
+     blades:Array.from({length:3},()=>({
+      angle:-0.8+Math.random()*1.6,
+      len:H*(0.02+Math.random()*0.04),
+      w:1.2+Math.random()*1.0,
+     })),
+    }));
 
-    function drawEye(ex,ey,er){
-     /* Gros plan œil style Leone */
-     const eyeG=ctx.createRadialGradient(ex,ey,1,ex,ey,er);
-     eyeG.addColorStop(0,'rgba(20,12,5,0.96)'); eyeG.addColorStop(0.4,'rgba(80,48,15,0.90)'); eyeG.addColorStop(0.75,'rgba(140,88,30,0.75)'); eyeG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=eyeG; ctx.beginPath(); ctx.arc(ex,ey,er,0,Math.PI*2); ctx.fill();
-     ctx.fillStyle='rgba(5,3,1,0.96)'; ctx.beginPath(); ctx.arc(ex,ey,er*0.32,0,Math.PI*2); ctx.fill();
-     ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.arc(ex-er*0.10,ey-er*0.12,er*0.08,0,Math.PI*2); ctx.fill();
+    /* ── Dessin de l'arbre mort (côté droit) ── */
+    function drawDeadTree(tx,ty,windSway){
+     ctx.save();
+     ctx.strokeStyle='rgba(52,28,8,0.95)';
+     ctx.lineCap='round';
+     /* Tronc principal */
+     ctx.lineWidth=W*0.022;
+     ctx.beginPath();ctx.moveTo(tx,ty);
+     ctx.quadraticCurveTo(tx-W*0.015,ty-H*0.12,tx+W*0.008+windSway,ty-H*0.24);
+     ctx.stroke();
+     /* Branches principales */
+     const branches=[
+      {ox:-W*0.008,oy:-H*0.16,ex:-W*0.085,ey:-H*0.24,w:W*0.010},
+      {ox:W*0.005,oy:-H*0.20,ex:W*0.065,ey:-H*0.28,w:W*0.008},
+      {ox:-W*0.004,oy:-H*0.22,ex:-W*0.055,ey:-H*0.32,w:W*0.007},
+      {ox:W*0.006,oy:-H*0.24,ex:W*0.038,ey:-H*0.34,w:W*0.006},
+     ];
+     for(const b of branches){
+      ctx.lineWidth=b.w;
+      ctx.beginPath();
+      ctx.moveTo(tx+b.ox,ty+b.oy);
+      ctx.quadraticCurveTo(
+       tx+b.ox+(b.ex-b.ox)*0.5+windSway*0.6,
+       ty+b.oy+(b.ey-b.oy)*0.5,
+       tx+b.ex+windSway,ty+b.ey
+      );
+      ctx.stroke();
+     }
+     /* Petites branches */
+     const twigs=[
+      {bx:-W*0.042,by:-H*0.22,ex:-W*0.072,ey:-H*0.26},{bx:-W*0.055,by:-H*0.26,ex:-W*0.040,ey:-H*0.30},
+      {bx:W*0.040,by:-H*0.25,ex:W*0.068,ey:-H*0.30},{bx:W*0.028,by:-H*0.29,ex:W*0.015,ey:-H*0.34},
+      {bx:-W*0.030,by:-H*0.30,ex:-W*0.055,ey:-H*0.36},{bx:W*0.020,by:-H*0.32,ex:W*0.042,ey:-H*0.37},
+      {bx:-W*0.038,by:-H*0.34,ex:-W*0.020,ey:-H*0.38},{bx:W*0.010,by:-H*0.35,ex:-W*0.010,ey:-H*0.40},
+     ];
+     ctx.lineWidth=W*0.004;
+     for(const tw of twigs){
+      ctx.beginPath();
+      ctx.moveTo(tx+tw.bx+windSway*0.8,ty+tw.by);
+      ctx.lineTo(tx+tw.ex+windSway,ty+tw.ey);
+      ctx.stroke();
+     }
+     ctx.restore();
+    }
+
+    /* ── Dessin des montagnes en silhouette ── */
+    function drawMountains(col,offsetX,scaleH,baseY){
+     ctx.fillStyle=col;
+     ctx.beginPath();
+     ctx.moveTo(-W*0.05,baseY);
+     const peaks=[
+      [0.05,0.72],[0.14,0.48],[0.22,0.62],[0.32,0.38],[0.40,0.55],
+      [0.50,0.32],[0.58,0.52],[0.66,0.40],[0.74,0.58],[0.82,0.35],
+      [0.90,0.50],[0.98,0.44],[1.05,0.62],
+     ];
+     for(const [px,ph] of peaks){
+      ctx.lineTo((px+offsetX)*W, baseY-scaleH*ph);
+     }
+     ctx.lineTo(W*1.05,baseY);
+     ctx.closePath();
+     ctx.fill();
+    }
+
+    /* ── Dessin de la croix de cimetière ── */
+    function drawCross(crossX,crossY){
+     ctx.fillStyle='rgba(42,22,5,0.92)';
+     const cw=W*0.018,ch=H*0.088,hbw=W*0.036,hbh=H*0.016;
+     /* Montant vertical */
+     ctx.beginPath();ctx.roundRect(crossX-cw/2,crossY-ch,cw,ch,2);ctx.fill();
+     /* Traverse horizontale */
+     ctx.beginPath();ctx.roundRect(crossX-hbw/2,crossY-ch*0.72,hbw,hbh,2);ctx.fill();
     }
 
     function frame(){
      if(stop.v)return;
-     /* Ciel désert brûlant */
-     const sky=ctx.createLinearGradient(0,0,0,H*0.58);
-     sky.addColorStop(0,'rgba(35,18,4,0.20)'); sky.addColorStop(0.5,'rgba(60,30,8,0.18)'); sky.addColorStop(1,'rgba(80,42,10,0.18)');
-     ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.58);
 
-     /* Soleil immense et implacable */
-     const sunG=ctx.createRadialGradient(cx,H*0.16,8,cx,H*0.16,W*0.30);
-     sunG.addColorStop(0,`rgba(255,195,60,${0.78+Math.sin(t*0.4)*0.10})`);
-     sunG.addColorStop(0.25,'rgba(230,150,20,0.30)'); sunG.addColorStop(0.6,'rgba(180,90,5,0.10)'); sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG; ctx.beginPath(); ctx.arc(cx,H*0.16,W*0.080,0,Math.PI*2); ctx.fill();
+     /* ── FOND SÉPIA/PARCHEMIN ── */
+     /* Gradient vertical : parchemin clair en haut → brun sombre en bas */
+     const breathe=Math.sin(t*0.25)*0.02;
+     const bgG=ctx.createLinearGradient(0,0,0,H);
+     bgG.addColorStop(0,`rgba(${220+breathe*8|0},${188+breathe*6|0},${130+breathe*4|0},1.0)`);
+     bgG.addColorStop(0.35,`rgba(200,162,98,1.0)`);
+     bgG.addColorStop(0.65,`rgba(172,128,68,1.0)`);
+     bgG.addColorStop(1,`rgba(115,72,28,1.0)`);
+     ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
 
-     /* Sol grillé */
-     const ground=ctx.createLinearGradient(0,H*0.58,0,H);
-     ground.addColorStop(0,'rgba(95,60,20,0.95)'); ground.addColorStop(0.4,'rgba(75,45,12,0.96)'); ground.addColorStop(1,'rgba(50,28,6,0.98)');
-     ctx.fillStyle=ground; ctx.fillRect(0,H*0.58,W,H*0.42);
+     /* Légère texture parchemin — gradient radial central plus clair */
+     const paperG=ctx.createRadialGradient(cx,H*0.38,H*0.05,cx,H*0.38,H*0.75);
+     paperG.addColorStop(0,`rgba(240,210,155,${0.22+breathe*0.5})`);
+     paperG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=paperG;ctx.fillRect(0,0,W,H);
 
-     /* Cactus silhouettes */
-     for(const [cax,cay,ch2] of [[W*0.12,H*0.58,H*0.22],[W*0.82,H*0.58,H*0.18],[W*0.92,H*0.58,H*0.12]]){
-      ctx.fillStyle='rgba(18,28,8,0.94)';
-      ctx.beginPath(); ctx.roundRect(cax-W*0.018,cay-ch2,W*0.036,ch2,4); ctx.fill();
-      ctx.beginPath(); ctx.roundRect(cax-W*0.045,cay-ch2*0.55,W*0.024,ch2*0.28,3); ctx.fill();
-      ctx.beginPath(); ctx.roundRect(cax+W*0.009,cay-ch2*0.42,W*0.024,ch2*0.22,3); ctx.fill();
+     /* ── MONTAGNES — 3 couches de profondeur ── */
+     /* Lointain — plus clair */
+     drawMountains('rgba(155,105,48,0.55)',0.05,H*0.22,H*0.62);
+     /* Milieu */
+     drawMountains('rgba(105,62,22,0.75)',0,H*0.28,H*0.68);
+     /* Avant — plus sombre */
+     drawMountains('rgba(68,35,8,0.88)',-0.04,H*0.20,H*0.74);
+
+     /* ── SOL désertique ── */
+     const groundG=ctx.createLinearGradient(0,groundY,0,H);
+     groundG.addColorStop(0,'rgba(58,32,6,0.95)');
+     groundG.addColorStop(1,'rgba(38,18,2,0.99)');
+     ctx.fillStyle=groundG;ctx.fillRect(0,groundY,W,H-groundY);
+
+     /* ── HERBES SÈCHES ── */
+     ctx.strokeStyle='rgba(48,26,4,0.70)';
+     for(const g of grasses){
+      const windSway=Math.sin(t*0.8+g.x*0.02)*H*0.005;
+      for(const b of g.blades){
+       ctx.lineWidth=b.w;
+       ctx.beginPath();
+       ctx.moveTo(g.x,groundY);
+       ctx.quadraticCurveTo(
+        g.x+Math.sin(b.angle)*b.len*0.5+windSway,
+        groundY-b.len*0.55,
+        g.x+Math.sin(b.angle)*b.len+windSway,
+        groundY-b.len
+       );
+       ctx.stroke();
+      }
      }
 
-     /* Yeux — style gros plan Leone */
-     drawEye(cx-W*0.24, H*0.25, W*0.075);
-     drawEye(cx,        H*0.18, W*0.060);
-     drawEye(cx+W*0.24, H*0.25, W*0.075);
-
-     /* Ligne horizon avec chaleur */
-     const heatLine=ctx.createLinearGradient(0,H*0.55,0,H*0.62);
-     heatLine.addColorStop(0,'rgba(0,0,0,0)'); heatLine.addColorStop(0.5,`rgba(120,70,15,${0.12+Math.sin(t*0.9)*0.05})`); heatLine.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=heatLine; ctx.fillRect(0,H*0.55,W,H*0.07);
-
-     /* Tumbleweed */
-     tTimer--;
-     if(tTimer<=0&&tumbleweeds.length<3){tumbleweeds.push({x:-W*0.06,y:H*0.72+Math.random()*H*0.12,vx:0.7+Math.random()*0.6,vy:0,phase:0});tTimer=240+Math.floor(Math.random()*180);}
-     for(let i=tumbleweeds.length-1;i>=0;i--){
-      const tw=tumbleweeds[i]; tw.x+=tw.vx; tw.phase+=0.06;
-      if(tw.x>W+W*0.06){tumbleweeds.splice(i,1);continue;}
-      ctx.save(); ctx.translate(tw.x,tw.y); ctx.rotate(tw.phase);
-      ctx.strokeStyle='rgba(100,70,30,0.55)'; ctx.lineWidth=1.5;
-      for(let a=0;a<6;a++){ const ang=a/6*Math.PI*2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(ang)*W*0.028,Math.sin(ang)*W*0.028); ctx.stroke(); }
-      ctx.beginPath(); ctx.arc(0,0,W*0.028,0,Math.PI*2); ctx.stroke();
-      ctx.restore();
+     /* ── CACTUS — silhouettes à gauche ── */
+     ctx.fillStyle='rgba(42,24,5,0.90)';
+     for(const [cax,cay,ch2,hasArm] of [
+      [W*0.08, groundY, H*0.18, true],
+      [W*0.12, groundY, H*0.12, false],
+      [W*0.04, groundY, H*0.09, false],
+     ]){
+      ctx.beginPath();ctx.roundRect(cax-W*0.016,cay-ch2,W*0.032,ch2,3);ctx.fill();
+      if(hasArm){
+       ctx.beginPath();ctx.roundRect(cax-W*0.04,cay-ch2*0.60,W*0.022,ch2*0.24,3);ctx.fill();
+       ctx.beginPath();ctx.roundRect(cax-W*0.04,cay-ch2*0.60,ch2*0.24,W*0.022,3);ctx.fill();
+       ctx.beginPath();ctx.roundRect(cax+W*0.010,cay-ch2*0.42,W*0.022,ch2*0.20,3);ctx.fill();
+       ctx.beginPath();ctx.roundRect(cax+W*0.010,cay-ch2*0.42,ch2*0.20,W*0.020,3);ctx.fill();
+      }
      }
 
-     /* Vignette sépia très marquée */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.04,cx,H*0.50,H*0.86);
-     vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(0.4,'rgba(10,5,0,0.22)'); vg.addColorStop(1,'rgba(0,0,0,0.97)');
-     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+     /* ── CROIX DE CIMETIÈRE ── */
+     drawCross(cx-W*0.05,groundY+H*0.01);
 
-     /* Teinte sépia */
-     ctx.fillStyle=`rgba(40,20,5,0.06)`; ctx.fillRect(0,0,W,H);
+     /* ── ARBRE MORT — côté droit ── */
+     const windSway=Math.sin(t*0.5)*W*0.006;
+     drawDeadTree(W*0.75,groundY,windSway);
 
-     /* Grain pellicule */
-     for(let i=0;i<55;i++){
-      const gv=20+Math.random()*30|0;
-      ctx.fillStyle=`rgba(${gv+8},${gv+2},${gv-5},${Math.random()*0.025})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);
+     /* ── POUSSIÈRE flottante ── */
+     for(const d of dust){
+      d.x+=d.vx;d.y+=d.vy;d.ph+=0.025;
+      if(d.y<-5){d.y=H+5;d.x=Math.random()*W;}
+      if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+      const da=d.op*(0.4+0.6*Math.abs(Math.sin(d.ph)));
+      ctx.fillStyle=`rgba(140,90,30,${da})`;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
      }
 
-     t+=0.016; requestAnimationFrame(frame);
+     /* ── VIGNETTE sépia marquée ── */
+     const vg=ctx.createRadialGradient(cx,H*0.44,H*0.08,cx,H*0.44,H*0.85);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.45,'rgba(30,12,0,0.15)');
+     vg.addColorStop(1,'rgba(20,6,0,0.92)');
+     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+     /* Bords latéraux brun foncé */
+     const vgL=ctx.createLinearGradient(0,0,W*0.18,0);
+     vgL.addColorStop(0,'rgba(18,6,0,0.75)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.18,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.82,0);
+     vgR.addColorStop(0,'rgba(18,6,0,0.75)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.82,0,W*0.18,H);
+
+     /* ── TEINTE SÉPIA globale ── */
+     ctx.fillStyle=`rgba(45,22,4,${0.06+breathe*0.5})`;ctx.fillRect(0,0,W,H);
+
+     /* ── GRAIN PELLICULE vieux western ── */
+     for(let i=0;i<70;i++){
+      const gv=15+Math.random()*28|0;
+      ctx.fillStyle=`rgba(${gv+10},${gv+3},${gv-4},${Math.random()*0.028})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.8+0.3,1);
+     }
+
+     t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
   },
+
+
 
   /* ══ LES GREMLINS ══ */
   {
