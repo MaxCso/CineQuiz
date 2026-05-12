@@ -34155,103 +34155,106 @@ function closeAvModal(e){
    name:'Kill Bill',
    ref:'Kill Bill \u2014 Quentin Tarantino, 2003',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.85';
+    cv.style.opacity='1.0';
     let t=0;
-    const cx=W/2, cy=H/2;
+    const cx=W/2;
 
-    /* Pétales de fleurs de cerisier */
-    const petals=Array.from({length:45},()=>({
-     x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.9+0.3, vy:Math.random()*0.8+0.3,
-     r:Math.random()*5+2.5, phase:Math.random()*Math.PI*2,
-     rot:Math.random()*Math.PI*2, rotSpd:Math.random()*0.04-0.02
-    }));
+    /* ── Override fond : jaune Tarantino ── */
+    let _kbStyle=document.getElementById('_kb_splash_style');
+    if(!_kbStyle){_kbStyle=document.createElement('style');_kbStyle.id='_kb_splash_style';document.head.appendChild(_kbStyle);}
+    _kbStyle.textContent=`
+      #splash{background:#f5c800!important;}
+      #splash-bg::before{background:none!important;}
+      #splash-bg::after{background:none!important;}
+      #splash-bg-anim::before{background:none!important;}
+      #splash-bg-anim::after{background:none!important;}
+    `;
+    const _kbWatch=setInterval(()=>{if(stop.v){_kbStyle.textContent='';clearInterval(_kbWatch);}},200);
 
-    /* Lignes de katana */
-    const slashLines=[];
-    let slashTimer=0;
+    /* ── Katana SVG (98×1040) positionné à droite ── */
+    const KATANA_SVG='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTgiIGhlaWdodD0iMTA0MCIgdmlld0JveD0iMCAwIDk4IDEwNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik05Ny41ODggNDQ5LjM2M0M5Ny41ODggNDQ5LjM2MyA5Ny41MzgyIDQ0OS43NzQgOTcuNTkzOSA0NTAuMzg0Qzk3LjY0NzEgNjQ1LjY3IDk3LjY0MzkgODQwLjM0NyA5Ny42NTExIDEwMzUuMDJDOTcuNjUxMiAxMDM2LjY4IDk3Ljc5MDkgMTAzOC4zNCA5Ny44NjU0IDEwNDBDNjUuNTExMSAxMDQwIDMzLjE1NjkgMTA0MCAwLjUxMzg3NiAxMDM5LjU2QzAuMjUyNzA2IDEwMzcuNzkgMC4zMDQ1NTYgMTAzNi40NiAwLjMwNDU1NiAxMDM1LjEzQzAuMzA3ODgzIDg0OC4xMTYgMC4zMTA2NTkgNjYxLjEgMC4yOTYzNzcgNDc0LjA4NUMwLjI5NTc2NiA0NjYuMSAwLjEzNjIyMSA0NTguMTE1IDAuMjM1ODYgNDQ5Ljk5NEMwLjYwODE0NCA0NDkuNjE1IDAuNzUyMjE4IDQ0OS4zNDggMS4zMjEzNyA0NDkuMDlDMTMuMTAxIDQ0OS4xMjIgMjQuNDEyNSA0NDkuMDk0IDM1LjcyMzkgNDQ5LjEyNkM1Ni4zNDU0IDQ0OS4xODYgNzYuOTY2NiA0NDkuMjgyIDk3LjU4OCA0NDkuMzYzWiIgZmlsbD0iIzAzMDIwMSIvPgo8cGF0aCBkPSJNMC44NjY4NzIgMEMzMi41NTQ0IDAgNjQuMjQyIDAgOTYuNjYzNCAwLjQwMTQ4NEM5Ny40Mzg3IDIuNjMyODUgOTcuNTE2IDQuNDYyNzMgOTcuNTE2MiA2LjI5MjYxQzk3LjUyMjYgNjcuNDA2IDk3LjUxOTIgMTI4LjUxOSA5Ny41MzM2IDE4OS42MzNDOTcuNTM0IDE5MS40NTMgOTcuNzEwNSAxOTMuMjczIDk3LjczOTEgMTk1LjQ0MUM5Ny43MTgxIDE5Ni40OTUgOTcuNzYzIDE5Ny4yIDk3LjY1MTMgMTk4LjI5MkM5NS44Njk2IDE5OS4xMSA5NC4yNDUyIDE5OS45MTIgOTIuNjE5IDE5OS45MTZDNjMuNjM1OSAxOTkuOTkgMzQuNjUyNSAxOTkuOTY3IDUuNjY5MTIgMTk5Ljk2NEM0LjA2Mjk1IDE5OS45NjQgMi40NTY4MSAxOTkuOTY0IDAuNDc2NTgyIDE5OS45NjRDMC40NzY1ODIgMTk3LjgwMiAwLjQ3NjUyMiAxOTYuMzIgMC40NzY2MTMgMTk0LjgzOUMwLjQ3OTcyNiAxMzEuMzc1IDAuNDgwMjc1IDY3LjkxMTggMC41MDE5MTIgNC40NDgzNEMwLjUwMjQzMSAyLjk2NTUyIDAuNzM5OTE5IDEuNDgyNzggMC44NjY4NzIgMFpNNzAuMDMyNSAyNi40QzcxLjQ2NjUgMjUuNTI1NiA3Mi45MDA1IDI0LjY1MTIgNzQuNzI4MyAyMy41MzY3QzY2LjQwOTEgMTguODE5OSA1OC44MTExIDE0LjQ1MzQgNTEuMTMzNCAxMC4yMzE4QzUwLjE1MjYgOS42OTI0NiA0OC40NzM0IDkuMzgzMSA0Ny41OTczIDkuODU1OUMzOS41MzIyIDE0LjIwODMgMzEuNTcyNyAxOC43NTY2IDIyLjgwNjcgMjMuNjg0MUMyNy41NTc1IDI2LjI1MzIgMzEuNDU4IDI4LjM2MjQgMzUuODI0MiAzMC45NjI2QzM5LjMwNDQgMzIuOTE5NyA0Mi42ODA2IDM1LjExMTUgNDYuMzE0NyAzNi43MjA4QzQ3LjgxNDYgMzcuMzg0OSA1MC4xODY1IDM3LjQxMzEgNTEuNjE0NyAzNi42NzM3QzU3LjY2MjYgMzMuNTQzMiA2My41MDUgMzAuMDE1NCA3MC4wMzI1IDI2LjRaTTM2LjgwMDQgNjcuOTk2MUMzNi44MDA0IDY3Ljk5NjEgMzYuNzMwMSA2OC4wNDU1IDM3LjEwNiA2OC42MjM2QzQwLjEzODMgNzAuMzQ4NSA0My4xMzE0IDcyLjE0ODggNDYuMjI0IDczLjc1NzZDNDcuMzA3NyA3NC4zMjEyIDQ4Ljk4MTEgNzUuMDU5NSA0OS43OTk3IDc0LjYyMjFDNTguMDUzNiA3MC4yMTIzIDY2LjE4NTggNjUuNTc0NiA3NS4wMzQyIDYwLjYxOUM2Ni4zMDg0IDU1LjcyMjkgNTguNTEzNiA1MS4zMDA4IDUwLjY0OSA0Ny4wMDY0QzQ5Ljc5ODUgNDYuNTQxOSA0OC4zMDYgNDYuMzgyNyA0Ny41MTM1IDQ2LjgxNjZDMzkuNDc0NCA1MS4yMTgyIDMxLjUxODkgNTUuNzcyNSAyMi43MjE0IDYwLjc0NjlDMjguMDIzMyA2My41MTEzIDMyLjQwMzIgNjUuNzk1MSAzNi44MDA0IDY3Ljk5NjFaTTUzLjY5NzcgMTQ2LjUwNUM2MC41OTgzIDE0Mi42NDQgNjcuNDk4OCAxMzguNzgzIDc0Ljk2ODQgMTM0LjYwNEM2Ni40Mzc3IDEyOS43NjcgNTguNjU2NiAxMjUuMzA4IDUwLjgwODIgMTIwLjk3QzQ5LjkzNjIgMTIwLjQ4OCA0OC40MjQ1IDEyMC4yMzUgNDcuNjQxOSAxMjAuNjY0QzM5LjU0NjkgMTI1LjEwMiAzMS41NDA4IDEyOS43MDIgMjIuOTI2NiAxMzQuNTg4QzMwLjk1ODggMTM5LjEyNCAzOC40MjA3IDE0My4xMzYgNDUuNjU3MyAxNDcuNTJDNDguNjc2MyAxNDkuMzQ5IDUwLjgyNzEgMTQ5LjAzNyA1Mi44ODU1IDE0Ni40MjhDNTIuODg1NSAxNDYuNDI4IDUyLjkzNTUgMTQ2LjQ4NCA1My42OTc3IDE0Ni41MDVaTTM4Ljc2MDUgMTgwLjAxNUMzOC43NjA1IDE4MC4wMTUgMzguNjgzMiAxODAuMDc2IDM5LjA3MTcgMTgwLjY0OUM0MS41Mjk3IDE4Mi4wNDEgNDMuOTAyMiAxODMuNjMxIDQ2LjQ4MTMgMTg0Ljc0MkM0Ny43ODM4IDE4NS4zMDMgNDkuNzgwNiAxODUuNTkzIDUwLjkxNiAxODQuOTg1QzU4Ljc3NTkgMTgwLjc3MiA2Ni40OTE4IDE3Ni4yOSA3NC44Nzg4IDE3MS41NDFDNjYuMzk1MyAxNjYuNzQ4IDU4LjU0MTEgMTYyLjI0MyA1MC41OTE1IDE1Ny45MTJDNDkuNjQ0OCAxNTcuMzk3IDQ3LjkyODkgMTU3LjM4NyA0Ni45OTAyIDE1Ny45MDVDMzkuMDgzMSAxNjIuMjY5IDMxLjI3NCAxNjYuODEgMjIuNzY2NyAxNzEuNjgxQzI4LjUyMDQgMTc0LjcxNyAzMy42MzAxIDE3Ny40MTQgMzguNzYwNSAxODAuMDE1Wk0zMy41OTExIDEwMy43MTFDMzcuNzkyOSAxMDYuMDU0IDQxLjk1MjMgMTA4LjQ3OSA0Ni4yMjM5IDExMC42ODdDNDcuNDEwMyAxMTEuMzAxIDQ5LjI4ODYgMTExLjk0IDUwLjIzOTQgMTExLjQzMUM1OC4zNTk3IDEwNy4wNzYgNjYuMzM5MyAxMDIuNDYgNzQuOTM5NyA5Ny41OTQ3QzY2LjQzMjkgOTIuNzc5IDU4LjY3ODQgODguMzIyOCA1MC44MzIzIDg0LjAzNDNDNDkuODgxNiA4My41MTQ3IDQ4LjE4NCA4My40MzY1IDQ3LjI1OTcgODMuOTM5MkMzOS4yOTE5IDg4LjI3MjEgMzEuNDIyMSA5Mi43ODUzIDIyLjk1MTEgOTcuNTY3OEMyNi42ODkxIDk5LjcwNzkgMjkuODM0IDEwMS41MDggMzMuNTkxMSAxMDMuNzExWiIgZmlsbD0iIzA1MDQwMyIvPgo8cGF0aCBkPSJNMC41NjgzNTkgMjQ2LjQxQzAuMzQ3MTM3IDI0NC44OTYgMC4zNjE1NDIgMjQzLjgyMSAwLjM5OTUzNiAyNDIuMTIyQzAuMzQ4NDggMjQxLjM0NiAwLjI3MzgzNCAyNDEuMTkzIDAuMTk5MjE5IDI0MS4wNEMwLjI1MjUzMyAyMzAuNDE3IDAuMzA1ODc4IDIxOS43OTMgMC4yNjk5NTggMjA4Ljc4NEMxLjI0MDY2IDIwNy4yNzkgMi4yOTcxMiAyMDUuMTg5IDMuMzYxMDIgMjA1LjE4NUMzNC4zMjk0IDIwNS4wNzQgNjUuMjk4NiAyMDUuMTcxIDk2LjI2NzcgMjA1LjI0N0M5Ni40MDUgMjA1LjI0NyA5Ni41NDIgMjA1LjQyNCA5Ny4wMjc1IDIwNS43NTlDOTcuMDI3NSAyMTkuMzk2IDk3LjAyNzUgMjMzLjI3NSA5Ny4wMjc1IDI0Ny40NDJDOTUuMzA1OCAyNDcuNTQ3IDkzLjg1ODkgMjQ3LjcxIDkyLjQxMTkgMjQ3LjcxMUM2My40MzE4IDI0Ny43MjcgMzQuNDUxNiAyNDcuNzM3IDUuNDcxNTMgMjQ3LjY4N0MzLjkxNTE5IDI0Ny42ODQgMi4zNTk4IDI0Ny4xNCAwLjU2ODM1OSAyNDYuNDFaIiBmaWxsPSIjMDMwMjAxIi8+CjxwYXRoIGQ9Ik0xLjg5MjA2IDM4MC4wNDJDMS4zNjg5MyAzNzguMTY2IDAuODQ1ODI1IDM3Ni4yOTEgMC4xOTAwMzMgMzc0LjA1MUMwLjI1MTcwOSAzNzMuNDQ4IDAuMzExNjc2IDM3My4xNzkgMC4yNjk0NCAzNzIuMzY0QzAuMjAxMTQyIDM3MC40MDQgMC4xMDA1ODYgMzY4Ljk1OSAwIDM2Ny41MTVDMC4xMDA2NDcgMzYxLjIwMSAwLjI4NDU0NiAzNTQuODg2IDAuMjg3NzgxIDM0OC41NzFDMC4zMDMzMTQgMzE4LjEwOSAwLjI3MDIwMyAyODcuNjQ2IDAuMTUyNDY2IDI1Ni43NDZDMS4wMzE1NSAyNTUuMTAxIDEuOTk2MjUgMjUyLjg1OCAyLjk5NiAyNTIuODQyQzE3LjQ0NDkgMjUyLjYxNSAzMS44OTg0IDI1Mi42ODYgNDYuNzc2NSAyNTIuNjg2QzQ2Ljc3NjUgMjk1LjA4OCA0Ni43NzY1IDMzNy4wMjQgNDYuNjk3NCAzNzkuNDEzQzQ2LjYxODMgMzc5Ljg2NyA0Ni4yMjQ5IDM3OS44NDggNDUuNTkxMiAzNzkuODY2QzMwLjYwMjQgMzc5LjkzNiAxNi4yNDcyIDM3OS45ODkgMS44OTIwNiAzODAuMDQyWiIgZmlsbD0iIzA1MDQwMyIvPgo8cGF0aCBkPSJNNTAuOTkzMiAzNzkuODYzQzUxLjAxNDIgMzQ4LjE0MyA1MC45Mzg0IDMxNi41MTYgNTAuODc3MSAyODQuODg4QzUwLjg1NjggMjc0LjQyMiA1MC44NzM5IDI2My45NTUgNTAuODczOSAyNTMuMDc4QzY2LjM3ODIgMjUzLjA3OCA4MS41NzUgMjUzLjA3OCA5Ny4xODMzIDI1My4wNzhDOTcuMTgzMyAyOTUuMDg5IDk3LjE4MzMgMzM3LjA4NCA5Ny4xODMzIDM3OS43OEM4Mi4wNDQ1IDM3OS43OCA2Ni45NjcgMzc5Ljc4IDUxLjQ4NyAzNzkuNzc1QzUxLjA4NDQgMzc5Ljc3MSA1MC45MDIgMzc5Ljk1NiA1MC45OTMyIDM3OS44NjNaIiBmaWxsPSIjMDMwMjAxIi8+CjxwYXRoIGQ9Ik05Ny41NTYgMzg5Ljg4Qzk3LjYzNDMgNDA0Ljc5NCA5Ny41OTQyIDQxOS4zMDIgOTcuNTAwOCA0MzQuNTM1Qzk3LjUzNDkgNDM2LjI3MSA5Ny42MjIzIDQzNy4yODIgOTcuNzA5NyA0MzguMjkyQzk3LjY1NjIgNDM5LjU3NCA5Ny42MDI4IDQ0MC44NTcgOTcuNjI0MiA0NDIuNTE4Qzk2LjA0MTYgNDQzLjM2NCA5NC4zODU1IDQ0NC4yMzYgOTIuNzI2OCA0NDQuMjQxQzYzLjQ3MjIgNDQ0LjMyNCAzNC4yMTc0IDQ0NC4zIDQuOTYyNjIgNDQ0LjMwM0MyLjgzNTE4IDQ0NC4zMDMgMC4zOTM5NTIgNDQ0LjgxIDAuMzI5NDk4IDQ0MS4wMDRDMC4yNDg4NzEgNDI0LjM3MSAwLjMyMjQ0OSA0MDguMTMyIDAuNDQwNjc0IDM5MS4xOTlDMC40MDY4OTEgMzkwLjM0OSAwLjMyODQ2MSAzOTAuMTk0IDAuMjUgMzkwLjAzOEMwLjMzNTcyNCAzODguNDk5IDAuNDIxNDc4IDM4Ni45NTkgMS4wMzg4NSAzODUuMDMxQzIuMzEyNDcgMzg0LjU1OCAzLjA1NDQ3IDM4NC40NzMgMy43OTY0OCAzODQuMzg5QzQuMjQ3ODYgMzg0LjQ0IDQuNjk5MjUgMzg0LjQ5MSA1LjQ5MTIxIDM4NC41MUMzMS40ODYxIDM4NC41NjQgNTcuMTQwNCAzODQuNjUxIDgyLjc5NDcgMzg0LjczMUM4Ny40MzcgMzg0Ljc0NSA5Mi4wNzk0IDM4NC43MzMgOTcuMDQ0MyAzODQuNzMzQzk3LjE5NjkgMzg2LjU3MyA5Ny4zMTcxIDM4OC4wMjMgOTcuNTU2IDM4OS44OFoiIGZpbGw9IiMwMzAyMDEiLz4KPC9zdmc+Cg==';
+    const katanaImg=new Image();let katanaReady=false;
+    katanaImg.onload=()=>{katanaReady=true;};katanaImg.src=KATANA_SVG;
 
-    function spawnSlash(){
-     const x1=Math.random()*W*0.4, y1=Math.random()*H*0.3;
-     slashLines.push({x1,y1,x2:x1+W*0.35+Math.random()*W*0.25,y2:y1+H*0.20+Math.random()*H*0.15,life:1,spd:0.045});
+    /* Katana : hauteur 92% écran, positionné à ~72% de la largeur */
+    const KH=H*0.92;
+    const KW=KH*(98/1040);
+    const KX=W*0.72-KW/2;
+    const KY=H*0.04;
+
+    /* ── Pétales de cerisier ── */
+    function makePetal(){
+     return {
+      x:Math.random()*W,
+      y:-20-Math.random()*H*0.5,
+      vy:0.55+Math.random()*0.90,
+      vx:(Math.random()-0.5)*0.55,
+      rot:Math.random()*Math.PI*2,
+      vrot:(Math.random()-0.5)*0.035,
+      wobble:Math.random()*Math.PI*2,
+      wobbleSpd:0.022+Math.random()*0.022,
+      size:W*(0.012+Math.random()*0.018),
+      op:0.55+Math.random()*0.42,
+     };
+    }
+    const petals=Array.from({length:38},makePetal);
+    /* Distribuer dès le début */
+    petals.forEach((p,i)=>{p.y=-10+(i/38)*H*1.1;});
+
+    /* ── Dessine un pétale de sakura ── */
+    function drawPetal(p){
+     ctx.save();
+     ctx.translate(p.x,p.y);
+     ctx.rotate(p.rot);
+     ctx.globalAlpha=p.op;
+     const s=p.size;
+
+     /* Pétale en forme d'ellipse légèrement échancrée */
+     ctx.fillStyle='rgba(240,160,185,0.92)';
+     ctx.beginPath();
+     ctx.moveTo(0,-s);
+     ctx.bezierCurveTo(s*0.55,-s*0.80, s*0.80,-s*0.20, 0,s*0.25);
+     ctx.bezierCurveTo(-s*0.80,-s*0.20,-s*0.55,-s*0.80, 0,-s);
+     ctx.closePath();ctx.fill();
+
+     /* Nervure centrale */
+     ctx.strokeStyle='rgba(210,100,140,0.35)';ctx.lineWidth=s*0.12;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(0,-s*0.80);ctx.lineTo(0,s*0.20);ctx.stroke();
+
+     ctx.restore();
     }
 
     function frame(){
      if(stop.v)return;
-     /* Fond noir */
-     ctx.fillStyle='rgba(2,2,3,0.22)'; ctx.fillRect(0,0,W,H);
 
-     /* Soleil / cercle rouge style Kill Bill */
-     const circleAlpha=0.10+Math.sin(t*0.4)*0.03;
-     const sunG=ctx.createRadialGradient(cx,H*0.38,5,cx,H*0.38,W*0.32);
-     sunG.addColorStop(0,`rgba(180,10,10,${circleAlpha*2.5})`);
-     sunG.addColorStop(0.4,`rgba(120,5,5,${circleAlpha*1.2})`);
-     sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG; ctx.beginPath(); ctx.arc(cx,H*0.38,W*0.32,0,Math.PI*2); ctx.fill();
-     /* Cercle contour blanc — style affiche */
-     ctx.strokeStyle=`rgba(255,255,255,${0.06+Math.sin(t*0.5)*0.02})`; ctx.lineWidth=2;
-     ctx.beginPath(); ctx.arc(cx,H*0.38,W*0.26,0,Math.PI*2); ctx.stroke();
+     /* Fond jaune vif */
+     ctx.fillStyle='#f5c800';ctx.fillRect(0,0,W,H);
 
-     /* Slash de katana */
-     slashTimer--;
-     if(slashTimer<=0){ spawnSlash(); slashTimer=45+Math.floor(Math.random()*60); }
-     for(let i=slashLines.length-1;i>=0;i--){
-      const sl=slashLines[i]; sl.life-=sl.spd;
-      if(sl.life<=0){slashLines.splice(i,1);continue;}
-      const alpha=sl.life*0.85;
-      /* Lame */
-      const lg=ctx.createLinearGradient(sl.x1,sl.y1,sl.x2,sl.y2);
-      lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(0.2,`rgba(255,255,255,${alpha})`); lg.addColorStop(0.8,`rgba(220,200,180,${alpha*0.7})`); lg.addColorStop(1,'rgba(255,255,255,0)');
-      ctx.strokeStyle=`rgba(255,255,255,${alpha})`; ctx.lineWidth=2.5; ctx.lineCap='round';
-      ctx.beginPath(); ctx.moveTo(sl.x1,sl.y1); ctx.lineTo(sl.x2,sl.y2); ctx.stroke();
-      /* Reflet */
-      ctx.strokeStyle=`rgba(255,230,200,${alpha*0.55})`; ctx.lineWidth=0.8;
-      ctx.beginPath(); ctx.moveTo(sl.x1+2,sl.y1+1); ctx.lineTo(sl.x2+2,sl.y2+1); ctx.stroke();
-      /* Impact rouge */
-      const impG=ctx.createRadialGradient(sl.x1,sl.y1,1,sl.x1,sl.y1,W*0.055);
-      impG.addColorStop(0,`rgba(220,20,10,${alpha*0.70})`); impG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=impG; ctx.beginPath(); ctx.arc(sl.x1,sl.y1,W*0.055,0,Math.PI*2); ctx.fill();
+     /* ── Pétales ── */
+     for(const p of petals){
+      p.y+=p.vy;p.x+=p.vx;
+      p.rot+=p.vrot;
+      p.wobble+=p.wobbleSpd;
+      p.x+=Math.sin(p.wobble)*0.35;
+      if(p.y>H+20){Object.assign(p,makePetal());p.y=-20;}
+      drawPetal(p);
      }
 
-     /* Pétales */
-     for(const p of petals){
-      p.x+=p.vx+Math.sin(t*0.6+p.phase)*0.4; p.y+=p.vy; p.rot+=p.rotSpd;
-      if(p.y>H+p.r){p.y=-p.r;p.x=Math.random()*W;}
-      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-      /* Forme pétale ovale inclinée */
-      const pg=ctx.createRadialGradient(0,0,0,0,0,p.r);
-      pg.addColorStop(0,'rgba(255,180,180,0.88)'); pg.addColorStop(0.5,'rgba(230,120,130,0.65)'); pg.addColorStop(1,'rgba(200,80,90,0)');
-      ctx.fillStyle=pg; ctx.beginPath(); ctx.ellipse(0,0,p.r*0.55,p.r,0,0,Math.PI*2); ctx.fill();
+     /* ── Katana SVG ── */
+     if(katanaReady){
+      ctx.save();
+      ctx.globalAlpha=0.97;
+      ctx.drawImage(katanaImg,KX,KY,KW,KH);
       ctx.restore();
      }
 
-     /* Silhouette samouraï — simple et élégant */
-     const sx=cx-W*0.05, sy=H*0.68;
-     ctx.fillStyle='rgba(5,3,3,0.96)';
-     /* Corps */
-     ctx.beginPath(); ctx.roundRect(sx-W*0.030,sy-H*0.25,W*0.060,H*0.25,3); ctx.fill();
-     /* Tête */
-     ctx.beginPath(); ctx.arc(sx,sy-H*0.26,W*0.034,0,Math.PI*2); ctx.fill();
-     /* Katana levé */
-     ctx.strokeStyle='rgba(5,3,3,0.94)'; ctx.lineWidth=3; ctx.lineCap='round';
-     ctx.beginPath(); ctx.moveTo(sx+W*0.030,sy-H*0.22); ctx.lineTo(sx+W*0.145,sy-H*0.48+Math.sin(t*0.8)*3); ctx.stroke();
-     /* Reflet lame */
-     ctx.strokeStyle=`rgba(200,190,160,${0.35+Math.sin(t*2)*0.15})`; ctx.lineWidth=1;
-     ctx.beginPath(); ctx.moveTo(sx+W*0.035,sy-H*0.22); ctx.lineTo(sx+W*0.148,sy-H*0.48+Math.sin(t*0.8)*3); ctx.stroke();
+     /* Légère vignette sur les bords */
+     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.15,cx,H*0.50,H*0.90);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(1,'rgba(0,0,0,0.12)');
+     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
-     /* Vignette noire profonde */
-     const vg=ctx.createRadialGradient(cx,cy,H*0.06,cx,cy,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(0.45,'rgba(0,0,0,0.22)'); vg.addColorStop(1,'rgba(0,0,0,0.97)');
-     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
-
-     /* Grain */
-     for(let i=0;i<35;i++){
-      const gv=15+Math.random()*20|0;
-      ctx.fillStyle=`rgba(${gv+5},${gv},${gv},${Math.random()*0.022})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);
-     }
-
-     t+=0.016; requestAnimationFrame(frame);
+     t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
@@ -35665,7 +35668,7 @@ function closeAvModal(e){
       drawKnife(k);
      }
 
-     /* ── Masque Ghostface ── */
+     /* ── Masque Ghostface — blanc/gris sur fond noir ── */
      breathT+=0.018;
      const breathS=1+Math.sin(breathT)*0.008;
      const breathY=Math.sin(breathT*0.7)*H*0.004;
@@ -35673,13 +35676,37 @@ function closeAvModal(e){
       ctx.save();
       ctx.translate(cx,MASK_Y+MASK_H/2+breathY);
       ctx.scale(breathS,breathS);
-      /* Halo rouge très discret derrière le masque */
+
+      /* Halo rouge derrière le masque */
       const halo=ctx.createRadialGradient(0,0,MASK_W*0.10,0,0,MASK_W*0.72);
-      halo.addColorStop(0,`rgba(80,0,0,${0.18+flashOp*0.20})`);
+      halo.addColorStop(0,`rgba(80,0,0,${0.22+flashOp*0.28})`);
       halo.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=halo;ctx.beginPath();ctx.arc(0,0,MASK_W*0.72,0,Math.PI*2);ctx.fill();
+
+      /* Dessiner le masque SVG (noir) sur canvas off-screen puis l'inverser en blanc */
+      const oc=document.createElement('canvas');
+      oc.width=MASK_W;oc.height=MASK_H;
+      const ot=oc.getContext('2d');
+      /* Fond blanc sur offscreen */
+      ot.fillStyle='rgba(220,220,220,1)';ot.fillRect(0,0,MASK_W,MASK_H);
+      /* Dessiner le masque SVG en noir par-dessus */
+      ot.globalCompositeOperation='destination-out';
+      ot.drawImage(maskImg,0,0,MASK_W,MASK_H);
+      /* Résultat : les zones du masque (noires) sont effacées → transparentes
+         les zones extérieures (blanches) restent → gris clair */
+      /* On veut l'inverse : le masque visible en blanc, fond transparent */
+      /* Utiliser "source-in" pour garder seulement les pixels du masque */
+      const oc2=document.createElement('canvas');
+      oc2.width=MASK_W;oc2.height=MASK_H;
+      const ot2=oc2.getContext('2d');
+      ot2.drawImage(maskImg,0,0,MASK_W,MASK_H); /* masque noir */
+      ot2.globalCompositeOperation='source-in';
+      ot2.fillStyle='rgba(210,210,215,0.96)'; /* gris clair = couleur du masque */
+      ot2.fillRect(0,0,MASK_W,MASK_H);
+
       ctx.globalAlpha=0.97;
-      ctx.drawImage(maskImg,-MASK_W/2,-MASK_H/2,MASK_W,MASK_H);
+      ctx.drawImage(oc2,-MASK_W/2,-MASK_H/2,MASK_W,MASK_H);
+
       ctx.restore();
      }
 
@@ -38450,6 +38477,108 @@ function closeAvModal(e){
      h:H*(0.025+Math.random()*0.012),
     }));
 
+    /* ── Colonne de feu ── */
+    function drawFireColumn(){
+     const baseGlow=ctx.createRadialGradient(FX,F_BASE,4,FX,F_BASE,W*0.35);
+     baseGlow.addColorStop(0,`rgba(255,140,10,${0.55+Math.sin(t*1.8)*0.08})`);
+     baseGlow.addColorStop(0.25,'rgba(220,80,5,0.28)');
+     baseGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=baseGlow;ctx.fillRect(0,0,W,H);
+     for(const fp of flameP){
+      fp.yOff+=fp.vy;fp.ph+=0.06;
+      if(fp.yOff>F_HEIGHT){fp.yOff=Math.random()*F_HEIGHT*0.15;fp.xOff=(Math.random()-0.5)*F_WIDTH*0.8;fp.vy=Math.random()*2.5+1.5;fp.r=Math.random()*F_WIDTH*0.8+F_WIDTH*0.2;fp.hot=Math.random();}
+      const prog=fp.yOff/F_HEIGHT;
+      const colWidth=F_WIDTH*(1.0-prog*0.65);
+      const px=FX+fp.xOff*(1-prog*0.5);
+      const py=F_BASE-fp.yOff;
+      const radius=fp.r*(0.4+Math.random()*0.2)*(1-prog*0.55);
+      const alpha=Math.max(0,0.90-prog*0.75)*(0.7+Math.sin(fp.ph)*0.3);
+      let r,g,b;
+      if(fp.hot>0.65&&prog<0.35){r=255;g=Math.round(220+fp.hot*35);b=Math.round(fp.hot*120);}
+      else if(prog<0.55){r=255;g=Math.round(130-prog*80);b=8;}
+      else{r=Math.round(200-prog*100);g=Math.round(40-prog*30);b=4;}
+      const clampX=Math.max(FX-colWidth*1.5,Math.min(FX+colWidth*1.5,px));
+      const fg2=ctx.createRadialGradient(clampX,py,1,clampX,py,radius);
+      fg2.addColorStop(0,`rgba(${r},${g},${b},${alpha})`);
+      fg2.addColorStop(0.5,`rgba(${r},${Math.max(0,g-60)},0,${alpha*0.45})`);
+      fg2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=fg2;ctx.beginPath();ctx.arc(clampX,py,radius,0,Math.PI*2);ctx.fill();
+     }
+    }
+
+    /* ── Silhouette soldat SVG ── */
+    function drawSoldier(){
+     const SX=W*0.74, SB=groundY;
+     const SH=H*0.30;
+     const sw=SH*(677/1280);
+     if(soldierReady){
+      ctx.save();ctx.globalAlpha=0.97;
+      ctx.drawImage(soldierImg,SX-sw*0.5,SB-SH,sw,SH);
+      ctx.restore();
+     }
+    }
+
+    function frame(){
+     if(stop.v)return;
+
+     /* Fond désert */
+     const bg=ctx.createLinearGradient(0,0,0,H);
+     bg.addColorStop(0,'#120d04');bg.addColorStop(0.55,'#1a1206');bg.addColorStop(0.80,'#251808');bg.addColorStop(1,'#180e04');
+     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+     /* Sol */
+     const dg=ctx.createLinearGradient(0,groundY,0,H);
+     dg.addColorStop(0,'rgba(40,30,10,0.95)');dg.addColorStop(1,'rgba(20,15,5,0.99)');
+     ctx.fillStyle=dg;ctx.fillRect(0,groundY,W,H-groundY);
+
+     /* Fumée */
+     for(const s of smokeCols){
+      s.x+=s.vx;s.y+=s.vy;
+      if(s.x>W+s.r){s.x=FX+(Math.random()-0.3)*W*0.10;s.y=groundY-F_HEIGHT*0.4-Math.random()*F_HEIGHT*0.4;s.op=0.25+Math.random()*0.30;}
+      const tone=s.tone;
+      const sg=ctx.createRadialGradient(s.x,s.y,s.r*0.1,s.x,s.y,s.r);
+      sg.addColorStop(0,`rgba(${Math.round(80+tone*120)},${Math.round(55+tone*90)},${Math.round(20+tone*40)},${s.op})`);
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Colonne de feu */
+     drawFireColumn();
+
+     /* Silhouettes lointaines */
+     for(const f of far){
+      ctx.fillStyle='rgba(6,4,2,0.92)';
+      ctx.fillRect(f.x-W*0.010,groundY-f.h,W*0.020,f.h);
+     }
+
+     /* Soldat SVG */
+     drawSoldier();
+
+     /* Cendres */
+     for(const a of ashes){
+      a.x+=a.vx;a.y+=a.vy;
+      if(a.y>H){a.y=0;a.x=Math.random()*W;}
+      ctx.fillStyle=`rgba(55,25,4,${a.op})`;
+      ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Vignette */
+     const vg=ctx.createRadialGradient(cx,H*0.45,H*0.10,cx,H*0.45,H*0.86);
+     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.50,'rgba(0,0,0,0.12)');vg.addColorStop(1,'rgba(0,0,0,0.95)');
+     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+     const vgL=ctx.createLinearGradient(0,0,W*0.14,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.78)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.14,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.86,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.78)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.86,0,W*0.14,H);
+
+     /* Grain */
+     for(let i=0;i<45;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+6},${g+2},${g},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);}
+
+     t+=0.016;requestAnimationFrame(frame);
+    }
+    frame();
     /* ════ COLONNE DE FEU ════ */
     function drawFireColumn(){
      /* Lueur orange au sol sous la flamme */
@@ -38510,13 +38639,11 @@ function closeAvModal(e){
       ctx.fillStyle=fg;ctx.beginPath();ctx.arc(clampX,py,radius,0,Math.PI*2);ctx.fill();
      }
 
-    /* ════ SILHOUETTE SOLDAT — réaliste, de dos ════ */
+    /* ════ SILHOUETTE SOLDAT — SVG ════ */
     function drawSoldier(){
-     /* SVG soldier — 677×1280 */
      const SX=W*0.74, SB=groundY;
      const SH=H*0.30;
-     const SVG_W_RATIO=677/1280;
-     const sw=SH*SVG_W_RATIO;
+     const sw=SH*(677/1280);
      if(soldierReady){
       ctx.save();
       ctx.globalAlpha=0.97;
@@ -38806,29 +38933,49 @@ function closeAvModal(e){
     const sfImg=new Image();let sfReady=false;
     sfImg.onload=()=>{sfReady=true;};sfImg.src=SF_SVG;
 
-    /* SVG original : 399 × 630 */
+    /* SVG original : 399 × 630
+       Bond est à ~50% de la largeur et ~28% de la hauteur du SVG.
+       On scale pour que la main atteigne exactement le bas (dstY+dstH=H),
+       et on centre horizontalement sur Bond (≈cx du SVG). */
     const SVG_W=399,SVG_H=630;
-    /* Hauteur cible : 78% de l'écran, centré légèrement bas */
-    const dstH=H*0.78;
+    /* Hauteur = plein écran, main collée en bas */
+    const dstH=H*1.05; /* légèrement au-delà pour coller le bas */
     const dstW=dstH*(SVG_W/SVG_H);
+    /* Bond est centré horizontalement dans le SVG → dstX centre le SVG sur cx */
     const dstX=cx-dstW/2;
-    const dstY=H*0.14;
+    /* Ancrer le bas du SVG au bas de l'écran */
+    const dstY=H-dstH;
 
     /* ── Léger balancement de la silhouette ── */
     let swingT=0;
 
-    /* ── Particules — bulles aquatiques qui montent (chute dans l'eau) ── */
-    const bubbles=Array.from({length:28},()=>{
-     const x=cx+(Math.random()-0.5)*W*0.55;
+    /* ── Bulles aquatiques ── */
+    const bubbles=Array.from({length:38},()=>{
      return {
-      x,y:H*0.55+Math.random()*H*0.45,
-      vy:-(0.20+Math.random()*0.45),
-      r:Math.random()*3.5+0.8,
-      op:Math.random()*0.28+0.06,
+      x:cx+(Math.random()-0.5)*W*0.70,
+      y:H*0.30+Math.random()*H*0.70,
+      vy:-(0.15+Math.random()*0.35),
+      r:Math.random()*3.0+0.5,
+      op:Math.random()*0.22+0.04,
       wobble:Math.random()*Math.PI*2,
-      wobbleSpd:0.018+Math.random()*0.020,
+      wobbleSpd:0.015+Math.random()*0.018,
      };
     });
+
+    /* ── Rayons lumineux depuis le haut ── */
+    const rays=Array.from({length:5},(_,i)=>({
+     angle:-Math.PI*0.5+(-0.35+i*0.175),
+     op:0.025+Math.random()*0.025,
+     width:W*(0.04+Math.random()*0.05),
+     phase:Math.random()*Math.PI*2,
+    }));
+
+    /* ── Anneaux de profondeur — effet eau ── */
+    const rings=Array.from({length:3},(_,i)=>({
+     r:W*(0.10+i*0.18),
+     life:i/3,
+     spd:0.0025,
+    }));
 
     function frame(){
      if(stop.v)return;
@@ -38849,11 +38996,39 @@ function closeAvModal(e){
      halo.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
 
+     /* ── Rayons lumineux depuis surface ── */
+     for(const ray of rays){
+      ray.phase+=0.008;
+      const rayOp=ray.op*(0.7+0.3*Math.sin(ray.phase));
+      const len=H*1.2;
+      ctx.save();
+      ctx.translate(cx,0);ctx.rotate(ray.angle+Math.PI/2);
+      const rg=ctx.createLinearGradient(0,0,0,len);
+      rg.addColorStop(0,`rgba(100,180,200,${rayOp*1.8})`);
+      rg.addColorStop(0.4,`rgba(80,160,180,${rayOp*0.8})`);
+      rg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=rg;
+      ctx.beginPath();ctx.moveTo(-ray.width/2,0);ctx.lineTo(ray.width/2,0);
+      ctx.lineTo(ray.width*0.8,len);ctx.lineTo(-ray.width*0.8,len);ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+     }
+
+     /* ── Anneaux de profondeur ── */
+     for(const ring of rings){
+      ring.life+=ring.spd;
+      if(ring.life>1){ring.life=0;}
+      const rOp=Math.sin(ring.life*Math.PI)*0.08;
+      const rR=ring.r+ring.life*W*0.25;
+      ctx.strokeStyle=`rgba(100,180,200,${rOp})`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.ellipse(cx,H*0.38,rR,rR*0.22,0,0,Math.PI*2);ctx.stroke();
+     }
+
      /* ── Bulles aquatiques ── */
      for(const b of bubbles){
       b.y+=b.vy;b.wobble+=b.wobbleSpd;
       b.x+=Math.sin(b.wobble)*0.25;
-      if(b.y<-10){b.y=H*0.6+Math.random()*H*0.4;b.x=cx+(Math.random()-0.5)*W*0.55;}
+      if(b.y<-10){b.y=H*0.5+Math.random()*H*0.5;b.x=cx+(Math.random()-0.5)*W*0.70;}
       ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
       ctx.strokeStyle=`rgba(140,200,210,${b.op*(0.5+0.5*Math.sin(b.wobble))})`;
       ctx.lineWidth=0.7;ctx.stroke();
