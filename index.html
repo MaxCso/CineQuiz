@@ -38938,12 +38938,14 @@ function closeAvModal(e){
        On scale pour que la main atteigne exactement le bas (dstY+dstH=H),
        et on centre horizontalement sur Bond (≈cx du SVG). */
     const SVG_W=399,SVG_H=630;
-    /* Hauteur = plein écran, main collée en bas */
-    const dstH=H*1.05; /* légèrement au-delà pour coller le bas */
+    /* Le centre visuel de Bond est à x≈210/399=52.6% du SVG
+       Bond est à y≈175/630=27.8% du SVG depuis le haut
+       Objectif : Bond centré horizontalement, main collée en bas */
+    const dstH=H*1.15; /* assez grand pour que la main remplisse bien le bas */
     const dstW=dstH*(SVG_W/SVG_H);
-    /* Bond est centré horizontalement dans le SVG → dstX centre le SVG sur cx */
-    const dstX=cx-dstW/2;
-    /* Ancrer le bas du SVG au bas de l'écran */
+    /* Centrer Bond (à 52.6% du SVG) sur cx */
+    const dstX=cx-dstW*0.526;
+    /* Main collée au bas de l'écran */
     const dstY=H-dstH;
 
     /* ── Léger balancement de la silhouette ── */
@@ -38963,18 +38965,39 @@ function closeAvModal(e){
     });
 
     /* ── Rayons lumineux depuis le haut ── */
-    const rays=Array.from({length:5},(_,i)=>({
-     angle:-Math.PI*0.5+(-0.35+i*0.175),
-     op:0.025+Math.random()*0.025,
-     width:W*(0.04+Math.random()*0.05),
+    const rays=Array.from({length:7},(_,i)=>({
+     angle:-Math.PI*0.5+(-0.45+i*0.15),
+     op:0.018+Math.random()*0.022,
+     width:W*(0.035+Math.random()*0.055),
      phase:Math.random()*Math.PI*2,
     }));
 
     /* ── Anneaux de profondeur — effet eau ── */
-    const rings=Array.from({length:3},(_,i)=>({
-     r:W*(0.10+i*0.18),
-     life:i/3,
-     spd:0.0025,
+    const rings=Array.from({length:5},(_,i)=>({
+     r:W*(0.06+i*0.16),
+     life:i/5,
+     spd:0.0020+Math.random()*0.0010,
+    }));
+
+    /* ── Particules lumineuses flottantes — poussière sous-marine ── */
+    const motes=Array.from({length:45},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H,
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(Math.random()*0.08+0.02),
+     r:Math.random()*1.5+0.2,
+     op:Math.random()*0.20+0.04,
+     phase:Math.random()*Math.PI*2,
+     phSpd:0.015+Math.random()*0.025,
+    }));
+
+    /* ── Éclats de lumière à la surface ── */
+    const glints=Array.from({length:12},()=>({
+     x:Math.random()*W,
+     phase:Math.random()*Math.PI*2,
+     spd:0.025+Math.random()*0.040,
+     size:W*(0.004+Math.random()*0.008),
+     op:Math.random()*0.35+0.10,
     }));
 
     function frame(){
@@ -39022,6 +39045,33 @@ function closeAvModal(e){
       const rR=ring.r+ring.life*W*0.25;
       ctx.strokeStyle=`rgba(100,180,200,${rOp})`;ctx.lineWidth=1.5;
       ctx.beginPath();ctx.ellipse(cx,H*0.38,rR,rR*0.22,0,0,Math.PI*2);ctx.stroke();
+     }
+
+     /* ── Particules lumineuses flottantes ── */
+     for(const m of motes){
+      m.x+=m.vx;m.y+=m.vy;m.phase+=m.phSpd;
+      if(m.y<-5){m.y=H;m.x=Math.random()*W;}
+      if(m.x<-2)m.x=W+2;if(m.x>W+2)m.x=-2;
+      const mo=m.op*(0.5+0.5*Math.abs(Math.sin(m.phase)));
+      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(150,215,225,${mo})`;ctx.fill();
+     }
+
+     /* ── Éclats de lumière surface ── */
+     for(const g of glints){
+      g.phase+=g.spd;
+      const go=g.op*Math.abs(Math.sin(g.phase));
+      if(go>0.05){
+       ctx.save();ctx.translate(g.x,H*0.04);
+       const gl=ctx.createRadialGradient(0,0,0,0,0,g.size*8);
+       gl.addColorStop(0,`rgba(200,240,245,${go})`);gl.addColorStop(1,'rgba(0,0,0,0)');
+       ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,g.size*8,0,Math.PI*2);ctx.fill();
+       /* Croix d'éclat */
+       ctx.strokeStyle=`rgba(220,250,255,${go*0.8})`;ctx.lineWidth=g.size*0.5;
+       ctx.beginPath();ctx.moveTo(-g.size*5,0);ctx.lineTo(g.size*5,0);ctx.stroke();
+       ctx.beginPath();ctx.moveTo(0,-g.size*5);ctx.lineTo(0,g.size*5);ctx.stroke();
+       ctx.restore();
+      }
      }
 
      /* ── Bulles aquatiques ── */
