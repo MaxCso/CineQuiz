@@ -41315,49 +41315,89 @@ function closeAvModal(e){
     }));
 
     /* ── Douilles qui tombent depuis le ciel ── */
-    const falling=Array.from({length:55},(_,i)=>({
+    const falling=Array.from({length:90},(_,i)=>({
      x:Math.random()*W,
-     y:Math.random()*H-H,         /* départ hors écran */
-     vy:1.8+Math.random()*2.2,
-     vx:(Math.random()-.5)*.4,
+     y:Math.random()*H*2-H*1.2,   /* départ étalé sur 2 écrans hors écran */
+     vy:1.2+Math.random()*3.2,
+     vx:(Math.random()-.5)*.7,
      rot:Math.random()*Math.PI*2,
-     rotSpd:(Math.random()-.5)*.06,
-     len:H*.040+Math.random()*H*.025, /* longueur douille */
-     rad:W*.0055+Math.random()*W*.003,  /* rayon */
-     brass:.55+Math.random()*.30       /* teinte laiton */
+     rotSpd:(Math.random()-.5)*.09,
+     len:H*.032+Math.random()*H*.032, /* longueur douille variée */
+     rad:W*.0045+Math.random()*W*.0045,  /* rayon varié */
+     brass:.48+Math.random()*.42,  /* teinte laiton variée */
+     wobble:Math.random()*Math.PI*2, /* oscillation horizontale */
+     wobbleSpd:0.02+Math.random()*0.03,
+     wobbleAmp:(Math.random()-.5)*0.5
     }));
 
     /* ── Tapis de douilles au sol — positions fixes ── */
-    const carpet=Array.from({length:120},(_,i)=>({
+    const carpet=Array.from({length:260},(_,i)=>({
      x:((i*137+53)%1000)/1000*W,
-     y:horizY+((i*97+31)%1000)/1000*(H-horizY)*.88,
-     rot:((i*41)%1000)/1000*Math.PI,
-     len:H*.028+((i*29)%10)/10*H*.018,
-     rad:W*.0045+((i*61)%10)/10*W*.003,
-     brass:.50+((i*19)%30)/100*.35,
-     /* perspective : plus gros + contrasté en bas */
-     scale:0.55+((i*97+31)%1000)/1000*.80
+     y:horizY+((i*97+31)%1000)/1000*(H-horizY)*.92,
+     rot:((i*41)%1000)/1000*Math.PI*2,  /* rotation complète 360° */
+     len:H*.022+((i*29)%10)/10*H*.022,
+     rad:W*.0038+((i*61)%10)/10*W*.0035,
+     brass:.45+((i*19)%50)/100*.50,     /* laiton plus varié */
+     scale:0.45+((i*97+31)%1000)/1000*.95,
+     cluster:((i*71)%7)<3              /* regroupement en amas */
     }));
 
-    /* ── Douilles empilées — silhouettes en couches ── */
+    /* ── Douilles — rendu cylindrique réaliste ── */
     function drawCasing(x,y,len,rad,rot,brass,alpha){
      ctx.save();
      ctx.translate(x,y); ctx.rotate(rot);
      ctx.globalAlpha=alpha;
-     /* Corps cylindrique — laiton */
+
+     /* Ombre portée sous la douille */
+     ctx.save();
+     ctx.globalAlpha=alpha*.35;
+     ctx.fillStyle='rgba(0,0,0,0.6)';
+     ctx.beginPath();
+     ctx.ellipse(rad*.5, len*.42, rad*1.1, rad*.38, 0, 0, Math.PI*2);
+     ctx.fill();
+     ctx.restore();
+
+     /* Corps cylindrique — laiton avec 5 stops pour rendu 3D */
      const lg=ctx.createLinearGradient(-rad,0,rad,0);
-     const b1=`rgba(${Math.round(180+brass*30)},${Math.round(130+brass*20)},${Math.round(30+brass*10)},1)`;
-     const b2=`rgba(${Math.round(230+brass*20)},${Math.round(185+brass*15)},${Math.round(70+brass*10)},1)`;
-     const b3=`rgba(${Math.round(140+brass*20)},${Math.round(95+brass*15)},${Math.round(15)},1)`;
-     lg.addColorStop(0,b3); lg.addColorStop(.35,b1); lg.addColorStop(.55,b2); lg.addColorStop(1,b3);
+     const r0=Math.round(100+brass*40), g0=Math.round(65+brass*30), b0=Math.round(5);
+     const r1=Math.round(185+brass*40), g1=Math.round(135+brass*25), b1o=Math.round(28+brass*12);
+     const r2=Math.round(245+brass*8),  g2=Math.round(200+brass*12), b2=Math.round(80+brass*10);
+     const r3=Math.round(210+brass*20), g3=Math.round(162+brass*18), b3=Math.round(48+brass*8);
+     lg.addColorStop(0,   `rgba(${r0},${g0},${b0},1)`);
+     lg.addColorStop(.18, `rgba(${r1},${g1},${b1o},1)`);
+     lg.addColorStop(.42, `rgba(${r2},${g2},${b2},1)`);   /* highlight central */
+     lg.addColorStop(.68, `rgba(${r3},${g3},${b3},1)`);
+     lg.addColorStop(1,   `rgba(${r0},${g0},${b0},1)`);
      ctx.fillStyle=lg;
-     ctx.beginPath(); ctx.roundRect(-rad,-len/2,rad*2,len,rad*.8); ctx.fill();
-     /* Fond de douille (bas) — cercle plus sombre */
-     ctx.fillStyle=`rgba(80,55,10,.85)`;
-     ctx.beginPath(); ctx.ellipse(0,len/2,rad,rad*.45,0,0,Math.PI*2); ctx.fill();
-     /* Reflet spéculaire */
-     ctx.fillStyle=`rgba(255,245,200,.28)`;
-     ctx.beginPath(); ctx.roundRect(-rad*.22,-len*.38,rad*.22,len*.55,rad*.3); ctx.fill();
+     ctx.beginPath(); ctx.roundRect(-rad,-len/2,rad*2,len,rad*.9); ctx.fill();
+
+     /* Collerette (étranglement) */
+     const neckY=-len*.32;
+     const ng=ctx.createLinearGradient(-rad,0,rad,0);
+     ng.addColorStop(0,'rgba(60,35,5,.9)');
+     ng.addColorStop(.4,'rgba(160,105,20,.9)');
+     ng.addColorStop(.6,'rgba(200,155,45,.9)');
+     ng.addColorStop(1,'rgba(60,35,5,.9)');
+     ctx.fillStyle=ng;
+     ctx.beginPath(); ctx.roundRect(-rad*1.18,neckY-rad*.7,rad*2.36,rad*1.4,rad*.4); ctx.fill();
+
+     /* Fond de douille (bas) — cuvette circulaire */
+     const cg=ctx.createRadialGradient(0,len/2,0, 0,len/2,rad);
+     cg.addColorStop(0,'rgba(120,80,15,.95)');
+     cg.addColorStop(.6,'rgba(70,45,8,.95)');
+     cg.addColorStop(1,'rgba(40,25,3,.95)');
+     ctx.fillStyle=cg;
+     ctx.beginPath(); ctx.ellipse(0,len/2,rad,rad*.5,0,0,Math.PI*2); ctx.fill();
+
+     /* Reflet spéculaire fin */
+     const sg=ctx.createLinearGradient(-rad*.18,-len*.42,-rad*.18+rad*.01,len*.42);
+     sg.addColorStop(0,'rgba(255,248,210,.0)');
+     sg.addColorStop(.25,'rgba(255,248,210,.38)');
+     sg.addColorStop(.75,'rgba(255,248,210,.22)');
+     sg.addColorStop(1,'rgba(255,248,210,.0)');
+     ctx.fillStyle=sg;
+     ctx.beginPath(); ctx.roundRect(-rad*.28,-len*.44,rad*.2,len*.82,rad*.2); ctx.fill();
+
      ctx.globalAlpha=1; ctx.restore();
     }
 
@@ -41405,37 +41445,84 @@ function closeAvModal(e){
      ground.addColorStop(1,'#1a1408');
      ctx.fillStyle=ground; ctx.fillRect(0,horizY,W,H-horizY);
 
-     /* ── Tapis de douilles au sol — couches de profondeur ── */
-     /* Couche lointaine (petite, pâle) */
+     /* ── Tapis de douilles au sol — 4 couches de profondeur ── */
+     /* Couche très lointaine (minuscule, très pâle, horizY collé) */
      for(const c of carpet){
-      if(c.scale<0.75){
-       const py=horizY+c.y%(H*.12);
-       drawCasing(c.x,py,c.len*.55*c.scale,c.rad*.55*c.scale,c.rot,c.brass,.38+c.scale*.18);
+      if(c.scale<0.55){
+       const py=horizY+H*.01+(c.y%(H*.06));
+       drawCasing(c.x,py,c.len*.38*c.scale,c.rad*.38*c.scale,c.rot,c.brass,.22+c.scale*.15);
+      }
+     }
+     /* Couche lointaine */
+     for(const c of carpet){
+      if(c.scale>=0.55 && c.scale<0.78){
+       const py=horizY+H*.05+(c.y%(H*.14));
+       drawCasing(c.x,py,c.len*.58*c.scale,c.rad*.58*c.scale,c.rot,c.brass,.38+c.scale*.20);
       }
      }
      /* Couche médiane */
      for(const c of carpet){
-      if(c.scale>=0.75 && c.scale<1.1){
-       const py=horizY+H*.12+(c.y%(H*.22));
-       drawCasing(c.x,py,c.len*.80*c.scale,c.rad*.80*c.scale,c.rot,c.brass,.52+c.scale*.18);
+      if(c.scale>=0.78 && c.scale<1.08){
+       const py=horizY+H*.16+(c.y%(H*.24));
+       drawCasing(c.x,py,c.len*.82*c.scale,c.rad*.82*c.scale,c.rot,c.brass,.55+c.scale*.20);
+       /* Reflet au sol sous les douilles médianes */
+       ctx.save();
+       ctx.globalAlpha=.08+c.scale*.04;
+       ctx.fillStyle=`rgba(${Math.round(160+c.brass*40)},${Math.round(115+c.brass*25)},${Math.round(20)},1)`;
+       const py2=horizY+H*.16+(c.y%(H*.24));
+       ctx.beginPath(); ctx.ellipse(c.x, py2+c.len*.55*c.scale, c.len*.30*c.scale, c.rad*.40*c.scale, c.rot, 0, Math.PI*2); ctx.fill();
+       ctx.restore();
       }
      }
-     /* Couche avant (grande, plus contrastée) */
+     /* Couche avant (grande, contrastée, ombre nette) */
      for(const c of carpet){
-      if(c.scale>=1.1){
-       const py=horizY+H*.34+(c.y%(H*.30));
-       drawCasing(c.x,py,c.len*c.scale,c.rad*c.scale,c.rot,c.brass,.72+c.scale*.08);
+      if(c.scale>=1.08){
+       const py=horizY+H*.36+(c.y%(H*.32));
+       drawCasing(c.x,py,c.len*c.scale,c.rad*c.scale,c.rot,c.brass,.75+c.scale*.06);
+       /* Reflet doré au sol bien visible */
+       ctx.save();
+       ctx.globalAlpha=.14+c.scale*.06;
+       ctx.fillStyle=`rgba(${Math.round(180+c.brass*50)},${Math.round(130+c.brass*30)},${Math.round(25)},1)`;
+       ctx.beginPath(); ctx.ellipse(c.x, py+c.len*.52*c.scale, c.len*.28*c.scale, c.rad*.38*c.scale, c.rot, 0, Math.PI*2); ctx.fill();
+       ctx.restore();
       }
      }
 
      /* ── Douilles qui tombent depuis le ciel ── */
      for(const b of falling){
-      b.x+=b.vx; b.y+=b.vy; b.rot+=b.rotSpd;
-      if(b.y>H+b.len) { b.y=-b.len-10; b.x=Math.random()*W; }
-      /* Opacité selon position : apparaît depuis le ciel */
-      const alpha=Math.min(1, b.y/( H*.18))*0.88;
+      b.wobble+=b.wobbleSpd;
+      b.x+=b.vx+Math.sin(b.wobble)*b.wobbleAmp; b.y+=b.vy; b.rot+=b.rotSpd;
+      if(b.y>H+b.len) { b.y=-b.len*2-Math.random()*H*.5; b.x=Math.random()*W; }
+      /* Opacité : fade-in depuis le haut */
+      const alpha=Math.min(1, (b.y+b.len*2)/(H*.22))*0.92;
+      if(alpha<=0) continue;
+
+      /* Traînée lumineuse (scintillement laiton) */
+      const trailLen=b.vy*3.5;
+      const tx=b.x-Math.sin(b.rot)*trailLen*.5;
+      const ty=b.y-Math.cos(b.rot)*trailLen*.5;
+      const tg=ctx.createLinearGradient(tx,ty,b.x,b.y);
+      const br=Math.round(200+b.brass*40), bg2=Math.round(155+b.brass*25), bb=Math.round(40+b.brass*15);
+      tg.addColorStop(0,`rgba(${br},${bg2},${bb},0)`);
+      tg.addColorStop(1,`rgba(${br},${bg2},${bb},${alpha*.22})`);
+      ctx.save();
+      ctx.strokeStyle=tg;
+      ctx.lineWidth=b.rad*1.2;
+      ctx.lineCap='round';
+      ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(b.x,b.y); ctx.stroke();
+      ctx.restore();
+
       drawCasing(b.x,b.y,b.len,b.rad,b.rot,b.brass,alpha);
      }
+
+     /* ── Reflet global sol — lueur dorée qui balaye le tapis ── */
+     const glintX=(Math.sin(t*.18)*.5+.5)*W;
+     const gg=ctx.createRadialGradient(glintX,horizY+H*.18,0,glintX,horizY+H*.18,W*.55);
+     gg.addColorStop(0,'rgba(220,175,60,.10)');
+     gg.addColorStop(.4,'rgba(180,135,35,.05)');
+     gg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=gg; ctx.fillRect(0,horizY,W,H-horizY);
 
      /* ── Fondu bas pour logo ── */
      const fd=ctx.createLinearGradient(0,H*.74,0,H);
