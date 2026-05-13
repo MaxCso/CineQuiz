@@ -7973,11 +7973,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         var refEl=document.getElementById('splash-film-ref-inline');
         var filmRef=document.getElementById('splash-film-ref');
         if(refEl && filmRef){refEl.textContent=filmRef.textContent||'';}
-        /* Révéler logo SVG si disponible */
-        var logoEl=document.getElementById('splash-film-logo');
-        if(logoEl && logoEl.innerHTML.trim()!==''){
-          setTimeout(function(){logoEl.classList.add('reveal');},400);
-        }
+        /* Logo révélé via img.onload dans injectFilmLogo */
       }
       if(window._splashEffectName){setQuote();}
       else{window._onSplashEffectReady=setQuote;}
@@ -8009,17 +8005,41 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         if(!name) return;
         var filename = _logoMap[name] || name;
         var img = document.createElement('img');
-        img.src = 'logos/' + filename + '.png';
         img.alt = name;
         img.onerror = function(){ logoEl.innerHTML = ''; };
+        // Révèle le logo dès que l'image est prête — pas de délai artificiel
+        img.onload = function(){
+          if(window._splashEffectName === name){
+            logoEl.classList.add('reveal');
+          }
+        };
         logoEl.appendChild(img);
+        // Démarre le chargement immédiatement
+        img.src = 'logos/' + filename + '.png';
       }
+
+      // Préchargement anticipé : dès que le nom du film est défini,
+      // on lance le fetch même avant le swipe
+      function preloadFilmLogo(name){
+        if(!name) return;
+        var filename = _logoMap[name] || name;
+        var pre = new Image();
+        pre.src = 'logos/' + filename + '.png';
+      }
+
       var _orig = window._onSplashEffectReady;
       window._onSplashEffectReady = function(){
         if(_orig) _orig();
         injectFilmLogo();
       };
-      if(window._splashEffectName){ injectFilmLogo(); }
+      // Hook sur _splashEffectName pour précharger dès que le film est choisi
+      var _origName = window._splashEffectName;
+      Object.defineProperty(window, '_splashEffectName', {
+        get: function(){ return _origName; },
+        set: function(v){ _origName = v; preloadFilmLogo(v); },
+        configurable: true
+      });
+      if(window._splashEffectName){ preloadFilmLogo(window._splashEffectName); injectFilmLogo(); }
     })();
     </script>
     <div class="splash-credit" onclick="splashCreditTap()" style="-webkit-tap-highlight-color:transparent;user-select:none;">RÉALISÉ PAR MAX</div>
