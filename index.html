@@ -7996,30 +7996,44 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         'Matrix':                  'The Matrix',
         'No Country for Old Men':  'No Country For Old Men',
       };
+      var _logoReady = false; // true quand l'image est chargée
+      var _curtainOpen = false; // true quand le rideau est ouvert
+
+      function tryRevealLogo(){
+        if(!_logoReady || !_curtainOpen) return;
+        var logoEl = document.getElementById('splash-film-logo');
+        if(logoEl) logoEl.classList.add('reveal');
+      }
+
       function injectFilmLogo(){
         var name = window._splashEffectName || '';
         var logoEl = document.getElementById('splash-film-logo');
         if(!logoEl) return;
         logoEl.innerHTML = '';
         logoEl.classList.remove('reveal');
+        _logoReady = false;
         if(!name) return;
         var filename = _logoMap[name] || name;
         var img = document.createElement('img');
         img.alt = name;
         img.onerror = function(){ logoEl.innerHTML = ''; };
-        // Révèle le logo dès que l'image est prête — pas de délai artificiel
         img.onload = function(){
           if(window._splashEffectName === name){
-            logoEl.classList.add('reveal');
+            _logoReady = true;
+            tryRevealLogo();
           }
         };
         logoEl.appendChild(img);
-        // Démarre le chargement immédiatement
-        img.src = 'logos/' + filename + '.png';
+        img.src = 'logos/' + filename + '.png'; // préchargement immédiat
       }
 
-      // Préchargement anticipé : dès que le nom du film est défini,
-      // on lance le fetch même avant le swipe
+      // Appelé par startSequence au moment de l'ouverture du rideau
+      window._onLogoReveal = function(){
+        _curtainOpen = true;
+        tryRevealLogo();
+      };
+
+      // Préchargement anticipé sans affichage
       function preloadFilmLogo(name){
         if(!name) return;
         var filename = _logoMap[name] || name;
@@ -8030,13 +8044,13 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       var _orig = window._onSplashEffectReady;
       window._onSplashEffectReady = function(){
         if(_orig) _orig();
+        _curtainOpen = false; // reset au nouveau splash
         injectFilmLogo();
       };
-      // Hook sur _splashEffectName pour précharger dès que le film est choisi
       var _origName = window._splashEffectName;
       Object.defineProperty(window, '_splashEffectName', {
         get: function(){ return _origName; },
-        set: function(v){ _origName = v; preloadFilmLogo(v); },
+        set: function(v){ _origName = v; _curtainOpen = false; preloadFilmLogo(v); },
         configurable: true
       });
       if(window._splashEffectName){ preloadFilmLogo(window._splashEffectName); injectFilmLogo(); }
@@ -42498,12 +42512,14 @@ function runSplash(){
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
     if(tapEl) tapEl.classList.add('hidden');
-    // Citation + logo film apparaissent après l'ouverture du rideau
+    // Citation apparaît à l'ouverture du rideau
     setTimeout(()=>{
       if(quoteEl) quoteEl.classList.add('reveal');
-      var logoEl=document.getElementById('splash-film-logo');
-      if(logoEl && logoEl.innerHTML.trim()!=='') logoEl.classList.add('reveal');
     }, 450);
+    // Logo du film apparaît 2s après (effet de surprise)
+    setTimeout(()=>{
+      if(typeof window._onLogoReveal==='function') window._onLogoReveal();
+    }, 2000);
 
     // "Appuyer pour passer" — apparaît 3s après l'ouverture du rideau (indépendant de l'audio)
     const skipEl = document.getElementById('splash-skip');
