@@ -38670,7 +38670,7 @@ function closeAvModal(e){
      const vg=ctx.createRadialGradient(cx,H*0.50,H*0.05,cx,H*0.50,H*0.90);
      vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.44,'rgba(0,0,0,0.20)');vg.addColorStop(1,'rgba(0,0,0,0.96)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<45;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+4},${g+2},${g+5},${Math.random()*0.020})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+     for(let i=0;i<20;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+4},${g+2},${g+5},${Math.random()*0.020})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
@@ -39211,113 +39211,7 @@ function closeAvModal(e){
      ctx.fillStyle=vgR;ctx.fillRect(W*0.86,0,W*0.14,H);
 
      /* Grain */
-     for(let i=0;i<45;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+6},${g+2},${g},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);}
-
-     t+=0.016;requestAnimationFrame(frame);
-    }
-    frame();
-    /* ════ COLONNE DE FEU ════ */
-    function drawFireColumn(){
-     /* Lueur orange au sol sous la flamme */
-     const baseGlow=ctx.createRadialGradient(FX,F_BASE,4,FX,F_BASE,W*0.35);
-     baseGlow.addColorStop(0,`rgba(255,140,10,${0.55+Math.sin(t*1.8)*0.08})`);
-     baseGlow.addColorStop(0.25,`rgba(220,80,5,0.28)`);
-     baseGlow.addColorStop(0.55,'rgba(160,40,2,0.10)');
-     baseGlow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=baseGlow;ctx.fillRect(0,0,W,H);
-
-     /* Lumière globale de la flamme sur tout le ciel */
-     const skyLight=ctx.createRadialGradient(FX,F_BASE-F_HEIGHT*0.3,F_WIDTH,FX,F_BASE-F_HEIGHT*0.1,W*0.90);
-     skyLight.addColorStop(0,`rgba(200,100,10,${0.32+Math.sin(t*1.2)*0.06})`);
-     skyLight.addColorStop(0.30,'rgba(150,60,5,0.15)');
-     skyLight.addColorStop(0.65,'rgba(80,25,2,0.06)');
-     skyLight.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=skyLight;ctx.fillRect(0,0,W,H);
-
-     /* Particules de flamme — colonne verticale */
-     for(const fp of flameP){
-      fp.yOff+=fp.vy;
-      fp.ph+=0.06;
-      /* Reset quand la particule sort par le haut */
-      if(fp.yOff>F_HEIGHT){
-       fp.yOff=Math.random()*F_HEIGHT*0.15;
-       fp.xOff=(Math.random()-0.5)*F_WIDTH*0.8;
-       fp.vy=Math.random()*2.5+1.5;
-       fp.r=Math.random()*F_WIDTH*0.8+F_WIDTH*0.2;
-       fp.hot=Math.random();
-      }
-      const prog=fp.yOff/F_HEIGHT; /* 0=bas, 1=haut */
-      /* La colonne se rétrécit vers le haut */
-      const colWidth=F_WIDTH*(1.0-prog*0.65);
-      const px=FX+fp.xOff*(1-prog*0.5);
-      const py=F_BASE-fp.yOff;
-      /* Rayon diminue vers le haut */
-      const radius=fp.r*(0.4+Math.random()*0.2)*(1-prog*0.55);
-      /* Alpha max au bas, s'efface vers le haut */
-      const alpha=Math.max(0,0.90-prog*0.75)*(0.7+Math.sin(fp.ph)*0.3);
-      /* Couleur : bas=blanc/jaune vif, milieu=orange, haut=rouge sombre */
-      let r,g,b;
-      if(fp.hot>0.65&&prog<0.35){
-       /* Cœur très chaud — blanc/jaune */
-       r=255;g=Math.round(220+fp.hot*35);b=Math.round(fp.hot*120);
-      } else if(prog<0.55){
-       /* Milieu — orange vif */
-       r=255;g=Math.round(130-prog*80);b=8;
-      } else {
-       /* Haut — rouge sombre qui s'éteint */
-       r=Math.round(200-prog*100);g=Math.round(40-prog*30);b=4;
-      }
-      /* Clipping dans la colonne — on réduit l'étalement horizontal */
-      const clampX=Math.max(FX-colWidth*1.5,Math.min(FX+colWidth*1.5,px));
-      const fg=ctx.createRadialGradient(clampX,py,1,clampX,py,radius);
-      fg.addColorStop(0,`rgba(${r},${g},${b},${alpha})`);
-      fg.addColorStop(0.5,`rgba(${r},${Math.max(0,g-60)},0,${alpha*0.45})`);
-      fg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(clampX,py,radius,0,Math.PI*2);ctx.fill();
-     }
-
-    /* ════ SILHOUETTE SOLDAT — SVG ════ */
-    function drawSoldier(){
-     const SX=W*0.74, SB=groundY;
-     const SH=H*0.30;
-     const sw=SH*(677/1280);
-     if(soldierReady){
-      ctx.save();
-      ctx.globalAlpha=0.97;
-      ctx.drawImage(soldierImg, SX-sw*0.5, SB-SH, sw, SH);
-      ctx.restore();
-     }
-    }
-     /* ── SOLDAT PRINCIPAL — SVG ── */
-     drawSoldier();
-
-     /* ── CENDRES ── */
-     for(const a of ashes){
-      a.x+=a.vx;a.y+=a.vy;
-      if(a.y>H){a.y=0;a.x=Math.random()*W;}
-      ctx.fillStyle=`rgba(55,25,4,${a.op})`;
-      ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── VIGNETTE ── */
-     const vg=ctx.createRadialGradient(cx,H*0.45,H*0.10,cx,H*0.45,H*0.86);
-     vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.50,'rgba(0,0,0,0.12)');
-     vg.addColorStop(1,'rgba(0,0,0,0.95)');
-     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     const vgL=ctx.createLinearGradient(0,0,W*0.14,0);
-     vgL.addColorStop(0,'rgba(0,0,0,0.78)');vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.14,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.86,0);
-     vgR.addColorStop(0,'rgba(0,0,0,0.78)');vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR;ctx.fillRect(W*0.86,0,W*0.14,H);
-
-     /* Grain */
-     for(let i=0;i<45;i++){
-      const g=6+Math.random()*16|0;
-      ctx.fillStyle=`rgba(${g+6},${g+2},${g},${Math.random()*0.022})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);
-     }
+     for(let i=0;i<20;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+6},${g+2},${g},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);}
 
      t+=0.016;requestAnimationFrame(frame);
     }
@@ -44630,6 +44524,21 @@ const JK_VIDEOS=[
   {name:"Pineapple Express",               src:"Pineapple Express.mp4",                      icon:'🍍'},
   {name:"The Winter Soldier",              src:"The Winter Soldier.mp4",                     icon:'🛡️'},
   {name:"Spider",                          src:"Spider.mp4",                                  icon:'🕷️'},
+  {name:"Dream Big",                       src:"Dream Big.mp4",                               icon:'💫'},
+  {name:"Peter Jackson",                   src:"Peter Jackson.mp4",                           icon:'🎬'},
+  {name:"Quentin Tarantino",               src:"Quentin Tarantino.mp4",                       icon:'🎥'},
+  {name:"Lonely Man",                      src:"Lonely Man.mp4",                              icon:'🚶'},
+  {name:"Train Dream",                     src:"Train Dream.mp4",                             icon:'🚂'},
+  {name:"Travis",                          src:"Travis.mp4",                                  icon:'🌃'},
+  {name:"Oldboy X Memories of Murder",     src:"Oldboy X Memories of Murder.mp4",             icon:'🔍'},
+  {name:"Carlitos Way",                    src:"Carlitos Way.mp4",                            icon:'🌆'},
+  {name:"Little Miss Sunshine",            src:"Little Miss Sunshine.mp4",                    icon:'☀️'},
+  {name:"Back to the Future",              src:"Back to the Future.mp4",                      icon:'⏱️'},
+  {name:"Hacksaw Ridge",                   src:"Hacksaw Ridge.mp4",                           icon:'⚔️'},
+  {name:"Goonies",                         src:"Goonies.mp4",                                 icon:'🗺️'},
+  {name:"Harry Osborn",                    src:"Harry Osborn.mp4",                            icon:'🧪'},
+  {name:"Cycles",                          src:"Cycles.mp4",                                  icon:'🔄'},
+  {name:"Star Wars",                       src:"Star Wars.mp4",                               icon:'⭐'},
 ];
 let _jkVidIdx=-1;
 
