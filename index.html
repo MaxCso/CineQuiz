@@ -2678,7 +2678,7 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 }
 #splash-skip{
   position:absolute;
-  bottom:max(82px, calc(env(safe-area-inset-bottom) + 64px));
+  bottom:max(90px, calc(env(safe-area-inset-bottom) + 72px));
   left:0;right:0;
   text-align:center;
   z-index:9998;
@@ -2869,14 +2869,24 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   0%  {transform:translateX(0);}
   100%{transform:translateX(100%);}
 }
-.splash-logo-wrap{position:relative;z-index:3;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
+.splash-logo-wrap{position:absolute;top:max(54px,env(safe-area-inset-top,0px)+38px);left:0;right:0;z-index:7;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
-/* Logo + baseline disparaissent à l'ouverture du rideau */
+/* Logo CinéQuiz reste visible sur les deux écrans */
 #splash.curtain-open .splash-logo-wrap{
-  opacity:0;
-  transform:translateY(-12px) scale(0.96);
-  transition:opacity 0.6s ease, transform 0.6s ease;
+  opacity:1;
+  transform:scale(1);
   pointer-events:none;
+}
+/* Swipe-wrap masqué sur le splash film */
+#splash.curtain-open .splash-swipe-wrap{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.4s ease;
+}
+/* Tagline masquée sur le splash film */
+#splash.curtain-open .splash-tagline{
+  opacity:0;
+  transition:opacity 0.4s ease;
 }
 .splash-logo-container{
   filter:
@@ -3020,7 +3030,7 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 }
 .splash-sep{width:28px;height:1px;margin:10px auto 0;background:linear-gradient(90deg,transparent,rgba(245,200,66,.4),transparent);}
 .splash-swipe-wrap{
-  margin-top:140px;
+  margin-top:200px;
   display:flex;justify-content:center;
   transition:opacity .4s ease, transform .4s ease;
 }
@@ -3170,33 +3180,35 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 /* ── Zone logo SVG film — centre écran ── */
 #splash-film-logo{
   position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%) scale(0.88);
-  width:72%;max-width:280px;
-  z-index:6;pointer-events:none;
+  /* juste au-dessus du bloc citation */
+  bottom:max(138px, calc(env(safe-area-inset-bottom) + 120px));
+  left:50%;
+  transform:translateX(-50%) translateY(8px) scale(0.90);
+  width:68%;max-width:260px;
+  z-index:7;pointer-events:none;
   opacity:0;
-  transition:opacity 1s ease 0.3s, transform 1s cubic-bezier(.22,.68,0,1.2) 0.3s;
+  transition:opacity 0.9s ease 0.2s, transform 0.9s cubic-bezier(.22,.68,0,1.15) 0.2s;
 }
 #splash-film-logo.reveal{
   opacity:1;
-  transform:translate(-50%,-50%) scale(1);
+  transform:translateX(-50%) translateY(0) scale(1);
 }
 #splash-film-logo svg,
 #splash-film-logo img{
   width:100%;height:auto;
   display:block;
   mix-blend-mode:lighten;
-  filter:drop-shadow(0 2px 16px rgba(0,0,0,0.40));
+  filter:drop-shadow(0 2px 20px rgba(0,0,0,0.55)) drop-shadow(0 1px 6px rgba(0,0,0,0.45));
 }
 
 /* ── Citation + infos film — bas d'écran ── */
 #splash-quote{
   position:absolute;
-  bottom:max(18px, env(safe-area-inset-bottom));
+  bottom:max(22px, calc(env(safe-area-inset-bottom) + 10px));
   left:0;right:0;
   padding:0 28px;
   text-align:center;
-  z-index:6;
+  z-index:7;
   pointer-events:none;
   opacity:0;
   transform:translateY(10px);
@@ -32254,25 +32266,435 @@ function closeAvModal(e){
    name:'Gran Torino',
    ref:'Gran Torino \u2014 Clint Eastwood, 2008',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
-    let _s=document.getElementById('_gt_s');if(!_s){_s=document.createElement('style');_s.id='_gt_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#06080a!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    cv.style.opacity='1.0';
+    let t=0;
+    const cx=W/2;
+
+    /* ── Style : nuit noire, Detroit ── */
+    let _s=document.getElementById('_gt_s');
+    if(!_s){_s=document.createElement('style');_s.id='_gt_s';document.head.appendChild(_s);}
+    _s.textContent='#splash{background:#020304!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
-    const rainDrops=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H,len:H*0.022,spd:H*0.007,op:0.08+Math.random()*0.12}));
-    const carColor='rgba(100,12,12,0.92)';
-    function frame(){if(stop.v)return;
-     const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#040608');bg.addColorStop(0.5,'#06080a');bg.addColorStop(1,'#040608');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-     const hg=ctx.createRadialGradient(cx,H*0.45,0,cx,H*0.45,W*0.4);hg.addColorStop(0,'rgba(30,20,10,0.18)');hg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=hg;ctx.fillRect(0,0,W,H);
-     /* Gran Torino silhouette */
-     const cY=H*0.58;const cW=W*0.75;const cH=H*0.12;
-     ctx.fillStyle=carColor;
-     ctx.beginPath();ctx.moveTo(cx-cW/2,cY+cH);ctx.lineTo(cx-cW/2,cY+cH*0.3);ctx.bezierCurveTo(cx-cW*0.35,cY,cx-cW*0.15,cY-cH*0.2,cx,cY-cH*0.25);ctx.bezierCurveTo(cx+cW*0.15,cY-cH*0.2,cx+cW*0.35,cY,cx+cW/2,cY+cH*0.3);ctx.lineTo(cx+cW/2,cY+cH);ctx.closePath();ctx.fill();
-     ctx.fillStyle='rgba(60,8,8,0.95)';ctx.fillRect(cx-cW/2,cY+cH,cW,H*0.008);
-     /* Roues */
-     for(const wx of [cx-cW*0.28,cx+cW*0.28]){ctx.fillStyle='rgba(15,15,18,0.97)';ctx.beginPath();ctx.arc(wx,cY+cH,H*0.058,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(60,50,40,0.80)';ctx.lineWidth=H*0.012;ctx.beginPath();ctx.arc(wx,cY+cH,H*0.038,0,Math.PI*2);ctx.stroke();}
-     for(const r of rainDrops){r.y+=r.spd;if(r.y>H+10){r.y=-10;r.x=Math.random()*W;}ctx.strokeStyle=`rgba(60,65,70,${r.op})`;ctx.lineWidth=0.6;ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x,r.y+r.len);ctx.stroke();}
-     const vg=ctx.createRadialGradient(cx,cy,H*0.05,cx,cy,H*0.88);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.4,'rgba(0,0,0,0.38)');vg.addColorStop(1,'rgba(0,0,0,0.97)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     t+=0.016;requestAnimationFrame(frame);}frame();
+
+    /* ── Pluie oblique ── */
+    const rain=Array.from({length:180},()=>({
+      x:Math.random()*W*1.4-W*0.2,
+      y:Math.random()*H,
+      len:H*(0.025+Math.random()*0.035),
+      spd:H*(0.012+Math.random()*0.010),
+      op:0.06+Math.random()*0.18,
+      w:0.4+Math.random()*0.7
+    }));
+    const RAIN_ANGLE=0.18; /* inclinaison */
+
+    /* ── Impacts de pluie au sol ── */
+    const impacts=Array.from({length:28},()=>({
+      x:Math.random()*W,
+      y:H*(0.72+Math.random()*0.18),
+      r:0, maxR:W*(0.008+Math.random()*0.012),
+      life:0, maxLife:18+Math.random()*22,
+      op:0.12+Math.random()*0.20
+    }));
+    let impactTimer=0;
+
+    /* ── Lampadaires ── */
+    const lamps=[
+      {x:W*0.10,baseY:H*0.52,armLen:W*0.06},
+      {x:W*0.88,baseY:H*0.52,armLen:-W*0.06}
+    ];
+
+    /* ── Bâtiments fond ── */
+    const buildings=[
+      {x:0,      w:W*0.18,h:H*0.22,floors:4},
+      {x:W*0.15, w:W*0.12,h:H*0.32,floors:6},
+      {x:W*0.25, w:W*0.10,h:H*0.18,floors:3},
+      {x:W*0.72, w:W*0.10,h:H*0.28,floors:5},
+      {x:W*0.80, w:W*0.12,h:H*0.20,floors:4},
+      {x:W*0.90, w:W*0.14,h:H*0.25,floors:5},
+    ];
+    /* Fenêtres allumées aléatoires */
+    const windows=buildings.map(b=>{
+      const ws=[];
+      for(let f=0;f<b.floors;f++)
+        for(let c=0;c<3;c++)
+          if(Math.random()<0.35) ws.push({f,c,flicker:Math.random()<0.08,phase:Math.random()*Math.PI*2});
+      return ws;
+    });
+
+    /* ── Drapeau américain (fantôme) ── */
+    const flagX=cx, flagY=H*0.18, flagW=W*0.55, flagH=flagW*0.52;
+
+    function drawFlag(alpha){
+      ctx.save();
+      ctx.globalAlpha=alpha;
+      /* Ondulation douce */
+      const wave=(x)=>Math.sin(x/flagW*Math.PI*2.5+t*0.8)*H*0.008;
+      const stripeH=flagH/13;
+      for(let i=0;i<13;i++){
+        const sy=flagY+i*stripeH;
+        ctx.beginPath();
+        ctx.moveTo(flagX-flagW/2,sy+wave(0));
+        for(let px=0;px<=flagW;px+=8){
+          ctx.lineTo(flagX-flagW/2+px,sy+wave(px));
+        }
+        for(let px=flagW;px>=0;px-=8){
+          ctx.lineTo(flagX-flagW/2+px,sy+stripeH+wave(px));
+        }
+        ctx.closePath();
+        ctx.fillStyle=i%2===0?'rgba(165,28,28,0.55)':'rgba(220,220,220,0.30)';
+        ctx.fill();
+      }
+      /* Canton bleu */
+      const cantonW=flagW*0.40, cantonH=stripeH*7;
+      ctx.beginPath();
+      ctx.moveTo(flagX-flagW/2,flagY+wave(0));
+      for(let px=0;px<=cantonW;px+=8){
+        ctx.lineTo(flagX-flagW/2+px,flagY+wave(px));
+      }
+      for(let px=cantonW;px>=0;px-=8){
+        ctx.lineTo(flagX-flagW/2+px,flagY+cantonH+wave(px));
+      }
+      ctx.closePath();
+      ctx.fillStyle='rgba(30,45,110,0.50)';
+      ctx.fill();
+      /* Étoiles */
+      for(let r=0;r<5;r++) for(let c=0;c<6;c++){
+        const sx=flagX-flagW/2+cantonW*(0.12+c*0.16);
+        const sy2=flagY+cantonH*(0.14+r*0.20)+wave(cantonW*(0.12+c*0.16));
+        ctx.fillStyle='rgba(255,255,255,0.45)';
+        ctx.beginPath();
+        for(let p=0;p<5;p++){
+          const a=p*Math.PI*2/5-Math.PI/2;
+          const ri=p%2===0?cantonH*0.042:cantonH*0.018;
+          p===0?ctx.moveTo(sx+Math.cos(a)*ri,sy2+Math.sin(a)*ri):ctx.lineTo(sx+Math.cos(a)*ri,sy2+Math.sin(a)*ri);
+        }
+        ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawScene(){
+      /* ── Fond nuit ── */
+      const bg=ctx.createLinearGradient(0,0,0,H);
+      bg.addColorStop(0,'#010205');
+      bg.addColorStop(0.45,'#02030a');
+      bg.addColorStop(1,'#040406');
+      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+      /* ── Drapeau fantôme ── */
+      drawFlag(0.055+Math.sin(t*0.3)*0.008);
+
+      /* ── Bâtiments ── */
+      buildings.forEach((b,bi)=>{
+        const bTop=H*0.52-b.h;
+        /* Corps */
+        const bg2=ctx.createLinearGradient(b.x,bTop,b.x,H*0.52);
+        bg2.addColorStop(0,'rgba(22,22,28,0.95)');
+        bg2.addColorStop(1,'rgba(12,12,16,0.98)');
+        ctx.fillStyle=bg2;
+        ctx.fillRect(b.x,bTop,b.w,b.h+H*0.02);
+        /* Fenêtres */
+        const fW=b.w/5, fH=b.h/b.floors*0.38;
+        windows[bi].forEach(({f,c,flicker,phase})=>{
+          const flkAlpha=flicker?0.55+Math.sin(t*8+phase)*0.30:0.72+Math.sin(t*0.4+phase)*0.08;
+          const fx2=b.x+fW*(c*1.5+0.4);
+          const fy=bTop+b.h/b.floors*(f+0.3);
+          const wg=ctx.createRadialGradient(fx2+fW*0.3,fy+fH*0.3,0,fx2+fW*0.3,fy+fH*0.3,fW*0.8);
+          wg.addColorStop(0,`rgba(255,230,140,${flkAlpha})`);
+          wg.addColorStop(1,`rgba(220,170,60,${flkAlpha*0.5})`);
+          ctx.fillStyle=wg;
+          ctx.fillRect(fx2,fy,fW*0.65,fH);
+        });
+      });
+
+      /* ── Horizon / sol — perspective ── */
+      const horizY=H*0.52;
+
+      /* Bitume */
+      const road=ctx.createLinearGradient(0,horizY,0,H);
+      road.addColorStop(0,'rgba(18,18,22,1)');
+      road.addColorStop(0.3,'rgba(22,22,28,1)');
+      road.addColorStop(1,'rgba(14,14,18,1)');
+      ctx.fillStyle=road;ctx.fillRect(0,horizY,W,H-horizY);
+
+      /* Trottoir gauche + droit */
+      ctx.fillStyle='rgba(32,32,38,0.9)';
+      ctx.fillRect(0,horizY,W*0.08,H-horizY);
+      ctx.fillRect(W*0.92,horizY,W*0.08,H-horizY);
+      ctx.fillStyle='rgba(50,50,56,0.6)';
+      ctx.fillRect(W*0.07,horizY,W*0.013,H-horizY);
+      ctx.fillRect(W*0.917,horizY,W*0.013,H-horizY);
+
+      /* Ligne centrale en perspective */
+      const dashCount=10;
+      for(let i=0;i<dashCount;i++){
+        const prog=(i/dashCount+t*0.015)%1;
+        const ly=horizY+prog*(H-horizY);
+        const lw=W*(0.004+prog*0.016);
+        const lo=0.08+prog*0.25;
+        ctx.fillStyle=`rgba(200,185,100,${lo})`;
+        ctx.fillRect(cx-lw/2,ly,lw,H*(0.025+prog*0.02));
+      }
+
+      /* Reflets de rue (pluie) */
+      lamps.forEach(l=>{
+        const reflectY=H*0.88;
+        const rg=ctx.createRadialGradient(l.x+l.armLen,reflectY,0,l.x+l.armLen,reflectY,W*0.22);
+        rg.addColorStop(0,`rgba(255,210,90,${0.10+Math.sin(t*1.8)*0.02})`);
+        rg.addColorStop(0.4,'rgba(200,160,50,0.04)');
+        rg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=rg;ctx.fillRect(0,horizY,W,H-horizY);
+      });
+
+      /* Reflet de la voiture sur bitume mouillé */
+      const carBaseY=H*0.695;
+      ctx.save();
+      ctx.globalAlpha=0.18;
+      ctx.scale(1,-1);
+      ctx.translate(0,-carBaseY*2-H*0.06);
+      /* Reflet simplifié — voiture miroir flou */
+      drawCar(ctx,cx,carBaseY,W,H,t,true);
+      ctx.restore();
+
+      /* ── Lampadaires ── */
+      lamps.forEach(l=>{
+        /* Poteau */
+        ctx.strokeStyle='rgba(55,55,60,0.9)';
+        ctx.lineWidth=W*0.008;
+        ctx.beginPath();ctx.moveTo(l.x,H*0.52);ctx.lineTo(l.x,l.baseY);ctx.stroke();
+        /* Bras */
+        ctx.beginPath();ctx.moveTo(l.x,l.baseY);ctx.lineTo(l.x+l.armLen,l.baseY-H*0.03);ctx.stroke();
+        /* Halo */
+        const hx=l.x+l.armLen, hy=l.baseY-H*0.03;
+        const hg=ctx.createRadialGradient(hx,hy,0,hx,hy,W*0.32);
+        hg.addColorStop(0,`rgba(255,215,80,${0.28+Math.sin(t*1.5+l.x)*0.04})`);
+        hg.addColorStop(0.12,`rgba(255,195,60,${0.14+Math.sin(t*1.5+l.x)*0.02})`);
+        hg.addColorStop(0.35,'rgba(220,160,40,0.04)');
+        hg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=hg;ctx.fillRect(0,0,W,H);
+        /* Globe */
+        ctx.fillStyle=`rgba(255,240,180,${0.88+Math.sin(t*2.2+l.x)*0.06})`;
+        ctx.beginPath();ctx.arc(hx,hy,W*0.012,0,Math.PI*2);ctx.fill();
+        /* Cône de lumière vers le bas */
+        const cg=ctx.createLinearGradient(hx,hy,hx,hy+H*0.18);
+        cg.addColorStop(0,`rgba(255,210,80,${0.06+Math.sin(t*1.5+l.x)*0.01})`);
+        cg.addColorStop(1,'rgba(255,200,60,0)');
+        ctx.fillStyle=cg;
+        ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(hx-W*0.10,hy+H*0.18);ctx.lineTo(hx+W*0.10,hy+H*0.18);ctx.closePath();ctx.fill();
+      });
+
+      /* ── Voiture ── */
+      drawCar(ctx,cx,carBaseY,W,H,t,false);
+
+      /* ── Pluie oblique ── */
+      ctx.save();
+      for(const r of rain){
+        r.x-=r.spd*RAIN_ANGLE; r.y+=r.spd;
+        if(r.y>H+10){r.y=Math.random()*-H*0.3;r.x=Math.random()*W*1.3;}
+        ctx.strokeStyle=`rgba(160,175,190,${r.op})`;
+        ctx.lineWidth=r.w;
+        ctx.beginPath();
+        ctx.moveTo(r.x,r.y);
+        ctx.lineTo(r.x-r.len*RAIN_ANGLE,r.y+r.len);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      /* ── Impacts de pluie sur le bitume ── */
+      impactTimer++;
+      if(impactTimer>3){
+        impactTimer=0;
+        const dead=impacts.findIndex(i=>i.life>=i.maxLife);
+        if(dead>=0){
+          impacts[dead]={x:Math.random()*W,y:H*(0.72+Math.random()*0.18),r:0,maxR:W*(0.008+Math.random()*0.012),life:0,maxLife:18+Math.random()*22,op:0.12+Math.random()*0.20};
+        }
+      }
+      impacts.forEach(imp=>{
+        imp.life++;
+        const prog=imp.life/imp.maxLife;
+        imp.r=imp.maxR*Math.sqrt(prog);
+        const alpha=imp.op*(1-prog);
+        ctx.strokeStyle=`rgba(180,195,210,${alpha})`;
+        ctx.lineWidth=0.7;
+        ctx.beginPath();ctx.ellipse(imp.x,imp.y,imp.r,imp.r*0.35,0,0,Math.PI*2);ctx.stroke();
+      });
+
+      /* ── Vignette finale ── */
+      const vg=ctx.createRadialGradient(cx,H*0.5,H*0.08,cx,H*0.5,H*0.82);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(0.5,'rgba(0,0,0,0.25)');
+      vg.addColorStop(1,'rgba(0,0,0,0.92)');
+      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+    }
+
+    /* ── Voiture Gran Torino 1972 ── */
+    function drawCar(ctx,cx,baseY,W,H,t,isReflect){
+      const cW=W*0.82, cH=H*0.095;
+      const L=cx-cW/2, R=cx+cW/2;
+
+      /* Ombre sous la voiture */
+      if(!isReflect){
+        const sg=ctx.createRadialGradient(cx,baseY+cH*0.3,0,cx,baseY+cH*0.3,cW*0.46);
+        sg.addColorStop(0,'rgba(0,0,0,0.70)');
+        sg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=sg;ctx.fillRect(L,baseY,cW,H*0.06);
+      }
+
+      /* Caisse principale — rouge profond */
+      const bodyG=ctx.createLinearGradient(cx,baseY-cH*1.1,cx,baseY+cH*0.4);
+      bodyG.addColorStop(0,'rgba(45,82,48,0.95)');
+      bodyG.addColorStop(0.3,'rgba(32,62,36,0.97)');
+      bodyG.addColorStop(0.7,'rgba(22,44,25,0.98)');
+      bodyG.addColorStop(1,'rgba(12,26,14,1)');
+
+      /* Silhouette muscle car 72 :
+         - capot long et plat à gauche
+         - montant A incliné
+         - toit fuyant vers l'arrière
+         - coffre court et haut */
+      ctx.fillStyle=bodyG;
+      ctx.beginPath();
+      /* Bas de caisse gauche */
+      ctx.moveTo(L+cW*0.04,baseY+cH*0.28);
+      /* Aile avant basse */
+      ctx.lineTo(L+cW*0.02,baseY+cH*0.20);
+      /* Montée pare-choc avant */
+      ctx.bezierCurveTo(L+cW*0.01,baseY+cH*0.05, L+cW*0.04,baseY-cH*0.02, L+cW*0.10,baseY-cH*0.06);
+      /* Capot — long et quasiment plat */
+      ctx.bezierCurveTo(L+cW*0.20,baseY-cH*0.10, L+cW*0.28,baseY-cH*0.12, L+cW*0.32,baseY-cH*0.12);
+      /* Montant A — incliné arrière */
+      ctx.bezierCurveTo(L+cW*0.36,baseY-cH*0.12, L+cW*0.40,baseY-cH*0.50, L+cW*0.44,baseY-cH*0.95);
+      /* Toit — fuit vers l'arrière */
+      ctx.bezierCurveTo(L+cW*0.52,baseY-cH*1.08, L+cW*0.64,baseY-cH*1.10, L+cW*0.72,baseY-cH*1.05);
+      /* Montant C */
+      ctx.bezierCurveTo(L+cW*0.78,baseY-cH*1.00, L+cW*0.82,baseY-cH*0.80, L+cW*0.84,baseY-cH*0.55);
+      /* Coffre — court et haut */
+      ctx.bezierCurveTo(L+cW*0.86,baseY-cH*0.38, L+cW*0.88,baseY-cH*0.20, L+cW*0.90,baseY-cH*0.06);
+      /* Pare-choc arrière */
+      ctx.bezierCurveTo(L+cW*0.94,baseY+cH*0.05, L+cW*0.97,baseY+cH*0.18, L+cW*0.96,baseY+cH*0.28);
+      ctx.lineTo(L+cW*0.04,baseY+cH*0.28);
+      ctx.closePath();
+      ctx.fill();
+
+      /* Bas de caisse / jupe */
+      const skirtG=ctx.createLinearGradient(0,baseY+cH*0.22,0,baseY+cH*0.42);
+      skirtG.addColorStop(0,'rgba(18,38,20,1)');
+      skirtG.addColorStop(1,'rgba(10,20,11,1)');
+      ctx.fillStyle=skirtG;
+      ctx.fillRect(L+cW*0.04,baseY+cH*0.22,cW*0.92,cH*0.20);
+
+      /* Vitre latérale — reflet bleuté */
+      if(!isReflect){
+        ctx.fillStyle='rgba(60,90,140,0.22)';
+        ctx.beginPath();
+        ctx.moveTo(L+cW*0.44,baseY-cH*0.88);
+        ctx.bezierCurveTo(L+cW*0.48,baseY-cH*0.92, L+cW*0.62,baseY-cH*1.02, L+cW*0.70,baseY-cH*0.98);
+        ctx.lineTo(L+cW*0.80,baseY-cH*0.58);
+        ctx.lineTo(L+cW*0.45,baseY-cH*0.52);
+        ctx.closePath();ctx.fill();
+        /* Reflet sur la vitre */
+        ctx.fillStyle='rgba(180,210,255,0.08)';
+        ctx.beginPath();
+        ctx.moveTo(L+cW*0.46,baseY-cH*0.86);
+        ctx.lineTo(L+cW*0.52,baseY-cH*0.96);
+        ctx.lineTo(L+cW*0.56,baseY-cH*0.72);
+        ctx.closePath();ctx.fill();
+      }
+
+      /* Ligne chromée latérale */
+      if(!isReflect){
+        ctx.strokeStyle=`rgba(${155+Math.sin(t*0.4)*15},175,${145+Math.sin(t*0.4)*10},0.55)`;
+        ctx.lineWidth=H*0.004;
+        ctx.beginPath();
+        ctx.moveTo(L+cW*0.10,baseY-cH*0.05);
+        ctx.bezierCurveTo(L+cW*0.30,baseY-cH*0.08, L+cW*0.60,baseY-cH*0.10, L+cW*0.86,baseY-cH*0.06);
+        ctx.stroke();
+      }
+
+      /* Calandre en nid d'abeille (avant) */
+      if(!isReflect){
+        const grillX=L+cW*0.04, grillY=baseY-cH*0.05, grillW=cW*0.06, grillH=cH*0.16;
+        ctx.fillStyle='rgba(10,10,12,0.95)';
+        ctx.fillRect(grillX,grillY,grillW,grillH);
+        /* Barreaux */
+        for(let g=0;g<5;g++){
+          ctx.strokeStyle='rgba(80,60,30,0.70)';
+          ctx.lineWidth=0.8;
+          ctx.beginPath();
+          ctx.moveTo(grillX,grillY+grillH*(0.15+g*0.18));
+          ctx.lineTo(grillX+grillW,grillY+grillH*(0.15+g*0.18));
+          ctx.stroke();
+        }
+        /* Phare avant */
+        const hlg=ctx.createRadialGradient(L+cW*0.065,baseY-cH*0.14,0,L+cW*0.065,baseY-cH*0.14,cW*0.035);
+        hlg.addColorStop(0,`rgba(255,240,180,${0.80+Math.sin(t*0.5)*0.08})`);
+        hlg.addColorStop(0.4,'rgba(220,195,100,0.30)');
+        hlg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=hlg;
+        ctx.beginPath();ctx.ellipse(L+cW*0.065,baseY-cH*0.14,cW*0.042,cH*0.22,0,0,Math.PI*2);ctx.fill();
+        /* Faisceau phare */
+        const beamG=ctx.createLinearGradient(L+cW*0.06,baseY-cH*0.14,L-cW*0.10,baseY+cH*0.15);
+        beamG.addColorStop(0,`rgba(255,240,180,${0.06+Math.sin(t*0.5)*0.01})`);
+        beamG.addColorStop(1,'rgba(255,230,150,0)');
+        ctx.fillStyle=beamG;
+        ctx.beginPath();ctx.moveTo(L+cW*0.06,baseY-cH*0.22);ctx.lineTo(L-cW*0.12,baseY+cH*0.15);ctx.lineTo(L+cW*0.06,baseY-cH*0.06);ctx.closePath();ctx.fill();
+      }
+
+      /* Feu arrière */
+      if(!isReflect){
+        const tlg=ctx.createRadialGradient(L+cW*0.88,baseY-cH*0.12,0,L+cW*0.88,baseY-cH*0.12,cW*0.04);
+        tlg.addColorStop(0,`rgba(255,30,10,${0.90+Math.sin(t*2.8)*0.08})`);
+        tlg.addColorStop(0.5,'rgba(200,10,5,0.35)');
+        tlg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=tlg;
+        ctx.beginPath();ctx.ellipse(L+cW*0.88,baseY-cH*0.12,cW*0.035,cH*0.18,0,0,Math.PI*2);ctx.fill();
+      }
+
+      /* Roues */
+      const wheels=[{x:cx-cW*0.27},{x:cx+cW*0.25}];
+      const wR=H*0.068, wY=baseY+cH*0.22;
+      wheels.forEach(w=>{
+        /* Pneu */
+        ctx.fillStyle='rgba(14,14,16,1)';
+        ctx.beginPath();ctx.arc(w.x,wY,wR,0,Math.PI*2);ctx.fill();
+        /* Flanc pneu */
+        ctx.strokeStyle='rgba(35,30,25,0.8)';
+        ctx.lineWidth=wR*0.15;
+        ctx.beginPath();ctx.arc(w.x,wY,wR*0.85,0,Math.PI*2);ctx.stroke();
+        /* Jante chromée */
+        const jg=ctx.createRadialGradient(w.x-wR*0.2,wY-wR*0.2,0,w.x,wY,wR*0.62);
+        jg.addColorStop(0,'rgba(120,105,75,0.95)');
+        jg.addColorStop(0.4,'rgba(85,70,45,0.95)');
+        jg.addColorStop(0.8,'rgba(55,45,28,0.95)');
+        jg.addColorStop(1,'rgba(30,22,12,0.95)');
+        ctx.fillStyle=jg;
+        ctx.beginPath();ctx.arc(w.x,wY,wR*0.62,0,Math.PI*2);ctx.fill();
+        /* Rayons */
+        if(!isReflect){
+          for(let s=0;s<6;s++){
+            const a=s*Math.PI/3+t*0.4;
+            ctx.strokeStyle='rgba(160,135,85,0.50)';
+            ctx.lineWidth=wR*0.09;
+            ctx.lineCap='round';
+            ctx.beginPath();
+            ctx.moveTo(w.x+Math.cos(a)*wR*0.12,wY+Math.sin(a)*wR*0.12);
+            ctx.lineTo(w.x+Math.cos(a)*wR*0.54,wY+Math.sin(a)*wR*0.54);
+            ctx.stroke();
+          }
+        }
+        /* Centre jante */
+        ctx.fillStyle='rgba(180,155,95,0.80)';
+        ctx.beginPath();ctx.arc(w.x,wY,wR*0.14,0,Math.PI*2);ctx.fill();
+      });
+    }
+
+    function frame(){
+      if(stop.v)return;
+      drawScene();
+      t+=0.016;
+      requestAnimationFrame(frame);
+    }
+    frame();
    }
   },
 
