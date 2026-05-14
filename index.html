@@ -2869,7 +2869,7 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   0%  {transform:translateX(0);}
   100%{transform:translateX(100%);}
 }
-.splash-logo-wrap{position:absolute;top:max(54px,env(safe-area-inset-top,0px)+38px);left:0;right:0;z-index:7;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
+.splash-logo-wrap{position:absolute;top:max(32px,env(safe-area-inset-top,0px)+18px);left:0;right:0;z-index:7;text-align:center;opacity:0;transform:scale(.8);transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1);background:transparent;}
 .splash-logo-wrap.show{opacity:1;transform:scale(1);}
 /* Logo CinéQuiz reste visible sur les deux écrans */
 #splash.curtain-open .splash-logo-wrap{
@@ -3180,8 +3180,7 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 /* ── Zone logo SVG film — centre écran ── */
 #splash-film-logo{
   position:absolute;
-  /* juste au-dessus du bloc citation */
-  bottom:max(138px, calc(env(safe-area-inset-bottom) + 120px));
+  bottom:max(68px, calc(env(safe-area-inset-bottom) + 52px));
   left:50%;
   transform:translateX(-50%) translateY(8px) scale(0.90);
   width:68%;max-width:260px;
@@ -3204,20 +3203,21 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 /* ── Citation + infos film — bas d'écran ── */
 #splash-quote{
   position:absolute;
-  bottom:max(22px, calc(env(safe-area-inset-bottom) + 10px));
+  top:50%;
+  transform:translateY(calc(-50% + 10px));
   left:0;right:0;
-  padding:0 28px;
+  padding:0 36px;
   text-align:center;
   z-index:7;
   pointer-events:none;
   opacity:0;
-  transform:translateY(10px);
   transition:opacity .9s ease .3s, transform .9s ease .3s;
 }
 #splash-quote.reveal{
-  opacity:1;
-  transform:translateY(0);
+  opacity:1 !important;
+  transform:translateY(-50%) !important;
 }
+/* splash-quote.reveal géré dans la règle #splash-quote ci-dessus */
 #splash-quote-text{
   font-family:'DM Sans',sans-serif;
   font-size:13px;
@@ -3231,10 +3231,23 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
   margin-bottom:7px;
 }
 #splash-film-ref-inline{
+  display:none; /* masqué ici, affiché via #splash-film-ref-bottom */
+}
+#splash-film-ref-bottom{
+  position:absolute;
+  bottom:max(14px, calc(env(safe-area-inset-bottom) + 8px));
+  left:0;right:0;
   font-size:9px;letter-spacing:3px;text-transform:uppercase;
   font-family:'DM Sans',sans-serif;
   color:rgba(255,255,255,.32);
   text-align:center;
+  z-index:7;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .9s ease .5s;
+}
+#splash.curtain-open #splash-film-ref-bottom.reveal{
+  opacity:1;
 }
 .splash-quote-inner{
   display:block;
@@ -7820,11 +7833,13 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
     <!-- Zone logo SVG du film — centre écran -->
     <div id="splash-film-logo"></div>
 
-    <!-- Citation + infos film — bas d'écran -->
+    <!-- Citation centrée -->
     <div id="splash-quote">
       <div id="splash-quote-text"></div>
-      <div id="splash-film-ref-inline"></div>
     </div>
+
+    <!-- Ref film tout en bas -->
+    <div id="splash-film-ref-bottom"></div>
     <script>
     (function(){
       var FILM_QUOTES={
@@ -7985,6 +8000,8 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         var refEl=document.getElementById('splash-film-ref-inline');
         var filmRef=document.getElementById('splash-film-ref');
         if(refEl && filmRef){refEl.textContent=filmRef.textContent||'';}
+        var refBottom=document.getElementById('splash-film-ref-bottom');
+        if(refBottom && filmRef){refBottom.textContent=filmRef.textContent||'';refBottom.classList.add('reveal');}
         /* Logo révélé via img.onload dans injectFilmLogo */
       }
       if(window._splashEffectName){setQuote();}
