@@ -40897,8 +40897,6 @@ function closeAvModal(e){
    ref:'L\u00e9on \u2014 Luc Besson, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
-
-    /* ── Orange vif — orbes supprimées ── */
     let _lnStyle=document.getElementById('_ln_splash_style');
     if(!_lnStyle){_lnStyle=document.createElement('style');_lnStyle.id='_ln_splash_style';document.head.appendChild(_lnStyle);}
     _lnStyle.textContent=`
@@ -40913,170 +40911,206 @@ function closeAvModal(e){
 
     let t=0;
     const cx=W/2;
+    const DARK='rgba(22,10,0,1)';
 
-    /* ── Couleurs affiche ── */
-    const DARK='rgba(26,13,0,1.0)';   /* brun très sombre — lunettes, pistolet */
-    const WHITE='rgba(255,255,255,1.0)'; /* carton de lait */
+    /* ── Pluie fine — pré-génération ── */
+    const rain=Array.from({length:120},()=>({
+     x:Math.random()*W*1.2-W*0.1,
+     y:Math.random()*H,
+     len:H*(0.012+Math.random()*0.018),
+     spd:H*(0.008+Math.random()*0.006),
+     op:0.06+Math.random()*0.10
+    }));
 
-    /* ── Positions des éléments ── */
-    /* Lunettes — centrées en haut */
-    const GLASSES_CY=H*0.31;
-    const LENS_R=W*0.135;
-    const BRIDGE_W=W*0.038;
+    /* ── Lunettes — dimensions ── */
+    const LENS_R=W*0.148;
+    const BRIDGE=W*0.036;
+    const GLASSES_CY=H*0.28;
 
-    /* Groupe carton + pistolet — centré */
-    const GROUP_Y=H*0.60;
-    /* Carton — à gauche du centre */
-    const MILK_CX=cx-W*0.14;
-    const MILK_W=W*0.15;
-    const MILK_H=H*0.28;
-    /* Pistolet — à droite du centre */
-    const GUN_CX=cx+W*0.12;
-    const GUN_Y=GROUP_Y;
-
-    /* ── Dessin des lunettes rondes ── */
-    function drawGlasses(swing){
-     ctx.save();ctx.translate(cx,GLASSES_CY);ctx.rotate(swing);
+    function drawGlasses(){
+     const sw=Math.sin(t*0.45)*0.008;
+     ctx.save();ctx.translate(cx,GLASSES_CY);ctx.rotate(sw);
      ctx.fillStyle=DARK;
      /* Verre gauche */
-     ctx.beginPath();ctx.arc(-LENS_R-BRIDGE_W/2,0,LENS_R,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.arc(-LENS_R-BRIDGE/2,0,LENS_R,0,Math.PI*2);ctx.fill();
      /* Verre droit */
-     ctx.beginPath();ctx.arc(LENS_R+BRIDGE_W/2,0,LENS_R,0,Math.PI*2);ctx.fill();
-     /* Pont — arc reliant les deux verres */
-     ctx.beginPath();
-     ctx.arc(0,-LENS_R*0.10,BRIDGE_W*1.2,0,Math.PI,true);
-     ctx.fill();
-     /* Branches latérales (légères) */
-     ctx.fillRect(-LENS_R*2-BRIDGE_W/2-W*0.05,0-LENS_R*0.12,W*0.05,LENS_R*0.20);
-     ctx.fillRect(LENS_R+BRIDGE_W/2,0-LENS_R*0.12,W*0.05,LENS_R*0.20);
+     ctx.beginPath();ctx.arc(LENS_R+BRIDGE/2,0,LENS_R,0,Math.PI*2);ctx.fill();
+     /* Pont */
+     ctx.beginPath();ctx.arc(0,-LENS_R*0.08,BRIDGE*1.15,0,Math.PI,true);ctx.fill();
+     /* Branches */
+     ctx.fillRect(-LENS_R*2-BRIDGE/2-W*0.055,-LENS_R*0.12,W*0.055,LENS_R*0.22);
+     ctx.fillRect(LENS_R+BRIDGE/2,-LENS_R*0.12,W*0.055,LENS_R*0.22);
+     /* Reflet subtil sur les verres */
+     ctx.fillStyle='rgba(232,137,10,0.18)';
+     ctx.beginPath();ctx.arc(-LENS_R-BRIDGE/2,-LENS_R*0.22,LENS_R*0.38,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.arc(LENS_R+BRIDGE/2,-LENS_R*0.22,LENS_R*0.38,0,Math.PI*2);ctx.fill();
      ctx.restore();
     }
 
-    /* ── Dessin du carton de lait ── */
-    function drawMilk(sway){
-     ctx.save();ctx.translate(MILK_CX,GROUP_Y+sway);
-     const mw=MILK_W,mh=MILK_H;
-     /* Corps principal blanc */
-     ctx.fillStyle=WHITE;
-     ctx.beginPath();ctx.roundRect(-mw/2,0,mw,mh,2);ctx.fill();
-     /* Ligne de séparation face/côté */
-     ctx.strokeStyle='rgba(220,220,220,0.60)';ctx.lineWidth=1.2;
-     ctx.beginPath();ctx.moveTo(-mw/2+mw*0.35,0);ctx.lineTo(-mw/2+mw*0.35,mh);ctx.stroke();
-     /* Toît du carton — rabat pointu */
-     const topH=mh*0.18;
-     ctx.fillStyle=WHITE;
-     ctx.beginPath();
-     ctx.moveTo(-mw/2,0);         /* bas-gauche du toit */
-     ctx.lineTo(-mw*0.06,-topH);  /* pointe gauche */
-     ctx.lineTo(mw*0.04,-topH*0.55); /* encoche */
-     ctx.lineTo(mw*0.12,-topH*0.85); /* pointe droite du rabat */
-     ctx.lineTo(mw/2,0);          /* bas-droit du toit */
-     ctx.closePath();ctx.fill();
-     /* Ombre intérieure légère sur le corps */
-     const sG=ctx.createLinearGradient(-mw/2,0,mw/2,0);
-     sG.addColorStop(0,'rgba(0,0,0,0.06)');sG.addColorStop(0.4,'rgba(0,0,0,0)');
-     ctx.fillStyle=sG;ctx.fillRect(-mw/2,0,mw,mh);
-     ctx.restore();
-    }
-
-    /* ── Dessin du pistolet (flat, silhouette) ── */
-    function drawGun(recoil){
-     ctx.save();ctx.translate(GUN_CX,GUN_Y-recoil);
+    /* ── Silhouette Léon — imperméable + chapeau, de dos ── */
+    function drawLeon(){
+     const lx=cx-W*0.04;
+     const baseY=H*0.98;
+     const s=W*0.38; /* échelle */
+     ctx.save();ctx.translate(lx,baseY);
      ctx.fillStyle=DARK;
-     const s=W*0.012; /* unité de scale */
-     /* Canon */
-     ctx.beginPath();ctx.roundRect(-s*0.5,-s*10,s*3.0,s*2.2,s*0.3);ctx.fill();
-     /* Slide (dessus de la culasse) */
-     ctx.beginPath();ctx.roundRect(-s*0.5,-s*7.8,s*8.5,s*3.5,s*0.4);ctx.fill();
-     /* Extracteur */
-     ctx.beginPath();ctx.roundRect(s*7.0,-s*7.0,s*1.0,s*1.5,s*0.2);ctx.fill();
-     /* Crosse — légèrement évasée en bas */
+
+     /* Corps imperméable — trapèze large */
      ctx.beginPath();
-     ctx.moveTo(-s*0.5,-s*4.3);
-     ctx.lineTo(-s*0.5,s*5.5);
-     ctx.quadraticCurveTo(-s*0.5,s*7.0,s*2.0,s*7.2);
-     ctx.lineTo(s*5.2,s*6.8);
-     ctx.quadraticCurveTo(s*6.0,s*6.6,s*6.2,s*5.8);
-     ctx.lineTo(s*5.5,-s*0.5);
-     ctx.lineTo(s*7.5,-s*4.3);
+     ctx.moveTo(-s*0.38,-s*0.92);
+     ctx.bezierCurveTo(-s*0.42,-s*0.75,-s*0.52,-s*0.50,-s*0.56,-s*0.00);
+     ctx.lineTo( s*0.56,-s*0.00);
+     ctx.bezierCurveTo( s*0.52,-s*0.50, s*0.42,-s*0.75, s*0.38,-s*0.92);
      ctx.closePath();ctx.fill();
-     /* Pontet (trigger guard) */
+
+     /* Col imperméable relevé */
      ctx.beginPath();
-     ctx.arc(s*2.5,s*1.5,s*2.0,0,Math.PI);
-     ctx.fill();
-     /* Détente */
-     ctx.beginPath();ctx.arc(s*2.5,s*1.5,s*0.8,0.1,Math.PI-0.1);ctx.fill();
+     ctx.moveTo(-s*0.28,-s*0.92);
+     ctx.bezierCurveTo(-s*0.30,-s*1.00,-s*0.20,-s*1.06,-s*0.10,-s*1.08);
+     ctx.lineTo( s*0.10,-s*1.08);
+     ctx.bezierCurveTo( s*0.20,-s*1.06, s*0.30,-s*1.00, s*0.28,-s*0.92);
+     ctx.closePath();ctx.fill();
+
+     /* Tête — cercle */
+     ctx.beginPath();ctx.arc(0,-s*1.22,s*0.16,0,Math.PI*2);ctx.fill();
+
+     /* Chapeau borsalino — bord plat + calotte */
+     /* Calotte */
+     ctx.beginPath();
+     ctx.ellipse(0,-s*1.42,s*0.20,s*0.14,0,0,Math.PI*2);ctx.fill();
+     /* Bord plat */
+     ctx.beginPath();
+     ctx.ellipse(0,-s*1.30,s*0.32,s*0.055,0,0,Math.PI*2);ctx.fill();
+
+     /* Bras gauche tenant la plante */
+     ctx.beginPath();
+     ctx.moveTo(-s*0.36,-s*0.75);
+     ctx.bezierCurveTo(-s*0.52,-s*0.62,-s*0.60,-s*0.40,-s*0.58,-s*0.10);
+     ctx.lineTo(-s*0.48,-s*0.10);
+     ctx.bezierCurveTo(-s*0.50,-s*0.38,-s*0.44,-s*0.58,-s*0.28,-s*0.72);
+     ctx.closePath();ctx.fill();
+
+     /* Main gauche */
+     ctx.beginPath();ctx.ellipse(-s*0.54,-s*0.06,s*0.07,s*0.05,0,0,Math.PI*2);ctx.fill();
+
+     ctx.restore();
+    }
+
+    /* ── Plante — à gauche de Léon ── */
+    function drawPlant(){
+     const px=cx-W*0.30;
+     const py=H*0.92;
+     const s=W*0.22;
+     ctx.save();ctx.translate(px,py);
+
+     /* Pot */
+     ctx.fillStyle='rgba(35,18,5,1)';
+     ctx.beginPath();
+     ctx.moveTo(-s*0.32,0);
+     ctx.lineTo(-s*0.26,-s*0.38);
+     ctx.lineTo( s*0.26,-s*0.38);
+     ctx.lineTo( s*0.32,0);
+     ctx.closePath();ctx.fill();
+     /* Rebord pot */
+     ctx.fillStyle='rgba(50,26,6,1)';
+     ctx.beginPath();ctx.roundRect(-s*0.34,-s*0.42,s*0.68,s*0.08,2);ctx.fill();
+
+     /* Tige centrale */
+     ctx.strokeStyle='rgba(18,60,12,1)';ctx.lineWidth=s*0.05;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(0,-s*0.38);ctx.lineTo(0,-s*1.60);ctx.stroke();
+
+     /* Feuilles — ellipses pivotées, style plante d'intérieur */
+     const leaves=[
+      {x:-s*0.32,y:-s*0.80,rx:s*0.38,ry:s*0.12,rot:-0.55},
+      {x: s*0.30,y:-s*0.95,rx:s*0.36,ry:s*0.11,rot: 0.50},
+      {x:-s*0.28,y:-s*1.18,rx:s*0.34,ry:s*0.10,rot:-0.40},
+      {x: s*0.26,y:-s*1.32,rx:s*0.32,ry:s*0.10,rot: 0.42},
+      {x:-s*0.18,y:-s*1.48,rx:s*0.28,ry:s*0.09,rot:-0.30},
+      {x: s*0.16,y:-s*1.56,rx:s*0.26,ry:s*0.09,rot: 0.28},
+      {x: 0,     y:-s*1.68,rx:s*0.22,ry:s*0.08,rot: 0.10},
+     ];
+     const bob=Math.sin(t*0.35)*0.012;
+     for(const l of leaves){
+      ctx.save();
+      ctx.translate(l.x,l.y+Math.sin(t*0.35+l.rot)*s*0.012);
+      ctx.rotate(l.rot+bob);
+      /* Feuille */
+      const lg=ctx.createLinearGradient(-l.rx,0,l.rx,0);
+      lg.addColorStop(0,'rgba(20,68,15,1)');
+      lg.addColorStop(0.5,'rgba(38,92,22,1)');
+      lg.addColorStop(1,'rgba(20,68,15,1)');
+      ctx.fillStyle=lg;
+      ctx.beginPath();ctx.ellipse(0,0,l.rx,l.ry,0,0,Math.PI*2);ctx.fill();
+      /* Nervure centrale */
+      ctx.strokeStyle='rgba(18,55,12,0.55)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(-l.rx*0.72,0);ctx.lineTo(l.rx*0.72,0);ctx.stroke();
+      ctx.restore();
+     }
      ctx.restore();
     }
 
     function frame(){
      if(stop.v)return;
 
-     /* ── FOND ORANGE — respiration douce ── */
-     const breathe=Math.sin(t*0.25)*8;
-     const or=Math.round(232+breathe*0.3);
-     const og=Math.round(137+breathe*0.2);
-     const ob=Math.round(10);
-     ctx.fillStyle=`rgb(${or},${og},${ob})`;
+     /* Fond orange respirant */
+     const breathe=Math.sin(t*0.22)*6;
+     ctx.fillStyle=`rgb(${232+(breathe*0.3)|0},${137+(breathe*0.2)|0},10)`;
      ctx.fillRect(0,0,W,H);
 
-     /* Légère variation de luminosité au centre (texture affiche) */
-     const centG=ctx.createRadialGradient(cx,H*0.44,20,cx,H*0.44,W*0.72);
-     centG.addColorStop(0,`rgba(255,165,30,${0.12+Math.sin(t*0.18)*0.03})`);
+     /* Halo central chaud */
+     const centG=ctx.createRadialGradient(cx,H*0.52,10,cx,H*0.52,W*0.70);
+     centG.addColorStop(0,`rgba(255,168,35,${0.14+Math.sin(t*0.18)*0.03})`);
      centG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=centG;ctx.fillRect(0,0,W,H);
 
-     /* ── GRAIN TEXTURE AFFICHE ── */
-     for(let i=0;i<160;i++){
+     /* Pluie très subtile */
+     ctx.save();ctx.globalAlpha=1;
+     for(const r of rain){
+      r.y+=r.spd;r.x+=r.spd*0.18;
+      if(r.y>H){r.y=-r.len;r.x=Math.random()*W*1.2-W*0.1;}
+      ctx.strokeStyle=`rgba(200,100,5,${r.op})`;
+      ctx.lineWidth=0.7;
+      ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x+r.len*0.18,r.y+r.len);ctx.stroke();
+     }
+     ctx.restore();
+
+     /* Léon silhouette */
+     drawLeon();
+
+     /* Plante */
+     drawPlant();
+
+     /* Lunettes par-dessus */
+     drawGlasses();
+
+     /* Grain affiche */
+     for(let i=0;i<120;i++){
       const gv=Math.random()*50-25;
-      const gx=Math.random()*W,gy=Math.random()*H;
-      const gs=Math.random()*2.0+0.3;
-      const alpha=Math.random()*0.045;
+      const alpha=Math.random()*0.038;
       ctx.fillStyle=gv>0
-       ?`rgba(255,${(160+gv)|0},${(20+gv*0.2)|0},${alpha})`
-       :`rgba(${(100+gv)|0},${(40+gv*0.5)|0},0,${alpha})`;
-      ctx.fillRect(gx,gy,gs,gs);
+       ?`rgba(255,${(155+gv)|0},${(18+gv*0.2)|0},${alpha})`
+       :`rgba(${(95+gv)|0},${(35+gv*0.5)|0},0,${alpha})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.8+0.3,Math.random()*1.8+0.3);
      }
 
-     /* ── LUNETTES — micro oscillation ── */
-     const glassSwing=Math.sin(t*0.55)*0.012+Math.sin(t*0.28)*0.006;
-     drawGlasses(glassSwing);
-
-     /* ── CARTON DE LAIT — léger balancement ── */
-     const milkSway=Math.sin(t*0.40)*W*0.004;
-     drawMilk(milkSway);
-
-     /* ── PISTOLET — micro recul rythmique ── */
-     const gunRecoil=Math.max(0,Math.sin(t*1.8)*H*0.003);
-     drawGun(gunRecoil);
-
-     /* ── GRAIN second passage ── */
-     for(let i=0;i<80;i++){
-      const alpha=Math.random()*0.028;
-      const gv=Math.random()>0.5?1:-1;
-      ctx.fillStyle=gv>0?`rgba(255,180,40,${alpha})`:`rgba(80,30,0,${alpha})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.2,Math.random()*1.5+0.2);
-     }
-
-     /* ── VIGNETTE douce — coins légèrement assombris ── */
-     const vg=ctx.createRadialGradient(cx,H*0.44,H*0.10,cx,H*0.44,H*0.84);
+     /* Vignette */
+     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.08,cx,H*0.50,H*0.90);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.55,'rgba(0,0,0,0.05)');
-     vg.addColorStop(1,'rgba(0,0,0,0.72)');
+     vg.addColorStop(0.50,'rgba(0,0,0,0.05)');
+     vg.addColorStop(1,'rgba(0,0,0,0.75)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     const vgL=ctx.createLinearGradient(0,0,W*0.14,0);
-     vgL.addColorStop(0,'rgba(0,0,0,0.55)');vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.14,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.86,0);
-     vgR.addColorStop(0,'rgba(0,0,0,0.55)');vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR;ctx.fillRect(W*0.86,0,W*0.14,H);
+     const vgL=ctx.createLinearGradient(0,0,W*0.12,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.50)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.12,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.88,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.50)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.88,0,W*0.12,H);
 
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
   },
-
 
 
   /* ══ LA HAINE ══ */
@@ -46511,7 +46545,7 @@ function runSplash(){
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
     if(tapEl) tapEl.classList.add('hidden');
-    // Citation + wrapper + logo apparaissent ensemble à l'ouverture du rideau
+    // Citation + wrapper + logo apparaissent quand le rideau est complètement ouvert (4.2s)
     setTimeout(()=>{
       var wrap=document.getElementById('splash-content-wrap');
       if(wrap) wrap.classList.add('reveal');
@@ -46519,7 +46553,7 @@ function runSplash(){
       if(typeof window._onLogoReveal==='function') window._onLogoReveal();
       const logoWrap=document.getElementById('splash-logo');
       if(logoWrap) logoWrap.classList.add('logo-film-mode');
-    }, 450);
+    }, 4200);
 
     // "Appuyer pour passer" — apparaît 3s après l'ouverture du rideau (indépendant de l'audio)
     const skipEl = document.getElementById('splash-skip');
