@@ -3200,10 +3200,10 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 /* ── Zone logo SVG film — centre écran ── */
 #splash-film-logo{
   position:absolute;
-  top:62%;
+  top:55%;
   left:50%;
   transform:translateX(-50%) translateY(16px) scale(0.90);
-  width:64%;max-width:240px;
+  width:56%;max-width:210px;
   z-index:7;pointer-events:none;
   opacity:0;
   transition:opacity 0.9s ease 0.2s, transform 0.9s cubic-bezier(.22,.68,0,1.15) 0.2s;
@@ -3224,7 +3224,7 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 /* ── Citation + infos film — bas d'écran ── */
 #splash-quote{
   position:absolute;
-  top:44%;
+  top:50%;
   transform:translateY(calc(-50% + 10px));
   left:0;right:0;
   padding:0 36px;
@@ -8175,8 +8175,8 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         'Alice au Pays des Merveilles':    'Alice_au_Pays_des_Merveilles',
         'L\u2019\u00c2ge de Glace':        'L_Age_de_Glace',
       };
-      var _logoReady = false; // true quand l'image est chargée
-      var _curtainOpen = false; // true quand le rideau est ouvert
+      var _logoReady = false;
+      var _curtainOpen = false;
 
       function tryRevealLogo(){
         if(!_logoReady || !_curtainOpen) return;
@@ -8184,44 +8184,39 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         if(logoEl) logoEl.classList.add('reveal');
       }
 
-      function injectFilmLogo(){
-        var name = window._splashEffectName || '';
+      function injectFilmLogo(name){
+        name = name || window._splashEffectName || '';
         var logoEl = document.getElementById('splash-film-logo');
         if(!logoEl) return;
         logoEl.innerHTML = '';
         logoEl.classList.remove('reveal');
         _logoReady = false;
+        _curtainOpen = false;
         if(!name) return;
         var filename = _logoMap[name] || name;
         var img = document.createElement('img');
         img.alt = name;
+        img.style.cssText = 'width:100%;height:auto;display:block;mix-blend-mode:screen;filter:drop-shadow(0 2px 12px rgba(0,0,0,0.30));background:transparent;';
         img.onerror = function(){
-          /* Fallback texte si PNG absent */
-          var fb = document.createElement('div');
-          fb.style.cssText = 'font-family:"Bebas Neue",sans-serif;font-size:clamp(18px,5.5vw,28px);letter-spacing:3px;color:rgba(255,255,255,0.88);text-shadow:0 2px 16px rgba(0,0,0,0.70);text-align:center;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;';
-          fb.textContent = name || '';
           logoEl.innerHTML = '';
-          logoEl.appendChild(fb);
           _logoReady = true;
           tryRevealLogo();
         };
         img.onload = function(){
-          if(window._splashEffectName === name){
-            _logoReady = true;
-            tryRevealLogo();
-          }
+          _logoReady = true;
+          tryRevealLogo();
         };
         logoEl.appendChild(img);
         img.src = 'logos/' + filename + '.png';
       }
 
-      // Appelé par startSequence 2s après ouverture du rideau
+      // Appelé par startSequence 2s après ouverture rideau
       window._onLogoReveal = function(){
         _curtainOpen = true;
-        tryRevealLogo(); /* PNG déjà chargé ? → s'affiche immédiatement */
+        tryRevealLogo();
       };
 
-      // Préchargement anticipé sans affichage
+      // Préchargement anticipé
       function preloadFilmLogo(name){
         if(!name) return;
         var filename = _logoMap[name] || name;
@@ -8229,19 +8224,13 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         pre.src = 'logos/' + filename + '.png';
       }
 
-      var _orig = window._onSplashEffectReady;
+      // Hooké directement dans _runSplashEffect via window._onSplashEffectReady
+      var _origSER = window._onSplashEffectReady;
       window._onSplashEffectReady = function(){
-        if(_orig) _orig();
-        _curtainOpen = false; // reset au nouveau splash
+        if(typeof _origSER === 'function') _origSER();
         injectFilmLogo();
       };
-      var _origName = window._splashEffectName;
-      Object.defineProperty(window, '_splashEffectName', {
-        get: function(){ return _origName; },
-        set: function(v){ _origName = v; _curtainOpen = false; preloadFilmLogo(v); },
-        configurable: true
-      });
-      if(window._splashEffectName){ preloadFilmLogo(window._splashEffectName); injectFilmLogo(); }
+      if(window._splashEffectName){ injectFilmLogo(); }
     })();
     </script>
     <div class="splash-credit" onclick="splashCreditTap()" style="-webkit-tap-highlight-color:transparent;user-select:none;">RÉALISÉ PAR MAX</div>
