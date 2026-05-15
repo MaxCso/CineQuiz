@@ -8187,62 +8187,41 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         'Alice au Pays des Merveilles':    'Alice_au_Pays_des_Merveilles',
         'L\u2019\u00c2ge de Glace':        'L_Age_de_Glace',
       };
-      var _logoReady = false;
-      var _curtainOpen = false;
+      /* ── Logo film : chargé dès que le nom est connu, révélé au signal ── */
+      var _logoImg = null; /* Image préchargée */
 
-      function tryRevealLogo(){
-        if(!_logoReady || !_curtainOpen) return;
+      /* Appelé par _runSplashEffect dès qu'un film est choisi */
+      window._preloadFilmLogo = function(name){
         var logoEl = document.getElementById('splash-film-logo');
-        if(logoEl) logoEl.classList.add('reveal');
-      }
-
-      function injectFilmLogo(name){
-        name = name || window._splashEffectName || '';
-        var logoEl = document.getElementById('splash-film-logo');
-        if(!logoEl) return;
+        if(!logoEl || !name) return;
+        /* Reset visuel */
         logoEl.innerHTML = '';
         logoEl.classList.remove('reveal');
-        _logoReady = false;
-        _curtainOpen = false;
-        if(!name) return;
+        /* Construire et précharger l'image */
         var filename = _logoMap[name] || name;
         var img = document.createElement('img');
         img.alt = name;
         img.style.cssText = 'width:100%;height:auto;display:block;mix-blend-mode:screen;filter:drop-shadow(0 2px 12px rgba(0,0,0,0.30));background:transparent;';
-        img.onerror = function(){
-          logoEl.innerHTML = '';
-          _logoReady = true;
-          tryRevealLogo();
-        };
-        img.onload = function(){
-          _logoReady = true;
-          tryRevealLogo();
-        };
+        img.onerror = function(){ logoEl.innerHTML = ''; };
         logoEl.appendChild(img);
+        _logoImg = img;
         img.src = 'logos/' + filename + '.png';
-      }
+      };
 
-      // Appelé par startSequence 2s après ouverture rideau
+      /* Appelé par startSequence quand on veut afficher le logo */
       window._onLogoReveal = function(){
-        _curtainOpen = true;
-        tryRevealLogo();
+        var logoEl = document.getElementById('splash-film-logo');
+        if(!logoEl) return;
+        if(_logoImg && (_logoImg.complete || _logoImg.naturalWidth > 0)){
+          /* Image déjà chargée : révèle immédiatement */
+          logoEl.classList.add('reveal');
+        } else if(_logoImg){
+          /* Pas encore chargée : révèle dès qu'elle l'est */
+          _logoImg.addEventListener('load', function(){
+            logoEl.classList.add('reveal');
+          }, {once:true});
+        }
       };
-
-      // Préchargement anticipé
-      function preloadFilmLogo(name){
-        if(!name) return;
-        var filename = _logoMap[name] || name;
-        var pre = new Image();
-        pre.src = 'logos/' + filename + '.png';
-      }
-
-      // Hooké directement dans _runSplashEffect via window._onSplashEffectReady
-      var _origSER = window._onSplashEffectReady;
-      window._onSplashEffectReady = function(){
-        if(typeof _origSER === 'function') _origSER();
-        injectFilmLogo();
-      };
-      if(window._splashEffectName){ injectFilmLogo(); }
     })();
     </script>
     <div class="splash-credit" onclick="splashCreditTap()" style="-webkit-tap-highlight-color:transparent;user-select:none;">RÉALISÉ PAR MAX</div>
@@ -44515,6 +44494,7 @@ function closeAvModal(e){
     const fx=RUNNABLE[idx];
     if(refEl){refEl.textContent=fx.ref;}
     window._splashEffectName=fx.name;
+    if(typeof window._preloadFilmLogo==='function') window._preloadFilmLogo(fx.name);
     if(window._onSplashEffectReady){window._onSplashEffectReady();window._onSplashEffectReady=null;}
     fx.run(cv,ctx,cv.width,cv.height,stop);
     window._stopSplashEffect=()=>{stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
