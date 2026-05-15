@@ -43942,14 +43942,14 @@ function closeAvModal(e){
     const _oppWatch=setInterval(()=>{if(stop.v){_oppStyle.textContent='';clearInterval(_oppWatch);}},200);
 
     /* ── Paramètres du symbole atomique ── */
-    const atomCX=cx, atomCY=H*0.415;
+    const atomCX=cx, atomCY=H*0.285;
     const orbitRX=W*0.300, orbitRY=W*0.108;
 
-    /* 3 orbites inclinées à 0°, 60°, 120° — comme sur le poster */
+    /* 3 orbites inclinées à 0°, 60°, 120° — vitesse accélère avec t */
     const orbits=[
-     {tilt:0,           speed:0.0055, angle:0},
-     {tilt:Math.PI/3,   speed:-0.0042,angle:2.1},
-     {tilt:2*Math.PI/3, speed:0.0038, angle:4.2},
+     {tilt:0,           baseSpeed:0.0055, angle:0},
+     {tilt:Math.PI/3,   baseSpeed:-0.0042,angle:2.1},
+     {tilt:2*Math.PI/3, baseSpeed:0.0038, angle:4.2},
     ];
 
     /* ── Particules de brillance autour du symbole ── */
@@ -43979,8 +43979,7 @@ function closeAvModal(e){
       const bx=xr*W,bw=wr*W,bh=(1-yr)*(H-baseY)*2.0;
       ctx.fillRect(bx,baseY-bh,bw,bh+4);
      }
-     ctx.fillRect(cx-W*0.01,baseY-H*0.22,W*0.006,H*0.045);
-     ctx.fillRect(cx+W*0.18,baseY-H*0.19,W*0.005,H*0.035);
+     ctx.fillRect(0,baseY,W,4);
     }
 
     /* ── Dessine une orbite elliptique inclinée ── */
@@ -44056,8 +44055,9 @@ function closeAvModal(e){
      glow.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=glow;ctx.beginPath();ctx.arc(atomCX,atomCY,orbitRX*1.25,0,Math.PI*2);ctx.fill();
 
-     /* 3 orbites animées */
-     orbits.forEach(o=>{o.angle+=o.speed;});
+     /* Accélération progressive — vitesse × (1 + t*0.18), plafonnée à 4× */
+     const speedMult=Math.min(1+t*0.18, 4.0);
+     orbits.forEach(o=>{o.angle+=o.baseSpeed*speedMult;});
      orbits.forEach(o=>drawOrbit(o.tilt,0.72));
 
      /* Noyau central */
