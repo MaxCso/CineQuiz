@@ -32938,246 +32938,181 @@ function closeAvModal(e){
     cv.style.opacity='1.0';
     let t=0;
     const cx=W/2;
-    /* ── Fond couleur ── */
     let _s=document.getElementById('_pb_s');
     if(!_s){_s=document.createElement('style');_s.id='_pb_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#03070a!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#7aaa78!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
-    /* ── Horizon & route ── */
-    const ROAD_Y=H*0.72;
-    /* ── Pins arrière-plan (lointains, petits, gris-vert foncé) ── */
-    const bgTrees=Array.from({length:28},(_,i)=>({
-      x:W*(i/27),
-      h:H*(0.18+Math.sin(i*2.1+1)*0.07),
-      hw:W*0.028,
-      ph:Math.random()*Math.PI*2,
-      spd:0.003+Math.random()*0.002
-    }));
-    /* ── Pins avant-plan (proches, grands, très sombres) ── */
-    const fgTrees=Array.from({length:14},(_,i)=>({
-      x:W*(i/13),
-      h:H*(0.38+Math.sin(i*1.7)*0.14),
-      hw:W*0.048,
-      ph:Math.random()*Math.PI*2,
-      spd:0.007+Math.random()*0.004
-    }));
-    /* ── Grain cinéma ── */
-    const grains=Array.from({length:140},()=>({
-      x:Math.random()*W,y:Math.random()*H,
-      sz:Math.random()>0.6?0.8:0.4,op:0
-    }));
-    /* ── Moto ── */
-    const moto={x:-W*0.12,spd:2.4,trail:[]};
-    let fadeIn=0;
 
-    /* Dessine un pin avec silhouette triangulaire étagée */
-    function drawPine(px,py,hw,ph,colorTop,colorBot){
-      const sw=Math.sin(ph)*hw*0.06;
-      const x=px+sw;
-      /* 3 étages de triangles */
-      const layers=[
-        {yBase:py, yTop:py-ph*0.38, wMul:1.0},
-        {yBase:py-ph*0.28, yTop:py-ph*0.62, wMul:0.72},
-        {yBase:py-ph*0.52, yTop:py-ph*0.82, wMul:0.50},
-        {yBase:py-ph*0.72, yTop:py-ph*1.0,  wMul:0.30}
-      ];
-      for(let li=0;li<layers.length;li++){
-        const l=layers[li];
-        const ratio=li/3;
-        const tg=ctx.createLinearGradient(x,l.yTop,x,l.yBase);
-        tg.addColorStop(0,colorTop);
-        tg.addColorStop(1,colorBot);
-        ctx.fillStyle=tg;
-        ctx.beginPath();
-        ctx.moveTo(x, l.yTop);
-        ctx.lineTo(x - hw*l.wMul, l.yBase);
-        ctx.lineTo(x + hw*l.wMul, l.yBase);
-        ctx.closePath();
-        ctx.fill();
-      }
-      /* Tronc */
-      ctx.fillStyle=colorBot;
-      ctx.fillRect(x-hw*0.06, py, hw*0.12, ph*0.12);
-    }
-
-    /* Dessine la moto (silhouette + phare + roues) */
-    function drawMoto(mx,my){
-      const mh=H*0.038, mw=W*0.072;
-      /* Corps */
-      const mg=ctx.createLinearGradient(mx,my-mh,mx,my);
-      mg.addColorStop(0,'rgba(38,34,28,0.95)');
-      mg.addColorStop(1,'rgba(18,16,12,0.98)');
-      ctx.fillStyle=mg;
-      ctx.beginPath();
-      ctx.moveTo(mx-mw*0.5, my);
-      ctx.lineTo(mx-mw*0.38, my-mh*0.6);
-      ctx.lineTo(mx-mw*0.08, my-mh);
-      ctx.lineTo(mx+mw*0.18, my-mh*0.9);
-      ctx.lineTo(mx+mw*0.5, my-mh*0.3);
-      ctx.lineTo(mx+mw*0.5, my);
-      ctx.closePath();
-      ctx.fill();
-      /* Roues */
-      const wr=H*0.022;
-      [mx-mw*0.32, mx+mw*0.32].forEach(wx=>{
-        ctx.fillStyle='rgba(14,12,10,0.98)';
-        ctx.beginPath();ctx.arc(wx,my,wr,0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle='rgba(55,50,40,0.8)';ctx.lineWidth=wr*0.18;
-        ctx.beginPath();ctx.arc(wx,my,wr*0.68,0,Math.PI*2);ctx.stroke();
+    /* ── Couches de pins ── */
+    const LAYERS=[
+      {baseY:H*0.50,col:'#6a9e68',dark:'#528050',count:20,minH:H*0.11,varH:H*0.05,minHW:W*0.022,varHW:W*0.012,sway:0.003},
+      {baseY:H*0.56,col:'#4a7a48',dark:'#386038',count:18,minH:H*0.16,varH:H*0.08,minHW:W*0.032,varHW:W*0.018,sway:0.004},
+      {baseY:H*0.62,col:'#325830',dark:'#22401e',count:16,minH:H*0.24,varH:H*0.11,minHW:W*0.044,varHW:W*0.022,sway:0.006},
+      {baseY:H*0.69,col:'#1e3a1c',dark:'#122612',count:14,minH:H*0.34,varH:H*0.14,minHW:W*0.060,varHW:W*0.028,sway:0.008},
+      {baseY:H*0.78,col:'#0e1e0c',dark:'#070f06',count:12,minH:H*0.48,varH:H*0.18,minHW:W*0.078,varHW:W*0.034,sway:0.011}
+    ];
+    const layerTrees=LAYERS.map((l,li)=>{
+      return Array.from({length:l.count},(_,i)=>{
+        return {
+          x:W*(-0.12+i/(l.count-1)*1.24),
+          h:l.minH+Math.abs(Math.sin(i*1.9+li*0.7))*l.varH,
+          hw:l.minHW+Math.abs(Math.sin(i*2.5+li))*l.varHW,
+          ph:Math.random()*Math.PI*2
+        };
       });
-      /* Phare — cône de lumière vers la gauche */
-      const hlx=mx-mw*0.5, hly=my-mh*0.42;
-      const beam=ctx.createConicalGradient ? null : null;
-      /* Cône */
-      const cg=ctx.createRadialGradient(hlx,hly,0,hlx,hly,W*0.28);
-      cg.addColorStop(0,`rgba(255,245,210,${0.22+Math.sin(t*3)*0.03})`);
-      cg.addColorStop(0.18,`rgba(240,225,170,${0.09})`);
-      cg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(hlx,hly);
-      ctx.lineTo(hlx-W*0.30, hly-H*0.06);
-      ctx.lineTo(hlx-W*0.30, hly+H*0.06);
-      ctx.closePath();
-      ctx.fillStyle=cg;
-      ctx.fill();
-      ctx.restore();
-      /* Point phare */
-      const hg=ctx.createRadialGradient(hlx,hly,0,hlx,hly,W*0.022);
-      hg.addColorStop(0,`rgba(255,250,230,${0.95+Math.sin(t*2)*0.04})`);
-      hg.addColorStop(0.5,'rgba(220,200,140,0.35)');
-      hg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=hg;
-      ctx.beginPath();ctx.arc(hlx,hly,W*0.025,0,Math.PI*2);ctx.fill();
-      /* Feu arrière rouge */
-      const tg2=ctx.createRadialGradient(mx+mw*0.5,my-mh*0.28,0,mx+mw*0.5,my-mh*0.28,W*0.016);
-      tg2.addColorStop(0,`rgba(255,40,10,${0.9+Math.sin(t*2.5)*0.08})`);
-      tg2.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=tg2;
-      ctx.beginPath();ctx.arc(mx+mw*0.5,my-mh*0.28,W*0.016,0,Math.PI*2);ctx.fill();
+    });
+
+    function drawPine(px,baseY,hw,totalH,col,dark){
+      const steps=4;
+      for(let si=0;si<steps;si++){
+        const ratio=si/(steps-1);
+        const yBase=baseY-totalH*(ratio*0.28);
+        const yTop=baseY-totalH*(0.30+ratio*0.70);
+        const w=hw*(1.0-ratio*0.52);
+        ctx.fillStyle=si===0?dark:col;
+        ctx.beginPath();ctx.moveTo(px,yTop);ctx.lineTo(px-w,yBase);ctx.lineTo(px+w,yBase);ctx.closePath();ctx.fill();
+      }
     }
 
+    /* ── Route sinueuse ── */
+    function drawRoad(){
+      /* sinuosité animée lente */
+      const amp=W*0.10;
+      const phase=t*0.25;
+      /* Point de contrôle supérieur légèrement décalé */
+      const cp1x=cx + amp*Math.sin(phase);
+      const cp1y=H*0.66;
+      /* Point de contrôle inférieur en opposition de phase */
+      const cp2x=cx - amp*Math.sin(phase+0.9);
+      const cp2y=H*0.82;
+
+      const roadTopY=H*0.58;
+      const wTop=W*0.09;
+      const wBot=W*0.56;
+      const wMid=W*0.30;
+
+      /* Asphalte gris — forme avec 2 courbes de Bézier cubiques */
+      ctx.fillStyle='#9eaa98';
+      ctx.beginPath();
+      /* Bord gauche — de haut en bas */
+      ctx.moveTo(cx-wTop/2, roadTopY);
+      ctx.bezierCurveTo(cp1x-wMid*0.55, cp1y, cp2x-wMid*0.95, cp2y, cx-wBot/2, H);
+      /* Bas */
+      ctx.lineTo(cx+wBot/2, H);
+      /* Bord droit — de bas en haut */
+      ctx.bezierCurveTo(cp2x+wMid*0.95, cp2y, cp1x+wMid*0.55, cp1y, cx+wTop/2, roadTopY);
+      ctx.closePath();
+      ctx.fill();
+
+      /* Ombres latérales */
+      ['l','r'].forEach(side=>{
+        const sign=side==='l'?-1:1;
+        const sg=ctx.createLinearGradient(0,roadTopY,0,roadTopY+H*0.1);
+        sg.addColorStop(0,'rgba(15,30,14,0.32)');sg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.save();ctx.globalAlpha=0.7;ctx.fillStyle=sg;
+        ctx.beginPath();
+        ctx.moveTo(cx+sign*wTop/2, roadTopY);
+        ctx.bezierCurveTo(cp1x+sign*wMid*0.55,cp1y,cp2x+sign*wMid*0.95,cp2y,cx+sign*wBot/2,H);
+        ctx.lineTo(cx+sign*(wBot/2+W*0.001),H);
+        ctx.bezierCurveTo(cp2x+sign*wMid*0.97,cp2y,cp1x+sign*wMid*0.57,cp1y,cx+sign*(wTop/2+W*0.001),roadTopY);
+        ctx.closePath();ctx.fill();ctx.restore();
+      });
+
+      /* Double ligne jaune centrale — suit la sinuosité */
+      [-W*0.011, W*0.011].forEach(off=>{
+        ctx.save();
+        ctx.strokeStyle='#f2c018';ctx.lineWidth=W*0.009;ctx.lineCap='round';
+        ctx.beginPath();
+        ctx.moveTo(cx+off*0.15, roadTopY+H*0.005);
+        ctx.bezierCurveTo(
+          cp1x+off*0.5, cp1y,
+          cp2x+off*0.8, cp2y,
+          cx+off*2.4,   H
+        );
+        ctx.stroke();ctx.restore();
+      });
+    }
+
+    /* ── Motard : image SVG embarquée ── */
+    const _motoImg=new Image();
+    _motoImg.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzMwIiBoZWlnaHQ9IjgwNCIgdmlld0JveD0iMCAwIDMzMCA4MDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xNjUuMTM2IDEuNjE5ODNDMTU2LjQ2OSA0LjAxOTgzIDE1NC4yMDMgNS40ODY1IDE0Ni44NjkgMTMuNjE5OEMxNDAuMzM2IDIwLjY4NjUgMTMzLjgwMyAzMi4yODY1IDEyOS44MDMgNDMuNjE5OEMxMjYuNzM2IDUyLjU1MzIgMTI3LjEzNiA3NS4yMTk4IDEzMC42MDMgODYuOTUzMkMxMzIuMjAzIDkyLjE1MzIgMTM0LjQ2OSA5OS44ODY1IDEzNS44MDMgMTA0LjE1M0wxMzguMDY5IDExMS44ODdMMTI4Ljg2OSAxMTcuODg3QzEyMy44MDMgMTIxLjA4NyAxMTguODY5IDEyMy43NTMgMTE3LjkzNiAxMjMuNzUzQzExNy4wMDMgMTIzLjc1MyAxMTQuNjAzIDEyNC45NTMgMTEyLjg2OSAxMjYuNDJDMTExLjAwMyAxMjcuODg3IDEwNy45MzYgMTI5LjYyIDEwNi4yMDMgMTMwLjI4N0MxMDQuMzM2IDEzMC45NTMgOTUuNTM2MSAxMzcuMDg3IDg2LjYwMjggMTQzLjg4N0M2Ni4yMDI4IDE1OS4zNTMgMzIuMjAyOCAxOTMuNzUzIDM0LjYwMjggMTk2LjU1M0MzNS40MDI4IDE5Ny42MiAzNy4wMDI4IDE5OC40MiAzNy45MzYxIDE5OC40MkM0MS40MDI4IDE5OC40MiAzOS44MDI4IDIwMi4xNTMgMzMuNDAyOCAyMDguNTUzQzI5LjgwMjggMjEyLjE1MyAyNi4yMDI4IDIxNS42MiAyNS4yNjk1IDIxNi40MkMyMi44Njk1IDIxOC41NTMgMTQuMzM2MSAyMzEuNzUzIDEyLjMzNjEgMjM2LjU1M0MxMS4yNjk1IDIzOC45NTMgMTAuNDY5NSAyNDIuNjg3IDEwLjQ2OTUgMjQ0LjgyQzEwLjQ2OTUgMjQ5Ljg4NyA3LjAwMjc5IDI2My4yMiAzLjgwMjc5IDI2OS44ODdDMi40Njk0NiAyNzIuOTUzIDAuODY5NDU3IDI3OC40MiAwLjMzNjEyMyAyODIuMDJDLTAuNDYzODc3IDI4OC4wMiAtMC4wNjM4NzY5IDI4OC45NTMgNC4wNjk0NiAyOTQuNDJDNy4yNjk0NiAyOTguNTUzIDkuNTM2MTIgMzAwLjI4NyAxMS4yNjk1IDMwMC4wMkMxMi42MDI4IDI5OS43NTMgMTUuNDAyOCAyOTkuMjIgMTcuMjY5NSAyOTguODJDMjEuODAyOCAyOTguMDIgMjMuNDAyOCAzMDAuNTUzIDIwLjQ2OTUgMzAzLjc1M0MxOS4xMzYxIDMwNS4yMiAxOC40Njk1IDMwNy4yMiAxOS4wMDI4IDMwOC40MkMyMC4wNjk1IDMxMS40ODcgMjQuMzM2MSAzMTAuMjg3IDI0Ljg2OTUgMzA2Ljk1M0MyNS4yNjk1IDMwNC40MiAyOS45MzYxIDMwMS4wODcgMzMuMDAyOCAzMDEuMDg3QzMzLjY2OTUgMzAxLjA4NyAzNC42MDI4IDMwMi41NTMgMzUuMDAyOCAzMDQuNDJDMzYuMDY5NSAzMDguODIgMzcuMjY5NSAzMDguNjg3IDQwLjg2OTUgMzAzLjc1M0M0NC4yMDI4IDI5OS4zNTMgNDYuNzM2MSAyOTguODIgNTMuMDAyOCAzMDEuNDg3QzU4LjczNjEgMzAzLjg4NyA2MS41MzYxIDMwOS42MiA2MC40Njk1IDMxNi41NTNDNTkuOTM2MSAzMjAuNTUzIDYwLjIwMjggMzIyLjI4NyA2MS41MzYxIDMyMi44MkM2Mi44Njk1IDMyMy4zNTMgNjMuMTM2MSAzMjUuMDg3IDYyLjYwMjggMzMwLjAyQzYxLjI2OTUgMzQwLjI4NyA2My4yNjk1IDM3My4wODcgNjUuNTM2MSAzNzkuMzUzQzY2LjczNjEgMzgyLjI4NyA2OC42MDI4IDM5MS4yMiA2OS42Njk1IDM5OS4wODdDNzAuODY5NSA0MDYuOTUzIDcyLjIwMjggNDE0LjAyIDcyLjYwMjggNDE0LjY4N0M3My4wMDI4IDQxNS4zNTMgNzEuODAyOCA0MTcuNDg3IDY5LjgwMjggNDE5LjQ4N0M2Ni4zMzYxIDQyMi45NTMgNjYuMjAyOCA0MjMuNDg3IDY3LjEzNjEgNDMxLjc1M0M2Ny44MDI4IDQzNi41NTMgNjguMzM2MSA0NDMuNjIgNjguNjAyOCA0NDcuNDg3QzY4LjczNjEgNDUxLjM1MyA2OS42Njk1IDQ1NS4zNTMgNzAuNDY5NSA0NTYuNDJDNzMuNDAyOCA0NTkuODg3IDcxLjAwMjggNDYyLjE1MyA2My40MDI4IDQ2My4wODdDNTcuNTM2MSA0NjMuODg3IDU1LjUzNjEgNDY0LjY4NyA1My4yNjk1IDQ2Ny44ODdDNTEuODAyOCA0NjkuODg3IDUwLjQ2OTUgNDcyLjE1MyA1MC40Njk1IDQ3Mi45NTNDNTAuNDY5NSA0NzMuNjIgNTMuODAyOCA0NzYuMjg3IDU3LjgwMjggNDc5LjA4N0M2My44MDI4IDQ4Mi45NTMgNjUuMTM2MSA0ODQuNTUzIDY1LjEzNjEgNDg3LjYyQzY1LjEzNjEgNDg5Ljg4NyA2Ni4yMDI4IDQ5Mi4xNTMgNjcuNjY5NSA0OTMuMjJDNjkuNjY5NSA0OTQuNjg3IDcwLjMzNjEgNDk3LjQ4NyA3MS4wMDI4IDUwNS40ODdDNzEuOTM2MSA1MTUuMzUzIDcxLjgwMjggNTE2LjAyIDY5LjEzNjEgNTE2LjY4N0M2Ni44Njk1IDUxNy4zNTMgNjYuNDY5NSA1MTguMTUzIDY3LjAwMjggNTIyLjI4N0M2Ny40MDI4IDUyNC45NTMgNjcuNjY5NSA1MjcuNDg3IDY3LjY2OTUgNTI4LjAyQzY3LjgwMjggNTI4LjY4NyA2OC43MzYxIDUyOS4wODcgNjkuODAyOCA1MjkuMDg3QzcwLjg2OTUgNTI5LjA4NyA3MS44MDI4IDUzMC4yODcgNzEuODAyOCA1MzEuNjJDNzEuODAyOCA1MzMuNDg3IDcwLjYwMjggNTM0LjQyIDY3LjY2OTUgNTM1LjA4N0M2NS4wMDI4IDUzNS43NTMgNjMuODAyOCA1MzYuNjg3IDY0LjMzNjEgNTM3Ljc1M0M2NC43MzYxIDUzOC44MiA2NS40MDI4IDU0MS44ODcgNjUuOTM2MSA1NDQuNjg3QzY2Ljg2OTUgNTUwLjI4NyA2OS44MDI4IDU1NC40MiA3Mi43MzYxIDU1NC40MkM3NC4zMzYxIDU1NC40MiA3NC4zMzYxIDU1NC42ODcgNzIuNzM2MSA1NTYuMjg3QzY5LjEzNjEgNTU5Ljg4NyA2Ny4xMzYxIDU2Ni40MiA2OS4wMDI4IDU2OS4yMkM3MC4wNjk1IDU3MC45NTMgNzAuMDY5NSA1NzIuNTUzIDY5LjI2OTUgNTc0LjI4N0M2OC40Njk1IDU3NS42MiA2Ny41MzYxIDU4My44ODcgNjcuMDAyOCA1OTIuNjg3TDY2LjA2OTUgNjA4LjU1M0w2OS41MzYxIDYxMC44MkM3MS44MDI4IDYxMi4yODcgNzIuNzM2MSA2MTMuODg3IDcyLjIwMjggNjE1LjQ4N0M3MS42Njk1IDYxNy42MiA3Mi40Njk1IDYxOC4xNTMgNzYuNzM2MSA2MTguODJDNzkuNTM2MSA2MTkuMzUzIDg1LjkzNjEgNjIyLjE1MyA5MS4xMzYxIDYyNS4wODdDOTYuMjAyOCA2MjguMTUzIDEwMy4xMzYgNjMxLjIyIDEwNi42MDMgNjMxLjg4N0wxMTIuODY5IDYzMy4yMkwxMTMuODAzIDY0MS40ODdDMTE0LjQ2OSA2NDYuMDIgMTE0LjczNiA2NTAuMjg3IDExNC40NjkgNjUxLjA4N0MxMTIuNzM2IDY1Ny4wODcgMTEzLjAwMyA2NTguNDIgMTE3LjI2OSA2NjIuNDJDMTE5LjkzNiA2NjQuODIgMTIyLjczNiA2NjYuMjg3IDEyNC4yMDMgNjY1Ljg4N0MxMjUuODAzIDY2NS40ODcgMTI2LjQ2OSA2NjYuMTUzIDEyNi40NjkgNjY3Ljg4N0MxMjYuNDY5IDY3MS4yMiAxMzEuMjY5IDY3My40ODcgMTM1LjkzNiA2NzIuNTUzQzEzOS4xMzYgNjcxLjg4NyAxMzkuODAzIDY3Mi4yODcgMTM5LjgwMyA2NzQuNDJDMTM5LjgwMyA2NzYuMDIgMTM4Ljg2OSA2NzcuMDg3IDEzNy41MzYgNjc3LjIyQzEzNS41MzYgNjc3LjIyIDEzNS41MzYgNjc3LjQ4NyAxMzcuMTM2IDY3OC4xNTNDMTM4LjIwMyA2NzguNjg3IDEzOS4xMzYgNjc5Ljg4NyAxMzkuMjY5IDY4MC42ODdDMTM5LjQwMyA2ODEuNjIgMTM5LjUzNiA2ODYuNDIgMTM5LjgwMyA2OTEuMzUzTDE0MC4yMDMgNzAwLjQyTDE0MS4xMzYgNjkzLjA4N0MxNDEuNjY5IDY4OC40MiAxNDIuMDY5IDY4Ny4yMiAxNDIuMjAzIDY5MC4wMkMxNDIuMzM2IDY5Mi4yODcgMTQzLjEzNiA2OTQuNjg3IDE0My44MDMgNjk1LjA4N0MxNDQuODY5IDY5NS43NTMgMTQ0Ljg2OSA2OTYuNTUzIDE0My44MDMgNjk3LjYyQzE0Mi44NjkgNjk4LjgyIDE0Mi42MDMgNzExLjc1MyAxNDIuNzM2IDczNS43NTNDMTQzLjAwMyA3NjguMDIgMTQzLjI2OSA3NzIuNDIgMTQ1LjQwMyA3NzUuMDg3QzE0Ni42MDMgNzc2LjY4NyAxNDcuNDAzIDc3OS4yMiAxNDcuMDAzIDc4MC42ODdDMTQ2LjYwMyA3ODIuMTUzIDE0Ny4xMzYgNzg0LjE1MyAxNDguMjAzIDc4NS4yMkMxNDkuMTM2IDc4Ni4yODcgMTQ5LjgwMyA3ODcuODg3IDE0OS40MDMgNzg4LjgyQzE0OC42MDMgNzkxLjIyIDE1NS42NjkgNzk4LjQyIDE1OC42MDMgNzk4LjQyQzE1OS44MDMgNzk4LjQyIDE2MS4xMzYgNzk5LjYyIDE2MS41MzYgODAwLjk1M0MxNjIuMDY5IDgwMy4wODcgMTYzLjQwMyA4MDMuNDg3IDE3MC4yMDMgODAzLjYyQzE3Ni4wNjkgODAzLjYyIDE3OC40NjkgODAzLjA4NyAxNzkuMDAzIDgwMS42MkMxNzkuNDAzIDgwMC42ODcgMTgwLjQ2OSA3OTkuNzUzIDE4MS41MzYgNzk5Ljc1M0MxODIuNDY5IDc5OS43NTMgMTg1LjUzNiA3OTYuODIgMTg4LjIwMyA3OTMuMjJDMTkzLjEzNiA3ODYuODIgMTk0LjMzNiA3ODQuMTUzIDE5MS44MDMgNzg1Ljc1M0MxOTEuMTM2IDc4Ni4xNTMgMTkwLjQ2OSA3ODUuODg3IDE5MC40NjkgNzg1LjIyQzE5MC40NjkgNzg0LjQyIDE5MS40MDMgNzgzLjc1MyAxOTIuNjAzIDc4My43NTNDMTk0LjQ2OSA3ODMuNzUzIDE5NC42MDMgNzgyLjgyIDE5My45MzYgNzc4LjQyQzE5My4yNjkgNzc0LjE1MyAxOTMuNTM2IDc3My4wODcgMTk1LjEzNiA3NzMuMDg3QzE5Ni40NjkgNzczLjA4NyAxOTcuMTM2IDc3MS43NTMgMTk3LjEzNiA3NjkuMDg3QzE5Ny4xMzYgNzY2LjgyIDE5Ni42MDMgNzY1LjA4NyAxOTYuMDY5IDc2NS4wODdDMTk1LjUzNiA3NjUuMDg3IDE5NS4wMDMgNzYzLjg4NyAxOTQuODY5IDc2Mi40MkMxOTQuNzM2IDc2MC44MiAxOTUuNDAzIDc1OS43NTMgMTk2LjczNiA3NTkuNzUzQzE5OC4zMzYgNzU5Ljc1MyAxOTguNjAzIDc1OC4xNTMgMTk4LjA2OSA3NTAuNTUzQzE5Ny41MzYgNzQzLjA4NyAxOTcuODAzIDc0MS40ODcgMTk5LjI2OSA3NDIuMDJDMjAwLjczNiA3NDIuNTUzIDIwMS4xMzYgNzQxLjIyIDIwMS4xMzYgNzM2LjU1M0MyMDEuMTM2IDczMy4yMiAyMDAuNjAzIDczMC40MiAxOTkuODAzIDczMC40MkMxOTcuMjY5IDczMC40MiAxOTguNDY5IDcyNC44MiAyMDEuMTM2IDcyNC4xNTNDMjA0LjMzNiA3MjMuMzUzIDIwNC42MDMgNzIxLjM1MyAyMDEuODAzIDcyMC4yODdDMTk5LjAwMyA3MTkuMDg3IDE5OS4yNjkgNzE0LjgyIDIwMi40NjkgNzEyLjE1M0MyMDMuOTM2IDcxMC44MiAyMDUuODAzIDcwNy44ODcgMjA2LjQ2OSA3MDUuNjJDMjA3LjI2OSA3MDMuMjIgMjA5LjEzNiA3MDEuMDg3IDIxMC42MDMgNzAwLjY4N0MyMTMuNDAzIDY5OS44ODcgMjIzLjEzNiA2ODAuNjg3IDIyMS45MzYgNjc4LjU1M0MyMjEuNTM2IDY3Ny44ODcgMjIyLjMzNiA2NzUuODg3IDIyMy44MDMgNjc0LjAyQzIyNS4yNjkgNjcyLjE1MyAyMjYuNDY5IDY2OS43NTMgMjI2LjQ2OSA2NjguNjg3QzIyNi40NjkgNjY3LjQ4NyAyMjcuMTM2IDY2Ni4xNTMgMjI3LjkzNiA2NjUuNjJDMjI4LjczNiA2NjUuMjIgMjI5LjEzNiA2NjMuNjIgMjI4LjczNiA2NjIuMjg3QzIyOC4zMzYgNjYwLjgyIDIyOC44NjkgNjU4LjgyIDIyOS45MzYgNjU3Ljg4N0MyMzEuOTM2IDY1NS43NTMgMjMyLjQ2OSA2NTMuMDg3IDIzMC43MzYgNjUzLjA4N0MyMjkuMTM2IDY1My4wODcgMjI4Ljg2OSA2MzYuMDIgMjMwLjQ2OSA2MzIuOTUzQzIzMS4yNjkgNjMxLjYyIDIzMy4wMDMgNjMwLjQyIDIzNC4zMzYgNjMwLjQyQzIzNS42NjkgNjMwLjQyIDIzOC4yMDMgNjI5LjIyIDIzOS45MzYgNjI3LjYyQzI0My4xMzYgNjI0Ljk1MyAyNDMuMTM2IDYyNC45NTMgMjQwLjIwMyA2MjYuNDJDMjM3LjgwMyA2MjcuNDg3IDIzNy4xMzYgNjI3LjQ4NyAyMzcuMTM2IDYyNi4wMkMyMzcuMTM2IDYyNC45NTMgMjM4LjYwMyA2MjMuNzUzIDI0MC40NjkgNjIzLjQ4N0MyNDIuMzM2IDYyMy4wODcgMjQzLjgwMyA2MjMuMzUzIDI0My44MDMgNjI0LjAyQzI0My44MDMgNjI0LjU1MyAyNDYuMzM2IDYyMy44ODcgMjQ5LjQwMyA2MjIuMjg3QzI1NS4wMDMgNjE5LjQ4NyAyNjguMDY5IDYxNS40ODcgMjc3LjUzNiA2MTMuODg3QzI4MC4yMDMgNjEzLjM1MyAyODIuNDY5IDYxMi41NTMgMjgyLjQ2OSA2MTIuMDJDMjgyLjQ2OSA2MTAuNTUzIDI3Ny4yNjkgNTk2Ljk1MyAyNzMuODAzIDU4OS42MkMyNzIuMDY5IDU4NS44ODcgMjY4LjQ2OSA1ODAuNjg3IDI2NS44MDMgNTc4LjI4N0MyNjEuMDAzIDU3My43NTMgMjYxLjAwMyA1NzMuNjIgMjYzLjAwMyA1NjguODJDMjY0LjA2OSA1NjYuMjg3IDI2NC42MDMgNTYzLjc1MyAyNjQuMjAzIDU2My4zNTNDMjYzLjgwMyA1NjIuODIgMjY0LjIwMyA1NjEuNjIgMjY1LjAwMyA1NjAuNTUzQzI2NS45MzYgNTU5LjQ4NyAyNjYuMDY5IDU1OC4yODcgMjY1LjQwMyA1NTcuODg3QzI2My44MDMgNTU2Ljk1MyAyNjUuMTM2IDU0OS4wODcgMjY3LjAwMyA1NDkuMDg3QzI2Ny44MDMgNTQ5LjA4NyAyNjcuODAzIDU0OC41NTMgMjY2LjYwMyA1NDcuODg3QzI2NS4xMzYgNTQ2Ljk1MyAyNjUuMTM2IDU0NS40ODcgMjY2LjMzNiA1MzkuNzUzQzI2Ny40MDMgNTM0LjY4NyAyNjcuNDAzIDUzMi4yODcgMjY2LjQ2OSA1MzAuOTUzQzI2NS41MzYgNTMwLjAyIDI2NS40MDMgNTI3LjM1MyAyNjUuODAzIDUyNC42ODdDMjY2LjQ2OSA1MjEuNDg3IDI2Ni4wNjkgNTE5LjA4NyAyNjQuNjAzIDUxNi44MkMyNjMuMjY5IDUxNC44MiAyNjIuNDY5IDUxMC40MiAyNjIuMzM2IDUwNS4wODdDMjYyLjIwMyA0OTQuNDIgMjY1LjAwMyA0NjcuODg3IDI2Ni42MDMgNDY0LjgyQzI2Ny41MzYgNDYyLjk1MyAyNjcuMDAzIDQ2Mi4wMiAyNjMuNjY5IDQ2MC40MkMyNjAuNzM2IDQ1OC44MiAyNTkuODAzIDQ1Ny42MiAyNjAuNDY5IDQ1Ni4wMkMyNjIuNjAzIDQ1MC4yODcgMjYyLjczNiA0NDIuODIgMjYwLjYwMyA0NDAuODJDMjU4LjMzNiA0MzguNTUzIDI1Ny42NjkgNDM2LjQyIDI1OS41MzYgNDM3LjYyQzI2MC4yMDMgNDM4LjAyIDI2MC40NjkgNDMxLjYyIDI2MC4yMDMgNDIzLjM1M0MyNTkuODAzIDQwNy43NTMgMjU3LjEzNiAzOTcuMDg3IDI1My42NjkgMzk3LjA4N0MyNTIuNzM2IDM5Ny4wODcgMjUxLjUzNiAzOTUuNDg3IDI1MS4wMDMgMzkzLjM1M0MyNTAuNjAzIDM5MS4zNTMgMjQ5LjQwMyAzODYuNjg3IDI0OC4zMzYgMzgzLjA4N0MyNDcuNDAzIDM3OS4zNTMgMjQ1LjUzNiAzNzEuODg3IDI0NC40NjkgMzY2LjQyQzI0MC40NjkgMzQ2LjgyIDIzMS45MzYgMzIzLjA4NyAyMjguMjAzIDMyMC42ODdDMjI3LjI2OSAzMjAuMTUzIDIyNi40NjkgMzE3Ljg4NyAyMjYuNDY5IDMxNS43NTNDMjI2LjQ2OSAzMTIuNDIgMjI3LjEzNiAzMTEuNjIgMjMxLjY2OSAzMTAuNDJDMjM0LjQ2OSAzMDkuNzUzIDIzNy41MzYgMzA4LjE1MyAyMzguNDY5IDMwNy4wODdDMjQwLjMzNiAzMDQuODIgMjQyLjQ2OSAzMDQuNDIgMjQyLjQ2OSAzMDYuMjg3QzI0Mi40NjkgMzA2Ljk1MyAyMzkuMTM2IDMwOS4zNTMgMjM1LjEzNiAzMTEuNjJDMjI1LjI2OSAzMTcuMjIgMjI1LjY2OSAzMTkuNDg3IDIzNS42NjkgMzE0LjU1M0MyNDQuMDY5IDMxMC4yODcgMjQ5LjQwMyAzMTAuMDIgMjY5LjgwMyAzMTIuODJDMjgwLjg2OSAzMTQuNDIgMjgzLjUzNiAzMTUuMjIgMjg3LjQwMyAzMTguODJDMjkwLjQ2OSAzMjEuNDg3IDI5My4xMzYgMzIwLjk1MyAyOTMuMTM2IDMxNy40ODdDMjkzLjEzNiAzMTYuMDIgMjkzLjkzNiAzMTUuNjIgMjk2LjIwMyAzMTYuMjg3QzI5Ny44MDMgMzE2LjY4NyAzMDMuNDAzIDMxNy43NTMgMzA4LjQ2OSAzMTguNTUzQzMxMy42NjkgMzE5LjM1MyAzMTguODY5IDMyMC41NTMgMzIwLjA2OSAzMjEuMjJDMzIzLjQwMyAzMjIuOTUzIDMyNi40NjkgMzIyLjY4NyAzMjYuNDY5IDMyMC42ODdDMzI2LjQ2OSAzMTguMDIgMzIzLjUzNiAzMTUuNzUzIDMxOS45MzYgMzE1Ljc1M0MzMTYuNzM2IDMxNS43NTMgMzE2LjczNiAzMTUuNzUzIDMxOS4yNjkgMzEyLjk1M0MzMjAuODY5IDMxMS4wODcgMzIyLjYwMyAzMTAuNTUzIDMyNC43MzYgMzExLjA4N0MzMjcuMjY5IDMxMS42MiAzMjcuOTM2IDMxMS4wODcgMzI4LjYwMyAzMDguMTUzQzMyOS4wMDMgMzA2LjAyIDMyOS41MzYgMzAzLjYyIDMyOS45MzYgMzAyLjY4N0MzMzAuMjAzIDMwMS43NTMgMzI5LjUzNiAzMDAuNjg3IDMyOC42MDMgMzAwLjI4N0MzMjcuNTM2IDI5OS44ODcgMzI2LjQ2OSAyOTcuODg3IDMyNS45MzYgMjk1LjYyQzMyNS41MzYgMjkzLjQ4NyAzMjIuNzM2IDI4OS4wODcgMzE5LjgwMyAyODUuODg3QzMxNC42MDMgMjgwLjI4NyAzMTQuMjAzIDI3OS4wODcgMzEyLjMzNiAyNjcuMDg3QzMwOS45MzYgMjUwLjU1MyAzMDMuODAzIDIzNS43NTMgMjk2LjMzNiAyMjcuNjJDMjkwLjMzNiAyMjEuMzUzIDI4NC42MDMgMjA5Ljg4NyAyODUuNjY5IDIwNi44MkMyODYuMDY5IDIwNS43NTMgMjg1LjAwMyAyMDIuNjg3IDI4My40MDMgMjAwLjAyQzI4MS42NjkgMTk3LjM1MyAyNzkuNTM2IDE5Mi45NTMgMjc4LjQ2OSAxOTAuNDJDMjc3LjUzNiAxODcuODg3IDI3NS42NjkgMTgzLjg4NyAyNzQuNDY5IDE4MS43NTNDMjczLjEzNiAxNzkuNDg3IDI3MS40MDMgMTc1LjM1MyAyNzAuNDY5IDE3Mi40MkMyNjQuODY5IDE1NC42ODcgMjUyLjYwMyAxNDIuMDIgMjIyLjA2OSAxMjIuMjg3QzIxNy41MzYgMTE5LjM1MyAyMTUuODAzIDExNy4zNTMgMjE2LjMzNiAxMTUuODg3QzIyMC4wNjkgMTA0LjQyIDIyMS44MDMgOTkuNDg2NSAyMjMuODAzIDk0LjQxOThDMjI1LjEzNiA5MS4wODY1IDIyNi44NjkgODQuMTUzMiAyMjcuNjY5IDc5LjA4NjVDMjI5LjY2OSA2Ni4wMTk4IDIzMC43MzYgNDIuNDE5OCAyMjkuMjY5IDQyLjQxOThDMjI4LjYwMyA0Mi40MTk4IDIyNy40MDMgNDAuNDE5OCAyMjYuNjAzIDM4LjE1MzJDMjIyLjIwMyAyNS42MTk4IDIwNi4wNjkgNi4wMTk4MyAxOTkuMDAzIDQuNjg2NUMxOTYuODY5IDQuMjg2NSAxOTIuNzM2IDMuMDg2NSAxODkuODAzIDEuODg2NUMxODMuNDAzIC0wLjUxMzUwMiAxNzMuNDAzIC0wLjY0NjgzNiAxNjUuMTM2IDEuNjE5ODNaTTI0MC4wNjkgMjA0LjY4N0MyNDIuMDY5IDIwNi42ODcgMjQzLjgwMyAyMDguOTUzIDI0My44MDMgMjA5Ljg4N0MyNDMuODAzIDIxMC44MiAyNDQuODY5IDIxMi40MiAyNDYuMjAzIDIxMy4zNTNDMjQ5LjEzNiAyMTUuNDg3IDI2NS4wMDMgMjM5Ljc1MyAyNzAuMzM2IDI1MC4yODdDMjcyLjQ2OSAyNTQuNDIgMjc0Ljg2OSAyNjAuMTUzIDI3NS42NjkgMjYzLjA4N0MyNzYuNDY5IDI2Ni4wMiAyNzkuNDAzIDI3MS4yMiAyODIuMzM2IDI3NC44MkMyODcuMTM2IDI4MC41NTMgMjg3LjQwMyAyODEuNDg3IDI4Ni4wNjkgMjg0Ljk1M0MyODUuMjY5IDI4Ny4yMiAyODQuMDY5IDI4OC41NTMgMjgzLjUzNiAyODguMjg3QzI4Mi44NjkgMjg3Ljg4NyAyODEuNDAzIDI4OC4yODcgMjgwLjIwMyAyODkuMzUzQzI3OC40NjkgMjkwLjY4NyAyNzcuOTM2IDI5MC42ODcgMjc3LjUzNiAyODkuMzUzQzI3Ni44NjkgMjg3LjQ4NyAyNjkuNjY5IDI4Ny4yMiAyNjguNDY5IDI4OS4wODdDMjY4LjA2OSAyODkuNzUzIDI2OC4zMzYgMjkxLjc1MyAyNjkuMjY5IDI5My4zNTNMMjcwLjg2OSAyOTYuNDJMMjY3LjQwMyAyOTMuMjJDMjY0LjIwMyAyOTAuMjg3IDI2My44MDMgMjkwLjI4NyAyNjEuODAzIDI5Mi4yODdDMjYwLjMzNiAyOTMuNjIgMjU3LjI2OSAyOTQuNDIgMjUzLjEzNiAyOTQuNDJDMjQ5LjUzNiAyOTQuNDIgMjQzLjgwMyAyOTUuMzUzIDI0MC4zMzYgMjk2LjU1M0MyMzQuNjAzIDI5OC40MiAyMzQuMDY5IDI5OC40MiAyMzEuNTM2IDI5Ni4xNTNDMjMwLjA2OSAyOTQuODIgMjI3LjUzNiAyOTMuNzUzIDIyNi4wNjkgMjkzLjc1M0MyMjQuMjAzIDI5My43NTMgMjIxLjkzNiAyOTEuNzUzIDIxOS40MDMgMjg4LjE1M0wyMTUuNjY5IDI4Mi40MkwyMTguODY5IDI3OC4xNTNDMjI0LjQ2OSAyNzAuNjg3IDIyNS4yNjkgMjY4LjE1MyAyMjYuNDY5IDI1My4zNTNDMjI3LjI2OSAyNDUuNDg3IDIyOS4wMDMgMjM1LjIyIDIzMC40NjkgMjMwLjQyQzIzMS45MzYgMjI1LjYyIDIzMy41MzYgMjE3LjA4NyAyMzQuMDY5IDIxMS4zNTNDMjM0LjQ2OSAyMDUuNzUzIDIzNS4xMzYgMjAxLjA4NyAyMzUuNTM2IDIwMS4wODdDMjM1LjkzNiAyMDEuMDg3IDIzOC4wNjkgMjAyLjY4NyAyNDAuMDY5IDIwNC42ODdaTTc2LjIwMjggMjQ1LjQ4N0M3NC43MzYxIDI0OC44MiA3My45MzYxIDI1NC4xNTMgNzMuOTM2MSAyNjAuNTUzQzczLjgwMjggMjcwLjI4NyA3My44MDI4IDI3MC41NTMgNzAuNjAyOCAyNjkuNzUzQzY1LjkzNjEgMjY4LjU1MyA1Ni4zMzYxIDI3MC40MiA1My41MzYxIDI3Mi45NTNDNDguNDY5NSAyNzcuNzUzIDQyLjg2OTUgMjc0LjU1MyAzOS42Njk1IDI2NS4yMkMzOC40Njk1IDI2MS44ODcgMzguNzM2MSAyNjAuNTUzIDQxLjAwMjggMjU3LjQ4N0M0Mi40Njk1IDI1NS40ODcgNDQuMzM2MSAyNTEuMDg3IDQ1LjEzNjEgMjQ3Ljc1M0M0Ni40Njk1IDI0My4wODcgNDguNjAyOCAyNDAuMTUzIDU2LjA2OTUgMjMzLjA4N0M2MS4yNjk1IDIyOC4yODcgNjguMzM2MSAyMjEuNjIgNzEuNjY5NSAyMTguMjg3TDc3LjgwMjggMjEyLjE1M0w3OC4yMDI4IDIyNi4yODdDNzguNDY5NSAyMzcuNDg3IDc4LjA2OTUgMjQxLjQ4NyA3Ni4yMDI4IDI0NS40ODdaTTcxLjY2OTUgMjc3Ljg4N0M3Mi4zMzYxIDI3OC41NTMgNjYuMjAyOCAyODMuNjIgNjQuNzM2MSAyODMuNzUzQzYzLjEzNjEgMjgzLjc1MyA1OC42MDI4IDI3OC4wMiA1OS4yNjk1IDI3Ni45NTNDNTkuODAyOCAyNzYuMDIgNzAuNjAyOCAyNzYuOTUzIDcxLjY2OTUgMjc3Ljg4N1pNMTExLjY2OSA2MTEuMzUzQzExMS44MDMgNjEzLjc1MyAxMTEuMjY5IDYxNS43NTMgMTEwLjYwMyA2MTUuNzUzQzEwOC43MzYgNjE1Ljc1MyAxMDguMzM2IDYxMy42MiAxMDkuMDAzIDYwNy4zNTNDMTA5LjQwMyA2MDIuOTUzIDEwOS42NjkgNjAyLjI4NyAxMTAuNjAzIDYwNC40MkMxMTEuMTM2IDYwNS44ODcgMTExLjY2OSA2MDkuMDg3IDExMS42NjkgNjExLjM1M1pNMjMwLjA2OSA2MjYuMDJDMjI5LjY2OSA2MjcuMzUzIDIyOS40MDMgNjI2LjU1MyAyMjkuNDAzIDYyNC40MkMyMjkuNDAzIDYyMi4xNTMgMjI5LjY2OSA2MjEuMjIgMjMwLjA2OSA2MjIuMDJDMjMwLjMzNiA2MjIuOTUzIDIzMC4zMzYgNjI0LjgyIDIzMC4wNjkgNjI2LjAyWk0xMDAuODY5IDYyNi4wMkMxMDEuNTM2IDYyOC40MiA5Ny44MDI4IDYyOC4xNTMgOTUuNjY5NSA2MjUuNjJDOTQuMjAyOCA2MjMuNzUzIDk0LjMzNjEgNjIzLjYyIDk3LjEzNjEgNjI0LjAyQzk4Ljg2OTUgNjI0LjE1MyAxMDAuNDY5IDYyNS4yMiAxMDAuODY5IDYyNi4wMloiIGZpbGw9IiMwZTFlMGMiLz4KPHBhdGggZD0iTTIwMi40NjkgNzE1Ljc1M0MyMDIuNDY5IDcxNi40MiAyMDMuMTM1IDcxNy4wODcgMjAzLjgwMiA3MTcuMDg3QzIwNC42MDIgNzE3LjA4NyAyMDUuMTM1IDcxNi40MiAyMDUuMTM1IDcxNS43NTNDMjA1LjEzNSA3MTQuOTUzIDIwNC42MDIgNzE0LjQyIDIwMy44MDIgNzE0LjQyQzIwMy4xMzUgNzE0LjQyIDIwMi40NjkgNzE0Ljk1MyAyMDIuNDY5IDcxNS43NTNaIiBmaWxsPSIjMGUxZTBjIi8+Cjwvc3ZnPgo=';
+    let _motoReady=false;
+    _motoImg.onload=()=>{_motoReady=true;};
+
+    /* Position du motard sur la route : suit la sinuosité */
+    function getMotoPos(){
+      const phase=t*0.25;
+      const amp=W*0.10;
+      /* Entre cp1 et cp2 — ~60% de la route */
+      const mx=cx - amp*Math.sin(phase+0.45)*0.55;
+      const my=H*0.74;
+      return {mx,my};
+    }
+
+    function drawMoto(){
+      if(!_motoReady)return;
+      const {mx,my}=getMotoPos();
+      /* SVG moto : 330×804 px — on le met à l'échelle */
+      const mh=H*0.13; /* hauteur affichée */
+      const mw=mh*(330/804);
+      ctx.save();
+      ctx.globalAlpha=0.92;
+      /* Légère inclinaison selon la sinuosité */
+      const phase=t*0.25;
+      const amp=W*0.10;
+      const tilt=amp*Math.cos(phase+0.45)*0.55/H*0.15;
+      ctx.translate(mx,my);
+      ctx.rotate(tilt);
+      ctx.drawImage(_motoImg,-mw/2,-mh,mw,mh);
+      ctx.restore();
+      /* Ombre au sol */
+      const sg=ctx.createRadialGradient(mx,my+2,0,mx,my+4,mw*0.7);
+      sg.addColorStop(0,'rgba(10,20,10,0.30)');sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(mx,my+3,mw*0.7,mw*0.18,0,0,Math.PI*2);ctx.fill();
+    }
+
+    let fadeIn=0;
     function frame(){
       if(stop.v)return;
-      if(fadeIn<1) fadeIn=Math.min(1,fadeIn+0.005);
+      if(fadeIn<1)fadeIn=Math.min(1,fadeIn+0.007);
 
-      /* Ciel nocturne */
+      /* Ciel vert sauge */
       const sky=ctx.createLinearGradient(0,0,0,H);
-      sky.addColorStop(0,'#020508');
-      sky.addColorStop(0.45,'#04090c');
-      sky.addColorStop(0.72,'#060e0a');
-      sky.addColorStop(1,'#030705');
+      sky.addColorStop(0,'#96c494');sky.addColorStop(0.40,'#7aaa78');
+      sky.addColorStop(0.68,'#568852');sky.addColorStop(1,'#324e30');
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
-      /* Lune discrète */
-      const moonX=W*0.78, moonY=H*0.12;
-      const moonG=ctx.createRadialGradient(moonX,moonY,0,moonX,moonY,W*0.045);
-      moonG.addColorStop(0,'rgba(210,220,195,0.28)');
-      moonG.addColorStop(0.5,'rgba(160,175,145,0.07)');
-      moonG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=moonG;ctx.beginPath();ctx.arc(moonX,moonY,W*0.045,0,Math.PI*2);ctx.fill();
+      /* Pins arrière → avant */
+      LAYERS.forEach((l,li)=>{
+        layerTrees[li].forEach(tr=>{
+          tr.ph+=l.sway;
+          const sw=Math.sin(tr.ph)*W*0.003*(li+1);
+          drawPine(tr.x+sw,l.baseY,tr.hw,tr.h,l.col,l.dark);
+        });
+      });
 
-      /* Brume horizon */
-      const fogY=ROAD_Y-H*0.08;
-      const fog=ctx.createLinearGradient(0,fogY,0,fogY+H*0.12);
-      fog.addColorStop(0,'rgba(0,0,0,0)');
-      fog.addColorStop(0.4,`rgba(12,22,16,${0.22*fadeIn})`);
-      fog.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=fog;ctx.fillRect(0,fogY,W,H*0.12);
+      /* Route sinueuse */
+      drawRoad();
 
-      /* ── Pins arrière-plan ── */
-      for(const tr of bgTrees){
-        tr.ph+=tr.spd;
-        drawPine(tr.x, ROAD_Y-H*0.01, tr.hw, tr.h,
-          'rgba(14,24,16,0.82)','rgba(8,14,9,0.88)');
-      }
+      /* Motard sur la route */
+      drawMoto();
 
-      /* ── Route ── */
-      const roadBot=H;
-      const rg=ctx.createLinearGradient(0,ROAD_Y,0,roadBot);
-      rg.addColorStop(0,'rgba(10,14,11,0.95)');
-      rg.addColorStop(0.4,'rgba(14,18,13,0.98)');
-      rg.addColorStop(1,'rgba(6,8,6,1)');
-      ctx.fillStyle=rg;
-      ctx.beginPath();
-      ctx.moveTo(cx-W*0.22, ROAD_Y);
-      ctx.lineTo(cx+W*0.22, ROAD_Y);
-      ctx.lineTo(W, roadBot);
-      ctx.lineTo(0, roadBot);
-      ctx.closePath();
-      ctx.fill();
-      /* Ligne centrale pointillée */
-      const dashCount=8;
-      for(let d=0;d<dashCount;d++){
-        const prog=(d/dashCount+((t*0.08)%1/dashCount)*dashCount)%1;
-        const dy=ROAD_Y+prog*(roadBot-ROAD_Y);
-        const dw=W*(0.004+prog*0.008);
-        const dh=H*(0.012+prog*0.018);
-        const dop=0.08*(1-prog*0.5)*fadeIn;
-        ctx.fillStyle=`rgba(180,170,130,${dop})`;
-        ctx.fillRect(cx-dw/2, dy, dw, dh);
-      }
-      /* Reflet lune sur route */
-      const ref=ctx.createRadialGradient(cx,ROAD_Y+H*0.04,0,cx,ROAD_Y+H*0.06,W*0.18);
-      ref.addColorStop(0,`rgba(180,190,165,${0.06*fadeIn})`);
-      ref.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=ref;ctx.fillRect(0,ROAD_Y,W,H*0.16);
+      /* Grands pins avant-plan aux bords */
+      const fp=layerTrees[4];
+      fp.slice(0,3).forEach(tr=>{drawPine(tr.x-W*0.02,H*0.84,tr.hw*1.4,tr.h*1.25,'#07110a','#030807');});
+      fp.slice(-3).forEach(tr=>{drawPine(tr.x+W*0.02,H*0.84,tr.hw*1.4,tr.h*1.25,'#07110a','#030807');});
 
-      /* ── Moto ── */
-      moto.x+=moto.spd;
-      if(moto.x>W*1.12) moto.x=-W*0.12;
-      const my=ROAD_Y-H*0.015;
-      moto.trail.push({x:moto.x,y:my});
-      if(moto.trail.length>35) moto.trail.shift();
-      /* Halo moteur au sol */
-      const halo=ctx.createRadialGradient(moto.x,my+H*0.01,0,moto.x,my+H*0.01,W*0.08);
-      halo.addColorStop(0,`rgba(255,190,60,${0.08*fadeIn})`);
-      halo.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
-      /* Traînée lumineuse */
-      for(let ti=0;ti<moto.trail.length;ti++){
-        const prog=ti/moto.trail.length;
-        const op=prog*prog*0.18*fadeIn;
-        ctx.fillStyle=`rgba(255,200,80,${op})`;
-        ctx.beginPath();
-        ctx.ellipse(moto.trail[ti].x, moto.trail[ti].y, 4+prog*3, 1.5, 0, 0, Math.PI*2);
-        ctx.fill();
-      }
-      drawMoto(moto.x, my);
-
-      /* ── Pins avant-plan ── */
-      for(const tr of fgTrees){
-        tr.ph+=tr.spd;
-        drawPine(tr.x, ROAD_Y+H*0.004, tr.hw, tr.h,
-          'rgba(6,12,7,0.97)','rgba(3,6,4,1)');
-      }
-
-      /* ── Grain cinéma ── */
-      for(const g of grains){
-        g.op=Math.random()*0.028;
-        ctx.fillStyle=`rgba(195,200,190,${g.op})`;
-        ctx.fillRect(g.x,g.y,g.sz,g.sz);
-      }
-
-      /* ── Vignette dramatique ── */
-      const vg=ctx.createRadialGradient(cx,H*0.50,H*0.05,cx,H*0.50,H*0.90);
-      vg.addColorStop(0,'rgba(0,0,0,0)');
-      vg.addColorStop(0.40,'rgba(0,0,0,0.12)');
-      vg.addColorStop(0.68,'rgba(0,0,0,0.55)');
-      vg.addColorStop(1,'rgba(0,0,0,0.97)');
+      /* Vignette */
+      const vg=ctx.createRadialGradient(cx,H*0.50,W*0.15,cx,H*0.50,W*0.72);
+      vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.65,'rgba(0,0,0,0.05)');
+      vg.addColorStop(1,`rgba(0,0,0,${0.28*fadeIn})`);
       ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-      /* Bandes noires haut/bas style cinémascope */
-      const barH=H*0.055;
-      ctx.fillStyle='rgba(0,0,0,0.88)';
-      ctx.fillRect(0,0,W,barH);
-      ctx.fillRect(0,H-barH,W,barH);
 
       t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
   },
-
   /* ══ DANS LA PEAU DE JOHN MALKOVICH ══ */
   {
    name:'Dans la peau de John Malkovich',
