@@ -45232,95 +45232,370 @@ function closeAvModal(e){
    name:'Joker',
    ref:'Joker \u2014 Todd Phillips, 2019',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.80';
+    cv.style.opacity='1.0';
     let t=0;
     const cx=W/2;
-    /* Escaliers de Joker — Bronx */
-    const stairSteps=Array.from({length:18},(_,i)=>({y:H*(0.30+i*0.033),w:W*(0.30+i*0.028),xOff:i*W*0.014}));
-    /* Pluie */
-    const rain=Array.from({length:90},()=>({x:Math.random()*W*1.2-W*0.10,y:Math.random()*H,len:Math.random()*14+6,spd:Math.random()*6+7,op:Math.random()*0.16+0.05}));
-    /* Confettis rouges */
-    const confetti=Array.from({length:25},()=>({x:Math.random()*W,y:Math.random()*H-H*0.3,vx:(Math.random()-0.5)*1.2,vy:Math.random()*1.5+0.5,rot:Math.random()*Math.PI*2,rotSpd:(Math.random()-0.5)*0.08,r:Math.random()*4+2,hue:Math.random()<0.7?0:320+Math.random()*40}));
-    /* Néons de la ville */
-    const neons=[{x:W*0.10,y:H*0.22,text:'HA HA HA',op:0,timer:0},{x:W*0.60,y:H*0.16,text:'HA HA',op:0,timer:20}];
-    /* Silhouette Joker qui danse */
+
+    let _s=document.getElementById('_joker_s');
+    if(!_s){_s=document.createElement('style');_s.id='_joker_s';document.head.appendChild(_s);}
+    _s.textContent=`
+      #splash{background:#0a0402!important;}
+      #splash-bg::before{background:none!important;}
+      #splash-bg::after{background:none!important;}
+      #splash-bg-anim::before{background:none!important;}
+      #splash-bg-anim::after{background:none!important;}
+    `;
+    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+
+    /* ── Escaliers — 22 marches larges en perspective ── */
+    const STEPS=22;
+    const stairBase=H*0.88;
+    const stairTop=H*0.28;
+    const steps=Array.from({length:STEPS},(_,i)=>{
+     const prog=i/STEPS; /* 0=haut, 1=bas */
+     const y=stairTop+prog*(stairBase-stairTop);
+     /* Les marches s'élargissent vers le bas (perspective) */
+     const halfW=W*(0.18+prog*0.42);
+     /* Légère déclivité gauche — les escaliers du Bronx sont asymétriques */
+     const xShift=W*(-0.06+prog*0.06);
+     return {y,halfW,xShift,prog};
+    });
+
+    /* ── "HA HA HA" écrits sur les murs — clignotants ── */
+    const hahas=[
+     {x:W*0.04,y:H*0.18,size:W*0.038,op:0,timer:0,delay:0},
+     {x:W*0.58,y:H*0.12,size:W*0.028,op:0,timer:20,delay:20},
+     {x:W*0.08,y:H*0.36,size:W*0.022,op:0,timer:45,delay:45},
+     {x:W*0.62,y:H*0.30,size:W*0.018,op:0,timer:10,delay:60},
+     {x:W*0.02,y:H*0.52,size:W*0.016,op:0,timer:30,delay:30},
+    ];
+
+    /* ── Confettis rouges ── */
+    const confetti=Array.from({length:40},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H-H*0.4,
+     vx:(Math.random()-0.5)*1.0,
+     vy:Math.random()*1.2+0.4,
+     rot:Math.random()*Math.PI*2,
+     rotSpd:(Math.random()-0.5)*0.10,
+     r:Math.random()*4+2,
+     hue:Math.random()<0.75?355+Math.random()*10:310+Math.random()*30,
+    }));
+
+    /* ── Particules de poussière urbaine ── */
+    const dust=Array.from({length:25},()=>({
+     x:Math.random()*W,y:Math.random()*H,
+     vx:(Math.random()-0.5)*0.15,vy:-(Math.random()*0.06+0.02),
+     r:Math.random()*1.2+0.3,op:Math.random()*0.12+0.04,
+     ph:Math.random()*Math.PI*2,
+    }));
+
+    /* ── Lampadaire — source de lumière principale ── */
+    const lampX=cx+W*0.32, lampY=H*0.22;
+
+    /* ── Danse du Joker ── */
     let dancePhase=0;
+
     function drawJoker(x,y){
-     dancePhase+=0.025;
-     const lean=Math.sin(dancePhase)*0.20;
-     const armL=Math.sin(dancePhase*0.8)*0.45;
-     const armR=Math.sin(dancePhase*0.8+Math.PI*0.6)*0.50;
-     ctx.save();ctx.translate(x,y);ctx.rotate(lean);
-     ctx.fillStyle='rgba(5,4,3,0.98)';
-     const fh=H*0.22,fw=W*0.040;
-     /* Corps — costume */
-     ctx.beginPath();ctx.roundRect(-fw/2,-fh*0.68,fw,fh*0.60,3);ctx.fill();
+     dancePhase+=0.022;
+     const lean=Math.sin(dancePhase)*0.18;
+     const armL=Math.sin(dancePhase*0.9)*0.55;
+     const armR=Math.sin(dancePhase*0.9+Math.PI*0.55)*0.60;
+     const legL=Math.sin(dancePhase*1.0)*0.28;
+     const legR=Math.sin(dancePhase*1.0+Math.PI)*0.28;
+
+     const fh=H*0.28, fw=W*0.048;
+
+     ctx.save();
+     ctx.translate(x,y);
+     ctx.rotate(lean);
+
+     /* Ombre portée au sol */
+     ctx.save();
+     ctx.globalAlpha=0.22;
+     ctx.fillStyle='rgba(0,0,0,1)';
+     ctx.beginPath();ctx.ellipse(0,H*0.01,fw*1.2,H*0.012,0,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
+     /* Halo de lumière lampadaire sur le Joker */
+     const jGlow=ctx.createRadialGradient(fw*0.5,-fh*0.5,0,fw*0.5,-fh*0.5,fh*1.1);
+     jGlow.addColorStop(0,'rgba(255,200,80,0.12)');
+     jGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=jGlow;ctx.beginPath();ctx.arc(fw*0.5,-fh*0.5,fh*1.1,0,Math.PI*2);ctx.fill();
+
+     ctx.fillStyle='rgba(6,4,2,0.98)';
+
+     /* Manteau long — caractéristique */
+     ctx.beginPath();
+     ctx.moveTo(-fw*0.55,-fh*0.62);
+     ctx.bezierCurveTo(-fw*0.70,-fh*0.30,-fw*0.65,fh*0.10,-fw*0.50+Math.sin(dancePhase)*fw*0.15,fh*0.28);
+     ctx.lineTo(fw*0.50+Math.sin(dancePhase+Math.PI)*fw*0.15,fh*0.28);
+     ctx.bezierCurveTo(fw*0.65,fh*0.10,fw*0.70,-fh*0.30,fw*0.55,-fh*0.62);
+     ctx.closePath();ctx.fill();
+
+     /* Corps / torse */
+     ctx.beginPath();ctx.roundRect(-fw*0.44,-fh*0.72,fw*0.88,fh*0.55,3);ctx.fill();
+
+     /* Cravate — petite touche de couleur */
+     ctx.fillStyle='rgba(160,30,30,0.85)';
+     ctx.beginPath();
+     ctx.moveTo(-fw*0.06,-fh*0.60);ctx.lineTo(fw*0.06,-fh*0.60);
+     ctx.lineTo(fw*0.04,-fh*0.22);ctx.lineTo(0,-fh*0.16);ctx.lineTo(-fw*0.04,-fh*0.22);
+     ctx.closePath();ctx.fill();
+
+     ctx.fillStyle='rgba(6,4,2,0.98)';
+
      /* Tête */
-     ctx.beginPath();ctx.arc(0,-fh*0.76,fw*0.48,0,Math.PI*2);ctx.fill();
-     /* Cheveux verts — légers traits */
-     ctx.strokeStyle='rgba(50,120,30,0.55)';ctx.lineWidth=2.5;ctx.lineCap='round';
-     for(let hi=-2;hi<=2;hi++){ctx.beginPath();ctx.moveTo(hi*fw*0.18,-fh*0.76-fw*0.35);ctx.lineTo(hi*fw*0.22,-fh*0.76-fw*0.55+Math.sin(dancePhase+hi)*3);ctx.stroke();}
-     /* Bras gauche */
-     ctx.strokeStyle='rgba(5,4,3,0.98)';ctx.lineWidth=5;ctx.lineCap='round';
-     ctx.save();ctx.translate(-fw/2,-fh*0.50);ctx.rotate(armL-0.4);
-     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-W*0.075,H*0.055);ctx.stroke();ctx.restore();
-     /* Bras droit levé — danse */
-     ctx.save();ctx.translate(fw/2,-fh*0.50);ctx.rotate(armR+0.4);
-     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W*0.075,-H*0.055);ctx.stroke();ctx.restore();
-     /* Jambes */
-     ctx.save();ctx.translate(-fw*0.22,-fh*0.10);ctx.rotate(Math.sin(dancePhase)*0.30);
-     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-W*0.015,H*0.085);ctx.stroke();ctx.restore();
-     ctx.save();ctx.translate(fw*0.22,-fh*0.10);ctx.rotate(Math.sin(dancePhase+Math.PI)*0.30);
-     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W*0.015,H*0.085);ctx.stroke();ctx.restore();
+     ctx.beginPath();ctx.arc(0,-fh*0.82,fw*0.52,0,Math.PI*2);ctx.fill();
+
+     /* Chapeau haut-de-forme */
+     ctx.beginPath();
+     ctx.ellipse(0,-fh*0.88,fw*0.58,fw*0.16,0,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();
+     ctx.roundRect(-fw*0.40,-fh*1.04,fw*0.80,fh*0.18,2);ctx.fill();
+
+     /* Cheveux verts */
+     ctx.strokeStyle='rgba(45,140,25,0.75)';ctx.lineWidth=2.8;ctx.lineCap='round';
+     for(let hi=-3;hi<=3;hi++){
+      ctx.beginPath();
+      ctx.moveTo(hi*fw*0.12,-fh*0.88-fw*0.28);
+      ctx.quadraticCurveTo(
+       hi*fw*0.18+Math.sin(dancePhase+hi)*2,-fh*0.88-fw*0.48,
+       hi*fw*0.22,-fh*0.88-fw*0.62+Math.sin(dancePhase*1.2+hi)*3
+      );
+      ctx.stroke();
+     }
+
+     /* Sourire peint — icône du film */
+     ctx.strokeStyle='rgba(200,35,35,0.90)';ctx.lineWidth=2.2;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(-fw*0.28,-fh*0.78);
+     ctx.quadraticCurveTo(0,-fh*0.68,fw*0.28,-fh*0.78);
+     ctx.stroke();
+     /* Coins du sourire remontant */
+     ctx.beginPath();ctx.moveTo(-fw*0.28,-fh*0.78);ctx.lineTo(-fw*0.34,-fh*0.84);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(fw*0.28,-fh*0.78);ctx.lineTo(fw*0.34,-fh*0.84);ctx.stroke();
+
+     /* Bras gauche — levé */
+     ctx.strokeStyle='rgba(6,4,2,0.98)';ctx.lineWidth=fw*0.30;ctx.lineCap='round';
+     ctx.save();ctx.translate(-fw*0.44,-fh*0.55);ctx.rotate(armL-0.5);
+     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-W*0.070,H*0.048);ctx.stroke();
+     /* Main */
+     ctx.fillStyle='rgba(6,4,2,0.98)';
+     ctx.beginPath();ctx.arc(-W*0.070,H*0.048,fw*0.18,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
+     /* Bras droit — bras de danse levé haut */
+     ctx.save();ctx.translate(fw*0.44,-fh*0.55);ctx.rotate(armR+0.5);
+     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W*0.075,-H*0.070);ctx.stroke();
+     ctx.fillStyle='rgba(6,4,2,0.98)';
+     ctx.beginPath();ctx.arc(W*0.075,-H*0.070,fw*0.18,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
+     /* Jambe gauche */
+     ctx.lineWidth=fw*0.26;
+     ctx.save();ctx.translate(-fw*0.22,fh*0.10);ctx.rotate(legL);
+     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-W*0.018,H*0.095);ctx.stroke();
+     /* Chaussure */
+     ctx.fillStyle='rgba(4,2,1,0.99)';
+     ctx.beginPath();ctx.ellipse(-W*0.018+Math.sin(legL)*W*0.020,H*0.095,fw*0.28,fw*0.12,-0.3,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
+     /* Jambe droite */
+     ctx.save();ctx.translate(fw*0.22,fh*0.10);ctx.rotate(legR);
+     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W*0.018,H*0.095);ctx.stroke();
+     ctx.fillStyle='rgba(4,2,1,0.99)';
+     ctx.beginPath();ctx.ellipse(W*0.018+Math.sin(legR)*W*0.020,H*0.095,fw*0.28,fw*0.12,0.3,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+
      ctx.restore();
     }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(5,3,2,0.26)';ctx.fillRect(0,0,W,H);
-     /* Fond Gotham nuit — palette chaude/sale */
+
+     /* ── FOND nuit Gotham/Bronx ── */
      const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0,'rgba(8,5,3,0.97)');bg.addColorStop(0.5,'rgba(14,8,4,0.94)');bg.addColorStop(1,'rgba(10,5,2,0.97)');
+     bg.addColorStop(0.00,'#060300');
+     bg.addColorStop(0.20,'#0a0502');
+     bg.addColorStop(0.50,'#0e0703');
+     bg.addColorStop(0.80,'#080401');
+     bg.addColorStop(1.00,'#050200');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-     /* Lueur orange de la ville en haut */
-     const cityG=ctx.createRadialGradient(cx,0,5,cx,0,W*0.60);
-     cityG.addColorStop(0,`rgba(180,80,20,${0.10+Math.sin(t*0.18)*0.03})`);cityG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=cityG;ctx.beginPath();ctx.ellipse(cx,0,W*0.55,H*0.18,0,0,Math.PI*2);ctx.fill();
-     /* Escaliers en perspective */
-     for(let si=stairSteps.length-1;si>=0;si--){
-      const s=stairSteps[si];
-      const shade=12+si*1.8|0;
-      ctx.fillStyle=`rgba(${shade+4},${shade+2},${shade},0.97)`;
-      ctx.fillRect(cx-s.w/2-s.xOff,s.y,s.w,H*0.033);
-      /* Ligne de nez de marche */
-      ctx.strokeStyle=`rgba(${shade*2+10},${shade*2+8},${shade*2+5},0.35)`;ctx.lineWidth=0.8;
-      ctx.beginPath();ctx.moveTo(cx-s.w/2-s.xOff,s.y);ctx.lineTo(cx+s.w/2+s.xOff,s.y);ctx.stroke();
+
+     /* Lueur orange sale de la ville en haut (pollution lumineuse Gotham) */
+     const cityG=ctx.createRadialGradient(cx,H*0.05,0,cx,H*0.05,W*0.75);
+     cityG.addColorStop(0,`rgba(200,90,15,${0.18+Math.sin(t*0.22)*0.03})`);
+     cityG.addColorStop(0.40,'rgba(160,55,8,0.07)');
+     cityG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=cityG;ctx.fillRect(0,0,W,H*0.50);
+
+     /* ── LAMPADAIRE ── */
+     /* Poteau */
+     ctx.strokeStyle='rgba(18,12,5,0.98)';ctx.lineWidth=W*0.012;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(lampX,H*0.90);ctx.lineTo(lampX,lampY+H*0.04);ctx.stroke();
+     /* Bras */
+     ctx.beginPath();
+     ctx.moveTo(lampX,lampY+H*0.04);
+     ctx.bezierCurveTo(lampX,lampY,lampX-W*0.12,lampY,lampX-W*0.14,lampY+H*0.01);
+     ctx.stroke();
+     /* Globe */
+     const lampGlow=ctx.createRadialGradient(lampX-W*0.14,lampY+H*0.01,0,lampX-W*0.14,lampY+H*0.01,W*0.55);
+     lampGlow.addColorStop(0,`rgba(255,210,100,${0.65+Math.sin(t*1.8)*0.05})`);
+     lampGlow.addColorStop(0.06,`rgba(255,185,60,${0.45+Math.sin(t*1.8)*0.05})`);
+     lampGlow.addColorStop(0.20,'rgba(220,140,30,0.15)');
+     lampGlow.addColorStop(0.50,'rgba(180,90,10,0.06)');
+     lampGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=lampGlow;ctx.fillRect(0,0,W,H*0.75);
+     ctx.fillStyle=`rgba(255,240,180,${0.88+Math.sin(t*1.8)*0.08})`;
+     ctx.beginPath();ctx.arc(lampX-W*0.14,lampY+H*0.01,W*0.018,0,Math.PI*2);ctx.fill();
+
+     /* ── ESCALIERS — du plus haut au plus bas ── */
+     for(let si=0;si<STEPS;si++){
+      const s=steps[si];
+      /* Profondeur : marches du haut plus claires (éclairées) */
+      const lightFactor=1-s.prog*0.55;
+      /* Couleur de base béton sale */
+      const rb=Math.round((18+s.prog*8)*lightFactor+si*0.4);
+      const gb=Math.round((14+s.prog*6)*lightFactor+si*0.3);
+      const bb=Math.round((8+s.prog*4)*lightFactor+si*0.2);
+      /* Surface de la marche */
+      ctx.fillStyle=`rgb(${rb},${gb},${bb})`;
+      ctx.beginPath();
+      ctx.moveTo(cx-s.halfW+s.xShift,s.y);
+      ctx.lineTo(cx+s.halfW+s.xShift,s.y);
+      if(si<STEPS-1){
+       const ns=steps[si+1];
+       ctx.lineTo(cx+ns.halfW+ns.xShift,ns.y);
+       ctx.lineTo(cx-ns.halfW+ns.xShift,ns.y);
+      } else {
+       ctx.lineTo(cx+s.halfW+s.xShift,stairBase);
+       ctx.lineTo(cx-s.halfW+s.xShift,stairBase);
+      }
+      ctx.closePath();ctx.fill();
+
+      /* Nez de marche — ligne de contraste */
+      ctx.strokeStyle=`rgba(${rb+12},${gb+10},${bb+6},0.50)`;
+      ctx.lineWidth=1.2;
+      ctx.beginPath();
+      ctx.moveTo(cx-s.halfW+s.xShift,s.y);
+      ctx.lineTo(cx+s.halfW+s.xShift,s.y);
+      ctx.stroke();
+
+      /* Risers (contremarches) — plus sombres */
+      if(si>0){
+       const ps=steps[si-1];
+       ctx.fillStyle=`rgb(${rb-6},${gb-5},${bb-3})`;
+       ctx.beginPath();
+       ctx.moveTo(cx-ps.halfW+ps.xShift,ps.y);
+       ctx.lineTo(cx+ps.halfW+ps.xShift,ps.y);
+       ctx.lineTo(cx+s.halfW+s.xShift,s.y);
+       ctx.lineTo(cx-s.halfW+s.xShift,s.y);
+       ctx.closePath();ctx.fill();
+      }
+
+      /* Reflet du lampadaire sur les marches proches du haut */
+      if(s.prog<0.35){
+       const refOp=(0.35-s.prog)/0.35*0.08;
+       ctx.fillStyle=`rgba(255,190,60,${refOp})`;
+       ctx.beginPath();
+       ctx.moveTo(cx-s.halfW+s.xShift,s.y);
+       ctx.lineTo(cx+s.halfW+s.xShift,s.y);
+       if(si<STEPS-1){const ns=steps[si+1];ctx.lineTo(cx+ns.halfW+ns.xShift,ns.y);ctx.lineTo(cx-ns.halfW+ns.xShift,ns.y);}
+       ctx.closePath();ctx.fill();
+      }
      }
-     /* Néons HA HA HA */
-     for(const n of neons){
-      n.timer--;if(n.timer<=0){n.timer=30+Math.floor(Math.random()*60);n.op=n.op>0.04?0.01:0.12+Math.random()*0.10;}
-      ctx.fillStyle=`rgba(220,30,50,${n.op})`;ctx.font=`bold ${W*0.032}px 'DM Sans',sans-serif`;ctx.textAlign='left';ctx.textBaseline='top';
-      ctx.fillText(n.text,n.x,n.y);
+
+     /* ── Murs latéraux — immeubles du Bronx ── */
+     /* Gauche */
+     const wallLG=ctx.createLinearGradient(0,0,cx-steps[0].halfW,0);
+     wallLG.addColorStop(0,'rgba(8,5,2,0.99)');
+     wallLG.addColorStop(1,'rgba(16,10,4,0.97)');
+     ctx.fillStyle=wallLG;
+     ctx.beginPath();
+     ctx.moveTo(0,0);ctx.lineTo(cx-steps[0].halfW+steps[0].xShift,stairTop);
+     ctx.lineTo(cx-steps[STEPS-1].halfW+steps[STEPS-1].xShift,stairBase);
+     ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+     /* Droite */
+     const wallRG=ctx.createLinearGradient(W,0,cx+steps[0].halfW,0);
+     wallRG.addColorStop(0,'rgba(8,5,2,0.99)');
+     wallRG.addColorStop(1,'rgba(16,10,4,0.97)');
+     ctx.fillStyle=wallRG;
+     ctx.beginPath();
+     ctx.moveTo(W,0);ctx.lineTo(cx+steps[0].halfW+steps[0].xShift,stairTop);
+     ctx.lineTo(cx+steps[STEPS-1].halfW+steps[STEPS-1].xShift,stairBase);
+     ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+
+     /* ── Grafitti / tags sur les murs ── */
+     ctx.fillStyle='rgba(80,20,20,0.18)';
+     ctx.font=`bold ${W*0.014}px monospace`;ctx.textAlign='left';ctx.textBaseline='top';
+     ctx.fillText('CLOWN',W*0.04,H*0.45);
+     ctx.fillText('FREAK',W*0.72,H*0.52);
+
+     /* ── HA HA HA — néons rouges clignotants ── */
+     for(const n of hahas){
+      n.timer--;
+      if(n.timer<=0){
+       n.timer=25+Math.floor(Math.random()*80);
+       n.op=n.op>0.05?Math.random()*0.04:0.18+Math.random()*0.22;
+      }
+      if(n.op<0.01)continue;
+      /* Halo rouge derrière le texte */
+      const hg=ctx.createRadialGradient(n.x+W*0.06,n.y+n.size*0.4,0,n.x+W*0.06,n.y+n.size*0.4,W*0.12);
+      hg.addColorStop(0,`rgba(220,20,40,${n.op*0.55})`);
+      hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.fillRect(n.x-W*0.06,n.y-n.size,W*0.24,n.size*3);
+      ctx.fillStyle=`rgba(235,30,50,${n.op})`;
+      ctx.font=`bold ${n.size}px 'DM Sans',sans-serif`;
+      ctx.textAlign='left';ctx.textBaseline='top';
+      ctx.fillText('HA HA HA',n.x,n.y);
      }
-     /* Pluie */
-     ctx.strokeStyle='rgba(140,120,100,0.12)';ctx.lineWidth=0.8;
-     for(const r of rain){
-      r.y+=r.spd;r.x-=r.spd*0.12;if(r.y>H){r.y=-r.len;r.x=Math.random()*W*1.2-W*0.10;}
-      ctx.globalAlpha=r.op;ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x+r.len*0.12,r.y+r.len);ctx.stroke();
+
+     /* ── POUSSIÈRE flottante ── */
+     for(const d of dust){
+      d.x+=d.vx;d.y+=d.vy;d.ph+=0.020;
+      if(d.y<0)d.y=H;if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+      ctx.fillStyle=`rgba(160,110,50,${d.op*(0.4+0.6*Math.sin(d.ph))})`;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
      }
-     ctx.globalAlpha=1;
-     /* Confettis rouges */
+
+     /* ── CONFETTIS ROUGES ── */
      for(const c of confetti){
-      c.x+=c.vx;c.y+=c.vy;c.rot+=c.rotSpd;if(c.y>H+10){c.y=-10;c.x=Math.random()*W;}
-      ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);
-      ctx.fillStyle=`hsla(${c.hue},85%,50%,0.60)`;ctx.fillRect(-c.r,-c.r/2,c.r*2,c.r);ctx.restore();
+      c.x+=c.vx;c.y+=c.vy;c.rot+=c.rotSpd;
+      if(c.y>H+10){c.y=-10;c.x=Math.random()*W;c.vx=(Math.random()-0.5)*1.0;}
+      ctx.save();
+      ctx.translate(c.x,c.y);ctx.rotate(c.rot);
+      ctx.fillStyle=`hsla(${c.hue},88%,48%,0.72)`;
+      ctx.fillRect(-c.r,-c.r*0.45,c.r*2,c.r*0.9);
+      ctx.restore();
      }
-     /* Joker qui danse au milieu des marches */
-     drawJoker(cx-W*0.06,H*0.55);
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.05,cx,H*0.50,H*0.92);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.42,'rgba(0,0,0,0.30)');vg.addColorStop(1,'rgba(0,0,0,0.98)');
+
+     /* ── JOKER qui danse — sur les marches du milieu ── */
+     /* Position sur la 9e marche environ */
+     const jokerStep=steps[8];
+     drawJoker(cx-W*0.06+jokerStep.xShift, jokerStep.y);
+
+     /* ── Vignette dramatique ── */
+     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.04,cx,H*0.48,H*0.85);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.38,'rgba(0,0,0,0.22)');
+     vg.addColorStop(1,'rgba(0,0,0,0.97)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<55;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+4},${g+2},${g},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+     /* Bandes latérales sombres */
+     const vgL=ctx.createLinearGradient(0,0,W*0.12,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.85)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.12,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.88,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.85)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.88,0,W*0.12,H);
+
+     /* ── Grain cinéma ── */
+     for(let i=0;i<60;i++){
+      const g=6+Math.random()*18|0;
+      ctx.fillStyle=`rgba(${g+5},${g+2},${g},${Math.random()*0.024})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.6+0.3,1);
+     }
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
