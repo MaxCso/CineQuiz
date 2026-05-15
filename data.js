@@ -5544,6 +5544,196 @@ const BLINDTEST_DB = [
   {title:"Dirty Harry",      search:"Lalo Schifrin Dirty Harry",        composer:"Lalo Schifrin",  tmdb_id:4431,  year:1971},
   // ── BILL CONTI ──
   {title:"Rocky",            search:"Bill Conti Gonna Fly Now Rocky",   composer:"Bill Conti",    tmdb_id:1366,   year:1976},
+
+  // ── HANS ZIMMER (suite) ──
+  {title:"Le Roi Lion",      search:"Hans Zimmer Circle of Life Lion King",  composer:"Hans Zimmer",   tmdb_id:420818, year:2019},
+  {title:"Rain Man",         search:"Hans Zimmer Rain Man Theme",            composer:"Hans Zimmer",   tmdb_id:380,    year:1988},
+  {title:"True Lies",        search:"Brad Fiedel True Lies Theme",           composer:"Brad Fiedel",   tmdb_id:36132,  year:1994},
+  {title:"The Last Samurai", search:"Hans Zimmer The Last Samurai",          composer:"Hans Zimmer",   tmdb_id:616,    year:2003},
+  {title:"Crimson Tide",     search:"Hans Zimmer Crimson Tide Theme",        composer:"Hans Zimmer",   tmdb_id:9363,   year:1995},
+  {title:"Sherlock Holmes",  search:"Hans Zimmer Discombobulate Sherlock Holmes", composer:"Hans Zimmer", tmdb_id:17771, year:2009},
+
+  // ── JOHN WILLIAMS (suite) ──
+  {title:"E.T.",             search:"John Williams ET Flying Theme",         composer:"John Williams", tmdb_id:601,    year:1982},
+  {title:"Catch Me If You Can", search:"John Williams Catch Me If You Can", composer:"John Williams", tmdb_id:5765,   year:2002},
+  {title:"Memoirs of a Geisha", search:"John Williams Sayuri Theme Memoirs Geisha", composer:"John Williams", tmdb_id:2758, year:2005},
+  {title:"Hook",             search:"John Williams Hook Banning Theme",      composer:"John Williams", tmdb_id:1634,   year:1991},
+  {title:"Tintin",           search:"John Williams Tintin Theme Adventures", composer:"John Williams", tmdb_id:73723,  year:2011},
+  {title:"1917",             search:"Thomas Newman 1917 Come Back",          composer:"Thomas Newman", tmdb_id:530915, year:2019},
+
+  // ── ENNIO MORRICONE (suite) ──
+  {title:"Le Bon la Brute et le Truand", search:"Ennio Morricone Ecstasy of Gold",  composer:"Ennio Morricone", tmdb_id:1700,  year:1966},
+  {title:"Nouveau Monde",    search:"Ennio Morricone The Mission Gabriel Oboe",      composer:"Ennio Morricone", tmdb_id:1580,  year:1986},
+  {title:"Il était une fois en Amérique", search:"Ennio Morricone Once Upon America Deborah", composer:"Ennio Morricone", tmdb_id:226,  year:1984},
+
+  // ── JERRY GOLDSMITH ──
+  {title:"Alien",            search:"Jerry Goldsmith Alien Main Title",      composer:"Jerry Goldsmith", tmdb_id:348,  year:1979},
+  {title:"Planet of the Apes", search:"Jerry Goldsmith Planet of the Apes", composer:"Jerry Goldsmith", tmdb_id:871,  year:1968},
+  {title:"Patton",           search:"Jerry Goldsmith Patton Theme",          composer:"Jerry Goldsmith", tmdb_id:11979,year:1970},
+  {title:"Total Recall",     search:"Jerry Goldsmith Total Recall Theme",    composer:"Jerry Goldsmith", tmdb_id:861,  year:1990},
+  {title:"Basic Instinct",   search:"Jerry Goldsmith Basic Instinct Theme",  composer:"Jerry Goldsmith", tmdb_id:226,  year:1992},
+
+  // ── ALAN SILVESTRI (suite) ──
+  {title:"Who Framed Roger Rabbit", search:"Alan Silvestri Roger Rabbit",    composer:"Alan Silvestri", tmdb_id:8536,  year:1988},
+  {title:"Predator",         search:"Alan Silvestri Predator Theme",         composer:"Alan Silvestri", tmdb_id:8077,  year:1987},
+  {title:"Cast Away",        search:"Alan Silvestri Cast Away End Title",    composer:"Alan Silvestri", tmdb_id:2300,  year:2000},
+
+  // ── MICHAEL GIACCHINO (suite) ──
+  {title:"Coco",             search:"Michael Giacchino Remember Me Coco",    composer:"Michael Giacchino", tmdb_id:354912, year:2017},
+  {title:"Doctor Strange",   search:"Michael Giacchino Doctor Strange Theme",composer:"Michael Giacchino", tmdb_id:284052, year:2016},
+  {title:"Lost",             search:"Michael Giacchino Life and Death Lost", composer:"Michael Giacchino", tmdb_id:0,     year:2004},
+  {title:"Speed Racer",      search:"Michael Giacchino Speed Racer Theme",   composer:"Michael Giacchino", tmdb_id:7445,  year:2008},
+
+  // ── DANNY ELFMAN (suite) ──
+  {title:"Beetlejuice",      search:"Danny Elfman Beetlejuice Theme",        composer:"Danny Elfman",  tmdb_id:2280,   year:1988},
+  {title:"The Nightmare Before Christmas", search:"Danny Elfman This is Halloween Nightmare Christmas", composer:"Danny Elfman", tmdb_id:9479, year:1993},
+  {title:"Men in Black",     search:"Danny Elfman Men in Black Theme",       composer:"Danny Elfman",  tmdb_id:607,    year:1997},
+  {title:"Pee-wee's Big Adventure", search:"Danny Elfman Pee-Wee Herman Theme", composer:"Danny Elfman", tmdb_id:10395, year:1985},
+  {title:"Good Will Hunting",search:"Danny Elfman Good Will Hunting",        composer:"Danny Elfman",  tmdb_id:1903,   year:1997},
+
+  // ── JAMES HORNER (suite) ──
+  {title:"Aliens",           search:"James Horner Aliens Theme",             composer:"James Horner",  tmdb_id:679,    year:1986},
+  {title:"The Mask of Zorro",search:"James Horner Mask of Zorro Theme",      composer:"James Horner",  tmdb_id:3131,   year:1998},
+  {title:"Willow",           search:"James Horner Willow Theme",             composer:"James Horner",  tmdb_id:8071,   year:1988},
+  {title:"Cocoon",           search:"James Horner Cocoon Theme",             composer:"James Horner",  tmdb_id:8856,   year:1985},
+
+  // ── HOWARD SHORE (suite) ──
+  {title:"Le Silence des Agneaux", search:"Howard Shore Silence of the Lambs Theme", composer:"Howard Shore", tmdb_id:539,  year:1991},
+  {title:"Crash",            search:"Howard Shore Crash Theme",              composer:"Howard Shore",  tmdb_id:9778,   year:2004},
+  {title:"Naked Lunch",      search:"Howard Shore Naked Lunch",              composer:"Howard Shore",  tmdb_id:5767,   year:1991},
+
+  // ── TRENT REZNOR (suite) ──
+  {title:"Mank",             search:"Trent Reznor Mank Theme",               composer:"Trent Reznor",  tmdb_id:742785, year:2020},
+  {title:"Mid90s",           search:"Atticus Ross Mid90s",                   composer:"Atticus Ross",  tmdb_id:504949, year:2018},
+  {title:"Soul",             search:"Trent Reznor Soul Theme Pixar",         composer:"Trent Reznor",  tmdb_id:508442, year:2020},
+
+  // ── JONNY GREENWOOD (suite) ──
+  {title:"Phantom Thread",   search:"Jonny Greenwood Phantom Thread",        composer:"Jonny Greenwood", tmdb_id:400617, year:2017},
+  {title:"Spencer",          search:"Jonny Greenwood Spencer Theme",         composer:"Jonny Greenwood", tmdb_id:760161, year:2021},
+  {title:"The Power of the Dog", search:"Jonny Greenwood Power of the Dog",  composer:"Jonny Greenwood", tmdb_id:748783, year:2021},
+
+  // ── JOE HISAISHI (suite) ──
+  {title:"Nausicaä",         search:"Joe Hisaishi Nausicaa Theme",           composer:"Joe Hisaishi",  tmdb_id:12429,  year:1984},
+  {title:"Porco Rosso",      search:"Joe Hisaishi Porco Rosso Theme",        composer:"Joe Hisaishi",  tmdb_id:10515,  year:1992},
+  {title:"Le Château Ambulant", search:"Joe Hisaishi Howls Moving Castle Merry-Go-Round", composer:"Joe Hisaishi", tmdb_id:4935, year:2004},
+  {title:"Kiki's Delivery Service", search:"Joe Hisaishi Kiki Delivery Service", composer:"Joe Hisaishi", tmdb_id:16859, year:1989},
+  {title:"Sonatine",         search:"Joe Hisaishi Sonatine Theme",           composer:"Joe Hisaishi",  tmdb_id:13882,  year:1993},
+
+  // ── ALEXANDRE DESPLAT (suite) ──
+  {title:"Imitation Game",   search:"Alexandre Desplat Imitation Game Theme",composer:"Alexandre Desplat", tmdb_id:205596, year:2014},
+  {title:"Argo",             search:"Alexandre Desplat Argo Theme",          composer:"Alexandre Desplat", tmdb_id:68735, year:2012},
+  {title:"Zero Dark Thirty", search:"Alexandre Desplat Zero Dark Thirty",    composer:"Alexandre Desplat", tmdb_id:90552, year:2012},
+  {title:"Moonrise Kingdom", search:"Alexandre Desplat Moonrise Kingdom",    composer:"Alexandre Desplat", tmdb_id:83666, year:2012},
+
+  // ── MARCO BELTRAMI ──
+  {title:"Scream",           search:"Marco Beltrami Scream Theme",           composer:"Marco Beltrami",tmdb_id:4232,   year:1996},
+  {title:"Logan",            search:"Marco Beltrami Logan Main Theme",       composer:"Marco Beltrami",tmdb_id:263115, year:2017},
+  {title:"World War Z",      search:"Marco Beltrami World War Z",            composer:"Marco Beltrami",tmdb_id:72190,  year:2013},
+
+  // ── JAMES NEWTON HOWARD ──
+  {title:"The Hunger Games", search:"James Newton Howard Hunger Games Theme",composer:"James Newton Howard", tmdb_id:70160, year:2012},
+  {title:"King Kong",        search:"James Newton Howard King Kong Theme",   composer:"James Newton Howard", tmdb_id:254,  year:2005},
+  {title:"Unbreakable",      search:"James Newton Howard Unbreakable Theme", composer:"James Newton Howard", tmdb_id:9741, year:2000},
+  {title:"Signs",            search:"James Newton Howard Signs Theme",       composer:"James Newton Howard", tmdb_id:9296, year:2002},
+
+  // ── CHRISTOPHER YOUNG ──
+  {title:"Hellraiser",       search:"Christopher Young Hellraiser Theme",    composer:"Christopher Young", tmdb_id:8897, year:1987},
+
+  // ── CLINT MANSELL ──
+  {title:"Requiem for a Dream", search:"Clint Mansell Lux Aeterna Requiem Dream", composer:"Clint Mansell", tmdb_id:1573, year:2000},
+  {title:"Black Swan",       search:"Clint Mansell Black Swan Nina Theme",   composer:"Clint Mansell", tmdb_id:46738,  year:2010},
+  {title:"Moon",             search:"Clint Mansell Moon Theme",              composer:"Clint Mansell", tmdb_id:37799,  year:2009},
+
+  // ── DAVID ARNOLD ──
+  {title:"Stargate",         search:"David Arnold Stargate Theme",           composer:"David Arnold",  tmdb_id:2164,   year:1994},
+  {title:"Independence Day", search:"David Arnold Independence Day Theme",   composer:"David Arnold",  tmdb_id:602,    year:1996},
+
+  // ── MARK ISHAM ──
+  {title:"Crash",            search:"Mark Isham Crash Theme",                composer:"Mark Isham",    tmdb_id:9778,   year:2004},
+
+  // ── PINO DONAGGIO ──
+  {title:"Carrie",           search:"Pino Donaggio Carrie Theme",            composer:"Pino Donaggio", tmdb_id:11017,  year:1976},
+
+  // ── PHILIPPE SARDE ──
+  {title:"Le Locataire",     search:"Philippe Sarde Le Locataire Theme",     composer:"Philippe Sarde",tmdb_id:4347,   year:1976},
+
+  // ── GABRIEL YARED ──
+  {title:"Le Patient Anglais", search:"Gabriel Yared English Patient Theme", composer:"Gabriel Yared", tmdb_id:995,    year:1996},
+
+  // ── ELLIOT GOLDENTHAL ──
+  {title:"Interview with the Vampire", search:"Elliot Goldenthal Interview Vampire", composer:"Elliot Goldenthal", tmdb_id:5954, year:1994},
+  {title:"Batman Forever",   search:"Elliot Goldenthal Batman Forever Theme",composer:"Elliot Goldenthal", tmdb_id:414,  year:1995},
+
+  // ── ÉRIC SERRA ──
+  {title:"Léon",             search:"Eric Serra Léon Theme Professional",    composer:"Éric Serra",    tmdb_id:101,    year:1994},
+  {title:"Le Cinquième Élément", search:"Eric Serra Fifth Element Theme Diva", composer:"Éric Serra", tmdb_id:18,     year:1997},
+  {title:"GoldenEye",        search:"Eric Serra GoldenEye Theme Bond",       composer:"Éric Serra",    tmdb_id:710,    year:1995},
+
+  // ── ANGELO BADALAMENTI ──
+  {title:"Twin Peaks",       search:"Angelo Badalamenti Twin Peaks Theme",   composer:"Angelo Badalamenti", tmdb_id:0, year:1990},
+  {title:"Mulholland Drive", search:"Angelo Badalamenti Mulholland Drive",   composer:"Angelo Badalamenti", tmdb_id:1018, year:2001},
+
+  // ── JOHN OTTMAN ──
+  {title:"The Usual Suspects", search:"John Ottman Usual Suspects Theme",    composer:"John Ottman",   tmdb_id:629,    year:1995},
+
+  // ── HENRY MANCINI ──
+  {title:"La Panthère Rose", search:"Henry Mancini Pink Panther Theme",      composer:"Henry Mancini", tmdb_id:863,    year:1963},
+  {title:"Breakfast at Tiffany's", search:"Henry Mancini Moon River Breakfast Tiffany", composer:"Henry Mancini", tmdb_id:11778, year:1961},
+
+  // ── BERNARD HERRMANN (suite) ──
+  {title:"Vertigo",          search:"Bernard Herrmann Vertigo Scene d Amour",composer:"Bernard Herrmann", tmdb_id:4477, year:1958},
+  {title:"Taxi Driver",      search:"Bernard Herrmann Taxi Driver Theme",    composer:"Bernard Herrmann", tmdb_id:103,  year:1976},
+
+  // ── MARK MOTHERSBAUGH ──
+  {title:"Thor Ragnarok",    search:"Mark Mothersbaugh Thor Ragnarok",       composer:"Mark Mothersbaugh", tmdb_id:284053, year:2017},
+  {title:"The Lego Movie",   search:"Mark Mothersbaugh Everything is Awesome Lego", composer:"Mark Mothersbaugh", tmdb_id:137106, year:2014},
+
+  // ── TYLER BATES ──
+  {title:"Les Gardiens de la Galaxie", search:"Tyler Bates Guardians Galaxy Theme", composer:"Tyler Bates", tmdb_id:118340, year:2014},
+  {title:"300",              search:"Tyler Bates 300 Returns a King",        composer:"Tyler Bates",   tmdb_id:1271,   year:2006},
+
+  // ── NICHOLAS BRITELL (suite) ──
+  {title:"Moonlight",        search:"Nicholas Britell Moonlight Theme",      composer:"Nicholas Britell", tmdb_id:376867, year:2016},
+  {title:"Vice",             search:"Nicholas Britell Vice Theme",           composer:"Nicholas Britell", tmdb_id:537915, year:2018},
+
+  // ── ÓLAFUR ARNALDS ──
+  {title:"Broadchurch",      search:"Olafur Arnalds Broadchurch Theme",      composer:"Ólafur Arnalds", tmdb_id:0,    year:2013},
+
+  // ── MAX RICHTER ──
+  {title:"Waltz with Bashir",search:"Max Richter Waltz with Bashir",         composer:"Max Richter",   tmdb_id:20987,  year:2008},
+  {title:"Shutter Island",   search:"Max Richter On the Nature of Daylight", composer:"Max Richter",   tmdb_id:11324,  year:2010},
+
+  // ── DAFT PUNK ──
+  {title:"Tron Legacy",      search:"Daft Punk Tron Legacy Recognizer",      composer:"Daft Punk",     tmdb_id:20526,  year:2010},
+
+  // ── PHARRELL WILLIAMS ──
+  {title:"Minions",          search:"Pharrell Williams Happy Despicable Me", composer:"Pharrell Williams", tmdb_id:211672, year:2013},
+
+  // ── JOHN POWELL ──
+  {title:"How to Train Your Dragon", search:"John Powell How to Train Dragon Test Drive", composer:"John Powell", tmdb_id:10193, year:2010},
+  {title:"Solo",             search:"John Powell Solo Star Wars",            composer:"John Powell",   tmdb_id:348350, year:2018},
+  {title:"Jason Bourne",     search:"John Powell Extreme Ways Bourne",       composer:"John Powell",   tmdb_id:2503,   year:2002},
+
+  // ── JÓHANN JÓHANNSSON ──
+  {title:"Arrival",          search:"Johann Johannsson Arrival On the Nature of Daylight", composer:"Jóhann Jóhannsson", tmdb_id:329865, year:2016},
+  {title:"Prisoners",        search:"Johann Johannsson Prisoners Theme",     composer:"Jóhann Jóhannsson", tmdb_id:146233, year:2013},
+  {title:"Sicario",          search:"Johann Johannsson Sicario Theme",       composer:"Jóhann Jóhannsson", tmdb_id:273481, year:2015},
+
+  // ── BRIAN MAY ──
+  {title:"Flash Gordon",     search:"Queen Flash Gordon Theme",              composer:"Queen",         tmdb_id:12155,  year:1980},
+
+  // ── MORODER ──
+  {title:"Midnight Express", search:"Giorgio Moroder Midnight Express",      composer:"Giorgio Moroder", tmdb_id:26566, year:1978},
+  {title:"Scarface",         search:"Giorgio Moroder Scarface Theme Push it", composer:"Giorgio Moroder", tmdb_id:111,  year:1983},
+
+  // ── YANN TIERSEN ──
+  {title:"Le Fabuleux Destin d'Amélie Poulain", search:"Yann Tiersen Amelie Comptine Un Autre Ete", composer:"Yann Tiersen", tmdb_id:194,  year:2001},
+
+  // ── THOMAS NEWMAN (suite) ──
+  {title:"Skyfall",          search:"Thomas Newman Skyfall Theme",           composer:"Thomas Newman", tmdb_id:37724,  year:2012},
+  {title:"Road to Perdition",search:"Thomas Newman Road to Perdition",       composer:"Thomas Newman", tmdb_id:6967,   year:2002},
+  {title:"Finding Nemo",     search:"Thomas Newman Finding Nemo Theme",      composer:"Thomas Newman", tmdb_id:12,     year:2003},
+  {title:"The Green Mile",   search:"Thomas Newman Green Mile Theme",        composer:"Thomas Newman", tmdb_id:497,    year:1999},
 ];
 
 // Signal que les données sont prêtes
