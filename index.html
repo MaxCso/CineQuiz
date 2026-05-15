@@ -37366,55 +37366,259 @@ function closeAvModal(e){
    name:'Raging Bull',
    ref:'Raging Bull \u2014 Martin Scorsese, 1980',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.80';
+    cv.style.opacity='1.0';
     let t=0;
-    const cx=W/2, cy=H/2;
-    const drops=Array.from({length:28},()=>({x:Math.random()*W*0.6+W*0.2,y:Math.random()*H*0.5+H*0.2,vx:(Math.random()-0.5)*3.5,vy:(Math.random()-0.5)*3.0,r:Math.random()*2.5+0.8,life:Math.random(),decay:0.018+Math.random()*0.025,red:Math.random()>0.6}));
-    let flashT=0, flashA=0;
+    const cx=W/2;
+
+    /* ── Noir et blanc total — pas d'orbes ── */
+    let _s=document.getElementById('_rb_s');
+    if(!_s){_s=document.createElement('style');_s.id='_rb_s';document.head.appendChild(_s);}
+    _s.textContent='#splash{background:#000!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+
+    /* ── Géométrie du ring ── */
+    const FLOOR_Y = H*0.74;
+    const RING_W  = W*0.90;
+    const RING_X  = cx - RING_W/2;
+    const POST_H  = H*0.36;
+
+    /* ── Particules de fumée ── */
+    const smoke = Array.from({length:22},()=>({
+     x: cx + (Math.random()-0.5)*W*0.55,
+     y: FLOOR_Y - Math.random()*H*0.42,
+     r: W*(0.06+Math.random()*0.10),
+     vx:(Math.random()-0.5)*0.18,
+     vy:-(0.10+Math.random()*0.14),
+     op:0.04+Math.random()*0.07,
+     ph:Math.random()*Math.PI*2
+    }));
+
+    /* ── Gouttes de sueur/sang — quelques rouges ── */
+    const drops=Array.from({length:14},()=>({
+     x:cx+(Math.random()-0.5)*W*0.22,
+     y:FLOOR_Y-H*(0.08+Math.random()*0.18),
+     vx:(Math.random()-0.5)*2.8,
+     vy:(Math.random()-0.5)*2.2,
+     r:Math.random()*2.2+0.6,
+     life:Math.random(),
+     decay:0.016+Math.random()*0.018,
+     red:Math.random()>0.62
+    }));
+
+    /* ── Flash projecteur ── */
+    let flashT=80, flashA=0;
+
+    /* ── Dessin du ring : sol + cordes + poteaux ── */
     function drawRing(){
-     const ry=H*0.78,rw=W*0.88,rx=cx-rw/2;
-     const cg=ctx.createLinearGradient(rx,ry-H*0.35,rx+rw,ry);
-     cg.addColorStop(0,'rgba(30,22,16,0.95)');cg.addColorStop(1,'rgba(14,10,6,0.98)');
-     ctx.fillStyle=cg;ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx+rw,ry);ctx.lineTo(rx+rw+W*0.06,ry-H*0.35);ctx.lineTo(rx-W*0.06,ry-H*0.35);ctx.closePath();ctx.fill();
-     for(let ri=0;ri<3;ri++){const rhy=ry-H*0.10-ri*H*0.08;ctx.strokeStyle='rgba(200,180,160,0.55)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(rx-W*0.02,rhy);ctx.lineTo(rx+rw+W*0.02,rhy);ctx.stroke();}
-     for(const px of [rx-W*0.06,rx+rw+W*0.06]){ctx.strokeStyle='rgba(100,80,60,0.70)';ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(px,ry);ctx.lineTo(px,ry-H*0.36);ctx.stroke();}
+     /* Sol de toile — blanc sale en perspective */
+     const canvasG=ctx.createLinearGradient(0,FLOOR_Y-H*0.32,0,FLOOR_Y);
+     canvasG.addColorStop(0,'rgba(32,28,24,0.88)');
+     canvasG.addColorStop(0.60,'rgba(58,52,44,0.95)');
+     canvasG.addColorStop(1,'rgba(72,65,55,0.98)');
+     ctx.fillStyle=canvasG;
+     ctx.beginPath();
+     ctx.moveTo(RING_X-W*0.05, FLOOR_Y);
+     ctx.lineTo(RING_X+RING_W+W*0.05, FLOOR_Y);
+     ctx.lineTo(RING_X+RING_W+W*0.08, FLOOR_Y-H*0.32);
+     ctx.lineTo(RING_X-W*0.08, FLOOR_Y-H*0.32);
+     ctx.closePath(); ctx.fill();
+
+     /* Ligne centrale du ring — trait blanc */
+     ctx.strokeStyle='rgba(210,200,188,0.22)';
+     ctx.lineWidth=H*0.003;
+     ctx.beginPath();
+     ctx.moveTo(cx-W*0.01,FLOOR_Y-H*0.31);
+     ctx.lineTo(cx+W*0.01,FLOOR_Y);
+     ctx.stroke();
+
+     /* Poteaux aux 4 coins */
+     const posts=[
+      {x:RING_X-W*0.06,     topY:FLOOR_Y-POST_H},
+      {x:RING_X+RING_W+W*0.06, topY:FLOOR_Y-POST_H},
+     ];
+     for(const p of posts){
+      /* Corps du poteau */
+      ctx.fillStyle='rgba(88,78,64,0.96)';
+      ctx.beginPath(); ctx.roundRect(p.x-W*0.020,FLOOR_Y,W*0.040,-POST_H,W*0.005); ctx.fill();
+      /* Reflet métal */
+      ctx.fillStyle='rgba(160,150,130,0.25)';
+      ctx.beginPath(); ctx.roundRect(p.x-W*0.005,FLOOR_Y-POST_H*0.9,W*0.008,POST_H*0.75,W*0.002); ctx.fill();
+      /* Boule au sommet */
+      ctx.fillStyle='rgba(110,98,80,0.95)';
+      ctx.beginPath(); ctx.arc(p.x,p.topY,W*0.022,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(180,168,148,0.35)';
+      ctx.beginPath(); ctx.arc(p.x-W*0.006,p.topY-W*0.006,W*0.008,0,Math.PI*2); ctx.fill();
+     }
+
+     /* 3 cordes — épaisseur et opacité croissantes vers le bas */
+     const ropeYs=[0.30, 0.55, 0.78]; /* fraction de POST_H */
+     for(let ri=0;ri<3;ri++){
+      const ry=FLOOR_Y-POST_H*(1-ropeYs[ri]);
+      const slack=H*(0.006+ri*0.004);
+      const alpha=0.42+ri*0.12;
+      ctx.strokeStyle=`rgba(195,185,168,${alpha})`;
+      ctx.lineWidth=2.5+ri*1.0;
+      ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(posts[0].x, ry);
+      ctx.quadraticCurveTo(cx, ry+slack, posts[1].x, ry);
+      ctx.stroke();
+     }
     }
-    function drawBoxer(bx,by,p){
-     ctx.save();ctx.translate(bx,by);
-     ctx.fillStyle='rgba(18,14,10,0.96)';ctx.beginPath();ctx.roundRect(-W*0.055,-H*0.30,W*0.110,H*0.28,4);ctx.fill();
-     ctx.beginPath();ctx.arc(0,-H*0.315,W*0.048,0,Math.PI*2);ctx.fill();
-     const g=p>0?-1:1;
-     ctx.fillStyle='rgba(160,20,15,0.92)';ctx.beginPath();ctx.ellipse(W*0.09*g,-H*0.22,W*0.055,W*0.040,g*0.4,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.ellipse(-W*0.06*g,-H*0.24,W*0.045,W*0.035,-g*0.2,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle='rgba(230,225,215,0.88)';ctx.beginPath();ctx.roundRect(-W*0.048,-H*0.02,W*0.096,H*0.06,2);ctx.fill();
+
+    /* ── Jake LaMotta — silhouette seule au centre ── */
+    function drawJake(){
+     const jx=cx, jy=FLOOR_Y;
+     ctx.save();
+     ctx.translate(jx, jy);
+
+     /* Ombre portée sur le ring */
+     const shG=ctx.createRadialGradient(0,0,0,W*0.03,H*0.012,W*0.12);
+     shG.addColorStop(0,'rgba(0,0,0,0.55)'); shG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=shG;
+     ctx.beginPath(); ctx.ellipse(W*0.02,0,W*0.10,H*0.018,0,0,Math.PI*2); ctx.fill();
+
+     /* Jambes / short */
+     ctx.fillStyle='rgba(22,20,18,0.97)';
+     ctx.beginPath(); ctx.roundRect(-W*0.048,-H*0.105,W*0.096,H*0.105,W*0.008); ctx.fill();
+     /* Bande blanche short */
+     ctx.fillStyle='rgba(200,192,178,0.55)';
+     ctx.beginPath(); ctx.roundRect(-W*0.048,-H*0.105,W*0.096,H*0.014,0); ctx.fill();
+
+     /* Torse — corps puissant */
+     const torsoG=ctx.createLinearGradient(-W*0.06,-H*0.26,W*0.06,-H*0.105);
+     torsoG.addColorStop(0,'rgba(62,55,46,0.96)');
+     torsoG.addColorStop(0.5,'rgba(48,42,34,0.97)');
+     torsoG.addColorStop(1,'rgba(36,30,24,0.98)');
+     ctx.fillStyle=torsoG;
+     ctx.beginPath();
+     ctx.moveTo(-W*0.055, -H*0.105);
+     ctx.bezierCurveTo(-W*0.058,-H*0.170, -W*0.062,-H*0.220, -W*0.048,-H*0.255);
+     ctx.bezierCurveTo(-W*0.028,-H*0.275,  W*0.028,-H*0.275,  W*0.048,-H*0.255);
+     ctx.bezierCurveTo( W*0.062,-H*0.220,  W*0.058,-H*0.170,  W*0.055,-H*0.105);
+     ctx.closePath(); ctx.fill();
+
+     /* Tête */
+     const headG=ctx.createRadialGradient(-W*0.010,-H*0.305,W*0.008,0,-H*0.295,W*0.044);
+     headG.addColorStop(0,'rgba(78,68,54,0.97)');
+     headG.addColorStop(1,'rgba(44,36,26,0.94)');
+     ctx.fillStyle=headG;
+     ctx.beginPath(); ctx.ellipse(0,-H*0.302,W*0.042,H*0.048,0,0,Math.PI*2); ctx.fill();
+     /* Protège-dents / bouche */
+     ctx.fillStyle='rgba(200,192,175,0.40)';
+     ctx.beginPath(); ctx.roundRect(-W*0.018,-H*0.275,W*0.036,H*0.010,W*0.003); ctx.fill();
+
+     /* Bras gauche levé — garde haute, gant en avant */
+     ctx.strokeStyle='rgba(42,36,28,0.97)'; ctx.lineWidth=W*0.058; ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(-W*0.044,-H*0.140);
+     ctx.lineTo(-W*0.092,-H*0.230);
+     ctx.stroke();
+     /* Gant gauche — rouge, seule couleur du film */
+     const gloveG=ctx.createRadialGradient(-W*0.105,-H*0.248,0,-W*0.100,-H*0.242,W*0.052);
+     gloveG.addColorStop(0,`rgba(195,18,12,${0.92+Math.sin(t*0.6)*0.06})`);
+     gloveG.addColorStop(0.6,'rgba(140,10,8,0.85)');
+     gloveG.addColorStop(1,'rgba(80,4,4,0)');
+     ctx.fillStyle=gloveG;
+     ctx.beginPath(); ctx.ellipse(-W*0.102,-H*0.245,W*0.048,W*0.038,0.3,0,Math.PI*2); ctx.fill();
+     /* Reflet gant */
+     ctx.fillStyle='rgba(255,80,60,0.22)';
+     ctx.beginPath(); ctx.ellipse(-W*0.112,-H*0.255,W*0.018,W*0.012,0.3,0,Math.PI*2); ctx.fill();
+
+     /* Bras droit — replié en garde */
+     ctx.strokeStyle='rgba(42,36,28,0.97)'; ctx.lineWidth=W*0.055;
+     ctx.beginPath();
+     ctx.moveTo(W*0.044,-H*0.145);
+     ctx.lineTo(W*0.072,-H*0.220);
+     ctx.stroke();
+     /* Gant droit — aussi rouge */
+     const glove2G=ctx.createRadialGradient(W*0.082,-H*0.232,0,W*0.078,-H*0.228,W*0.046);
+     glove2G.addColorStop(0,`rgba(185,16,10,${0.88+Math.sin(t*0.6+1)*0.06})`);
+     glove2G.addColorStop(0.6,'rgba(130,8,6,0.80)');
+     glove2G.addColorStop(1,'rgba(70,3,3,0)');
+     ctx.fillStyle=glove2G;
+     ctx.beginPath(); ctx.ellipse(W*0.080,-H*0.230,W*0.044,W*0.034,-0.25,0,Math.PI*2); ctx.fill();
+
      ctx.restore();
     }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(5,4,4,0.24)';ctx.fillRect(0,0,W,H);
-     const ag=ctx.createRadialGradient(cx,cy,30,cx,cy,H*0.80);
-     ag.addColorStop(0,`rgba(35,28,20,${0.18+Math.sin(t*0.3)*0.04})`);ag.addColorStop(1,'rgba(0,0,0,0.18)');
-     ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
-     flashT--;
-     if(flashT<=0){flashA=0.35+Math.random()*0.25;flashT=65+Math.floor(Math.random()*90);}
-     else flashA=Math.max(0,flashA-0.025);
-     if(flashA>0.01){ctx.fillStyle=`rgba(255,252,245,${flashA*0.22})`;ctx.fillRect(0,0,W,H);}
-     drawRing();
-     drawBoxer(cx-W*0.16,H*0.72,1);drawBoxer(cx+W*0.16,H*0.72,-1);
-     for(const d of drops){
-      d.x+=d.vx;d.y+=d.vy;d.life-=d.decay;
-      if(d.life<=0){d.x=cx+(Math.random()-0.5)*W*0.30;d.y=H*0.55+Math.random()*H*0.15;d.life=1;d.vx=(Math.random()-0.5)*3.5;d.vy=(Math.random()-0.5)*3.0;}
-      ctx.fillStyle=d.red?`rgba(180,20,10,${d.life*0.65})`:`rgba(200,190,180,${d.life*0.65})`;
-      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
+
+     /* ── Fond noir absolu ── */
+     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+
+     /* ── Smoke — particules grises qui montent ── */
+     for(const s of smoke){
+      s.x+=s.vx; s.y+=s.vy; s.ph+=0.012; s.r+=0.08;
+      const drift=Math.sin(s.ph)*W*0.004;
+      if(s.y<-s.r||s.op<0.008){
+       s.x=cx+(Math.random()-0.5)*W*0.40;
+       s.y=FLOOR_Y-H*(0.02+Math.random()*0.08);
+       s.r=W*(0.05+Math.random()*0.08);
+       s.op=0.04+Math.random()*0.07;
+      }
+      s.op-=0.00012;
+      const sg=ctx.createRadialGradient(s.x+drift,s.y,0,s.x+drift,s.y,s.r);
+      sg.addColorStop(0,`rgba(80,75,68,${s.op})`);
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(s.x+drift,s.y,s.r,0,Math.PI*2); ctx.fill();
      }
-     const sp=ctx.createRadialGradient(cx,H*0.50,15,cx,H*0.50,W*0.42);
-     sp.addColorStop(0,`rgba(240,230,200,${0.15+Math.sin(t*0.4)*0.04})`);sp.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sp;ctx.fillRect(0,0,W,H);
-     const vg=ctx.createRadialGradient(cx,cy,H*0.06,cx,cy,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.4,'rgba(0,0,0,0.22)');vg.addColorStop(1,'rgba(0,0,0,0.97)');
-     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<88;i++){const g=10+Math.random()*35|0;ctx.fillStyle=`rgba(${g+2},${g},${g},${Math.random()*0.028})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.8+0.4,1);}
-     t+=0.016;requestAnimationFrame(frame);
+
+     /* ── Ring ── */
+     drawRing();
+
+     /* ── Spot projecteur — unique source de lumière ── */
+     const spotPulse=0.72+Math.sin(t*0.28)*0.08;
+     const spotG=ctx.createRadialGradient(cx,FLOOR_Y-H*0.30,H*0.02,cx,FLOOR_Y-H*0.25,H*0.42);
+     spotG.addColorStop(0,`rgba(240,232,218,${spotPulse*0.42})`);
+     spotG.addColorStop(0.20,`rgba(210,200,182,${spotPulse*0.18})`);
+     spotG.addColorStop(0.50,`rgba(160,150,135,${spotPulse*0.06})`);
+     spotG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=spotG; ctx.fillRect(0,0,W,H);
+
+     /* ── Jake ── */
+     drawJake();
+
+     /* ── Gouttes sueur/sang ── */
+     for(const d of drops){
+      d.x+=d.vx; d.y+=d.vy; d.vy+=0.12; d.life-=d.decay;
+      if(d.life<=0){
+       d.x=cx+(Math.random()-0.5)*W*0.18;
+       d.y=FLOOR_Y-H*(0.10+Math.random()*0.15);
+       d.vx=(Math.random()-0.5)*2.8; d.vy=-(Math.random()*1.8+0.4);
+       d.life=0.8+Math.random()*0.2;
+      }
+      const da=d.life*0.55;
+      ctx.fillStyle=d.red?`rgba(188,18,10,${da})`:`rgba(210,200,185,${da*0.70})`;
+      ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
+     }
+
+     /* ── Flash mag photo ── */
+     flashT--;
+     if(flashT<=0){flashA=0.28+Math.random()*0.22;flashT=90+Math.floor(Math.random()*120);}
+     else flashA=Math.max(0,flashA-0.018);
+     if(flashA>0.01){
+      ctx.fillStyle=`rgba(255,252,245,${flashA*0.18})`;
+      ctx.fillRect(0,0,W,H);
+     }
+
+     /* ── Vignette — bords dans le noir absolu ── */
+     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.06,cx,H*0.50,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.38,'rgba(0,0,0,0.15)');
+     vg.addColorStop(0.68,'rgba(0,0,0,0.62)');
+     vg.addColorStop(1,'rgba(0,0,0,0.99)');
+     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+
+     /* ── Grain pellicule 35mm — dense ── */
+     for(let i=0;i<100;i++){
+      const gv=8+Math.random()*30|0;
+      ctx.fillStyle=`rgba(${gv},${gv},${gv},${Math.random()*0.032})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2+0.3,1);
+     }
+
+     t+=0.016; requestAnimationFrame(frame);
     }
     frame();
    }
