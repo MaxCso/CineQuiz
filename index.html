@@ -33129,150 +33129,100 @@ function closeAvModal(e){
     _s.textContent='#splash{background:#06040e!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* ── Orbes violettes — 6 orbes en orbites lentes ── */
+    /* ── Orbes violettes ── */
     const orbs=[
-      {phase:0,         spd:0.007, rx:W*0.32, ry:H*0.22, r:W*0.28, op:0.13, col:'120,70,200'},
-      {phase:Math.PI/2, spd:0.009, rx:W*0.26, ry:H*0.18, r:W*0.22, op:0.10, col:'90,40,170'},
-      {phase:Math.PI,   spd:0.006, rx:W*0.38, ry:H*0.28, r:W*0.20, op:0.09, col:'150,80,220'},
-      {phase:Math.PI*1.5,spd:0.011,rx:W*0.20, ry:H*0.14, r:W*0.16, op:0.08, col:'80,30,160'},
+      {phase:0,          spd:0.007, rx:W*0.32, ry:H*0.22, r:W*0.28, op:0.13, col:'120,70,200'},
+      {phase:Math.PI/2,  spd:0.009, rx:W*0.26, ry:H*0.18, r:W*0.22, op:0.10, col:'90,40,170'},
+      {phase:Math.PI,    spd:0.006, rx:W*0.38, ry:H*0.28, r:W*0.20, op:0.09, col:'150,80,220'},
+      {phase:Math.PI*1.5,spd:0.011, rx:W*0.20, ry:H*0.14, r:W*0.16, op:0.08, col:'80,30,160'},
       {phase:0.8,        spd:0.008, rx:W*0.44, ry:H*0.32, r:W*0.18, op:0.07, col:'180,100,240'},
       {phase:2.4,        spd:0.005, rx:W*0.15, ry:H*0.38, r:W*0.24, op:0.11, col:'100,50,180'},
     ];
 
     /* ── Particules de poussière flottantes ── */
-    const dust=Array.from({length:40},()=>({
-      x:Math.random()*W, y:Math.random()*H,
-      vx:(Math.random()-0.5)*0.18, vy:-(Math.random()*0.12+0.04),
-      r:Math.random()*1.4+0.4, op:Math.random()*0.25+0.05,
-      ph:Math.random()*Math.PI*2
-    }));
+    const dust=Array.from({length:45},()=>{
+      return {
+        x:Math.random()*W, y:Math.random()*H,
+        vx:(Math.random()-0.5)*0.18, vy:-(Math.random()*0.12+0.04),
+        r:Math.random()*1.4+0.4, op:Math.random()*0.22+0.05,
+        ph:Math.random()*Math.PI*2
+      };
+    });
 
-    /* ── Porte : dimensions et position ── */
-    const DOOR={
-      w: W*0.48, h: H*0.36,
-      get x(){ return cx - this.w/2; },
-      get y(){ return cy*0.92 - this.h/2; },
-      revealed: 0  /* 0→1 fade-in progressif */
-    };
+    /* ── Chargement de l'image SVG porte ── */
+    const _doorImg = new Image();
+    _doorImg.src = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgCgkgdmlld0JveD0iMCAwIDU4IDU4IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHJlY3QgeD0iMTMiIHk9IjMuNSIgc3R5bGU9ImZpbGw6I0JGQTM4MDsiIHdpZHRoPSIzMiIgaGVpZ2h0PSI1NCIvPgo8cG9seWdvbiBzdHlsZT0iZmlsbDojN0E2ODU3OyIgcG9pbnRzPSIxMyw1Ny41IDEwLDU3LjUgMTAsMC41IDEzLDMuNSAiLz4KPHBvbHlnb24gc3R5bGU9ImZpbGw6IzdBNjg1NzsiIHBvaW50cz0iNDUsNTcuNSA0OCw1Ny41IDQ4LDAuNSA0NSwzLjUgIi8+Cjxwb2x5Z29uIHN0eWxlPSJmaWxsOiM2QjVCNEI7IiBwb2ludHM9IjQ1LDMuNSAxMywzLjUgMTAsMC41IDQ4LDAuNSAiLz4KPHJlY3QgeT0iNTQuNSIgc3R5bGU9ImZpbGw6I0RCRDZEMjsiIHdpZHRoPSIxMCIgaGVpZ2h0PSIzIi8+CjxyZWN0IHg9IjQ4IiB5PSI1NC41IiBzdHlsZT0iZmlsbDojREJENkQyOyIgd2lkdGg9IjEwIiBoZWlnaHQ9IjMiLz4KPHBhdGggc3R5bGU9ImZpbGw6I0U3RUNFRDsiIGQ9Ik0zOCwzMy41aC00LjVjLTAuODI4LDAtMS41LTAuNjcyLTEuNS0xLjV2MGMwLTAuODI4LDAuNjcyLTEuNSwxLjUtMS41SDM4VjMzLjV6Ii8+CjxwYXRoIHN0eWxlPSJmaWxsOiM2Qzc5N0E7IiBkPSJNMzYsMjguOTQzVjMwLjVoMnYzaC0ydjEuNTU3YzAsMC43OTcsMC42NDYsMS40NDMsMS40NDMsMS40NDNoMi4xMTQKCWMwLjc5NywwLDEuNDQzLTAuNjQ2LDEuNDQzLTEuNDQzdi02LjExNGMwLTAuNzk3LTAuNjQ2LTEuNDQzLTEuNDQzLTEuNDQzaC0yLjExNEMzNi42NDYsMjcuNSwzNiwyOC4xNDYsMzYsMjguOTQzeiIvPgo8L3N2Zz4=';
+    let _doorReady = false;
+    _doorImg.onload = ()=>{ _doorReady = true; };
 
-    /* ── Dessin de la porte (style affiche minimaliste) ── */
-    function drawDoor(alpha){
-      const {x:dx, y:dy, w:dw, h:dh} = DOOR;
-      ctx.save();
-      ctx.globalAlpha = alpha;
+    /* Dimensions et position de la porte — centrée, proportion 58x58 → ratio 1:1 ajusté */
+    /* SVG viewBox 0 0 58 58 — la porte occupe x:10→48, y:0→57.5 soit 38×57.5 */
+    /* On affiche le SVG complet à la bonne taille */
+    const DOOR_H = H * 0.42;
+    const DOOR_W = DOOR_H * (58/58); /* SVG est carré mais la porte est dedans */
+    const DOOR_X = cx - DOOR_W/2;
+    const DOOR_Y = cy - DOOR_H*0.52; /* légèrement au-dessus du centre */
 
-      /* Halo de lumière dorée qui filtre derrière */
-      const halo=ctx.createRadialGradient(cx, dy+dh*0.5, 0, cx, dy+dh*0.5, dw*1.1);
-      halo.addColorStop(0, `rgba(200,160,60,${0.28*alpha})`);
-      halo.addColorStop(0.4,`rgba(160,110,30,${0.12*alpha})`);
+    let revealed = 0;
+
+    function drawDoorEffects(alpha){
+      /* Halo de lumière dorée qui pulse derrière la porte */
+      const pulse = 0.7 + Math.sin(t * 1.3) * 0.3;
+      const hx = DOOR_X + DOOR_W*0.5;
+      const hy = DOOR_Y + DOOR_H*0.5;
+
+      /* Lueur large derrière */
+      const halo = ctx.createRadialGradient(hx, hy, 0, hx, hy, DOOR_W*1.0);
+      halo.addColorStop(0, `rgba(200,155,50,${0.22*alpha*pulse})`);
+      halo.addColorStop(0.5,`rgba(140,90,20,${0.10*alpha*pulse})`);
       halo.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.globalAlpha=1;
       ctx.fillStyle=halo; ctx.fillRect(0,0,W,H);
 
-      /* Lumière qui filtre sous la porte — fente lumineuse */
-      const gapY = dy+dh-dh*0.012;
-      const gapG = ctx.createLinearGradient(dx+dw*0.05, gapY, dx+dw*0.95, gapY);
-      gapG.addColorStop(0,'rgba(0,0,0,0)');
-      gapG.addColorStop(0.2,`rgba(220,180,80,${0.55*alpha*(0.7+Math.sin(t*1.2)*0.3)})`);
-      gapG.addColorStop(0.5,`rgba(240,200,100,${0.80*alpha*(0.7+Math.sin(t*1.2)*0.3)})`);
-      gapG.addColorStop(0.8,`rgba(220,180,80,${0.55*alpha*(0.7+Math.sin(t*1.2)*0.3)})`);
-      gapG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=gapG; ctx.fillRect(dx+dw*0.02, gapY, dw*0.96, dh*0.018);
+      /* Fente lumineuse sous la porte */
+      const gapY = DOOR_Y + DOOR_H * 0.975;
+      const gw   = DOOR_W * 0.55;
+      const gg   = ctx.createLinearGradient(hx-gw, gapY, hx+gw, gapY);
+      gg.addColorStop(0,'rgba(0,0,0,0)');
+      gg.addColorStop(0.2,`rgba(230,185,80,${0.65*alpha*pulse})`);
+      gg.addColorStop(0.5,`rgba(255,210,100,${0.90*alpha*pulse})`);
+      gg.addColorStop(0.8,`rgba(230,185,80,${0.65*alpha*pulse})`);
+      gg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gg;
+      ctx.fillRect(hx-gw, gapY, gw*2, DOOR_H*0.02);
 
-      /* Lumière côtés */
-      ['l','r'].forEach((side,si)=>{
-        const lx = si===0 ? dx : dx+dw-dw*0.018;
-        const lg = ctx.createLinearGradient(lx, dy+dh*0.1, lx, dy+dh*0.9);
+      /* Reflet au sol */
+      const floor = ctx.createRadialGradient(hx, gapY+DOOR_H*0.05, 0, hx, gapY+DOOR_H*0.05, DOOR_W*0.7);
+      floor.addColorStop(0, `rgba(190,140,45,${0.20*alpha*pulse})`);
+      floor.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=floor; ctx.fillRect(0,0,W,H);
+
+      /* Lumières filtrées côtés (fentes latérales) */
+      [DOOR_X + DOOR_W*0.175, DOOR_X + DOOR_W*0.825].forEach(lx=>{
+        const lg = ctx.createLinearGradient(lx, DOOR_Y+DOOR_H*0.12, lx, DOOR_Y+DOOR_H*0.88);
         lg.addColorStop(0,'rgba(0,0,0,0)');
-        lg.addColorStop(0.3,`rgba(200,160,60,${0.30*alpha*(0.6+Math.sin(t*1.2+0.5)*0.4)})`);
-        lg.addColorStop(0.7,`rgba(200,160,60,${0.30*alpha*(0.6+Math.sin(t*1.2+0.5)*0.4)})`);
+        lg.addColorStop(0.3,`rgba(210,165,55,${0.28*alpha*pulse})`);
+        lg.addColorStop(0.7,`rgba(210,165,55,${0.28*alpha*pulse})`);
         lg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=lg; ctx.fillRect(lx, dy+dh*0.1, dw*0.018, dh*0.8);
+        ctx.fillStyle=lg;
+        ctx.fillRect(lx-1, DOOR_Y+DOOR_H*0.12, 2, DOOR_H*0.76);
       });
-
-      ctx.globalAlpha=alpha;
-
-      /* Sol — reflet de lumière au pied de la porte */
-      const floorG=ctx.createRadialGradient(cx, dy+dh+dh*0.04, 0, cx, dy+dh+dh*0.04, dw*0.7);
-      floorG.addColorStop(0,`rgba(180,140,50,${0.18*alpha*(0.6+Math.sin(t*1.2)*0.4)})`);
-      floorG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=floorG; ctx.fillRect(0,0,W,H);
-
-      /* Corps de la porte — beige-vert désaturé comme l'affiche */
-      const doorG=ctx.createLinearGradient(dx, dy, dx+dw, dy+dh);
-      doorG.addColorStop(0,'rgba(188,186,162,1)');
-      doorG.addColorStop(0.4,'rgba(176,174,150,1)');
-      doorG.addColorStop(1,'rgba(158,156,132,1)');
-      ctx.fillStyle=doorG;
-      ctx.fillRect(dx, dy, dw, dh);
-
-      /* Ombre interne — côté gauche et haut */
-      const inShadL=ctx.createLinearGradient(dx, dy, dx+dw*0.08, dy);
-      inShadL.addColorStop(0,'rgba(0,0,0,0.28)'); inShadL.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=inShadL; ctx.fillRect(dx, dy, dw*0.08, dh);
-      const inShadT=ctx.createLinearGradient(dx, dy, dx, dy+dh*0.06);
-      inShadT.addColorStop(0,'rgba(0,0,0,0.22)'); inShadT.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=inShadT; ctx.fillRect(dx, dy, dw, dh*0.06);
-
-      /* Moulures : 2 panneaux rectangulaires */
-      const panels=[
-        {x:dx+dw*0.09, y:dy+dh*0.06, w:dw*0.82, h:dh*0.38},
-        {x:dx+dw*0.09, y:dy+dh*0.52, w:dw*0.82, h:dh*0.40}
-      ];
-      panels.forEach(p=>{
-        /* Cadre extérieur sombre */
-        ctx.strokeStyle='rgba(80,78,58,0.70)'; ctx.lineWidth=dw*0.018;
-        ctx.strokeRect(p.x, p.y, p.w, p.h);
-        /* Intérieur légèrement plus clair */
-        const panG=ctx.createLinearGradient(p.x, p.y, p.x+p.w, p.y+p.h);
-        panG.addColorStop(0,'rgba(200,198,174,0.55)');
-        panG.addColorStop(1,'rgba(165,163,140,0.40)');
-        ctx.fillStyle=panG;
-        ctx.fillRect(p.x+dw*0.018, p.y+dh*0.012, p.w-dw*0.036, p.h-dh*0.024);
-        /* Ombre intérieure haut-gauche du panneau */
-        ctx.strokeStyle='rgba(120,118,96,0.40)'; ctx.lineWidth=1;
-        ctx.strokeRect(p.x+dw*0.018, p.y+dh*0.012, p.w-dw*0.036, p.h-dh*0.024);
-      });
-
-      /* Boîtier de serrure — côté droit */
-      const lkX=dx+dw*0.80, lkY=dy+dh*0.44;
-      const lkW=dw*0.08, lkH=dh*0.14;
-      ctx.fillStyle='rgba(30,28,22,0.95)';
-      ctx.fillRect(lkX, lkY, lkW, lkH);
-      /* Poignée ronde dorée */
-      const knobX=lkX+lkW*0.5, knobY=lkY+lkH*0.35;
-      const kg=ctx.createRadialGradient(knobX-lkW*0.08, knobY-lkW*0.08, 0, knobX, knobY, lkW*0.38);
-      kg.addColorStop(0,`rgba(240,210,80,${0.9+Math.sin(t*1.8)*0.08})`);
-      kg.addColorStop(0.5,'rgba(180,150,40,0.95)');
-      kg.addColorStop(1,'rgba(100,80,15,0.90)');
-      ctx.fillStyle=kg;
-      ctx.beginPath(); ctx.arc(knobX, knobY, lkW*0.38, 0, Math.PI*2); ctx.fill();
-      /* Trou de serrure */
-      ctx.fillStyle='rgba(15,12,6,1)';
-      ctx.beginPath(); ctx.arc(knobX, lkY+lkH*0.72, lkW*0.16, 0, Math.PI*2); ctx.fill();
-      ctx.fillRect(knobX-lkW*0.09, lkY+lkH*0.72, lkW*0.18, lkH*0.20);
-
-      /* Contour de la porte — cadre sombre */
-      ctx.strokeStyle='rgba(55,52,38,0.85)'; ctx.lineWidth=dw*0.022;
-      ctx.strokeRect(dx, dy, dw, dh);
-
-      ctx.restore();
     }
 
     let fadeIn=0;
     function frame(){
       if(stop.v) return;
-      if(fadeIn<1) fadeIn=Math.min(1,fadeIn+0.006);
+      if(fadeIn < 1) fadeIn = Math.min(1, fadeIn+0.006);
+      if(revealed < 1) revealed = Math.min(1, revealed+0.007);
 
       /* Fond très sombre */
       ctx.fillStyle='#06040e'; ctx.fillRect(0,0,W,H);
 
       /* ── Orbes violettes ── */
       for(const o of orbs){
-        o.phase+=o.spd;
-        const ox=cx+Math.sin(o.phase)*o.rx;
-        const oy=cy+Math.cos(o.phase*0.7)*o.ry;
-        const og=ctx.createRadialGradient(ox,oy,o.r*0.08,ox,oy,o.r);
+        o.phase += o.spd;
+        const ox = cx + Math.sin(o.phase)*o.rx;
+        const oy = cy + Math.cos(o.phase*0.7)*o.ry;
+        const og = ctx.createRadialGradient(ox,oy,o.r*0.08,ox,oy,o.r);
         og.addColorStop(0,`rgba(${o.col},${o.op*1.6})`);
         og.addColorStop(0.45,`rgba(${o.col},${o.op})`);
         og.addColorStop(1,'rgba(0,0,0,0)');
@@ -33286,25 +33236,31 @@ function closeAvModal(e){
       cg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=cg; ctx.fillRect(0,0,W,H);
 
-      /* ── Poussière flottante ── */
+      /* ── Poussière ── */
       for(const d of dust){
-        d.x+=d.vx; d.y+=d.vy;
-        d.ph+=0.022;
+        d.x+=d.vx; d.y+=d.vy; d.ph+=0.022;
         d.x+=Math.sin(d.ph)*0.15;
-        if(d.y<-5){d.y=H+5;d.x=Math.random()*W;}
+        if(d.y<-5){d.y=H+5; d.x=Math.random()*W;}
         ctx.fillStyle=`rgba(200,170,255,${d.op*fadeIn})`;
         ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
       }
 
-      /* ── Porte — apparaît progressivement ── */
-      if(DOOR.revealed < 1) DOOR.revealed = Math.min(1, DOOR.revealed+0.008);
-      drawDoor(DOOR.revealed * fadeIn);
+      /* ── Effets lumineux derrière la porte ── */
+      drawDoorEffects(revealed * fadeIn);
+
+      /* ── Porte SVG ── */
+      if(_doorReady){
+        ctx.save();
+        ctx.globalAlpha = revealed * fadeIn;
+        ctx.drawImage(_doorImg, DOOR_X, DOOR_Y, DOOR_W, DOOR_H);
+        ctx.restore();
+      }
 
       /* ── Vignette forte ── */
       const vg=ctx.createRadialGradient(cx,cy,H*0.06,cx,cy,H*0.92);
       vg.addColorStop(0,'rgba(0,0,0,0)');
-      vg.addColorStop(0.45,'rgba(0,0,0,0.20)');
-      vg.addColorStop(0.72,'rgba(0,0,0,0.62)');
+      vg.addColorStop(0.45,'rgba(0,0,0,0.22)');
+      vg.addColorStop(0.72,'rgba(0,0,0,0.65)');
       vg.addColorStop(1,'rgba(0,0,0,0.97)');
       ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 
