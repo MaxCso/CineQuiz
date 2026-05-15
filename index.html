@@ -29256,75 +29256,37 @@ function closeAvModal(e){
      ctx.fillStyle=rg3;
      ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.fill();
 
-     // ── Texture pierre (tourne avec le rocher) ──
+     // ── Texture pierre granuleuse — points aléatoires fixes, pas de traits ──
      ctx.save();ctx.rotate(rot);ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.clip();
 
-     // Strates horizontales — caractéristique pierre sédimentaire
-     for(let si=0;si<7;si++){
-      const sy=-radius*0.75+si*radius*0.25;
-      const sw=radius*(1.6+Math.sin(si*1.3)*0.3);
-      const sAlpha=0.06+Math.sin(si*0.9)*0.04;
-      ctx.strokeStyle=`rgba(${si%2===0?8:155},${si%2===0?5:138},${si%2===0?2:105},${sAlpha})`;
-      ctx.lineWidth=radius*0.018;
-      ctx.beginPath();
-      ctx.moveTo(-sw/2,sy);
-      ctx.bezierCurveTo(-sw/3,sy+radius*0.04, sw/3,sy-radius*0.04, sw/2,sy);
-      ctx.stroke();
-     }
-
-     // Grain de pierre — petits points/taches irréguliers
-     const grainSeeds=[
-      {x:-0.55,y:-0.22,r:0.08},{x:0.32,y:-0.48,r:0.06},{x:-0.12,y:0.55,r:0.07},
-      {x:0.58,y:0.18,r:0.09},{x:-0.38,y:0.35,r:0.06},{x:0.15,y:-0.25,r:0.05},
-      {x:-0.62,y:0.08,r:0.07},{x:0.42,y:-0.30,r:0.06},{x:-0.25,y:-0.58,r:0.05},
-      {x:0.08,y:0.42,r:0.08},{x:0.65,y:-0.12,r:0.05},{x:-0.48,y:-0.45,r:0.06},
-      {x:0.28,y:0.60,r:0.07},{x:-0.18,y:0.15,r:0.04},{x:0.50,y:0.45,r:0.05},
+     // Variations de teinte par grandes zones (grès naturel)
+     const patches=[
+      {x:-0.28,y:-0.18,r:0.55,dark:true},
+      {x: 0.30,y: 0.32,r:0.44,dark:false},
+      {x:-0.15,y: 0.50,r:0.40,dark:true},
+      {x: 0.48,y:-0.25,r:0.38,dark:false},
      ];
-     for(const g of grainSeeds){
-      const isLight=Math.abs(g.x+g.y)>0.4;
-      const pg=ctx.createRadialGradient(g.x*radius,g.y*radius,0,g.x*radius,g.y*radius,g.r*radius*1.4);
-      if(isLight){
-       pg.addColorStop(0,'rgba(165,148,115,0.28)');pg.addColorStop(1,'rgba(0,0,0,0)');
-      } else {
-       pg.addColorStop(0,'rgba(18,12,6,0.35)');pg.addColorStop(1,'rgba(0,0,0,0)');
-      }
+     for(const p of patches){
+      const pg=ctx.createRadialGradient(p.x*radius,p.y*radius,0,p.x*radius,p.y*radius,p.r*radius);
+      pg.addColorStop(0,p.dark?'rgba(20,13,6,0.20)':'rgba(158,138,102,0.16)');
+      pg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=pg;ctx.fillRect(-radius,-radius,radius*2,radius*2);
      }
 
-     // Fissures principales — profondes
-     ctx.strokeStyle='rgba(12,8,3,0.82)';ctx.lineCap='round';
-     const fissures=[
-      {pts:[-0.28,0.08,-0.05,-0.22,0.38,0.30],w:0.032},
-      {pts:[0.18,-0.42,0.00,-0.08,-0.44,0.18],w:0.026},
-      {pts:[-0.48,-0.18,-0.12,0.12,0.20,0.46],w:0.022},
-      {pts:[0.32,0.12,0.08,-0.18,-0.18,-0.44],w:0.019},
+     // Grain : petits points ronds dispersés — aucun trait
+     const gPts=[
+      [-0.52,-0.20,0.055],[ 0.30,-0.46,0.045],[-0.10, 0.54,0.050],
+      [ 0.56, 0.16,0.060],[-0.36, 0.32,0.045],[ 0.14,-0.24,0.038],
+      [-0.60, 0.06,0.048],[ 0.40,-0.28,0.042],[-0.22,-0.56,0.040],
+      [ 0.06, 0.40,0.055],[ 0.62,-0.10,0.038],[-0.44,-0.42,0.044],
+      [ 0.26, 0.58,0.048],[-0.16, 0.12,0.032],[ 0.50, 0.42,0.040],
+      [-0.08,-0.36,0.036],[ 0.18, 0.28,0.042],[-0.32,-0.06,0.038],
+      [ 0.36, 0.08,0.044],[-0.58, 0.38,0.050],
      ];
-     for(const f of fissures){
-      ctx.lineWidth=radius*f.w;
-      ctx.beginPath();ctx.moveTo(f.pts[0]*radius,f.pts[1]*radius);
-      ctx.quadraticCurveTo(f.pts[2]*radius,f.pts[3]*radius,f.pts[4]*radius,f.pts[5]*radius);
-      ctx.stroke();
-      // Liseré clair sur un bord de la fissure (relief)
-      ctx.strokeStyle='rgba(155,135,98,0.18)';ctx.lineWidth=radius*f.w*0.4;
-      ctx.beginPath();ctx.moveTo(f.pts[0]*radius+1,f.pts[1]*radius-1);
-      ctx.quadraticCurveTo(f.pts[2]*radius+1,f.pts[3]*radius-1,f.pts[4]*radius+1,f.pts[5]*radius-1);
-      ctx.stroke();
-      ctx.strokeStyle='rgba(12,8,3,0.82)';
-     }
-
-     // Fissures fines secondaires
-     ctx.strokeStyle='rgba(15,10,4,0.45)';ctx.lineWidth=radius*0.010;
-     const microCracks=[
-      {pts:[-0.15,-0.32,0.05,-0.45,0.22,-0.28]},
-      {pts:[0.40,0.05,0.28,0.25,0.45,0.38]},
-      {pts:[-0.38,0.42,-0.20,0.28,-0.08,0.48]},
-      {pts:[0.12,0.18,-0.08,0.35,-0.28,0.22]},
-      {pts:[-0.52,0.15,-0.35,-0.08,-0.18,0.05]},
-     ];
-     for(const f of microCracks){
-      ctx.beginPath();ctx.moveTo(f.pts[0]*radius,f.pts[1]*radius);
-      ctx.quadraticCurveTo(f.pts[2]*radius,f.pts[3]*radius,f.pts[4]*radius,f.pts[5]*radius);
-      ctx.stroke();
+     for(const [gx,gy,gr] of gPts){
+      const light=Math.abs(gx-gy)>0.4;
+      ctx.fillStyle=light?'rgba(170,150,112,0.22)':'rgba(18,12,5,0.26)';
+      ctx.beginPath();ctx.arc(gx*radius,gy*radius,gr*radius,0,Math.PI*2);ctx.fill();
      }
 
      ctx.restore(); // fin clip rotation
@@ -31214,6 +31176,16 @@ function closeAvModal(e){
     cv.style.opacity='1';
     let t=0;
     const cx=W/2,cy=H/2;
+
+    /* ── Surcharge CSS : citation + logo remontés dans le ciel ── */
+    let _llStyle=document.getElementById('_ll_pos_s');
+    if(!_llStyle){_llStyle=document.createElement('style');_llStyle.id='_ll_pos_s';document.head.appendChild(_llStyle);}
+    _llStyle.textContent=`
+      #splash-quote{top:28%!important;transform:translateY(-50%)!important;}
+      #splash-quote.reveal{top:28%!important;transform:translateY(-50%)!important;}
+      #splash-film-logo{top:40%!important;}
+    `;
+    const _llW=setInterval(()=>{if(stop.v){_llStyle.textContent='';clearInterval(_llW);}},200);
 
     /* ── Étoiles ── */
     const stars=Array.from({length:110},()=>({
