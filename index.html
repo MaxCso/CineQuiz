@@ -3198,19 +3198,47 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 
 /* ── Citation ciné à l'ouverture du rideau ── */
 /* ── Zone logo SVG film — centre écran ── */
-#splash-film-logo{
+/* ── Wrapper flex : citation + logo film ── */
+#splash-content-wrap{
   position:absolute;
-  top:55%;
-  left:50%;
-  transform:translateX(-50%) translateY(16px) scale(0.90);
-  width:56%;max-width:210px;
+  top:50%;left:0;right:0;
+  transform:translateY(calc(-50% + 10px));
+  display:flex;flex-direction:column;align-items:center;
+  gap:24px;
   z-index:7;pointer-events:none;
   opacity:0;
-  transition:opacity 0.9s ease 0.2s, transform 0.9s cubic-bezier(.22,.68,0,1.15) 0.2s;
+  transition:opacity .9s ease .3s, transform .9s ease .3s;
+}
+#splash-content-wrap.reveal{
+  opacity:1;
+  transform:translateY(-50%);
+}
+/* Citation — dans le flux */
+#splash-quote{
+  position:static;
+  width:100%;
+  padding:0 36px;
+  text-align:center;
+  pointer-events:none;
+  opacity:1;
+  transform:none;
+  transition:none;
+}
+#splash-quote.reveal{
+  opacity:1 !important;
+  transform:none !important;
+}
+/* Logo film — dans le flux, juste sous la citation */
+#splash-film-logo{
+  width:56%;max-width:210px;
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(10px) scale(0.92);
+  transition:opacity 0.7s ease, transform 0.7s cubic-bezier(.22,.68,0,1.15);
 }
 #splash-film-logo.reveal{
   opacity:1;
-  transform:translateX(-50%) translateY(0) scale(1);
+  transform:translateY(0) scale(1);
 }
 #splash-film-logo svg,
 #splash-film-logo img{
@@ -3219,24 +3247,6 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
   mix-blend-mode:screen;
   filter:drop-shadow(0 2px 12px rgba(0,0,0,0.30));
   background:transparent;
-}
-
-/* ── Citation + infos film — bas d'écran ── */
-#splash-quote{
-  position:absolute;
-  top:50%;
-  transform:translateY(calc(-50% + 10px));
-  left:0;right:0;
-  padding:0 36px;
-  text-align:center;
-  z-index:7;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity .9s ease .3s, transform .9s ease .3s;
-}
-#splash-quote.reveal{
-  opacity:1 !important;
-  transform:translateY(-50%) !important;
 }
 /* splash-quote.reveal géré dans la règle #splash-quote ci-dessus */
 #splash-quote-text{
@@ -7854,12 +7864,14 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       </div>
     </div>
 
-    <!-- Zone logo SVG du film — centre écran -->
-    <div id="splash-film-logo"></div>
-
-    <!-- Citation centrée -->
-    <div id="splash-quote">
-      <div id="splash-quote-text"></div>
+    <!-- Wrapper citation + logo film — flex colonne centré -->
+    <div id="splash-content-wrap">
+      <!-- Citation centrée -->
+      <div id="splash-quote">
+        <div id="splash-quote-text"></div>
+      </div>
+      <!-- Logo film juste sous la citation -->
+      <div id="splash-film-logo"></div>
     </div>
 
     <!-- Ref film tout en bas -->
@@ -31174,9 +31186,7 @@ function closeAvModal(e){
     let _llStyle=document.getElementById('_ll_pos_s');
     if(!_llStyle){_llStyle=document.createElement('style');_llStyle.id='_ll_pos_s';document.head.appendChild(_llStyle);}
     _llStyle.textContent=`
-      #splash-quote{top:28%!important;transform:translateY(-50%)!important;}
-      #splash-quote.reveal{top:28%!important;transform:translateY(-50%)!important;}
-      #splash-film-logo{top:40%!important;}
+      #splash-content-wrap{top:32%!important;}
     `;
     const _llW=setInterval(()=>{if(stop.v){_llStyle.textContent='';clearInterval(_llW);}},200);
 
@@ -44631,19 +44641,21 @@ function runSplash(){
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
     if(tapEl) tapEl.classList.add('hidden');
-    // Citation apparaît à l'ouverture du rideau
+    // Citation + wrapper apparaît à l'ouverture du rideau
     setTimeout(()=>{
+      var wrap=document.getElementById('splash-content-wrap');
+      if(wrap) wrap.classList.add('reveal');
       if(quoteEl) quoteEl.classList.add('reveal');
     }, 450);
-    // Logo du film apparaît 2s après (effet de surprise)
+    // Logo du film apparaît 500ms après l'ouverture du rideau
     setTimeout(()=>{
       if(typeof window._onLogoReveal==='function') window._onLogoReveal();
-    }, 2000);
-    // Logo CinéQuiz apparaît en même temps que le logo film (2s)
+    }, 500);
+    // Logo CinéQuiz passe en mode film en même temps
     setTimeout(()=>{
       const logoWrap=document.getElementById('splash-logo');
       if(logoWrap) logoWrap.classList.add('logo-film-mode');
-    }, 2000);
+    }, 500);
 
     // "Appuyer pour passer" — apparaît 3s après l'ouverture du rideau (indépendant de l'audio)
     const skipEl = document.getElementById('splash-skip');
@@ -53427,13 +53439,15 @@ function hmReopenTuto() {
       if(el)el.style.display='';
     });
 
-    // Reset logo/quote/film-logo
+    // Reset logo/quote/film-logo/wrap
     var logo=document.getElementById('splash-logo');
     if(logo)logo.classList.remove('show');
     var quoteEl=document.getElementById('splash-quote');
     if(quoteEl)quoteEl.classList.remove('reveal');
     var filmLogoEl=document.getElementById('splash-film-logo');
     if(filmLogoEl)filmLogoEl.classList.remove('reveal');
+    var wrapEl=document.getElementById('splash-content-wrap');
+    if(wrapEl)wrapEl.classList.remove('reveal');
 
 
     // Supprimer le bouton retour
