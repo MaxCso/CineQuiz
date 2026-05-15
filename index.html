@@ -40450,97 +40450,319 @@ function closeAvModal(e){
    name:'Intouchables',
    ref:'Intouchables \u2014 Nakache & Toledano, 2011',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.82';
+    cv.style.opacity='1.0';
     let t=0;
     const cx=W/2;
-    /* Paris by night — toits haussmanniens */
-    const rooftops=[
-     {x:0,w:W*0.20,h:H*0.32,chimneys:[0.3,0.6,0.85]},
-     {x:W*0.18,w:W*0.16,h:H*0.26,chimneys:[0.4,0.75]},
-     {x:W*0.32,w:W*0.22,h:H*0.36,chimneys:[0.2,0.55,0.80]},
-     {x:W*0.52,w:W*0.18,h:H*0.28,chimneys:[0.35,0.70]},
-     {x:W*0.68,w:W*0.20,h:H*0.34,chimneys:[0.25,0.60,0.88]},
-     {x:W*0.86,w:W*0.16,h:H*0.24,chimneys:[0.4]},
-    ];
-    const horizY=H*0.50;
-    /* Tour Eiffel lointaine */
-    const towerX=cx+W*0.22,towerBase=horizY;
-    /* Lumières de fenêtres */
-    const winLights=Array.from({length:35},()=>({x:Math.random()*W,y:horizY-Math.random()*H*0.30,w:W*0.018,h:H*0.016,on:Math.random()<0.65,timer:Math.floor(Math.random()*200)}));
-    /* Petites particules de lumière / reflets */
-    const glitters=Array.from({length:25},()=>({x:Math.random()*W,y:horizY+Math.random()*(H-horizY)*0.70,op:Math.random()*0.20+0.05,phase:Math.random()*Math.PI*2,r:Math.random()*1.5+0.4}));
-    function drawEiffelTower(x,base,h){
-     const w=h*0.22;
-     ctx.fillStyle='rgba(20,16,10,0.94)';
-     /* Corps */
-     ctx.beginPath();ctx.moveTo(x-w*0.10,base);ctx.lineTo(x-w*0.40,base-h*0.44);ctx.lineTo(x-w*0.24,base-h*0.44);ctx.lineTo(x-w*0.04,base-h*0.72);ctx.lineTo(x,base-h);ctx.lineTo(x+w*0.04,base-h*0.72);ctx.lineTo(x+w*0.24,base-h*0.44);ctx.lineTo(x+w*0.40,base-h*0.44);ctx.lineTo(x+w*0.10,base);ctx.closePath();ctx.fill();
-     /* Traverse du bas */
-     ctx.fillRect(x-w*0.44,base-h*0.38,w*0.88,h*0.04);
-     /* Traverse du milieu */
-     ctx.fillRect(x-w*0.28,base-h*0.60,w*0.56,h*0.03);
-     /* Lueur sommet */
-     const tg=ctx.createRadialGradient(x,base-h,2,x,base-h,h*0.20);
-     tg.addColorStop(0,`rgba(255,210,100,${0.35+Math.sin(t*0.6)*0.08})`);tg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=tg;ctx.beginPath();ctx.arc(x,base-h,h*0.20,0,Math.PI*2);ctx.fill();
+
+    let _s=document.getElementById('_intou_s');
+    if(!_s){_s=document.createElement('style');_s.id='_intou_s';document.head.appendChild(_s);}
+    _s.textContent=`
+      #splash{background:#05060e!important;}
+      #splash-bg::before{background:none!important;}
+      #splash-bg::after{background:none!important;}
+      #splash-bg-anim::before{background:none!important;}
+      #splash-bg-anim::after{background:none!important;}
+    `;
+    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+
+    const horizY=H*0.58;
+    const vp={x:cx, y:horizY}; /* point de fuite central */
+
+    /* ── Lampadaires — perspective gauche et droite ── */
+    /* Chaque lampadaire : position normalisée 0..1 (0=proche, 1=loin) */
+    const lampCount=7;
+    const lamps=Array.from({length:lampCount},(_,i)=>{
+     const depth=(i+1)/lampCount; /* 1=proche, 1/n=loin */
+     const depthR=1-depth;        /* 0=loin, 1=proche */
+     const spread=W*0.46*depthR;
+     const y=horizY+(1-depth)*(H-horizY)*0.92;
+     const poleH=H*(0.06+depthR*0.18);
+     const size=0.4+depthR*0.8;
+     return {depth,depthR,y,spread,poleH,size};
+    }).reverse(); /* du plus loin au plus proche */
+
+    /* ── Fenêtres des immeubles — générées une seule fois ── */
+    const winCount=90;
+    const windows=Array.from({length:winCount},(_,i)=>{
+     /* Côté gauche ou droit du boulevard */
+     const side=i%2===0?-1:1;
+     const depth=0.05+Math.random()*0.95;
+     const depthR=1-depth;
+     /* Projection perspective depuis le point de fuite */
+     const spread=W*(0.46+depth*0.15)*depthR;
+     const baseX=vp.x+side*(spread+W*(0.02+depth*0.12));
+     const baseY=horizY+(1-depth)*(H-horizY)*0.85;
+     /* Position dans la façade */
+     const col=Math.floor(Math.random()*6);
+     const row=Math.floor(Math.random()*8);
+     const wScale=0.3+depthR*0.7;
+     const wx=baseX+side*(col*W*0.028*wScale);
+     const wy=baseY-row*H*0.022*wScale;
+     return {
+      x:wx, y:wy,
+      w:W*0.018*wScale, h:H*0.014*wScale,
+      on:Math.random()<0.60,
+      brightness:0.5+Math.random()*0.5,
+      timer:Math.floor(Math.random()*300)+60,
+      warm:Math.random()<0.70, /* lumière chaude ou froide */
+     };
+    });
+
+    /* ── Reflets au sol — boulevard pavé mouillé ── */
+    const reflCount=40;
+    const reflections=Array.from({length:reflCount},(_,i)=>{
+     return {
+      x:vp.x+(Math.random()-0.5)*W*0.80,
+      y:horizY+Math.random()*(H-horizY)*0.90,
+      len:H*(0.02+Math.random()*0.06),
+      w:W*(0.003+Math.random()*0.006),
+      phase:Math.random()*Math.PI*2,
+      warm:Math.random()<0.65,
+     };
+    });
+
+    /* ── Silhouettes — Philippe (fauteuil) + Driss (marchant) ── */
+    /* Dessinées au premier plan, légèrement à gauche du centre */
+    const silX=cx-W*0.08;
+    const silY=horizY+H*0.01;
+
+    function drawPhilippeInChair(x,y,s){
+     /* s = scale */
+     ctx.save();
+     ctx.fillStyle='rgba(8,6,12,0.97)';
+     /* Roues */
+     ctx.beginPath();ctx.arc(x-s*0.28,y+s*0.14,s*0.16,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.arc(x+s*0.22,y+s*0.14,s*0.16,0,Math.PI*2);ctx.fill();
+     /* Petit rouleau avant */
+     ctx.beginPath();ctx.arc(x-s*0.36,y+s*0.20,s*0.07,0,Math.PI*2);ctx.fill();
+     /* Cadre fauteuil */
+     ctx.strokeStyle='rgba(8,6,12,0.97)';ctx.lineWidth=s*0.06;ctx.lineCap='round';
+     ctx.beginPath();
+     ctx.moveTo(x-s*0.28,y+s*0.14);ctx.lineTo(x-s*0.28,y-s*0.08);
+     ctx.lineTo(x+s*0.22,y-s*0.08);ctx.lineTo(x+s*0.22,y+s*0.14);
+     ctx.moveTo(x-s*0.28,y-s*0.08);ctx.lineTo(x-s*0.05,y-s*0.08);
+     ctx.stroke();
+     /* Dossier */
+     ctx.beginPath();ctx.moveTo(x+s*0.18,y-s*0.08);ctx.lineTo(x+s*0.18,y-s*0.36);ctx.lineTo(x+s*0.04,y-s*0.36);ctx.lineTo(x+s*0.04,y-s*0.08);ctx.stroke();
+     /* Corps assis */
+     ctx.beginPath();ctx.ellipse(x+s*0.08,y-s*0.28,s*0.10,s*0.14,0,0,Math.PI*2);ctx.fill();
+     /* Tête */
+     ctx.beginPath();ctx.arc(x+s*0.06,y-s*0.46,s*0.09,0,Math.PI*2);ctx.fill();
+     ctx.restore();
     }
+
+    function drawDriss(x,y,s,walkPhase){
+     ctx.save();
+     ctx.fillStyle='rgba(8,6,12,0.97)';
+     /* Corps */
+     ctx.beginPath();ctx.ellipse(x,y-s*0.38,s*0.11,s*0.18,0,0,Math.PI*2);ctx.fill();
+     /* Tête */
+     ctx.beginPath();ctx.arc(x,y-s*0.60,s*0.10,0,Math.PI*2);ctx.fill();
+     /* Jambes */
+     ctx.strokeStyle='rgba(8,6,12,0.97)';ctx.lineWidth=s*0.07;ctx.lineCap='round';
+     const legSwing=Math.sin(walkPhase)*s*0.12;
+     ctx.beginPath();
+     ctx.moveTo(x,y-s*0.22);ctx.lineTo(x+legSwing,y);ctx.lineTo(x+legSwing+s*0.04,y+s*0.16);
+     ctx.stroke();
+     ctx.beginPath();
+     ctx.moveTo(x,y-s*0.22);ctx.lineTo(x-legSwing,y);ctx.lineTo(x-legSwing-s*0.04,y+s*0.16);
+     ctx.stroke();
+     /* Bras */
+     ctx.lineWidth=s*0.055;
+     ctx.beginPath();
+     ctx.moveTo(x,y-s*0.50);ctx.lineTo(x-legSwing*0.7-s*0.12,y-s*0.32);
+     ctx.stroke();
+     ctx.beginPath();
+     ctx.moveTo(x,y-s*0.50);ctx.lineTo(x+legSwing*0.7+s*0.12,y-s*0.32);
+     ctx.stroke();
+     ctx.restore();
+    }
+
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(5,6,12,0.26)';ctx.fillRect(0,0,W,H);
-     /* Ciel nuit parisien — violet doux */
+
+     /* ── CIEL nuit parisienne ── */
      const sky=ctx.createLinearGradient(0,0,0,horizY);
-     sky.addColorStop(0,'rgba(5,6,14,0.97)');sky.addColorStop(0.4,'rgba(14,12,28,0.93)');sky.addColorStop(0.75,'rgba(25,20,45,0.88)');sky.addColorStop(1,'rgba(35,28,58,0.84)');
+     sky.addColorStop(0.00,'#03040c');
+     sky.addColorStop(0.35,'#06081a');
+     sky.addColorStop(0.72,'#0e1030');
+     sky.addColorStop(1.00,'#141838');
      ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
-     /* Quelques étoiles */
-     for(let si=0;si<12;si++){ctx.fillStyle=`rgba(220,210,240,${0.10+Math.sin(t*0.8+si)*0.06})`;ctx.beginPath();ctx.arc(W*(0.04+si*0.085),H*(0.04+Math.sin(si*1.3)*0.08),0.8,0,Math.PI*2);ctx.fill();}
-     /* Lueur orange-rose de la ville */
-     const cityGlow=ctx.createRadialGradient(cx,horizY,H*0.01,cx,horizY,W*0.70);
-     cityGlow.addColorStop(0,`rgba(255,140,60,${0.10+Math.sin(t*0.2)*0.02})`);cityGlow.addColorStop(0.4,'rgba(200,100,50,0.05)');cityGlow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=cityGlow;ctx.beginPath();ctx.ellipse(cx,horizY,W*0.65,H*0.18,0,0,Math.PI*2);ctx.fill();
-     /* Toits haussmanniens */
-     for(const r of rooftops){
-      const ry=horizY-r.h;
-      const rg=ctx.createLinearGradient(r.x,ry,r.x,horizY);
-      rg.addColorStop(0,'rgba(16,14,20,0.97)');rg.addColorStop(1,'rgba(22,18,28,0.96)');
-      ctx.fillStyle=rg;ctx.fillRect(r.x,ry,r.w,r.h);
-      /* Mansardes légères */
-      ctx.fillStyle='rgba(12,10,16,0.96)';
-      ctx.beginPath();ctx.moveTo(r.x,ry);ctx.lineTo(r.x+r.w*0.5,ry-r.h*0.08);ctx.lineTo(r.x+r.w,ry);ctx.closePath();ctx.fill();
-      /* Cheminées */
-      for(const cPos of r.chimneys){
-       const chx=r.x+cPos*r.w,chy=ry-r.h*0.06;
-       ctx.fillStyle='rgba(14,12,18,0.98)';ctx.fillRect(chx-W*0.012,chy-H*0.04,W*0.024,H*0.04);
-       /* Fumée */
-       for(let fi=0;fi<3;fi++){
-        const fx=chx+Math.sin(t*0.6+fi*1.2)*W*0.01,fy=chy-H*0.04-fi*H*0.014;
-        const fop=0.06-fi*0.018;
-        const fg=ctx.createRadialGradient(fx,fy,1,fx,fy,W*0.018);
-        fg.addColorStop(0,`rgba(160,140,120,${fop})`);fg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=fg;ctx.beginPath();ctx.arc(fx,fy,W*0.018,0,Math.PI*2);ctx.fill();
-       }
+
+     /* Halo lumineux de la ville bas du ciel */
+     const cityHalo=ctx.createRadialGradient(cx,horizY,0,cx,horizY,W*0.75);
+     cityHalo.addColorStop(0,`rgba(255,160,60,${0.14+Math.sin(t*0.3)*0.02})`);
+     cityHalo.addColorStop(0.35,'rgba(200,100,30,0.06)');
+     cityHalo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=cityHalo;ctx.fillRect(0,0,W,horizY);
+
+     /* Étoiles discrètes */
+     for(let si=0;si<18;si++){
+      const sx=W*(0.03+si*0.053+Math.sin(si*2.1)*0.02);
+      const sy=H*(0.02+Math.sin(si*1.7)*0.06);
+      const sop=0.08+Math.sin(t*0.9+si*1.3)*0.05;
+      ctx.fillStyle=`rgba(220,215,240,${sop})`;
+      ctx.beginPath();ctx.arc(sx,sy,0.7,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── SOL — boulevard pavé mouillé ── */
+     const street=ctx.createLinearGradient(0,horizY,0,H);
+     street.addColorStop(0.00,'#141020');
+     street.addColorStop(0.30,'#0e0c1a');
+     street.addColorStop(0.70,'#080610');
+     street.addColorStop(1.00,'#040308');
+     ctx.fillStyle=street;ctx.fillRect(0,horizY,W,H-horizY);
+
+     /* Ligne centrale du boulevard — perspective */
+     ctx.strokeStyle='rgba(80,70,60,0.25)';ctx.lineWidth=1;ctx.setLineDash([H*0.02,H*0.025]);
+     ctx.beginPath();ctx.moveTo(vp.x,horizY);ctx.lineTo(cx,H);ctx.stroke();
+     ctx.setLineDash([]);
+
+     /* ── IMMEUBLES haussmanniens — façades en perspective ── */
+     /* Gauche */
+     const facadeGL=ctx.createLinearGradient(0,0,W*0.28,0);
+     facadeGL.addColorStop(0,'rgba(10,9,16,0.99)');
+     facadeGL.addColorStop(1,'rgba(16,14,24,0.97)');
+     ctx.fillStyle=facadeGL;
+     ctx.beginPath();
+     ctx.moveTo(0,0);ctx.lineTo(vp.x,horizY);ctx.lineTo(0,H);ctx.closePath();
+     ctx.fill();
+     /* Droite */
+     const facadeGR=ctx.createLinearGradient(W,0,W*0.72,0);
+     facadeGR.addColorStop(0,'rgba(10,9,16,0.99)');
+     facadeGR.addColorStop(1,'rgba(16,14,24,0.97)');
+     ctx.fillStyle=facadeGR;
+     ctx.beginPath();
+     ctx.moveTo(W,0);ctx.lineTo(vp.x,horizY);ctx.lineTo(W,H);ctx.closePath();
+     ctx.fill();
+
+     /* Corniches haussmanniennes */
+     for(let c=0;c<5;c++){
+      const depth=0.15+c*0.17;
+      const depthR=1-depth;
+      const ys=horizY+(1-depth)*(H-horizY)*0.82;
+      const leftX=vp.x-(vp.x)*depthR*1.02;
+      const rightX=vp.x+(W-vp.x)*depthR*1.02;
+      ctx.strokeStyle=`rgba(30,26,42,${0.55+depthR*0.30})`;
+      ctx.lineWidth=depthR*4+0.5;
+      ctx.beginPath();ctx.moveTo(leftX,ys);ctx.lineTo(vp.x,horizY);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(rightX,ys);ctx.lineTo(vp.x,horizY);ctx.stroke();
+     }
+
+     /* ── FENÊTRES ── */
+     for(const wl of windows){
+      wl.timer--;
+      if(wl.timer<=0){wl.timer=180+Math.floor(Math.random()*240);wl.on=Math.random()<0.60;}
+      if(!wl.on)continue;
+      const r=wl.warm?255:200;
+      const g=wl.warm?Math.round(180+wl.brightness*40):Math.round(210+wl.brightness*30);
+      const b=wl.warm?Math.round(80+wl.brightness*30):255;
+      ctx.fillStyle=`rgba(${r},${g},${b},${wl.brightness*0.22})`;
+      ctx.fillRect(wl.x,wl.y,wl.w,wl.h);
+      /* Halo doux autour de la fenêtre */
+      const wg=ctx.createRadialGradient(wl.x+wl.w/2,wl.y+wl.h/2,0,wl.x+wl.w/2,wl.y+wl.h/2,wl.w*2.5);
+      wg.addColorStop(0,`rgba(${r},${g},${b},${wl.brightness*0.08})`);
+      wg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=wg;ctx.fillRect(wl.x-wl.w*2,wl.y-wl.h*2,wl.w*6,wl.h*6);
+     }
+
+     /* ── LAMPADAIRES en perspective ── */
+     for(const lp of lamps){
+      const leftX=vp.x-lp.spread;
+      const rightX=vp.x+lp.spread;
+      const pW=W*0.010*lp.size;
+      const gloSize=W*0.06*lp.size;
+      const lampOp=0.70+Math.sin(t*1.2+lp.depth*3)*0.08;
+
+      for(const lx of [leftX,rightX]){
+       /* Poteau */
+       ctx.strokeStyle=`rgba(20,16,28,0.98)`;ctx.lineWidth=pW;ctx.lineCap='round';
+       ctx.beginPath();ctx.moveTo(lx,lp.y);ctx.lineTo(lx,lp.y-lp.poleH);ctx.stroke();
+       /* Bras */
+       const armDir=lx<cx?1:-1;
+       ctx.beginPath();
+       ctx.moveTo(lx,lp.y-lp.poleH);
+       ctx.bezierCurveTo(lx,lp.y-lp.poleH-lp.poleH*0.15,
+                         lx+armDir*lp.poleH*0.25,lp.y-lp.poleH-lp.poleH*0.12,
+                         lx+armDir*lp.poleH*0.22,lp.y-lp.poleH-lp.poleH*0.08);
+       ctx.stroke();
+       /* Globe lumineux */
+       const glx=lx+armDir*lp.poleH*0.22;
+       const gly=lp.y-lp.poleH-lp.poleH*0.08;
+       const gg=ctx.createRadialGradient(glx,gly,0,glx,gly,gloSize);
+       gg.addColorStop(0,`rgba(255,230,140,${lampOp})`);
+       gg.addColorStop(0.12,`rgba(255,200,80,${lampOp*0.70})`);
+       gg.addColorStop(0.40,`rgba(240,160,40,${lampOp*0.20})`);
+       gg.addColorStop(1,'rgba(0,0,0,0)');
+       ctx.fillStyle=gg;ctx.beginPath();ctx.arc(glx,gly,gloSize,0,Math.PI*2);ctx.fill();
+       /* Point central */
+       ctx.fillStyle=`rgba(255,250,220,${lampOp})`;
+       ctx.beginPath();ctx.arc(glx,gly,pW*0.9,0,Math.PI*2);ctx.fill();
       }
      }
-     /* Tour Eiffel */
-     drawEiffelTower(towerX,towerBase,H*0.28);
-     /* Sol parisien nuit */
-     const street=ctx.createLinearGradient(0,horizY,0,H);
-     street.addColorStop(0,'rgba(18,14,24,0.94)');street.addColorStop(1,'rgba(8,6,12,0.99)');
-     ctx.fillStyle=street;ctx.fillRect(0,horizY,W,H-horizY);
-     /* Reflets des fenêtres */
-     for(const wl of winLights){
-      wl.timer--;if(wl.timer<=0){wl.timer=120+Math.floor(Math.random()*180);wl.on=!wl.on;}
-      if(!wl.on)continue;
-      ctx.fillStyle='rgba(255,200,120,0.18)';ctx.fillRect(wl.x,wl.y,wl.w,wl.h);
+
+     /* ── REFLETS pavé mouillé ── */
+     for(const r of reflections){
+      r.phase+=0.018;
+      const rop=0.06+Math.sin(r.phase)*0.04;
+      const rr=r.warm?255:180;
+      const rg=r.warm?Math.round(180+Math.sin(r.phase)*20):200;
+      const rb=r.warm?60:255;
+      /* Trainée verticale */
+      const rg2=ctx.createLinearGradient(r.x,r.y,r.x,r.y+r.len);
+      rg2.addColorStop(0,`rgba(${rr},${rg},${rb},${rop})`);
+      rg2.addColorStop(1,`rgba(${rr},${rg},${rb},0)`);
+      ctx.fillStyle=rg2;ctx.fillRect(r.x-r.w/2,r.y,r.w,r.len);
      }
-     /* Scintillements sur bitume mouillé */
-     for(const g of glitters){
-      g.phase+=0.020;ctx.fillStyle=`rgba(255,200,120,${Math.max(0,Math.sin(g.phase)*g.op)})`;
-      ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();
-     }
-     /* Vignette chaude */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.05,cx,H*0.50,H*0.90);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.44,'rgba(0,0,0,0.20)');vg.addColorStop(1,'rgba(0,0,0,0.96)');
+
+     /* ── TOUR EIFFEL lointaine — droite ── */
+     (function(){
+      const tx=vp.x+W*0.20,tb=horizY,th=H*0.22;
+      const tw=th*0.18;
+      ctx.fillStyle='rgba(12,10,20,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(tx-tw*0.08,tb);ctx.lineTo(tx-tw*0.35,tb-th*0.44);
+      ctx.lineTo(tx-tw*0.20,tb-th*0.44);ctx.lineTo(tx-tw*0.03,tb-th*0.72);
+      ctx.lineTo(tx,tb-th);
+      ctx.lineTo(tx+tw*0.03,tb-th*0.72);ctx.lineTo(tx+tw*0.20,tb-th*0.44);
+      ctx.lineTo(tx+tw*0.35,tb-th*0.44);ctx.lineTo(tx+tw*0.08,tb);
+      ctx.closePath();ctx.fill();
+      ctx.fillRect(tx-tw*0.38,tb-th*0.38,tw*0.76,th*0.03);
+      ctx.fillRect(tx-tw*0.24,tb-th*0.60,tw*0.48,th*0.025);
+      /* Scintillement sommet */
+      const scOp=0.30+Math.abs(Math.sin(t*1.2))*0.45;
+      const sg=ctx.createRadialGradient(tx,tb-th,1,tx,tb-th,th*0.12);
+      sg.addColorStop(0,`rgba(255,220,120,${scOp})`);sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(tx,tb-th,th*0.12,0,Math.PI*2);ctx.fill();
+     })();
+
+     /* ── SILHOUETTES Philippe + Driss ── */
+     const scale=H*0.14;
+     const walkPhase=t*1.8;
+     /* Driss marche à droite de Philippe */
+     drawPhilippeInChair(silX-scale*0.15, silY+scale*0.30, scale);
+     drawDriss(silX+scale*0.55, silY+scale*0.28, scale*0.92, walkPhase);
+
+     /* Halo chaud autour des silhouettes — lumière de lampadaire */
+     const shg=ctx.createRadialGradient(silX+scale*0.20,silY+scale*0.10,0,silX+scale*0.20,silY+scale*0.10,scale*1.2);
+     shg.addColorStop(0,'rgba(255,180,60,0.06)');
+     shg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=shg;ctx.fillRect(silX-scale,silY-scale*0.5,scale*2.4,scale*2);
+
+     /* ── Vignette ── */
+     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.06,cx,H*0.50,H*0.85);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.42,'rgba(0,0,0,0.14)');
+     vg.addColorStop(1,'rgba(0,0,0,0.95)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     for(let i=0;i<20;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+4},${g+2},${g+5},${Math.random()*0.020})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
+
+     /* Grain léger */
+     for(let i=0;i<22;i++){
+      const g=4+Math.random()*12|0;
+      ctx.fillStyle=`rgba(${g+4},${g+2},${g+6},${Math.random()*0.018})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);
+     }
+
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
