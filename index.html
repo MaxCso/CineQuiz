@@ -23685,7 +23685,13 @@ function closeAvModal(e){
       const scaleX=FROG_SIZE/1517, scaleY=FROG_SIZE/1249;
       oc2.scale(scaleX,scaleY);
       const p=new Path2D(FROG_PATH_D);
-      oc2.fillStyle='rgba(18,22,28,0.92)';
+      oc2.fillStyle='rgba(9,61,26,0.97)';
+      oc2.fill(p);
+      /* Reflet lumineux pour donner du volume */
+      const fg=oc2.createRadialGradient(FROG_SIZE*0.38,FROG_SIZE*0.28,FROG_SIZE*0.02,FROG_SIZE*0.38,FROG_SIZE*0.28,FROG_SIZE*0.42);
+      fg.addColorStop(0,'rgba(15,75,30,0.40)');
+      fg.addColorStop(1,'rgba(0,0,0,0)');
+      oc2.fillStyle=fg;
       oc2.fill(p);
       frogImg=oc.transferToImageBitmap();
      }catch(e){frogImg=null;}
@@ -23744,18 +23750,41 @@ function closeAvModal(e){
     });
 
     function drawCloud(c){
-     const segs=6;
+     const segs=9;
+     /* Couche de base sombre et dense */
      for(let s=0;s<segs;s++){
-      const ox=(s/(segs-1)-0.5)*c.w*1.0;
-      const oy=Math.sin(s/segs*Math.PI)*(-c.h*0.35);
-      const r=c.h*(0.48+Math.random()*0.05);
-      const lum=c.layer===0?'55,45,75':c.layer===1?'35,28,52':'22,18,38';
-      const cg=ctx.createRadialGradient(c.x+ox,c.y+oy,r*0.05,c.x+ox,c.y+oy,r);
-      cg.addColorStop(0,`rgba(${lum},0.92)`);
-      cg.addColorStop(0.6,`rgba(${lum},0.60)`);
+      const prog=s/(segs-1);
+      const ox=(prog-0.5)*c.w*1.05;
+      const oy=Math.sin(prog*Math.PI)*(-c.h*0.40)+(Math.sin(prog*Math.PI*2)*c.h*0.08);
+      const r=c.h*(0.50+Math.sin(prog*Math.PI)*0.18);
+      const lum=c.layer===0?'68,55,95':c.layer===1?'48,38,72':'30,22,52';
+      const cg=ctx.createRadialGradient(c.x+ox,c.y+oy,r*0.08,c.x+ox,c.y+oy,r);
+      cg.addColorStop(0,`rgba(${lum},0.95)`);
+      cg.addColorStop(0.45,`rgba(${lum},0.72)`);
+      cg.addColorStop(0.78,`rgba(${lum},0.30)`);
       cg.addColorStop(1,`rgba(${lum},0)`);
       ctx.fillStyle=cg;
-      ctx.beginPath();ctx.ellipse(c.x+ox,c.y+oy,r*1.0,r*0.70,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(c.x+ox,c.y+oy,r*1.15,r*0.72,0,0,Math.PI*2);ctx.fill();
+     }
+     /* Lueur interne bleutée — éclairage éclair diffus */
+     const innerGlow=ctx.createRadialGradient(c.x,c.y-c.h*0.12,0,c.x,c.y-c.h*0.12,c.w*0.38);
+     const glowAlpha=c.layer===0?0.14:c.layer===1?0.09:0.06;
+     innerGlow.addColorStop(0,`rgba(130,110,200,${glowAlpha})`);
+     innerGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=innerGlow;
+     ctx.beginPath();ctx.ellipse(c.x,c.y-c.h*0.12,c.w*0.42,c.h*0.55,0,0,Math.PI*2);ctx.fill();
+     /* Bord supérieur légèrement plus lumineux */
+     for(let s=2;s<segs-2;s++){
+      const prog=s/(segs-1);
+      const ox=(prog-0.5)*c.w*0.80;
+      const oy=Math.sin(prog*Math.PI)*(-c.h*0.50);
+      const r=c.h*(0.22+Math.sin(prog*Math.PI)*0.10);
+      const eg=ctx.createRadialGradient(c.x+ox,c.y+oy,0,c.x+ox,c.y+oy,r);
+      const elum=c.layer===0?'100,85,140':c.layer===1?'75,60,110':'55,42,85';
+      eg.addColorStop(0,`rgba(${elum},0.55)`);
+      eg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=eg;
+      ctx.beginPath();ctx.ellipse(c.x+ox,c.y+oy,r*1.3,r*0.70,0,0,Math.PI*2);ctx.fill();
      }
     }
 
@@ -23767,7 +23796,7 @@ function closeAvModal(e){
       ctx.drawImage(frogImg,-size/2,-size/2,size,size);
      } else {
       /* Fallback ellipse */
-      ctx.fillStyle='rgba(18,22,28,0.88)';
+      ctx.fillStyle='rgba(9,61,26,0.93)';
       ctx.beginPath();ctx.ellipse(0,0,size*0.42,size*0.32,0,0,Math.PI*2);ctx.fill();
      }
      ctx.restore();
@@ -23875,12 +23904,7 @@ function closeAvModal(e){
      vg.addColorStop(0.60,'rgba(0,0,0,0.12)');
      vg.addColorStop(1,'rgba(4,2,12,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     const vgL=ctx.createLinearGradient(0,0,W*0.10,0);
-     vgL.addColorStop(0,'rgba(4,2,12,0.65)');vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.10,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.90,0);
-     vgR.addColorStop(0,'rgba(4,2,12,0.65)');vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR;ctx.fillRect(W*0.90,0,W*0.10,H);
+
 
      t+=0.016;requestAnimationFrame(frame);
     }
