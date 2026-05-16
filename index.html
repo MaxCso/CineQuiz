@@ -39441,6 +39441,37 @@ function closeAvModal(e){
     function cubicBezier(p0,p1,p2,p3,t2){return bezierPoint(p0,p1,p2,p3,t2);}
 
     /* ── Reflets sur l'eau ── */
+    /* ── Étoiles fixes ── */
+    const stars=Array.from({length:90},()=>({
+     x:Math.random()*W,
+     y:Math.random()*HORIZ*0.72,
+     r:Math.random()*1.1+0.2,
+     op:Math.random()*0.55+0.15,
+     tw:Math.random()*Math.PI*2,
+     tf:Math.random()*0.018+0.004,
+    }));
+
+    /* ── Étoiles filantes ── */
+    const shootingStars=Array.from({length:4},(_,i)=>({
+     active:false,
+     timer:i*90+Math.random()*60,   /* décalage initial pour qu'elles n'arrivent pas toutes en même temps */
+     x:0, y:0, vx:0, vy:0,
+     len:0, alpha:0,
+    }));
+    function resetShootingStar(s){
+     s.active=true;
+     s.x=Math.random()*W*0.9;
+     s.y=Math.random()*HORIZ*0.35;
+     const angle=Math.PI*0.18+Math.random()*Math.PI*0.12;
+     const speed=W*(0.012+Math.random()*0.010);
+     s.vx=Math.cos(angle)*speed;
+     s.vy=Math.sin(angle)*speed;
+     s.len=W*(0.06+Math.random()*0.08);
+     s.alpha=0.85+Math.random()*0.15;
+     s.life=0;
+     s.maxLife=38+Math.random()*20|0;
+    }
+
     const seaSparkles=Array.from({length:18},()=>({
      x:Math.random()*W,
      y:HORIZ+Math.random()*(H-HORIZ)*0.45,
@@ -39641,6 +39672,48 @@ function closeAvModal(e){
      sky.addColorStop(0.90,'#e8842c');
      sky.addColorStop(1,'#f0b050');
      ctx.fillStyle=sky; ctx.fillRect(0,0,W,HORIZ);
+
+     /* ── Étoiles fixes (haut du ciel sombre) ── */
+     for(const s of stars){
+      s.tw+=s.tf;
+      const op=s.op*(0.45+Math.sin(s.tw)*0.55);
+      /* fondu vers 0 au niveau de l'horizon */
+      const fade=Math.max(0,1-s.y/(HORIZ*0.75));
+      ctx.fillStyle=`rgba(255,245,220,${op*fade})`;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+     }
+
+     /* ── Étoiles filantes ── */
+     for(const s of shootingStars){
+      if(!s.active){
+       s.timer--;
+       if(s.timer<=0) resetShootingStar(s);
+       continue;
+      }
+      s.life++;
+      s.x+=s.vx; s.y+=s.vy;
+      const progress=s.life/s.maxLife;
+      const a=s.alpha*(1-progress);
+      if(a<0.01||s.y>HORIZ*0.85||s.life>=s.maxLife){
+       s.active=false;
+       s.timer=120+Math.random()*180|0;
+       continue;
+      }
+      const tailX=s.x-s.vx*(s.len/Math.hypot(s.vx,s.vy));
+      const tailY=s.y-s.vy*(s.len/Math.hypot(s.vx,s.vy));
+      const fade=Math.max(0,1-s.y/(HORIZ*0.80));
+      const grad=ctx.createLinearGradient(tailX,tailY,s.x,s.y);
+      grad.addColorStop(0,'rgba(255,255,240,0)');
+      grad.addColorStop(0.6,`rgba(255,248,210,${a*0.4*fade})`);
+      grad.addColorStop(1,`rgba(255,255,255,${a*fade})`);
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=1.2;
+      ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(tailX,tailY); ctx.lineTo(s.x,s.y); ctx.stroke();
+      /* petit point lumineux en tête */
+      ctx.fillStyle=`rgba(255,255,255,${a*fade})`;
+      ctx.beginPath(); ctx.arc(s.x,s.y,1.2,0,Math.PI*2); ctx.fill();
+     }
 
      /* Soleil bas sur l'horizon */
      const sunY=HORIZ-H*0.045;
