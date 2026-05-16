@@ -39247,44 +39247,122 @@ function closeAvModal(e){
     /* ── Horizon ── */
     const HORIZ=H*0.56;
 
-    /* ── Palmiers — silhouettes ── */
+    /* ── Palmiers — silhouettes réalistes ── */
     const palms=[
-     {x:W*0.08, baseY:HORIZ, h:H*0.40, lean:-0.12, leaves:6},
-     {x:W*0.92, baseY:HORIZ, h:H*0.36, lean: 0.10, leaves:5},
-     {x:W*0.18, baseY:HORIZ, h:H*0.28, lean:-0.06, leaves:5},
-     {x:W*0.82, baseY:HORIZ, h:H*0.32, lean: 0.08, leaves:5},
+     {x:W*0.06, baseY:HORIZ, h:H*0.52, lean:-0.22, side:-1},
+     {x:W*0.94, baseY:HORIZ, h:H*0.48, lean: 0.20, side: 1},
+     {x:W*0.16, baseY:HORIZ, h:H*0.38, lean:-0.14, side:-1},
+     {x:W*0.84, baseY:HORIZ, h:H*0.42, lean: 0.16, side: 1},
     ];
 
-    function drawPalm(px,baseY,h,lean,nLeaves){
+    function drawPalm(px,baseY,h,lean,side){
      ctx.save();
-     ctx.fillStyle='rgba(4,2,6,0.97)';
-     ctx.strokeStyle='rgba(4,2,6,0.97)';
-     /* Tronc courbé */
-     const tipX=px+lean*h, tipY=baseY-h;
-     ctx.lineWidth=W*0.014;
-     ctx.lineCap='round';
-     ctx.beginPath();
-     ctx.moveTo(px,baseY);
-     ctx.quadraticCurveTo(px+lean*h*0.4,baseY-h*0.55,tipX,tipY);
-     ctx.stroke();
-     /* Feuilles */
-     for(let li=0;li<nLeaves;li++){
-      const baseAngle=-Math.PI/2+lean;
-      const leafAngle=baseAngle+(li/(nLeaves-1)-0.5)*Math.PI*1.10;
-      const sway=Math.sin(t*0.6+li*0.8)*0.04;
-      const lLen=h*(0.32+Math.random()*0.05);
-      const c1x=tipX+Math.cos(leafAngle+sway)*lLen*0.40;
-      const c1y=tipY+Math.sin(leafAngle+sway)*lLen*0.40;
-      const endX=tipX+Math.cos(leafAngle+sway+0.18)*lLen;
-      const endY=tipY+Math.sin(leafAngle+sway+0.18)*lLen;
-      ctx.lineWidth=W*0.007;
+     ctx.fillStyle='rgba(3,1,5,0.97)';
+     ctx.strokeStyle='rgba(3,1,5,0.97)';
+
+     /* Tronc — courbe en S naturelle */
+     const tipX=px+lean*h;
+     const tipY=baseY-h;
+     const cp1x=px+lean*h*0.15, cp1y=baseY-h*0.30;
+     const cp2x=px+lean*h*0.75, cp2y=baseY-h*0.68;
+
+     /* Épaisseur variable — large en bas, fin en haut */
+     const segments=18;
+     for(let si=0;si<segments;si++){
+      const t0=si/segments, t1=(si+1)/segments;
+      const bt0=bezierPoint(px,cp1x,cp2x,tipX,t0);
+      const bt1=bezierPoint(px,cp1x,cp2x,tipX,t1);
+      const by0=bezierPoint(baseY,cp1y,cp2y,tipY,t0);
+      const by1=bezierPoint(baseY,cp1y,cp2y,tipY,t1);
+      const w0=W*(0.022-t0*0.016);
+      const w1=W*(0.022-t1*0.016);
+      /* Angle du segment pour l'épaisseur perpendiculaire */
+      const ang=Math.atan2(by1-by0,bt1-bt0)+Math.PI/2;
       ctx.beginPath();
-      ctx.moveTo(tipX,tipY);
-      ctx.quadraticCurveTo(c1x,c1y,endX,endY);
+      ctx.moveTo(bt0-Math.cos(ang)*w0, by0-Math.sin(ang)*w0);
+      ctx.lineTo(bt1-Math.cos(ang)*w1, by1-Math.sin(ang)*w1);
+      ctx.lineTo(bt1+Math.cos(ang)*w1, by1+Math.sin(ang)*w1);
+      ctx.lineTo(bt0+Math.cos(ang)*w0, by0+Math.sin(ang)*w0);
+      ctx.closePath();ctx.fill();
+     }
+
+     /* Cicatrices de feuilles sur le tronc */
+     ctx.strokeStyle='rgba(0,0,0,0.60)';ctx.lineWidth=W*0.004;
+     for(let ci=0;ci<8;ci++){
+      const tc=0.20+ci*0.09;
+      const cx2=bezierPoint(px,cp1x,cp2x,tipX,tc);
+      const cy2=bezierPoint(baseY,cp1y,cp2y,tipY,tc);
+      ctx.beginPath();
+      ctx.moveTo(cx2-W*0.012,cy2);ctx.lineTo(cx2+W*0.012,cy2+H*0.004);
+      ctx.stroke();
+     }
+
+     /* Couronne de feuilles */
+     const nLeaves=11;
+     for(let li=0;li<nLeaves;li++){
+      const sway=Math.sin(t*0.55+li*0.72)*0.035;
+      /* Angle de base — éventail complet autour du sommet */
+      const angleBase=-Math.PI*0.5+lean*0.8;
+      const spread=Math.PI*1.35;
+      const leafAngle=angleBase+(li/(nLeaves-1)-0.5)*spread+sway;
+      const lLen=h*(0.28+((li+2)%3)*0.06);
+
+      /* Rachis (nervure centrale) */
+      const rachisEndX=tipX+Math.cos(leafAngle)*lLen;
+      const rachisEndY=tipY+Math.sin(leafAngle)*lLen;
+      /* Affaissement naturel — les feuilles pendent */
+      const sagX=tipX+Math.cos(leafAngle)*lLen*0.55+Math.cos(leafAngle+0.35)*lLen*0.18;
+      const sagY=tipY+Math.sin(leafAngle)*lLen*0.55+Math.sin(leafAngle+0.55)*lLen*0.22;
+
+      /* Folioles — paires de petites feuilles le long du rachis */
+      const nFolioles=8;
+      for(let fi=1;fi<=nFolioles;fi++){
+       const ft=fi/(nFolioles+1);
+       /* Position sur le rachis */
+       const fx=cubicBezier(tipX,sagX,sagX,rachisEndX,ft);
+       const fy=cubicBezier(tipY,sagY,sagY,rachisEndY,ft);
+       const fLen=lLen*(0.055+ft*(1-ft)*0.14);
+       const fAngle=leafAngle+Math.PI/2;
+       const fSway=Math.sin(t*0.55+li*0.72+fi*0.5)*0.02;
+
+       /* Foliole gauche */
+       ctx.beginPath();
+       ctx.moveTo(fx,fy);
+       ctx.quadraticCurveTo(
+        fx+Math.cos(fAngle+0.4+fSway)*fLen*0.55,
+        fy+Math.sin(fAngle+0.4+fSway)*fLen*0.55,
+        fx+Math.cos(fAngle+0.25+fSway)*fLen,
+        fy+Math.sin(fAngle+0.25+fSway)*fLen
+       );
+       ctx.strokeStyle='rgba(3,1,5,0.97)';ctx.lineWidth=W*0.004+ft*W*0.002;
+       ctx.stroke();
+       /* Foliole droite */
+       ctx.beginPath();
+       ctx.moveTo(fx,fy);
+       ctx.quadraticCurveTo(
+        fx+Math.cos(-fAngle-0.4+fSway)*fLen*0.55,
+        fy+Math.sin(-fAngle-0.4+fSway)*fLen*0.55,
+        fx+Math.cos(-fAngle-0.25+fSway)*fLen,
+        fy+Math.sin(-fAngle-0.25+fSway)*fLen
+       );
+       ctx.stroke();
+      }
+
+      /* Rachis lui-même */
+      ctx.strokeStyle='rgba(3,1,5,0.97)';ctx.lineWidth=W*0.005;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(tipX,tipY);
+      ctx.quadraticCurveTo(sagX,sagY,rachisEndX,rachisEndY);
       ctx.stroke();
      }
      ctx.restore();
     }
+
+    /* ── Helpers Bézier ── */
+    function bezierPoint(p0,p1,p2,p3,t2){
+     const mt=1-t2;
+     return mt*mt*mt*p0+3*mt*mt*t2*p1+3*mt*t2*t2*p2+t2*t2*t2*p3;
+    }
+    function cubicBezier(p0,p1,p2,p3,t2){return bezierPoint(p0,p1,p2,p3,t2);}
 
     /* ── Reflets sur l'eau ── */
     const seaSparkles=Array.from({length:18},()=>({
@@ -39296,79 +39374,140 @@ function closeAvModal(e){
      w:W*(0.018+Math.random()*0.030)
     }));
 
-    /* ── Façade villa blanche ── */
-    /* Colonnes et arcade centrale, style Art Déco Miami */
+    /* ── Villa Art Déco Miami — refaite ── */
     const VILLA_Y=HORIZ;
 
     function drawVilla(){
-     const vW=W*0.54, vH=H*0.22;
+     const vW=W*0.62, vH=H*0.26;
      const vX=cx-vW/2, vY=VILLA_Y-vH;
 
-     /* Corps principal */
-     const wallG=ctx.createLinearGradient(0,vY,0,VILLA_Y);
-     wallG.addColorStop(0,'rgba(245,238,222,0.96)');
-     wallG.addColorStop(0.6,'rgba(228,218,200,0.94)');
-     wallG.addColorStop(1,'rgba(200,188,168,0.90)');
-     ctx.fillStyle=wallG;
-     ctx.beginPath(); ctx.roundRect(vX,vY,vW,vH,W*0.008); ctx.fill();
+     /* ── Étage supérieur — plus étroit ── */
+     const upW=vW*0.52, upH=vH*0.38;
+     const upX=cx-upW/2, upY=vY;
+     const upG=ctx.createLinearGradient(0,upY,0,upY+upH);
+     upG.addColorStop(0,'rgba(252,245,228,0.97)');
+     upG.addColorStop(1,'rgba(235,225,205,0.95)');
+     ctx.fillStyle=upG;
+     ctx.beginPath();ctx.roundRect(upX,upY,upW,upH,W*0.005);ctx.fill();
 
-     /* Ombre portée sous la façade */
-     const shadowG=ctx.createLinearGradient(0,VILLA_Y-H*0.018,0,VILLA_Y);
-     shadowG.addColorStop(0,'rgba(0,0,0,0)');
-     shadowG.addColorStop(1,'rgba(0,0,0,0.38)');
-     ctx.fillStyle=shadowG;
-     ctx.fillRect(vX,VILLA_Y-H*0.018,vW,H*0.018);
+     /* Acrotère — crénelage plat Art Déco */
+     ctx.fillStyle='rgba(255,250,238,0.98)';
+     const crenW=upW/7, crenH=H*0.014;
+     for(let ci=0;ci<4;ci++){
+      ctx.beginPath();ctx.roundRect(upX+ci*(crenW*1.75),upY-crenH,crenW,crenH,W*0.002);ctx.fill();
+     }
+
+     /* Fenêtres étage */
+     const upWins=[upX+upW*0.18,upX+upW*0.50,upX+upW*0.78];
+     for(const wx of upWins){
+      const wW=upW*0.12,wH=upH*0.40;
+      const wY=upY+upH*0.22;
+      ctx.fillStyle='rgba(5,2,10,0.92)';
+      /* Fenêtre arrondie en haut */
+      ctx.beginPath();
+      ctx.moveTo(wx,wY+wH);ctx.lineTo(wx,wY+wW/2);
+      ctx.arc(wx+wW/2,wY+wW/2,wW/2,Math.PI,0);
+      ctx.lineTo(wx+wW,wY+wH);ctx.closePath();ctx.fill();
+      /* Halo warm */
+      const wg=ctx.createRadialGradient(wx+wW/2,wY+wH*0.5,0,wx+wW/2,wY+wH*0.5,wW*1.8);
+      wg.addColorStop(0,`rgba(255,190,70,${0.28+Math.sin(t*0.6+wx)*0.07})`);
+      wg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=wg;ctx.fillRect(wx-wW,wY-wH*0.5,wW*3,wH*2);
+     }
+
+     /* ── Corps principal ── */
+     const mainG=ctx.createLinearGradient(0,upY+upH,0,VILLA_Y);
+     mainG.addColorStop(0,'rgba(245,237,218,0.97)');
+     mainG.addColorStop(0.5,'rgba(232,222,200,0.95)');
+     mainG.addColorStop(1,'rgba(210,198,175,0.92)');
+     ctx.fillStyle=mainG;
+     ctx.beginPath();ctx.roundRect(vX,upY+upH,vW,vH-upH,W*0.004);ctx.fill();
+
+     /* Corniche entre étages */
+     ctx.fillStyle='rgba(255,252,242,0.98)';
+     ctx.beginPath();ctx.roundRect(vX-W*0.008,upY+upH-H*0.006,vW+W*0.016,H*0.014,W*0.003);ctx.fill();
 
      /* Corniche du toit */
-     ctx.fillStyle='rgba(255,248,235,0.98)';
-     ctx.beginPath(); ctx.roundRect(vX-W*0.008,vY-H*0.008,vW+W*0.016,H*0.018,W*0.004); ctx.fill();
+     ctx.fillStyle='rgba(255,252,242,0.99)';
+     ctx.beginPath();ctx.roundRect(vX-W*0.012,upY-H*0.010,vW+W*0.024,H*0.016,W*0.004);ctx.fill();
 
-     /* Grande arcade centrale */
-     const archCX=cx, archY=VILLA_Y, archW=vW*0.28, archH=vH*0.72;
-     ctx.fillStyle='rgba(8,4,14,0.96)';
+     /* ── Grande arcade centrale + porte ── */
+     const archCX=cx, archBotY=VILLA_Y;
+     const archW=vW*0.22, archH=(vH-upH)*0.85;
+     ctx.fillStyle='rgba(6,2,12,0.95)';
      ctx.beginPath();
-     ctx.moveTo(archCX-archW/2,archY);
-     ctx.lineTo(archCX-archW/2,archY-archH+archW/2);
-     ctx.arc(archCX,archY-archH+archW/2,archW/2,Math.PI,0);
-     ctx.lineTo(archCX+archW/2,archY);
-     ctx.closePath(); ctx.fill();
+     ctx.moveTo(archCX-archW/2,archBotY);
+     ctx.lineTo(archCX-archW/2,archBotY-archH+archW/2);
+     ctx.arc(archCX,archBotY-archH+archW/2,archW/2,Math.PI,0);
+     ctx.lineTo(archCX+archW/2,archBotY);
+     ctx.closePath();ctx.fill();
+     /* Halo intérieur */
+     const aGlow=ctx.createRadialGradient(archCX,archBotY-archH*0.5,0,archCX,archBotY-archH*0.5,archW*1.4);
+     aGlow.addColorStop(0,`rgba(255,195,75,${0.25+Math.sin(t*0.7)*0.07})`);
+     aGlow.addColorStop(0.6,'rgba(200,120,30,0.06)');
+     aGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=aGlow;ctx.fillRect(archCX-archW,archBotY-archH,archW*2,archH+H*0.04);
 
-     /* Lumière intérieure — lueur chaude par l'arcade */
-     const archGlow=ctx.createRadialGradient(archCX,archY-archH*0.5,0,archCX,archY-archH*0.5,archW*1.2);
-     archGlow.addColorStop(0,`rgba(255,200,80,${0.22+Math.sin(t*0.8)*0.06})`);
-     archGlow.addColorStop(0.5,'rgba(200,120,30,0.08)');
-     archGlow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=archGlow;
-     ctx.fillRect(archCX-archW,archY-archH,archW*2,archH+H*0.04);
-
-     /* 4 colonnes rondes */
-     const cols=[vX+vW*0.12,vX+vW*0.32,vX+vW*0.68,vX+vW*0.88];
-     for(const cx2 of cols){
-      /* Fût */
-      const colG=ctx.createLinearGradient(cx2-W*0.016,0,cx2+W*0.016,0);
-      colG.addColorStop(0,'rgba(215,205,185,0.95)');
-      colG.addColorStop(0.35,'rgba(250,244,230,0.98)');
-      colG.addColorStop(1,'rgba(195,185,165,0.92)');
-      ctx.fillStyle=colG;
-      ctx.beginPath(); ctx.roundRect(cx2-W*0.016,vY,W*0.032,vH,W*0.006); ctx.fill();
+     /* ── 6 colonnes ioniques ── */
+     const colXs=[vX+vW*0.08,vX+vW*0.20,vX+vW*0.34,vX+vW*0.66,vX+vW*0.80,vX+vW*0.92];
+     for(const colX of colXs){
+      const cW=W*0.022,cH=vH-upH;
+      const cG=ctx.createLinearGradient(colX-cW/2,0,colX+cW/2,0);
+      cG.addColorStop(0,'rgba(200,190,168,0.94)');
+      cG.addColorStop(0.30,'rgba(248,242,228,0.99)');
+      cG.addColorStop(0.70,'rgba(235,228,210,0.96)');
+      cG.addColorStop(1,'rgba(190,180,160,0.92)');
+      ctx.fillStyle=cG;
+      /* Fût légèrement effilé */
+      ctx.beginPath();
+      ctx.moveTo(colX-cW/2,upY+upH+cH);
+      ctx.lineTo(colX-cW*0.42,upY+upH);
+      ctx.lineTo(colX+cW*0.42,upY+upH);
+      ctx.lineTo(colX+cW/2,upY+upH+cH);
+      ctx.closePath();ctx.fill();
       /* Chapiteau */
-      ctx.fillStyle='rgba(255,250,238,0.98)';
-      ctx.beginPath(); ctx.roundRect(cx2-W*0.020,vY-H*0.012,W*0.040,H*0.018,W*0.003); ctx.fill();
+      ctx.fillStyle='rgba(255,252,240,0.99)';
+      ctx.beginPath();ctx.roundRect(colX-cW*0.62,upY+upH-H*0.016,cW*1.24,H*0.016,W*0.002);ctx.fill();
+      /* Base */
+      ctx.fillStyle='rgba(240,232,215,0.96)';
+      ctx.beginPath();ctx.roundRect(colX-cW*0.62,upY+upH+cH-H*0.008,cW*1.24,H*0.010,W*0.002);ctx.fill();
      }
 
-     /* Fenêtres — 4 avec lumière intérieure */
-     const wins=[[vX+vW*0.08,vY+vH*0.22],[vX+vW*0.18,vY+vH*0.22],[vX+vW*0.76,vY+vH*0.22],[vX+vW*0.86,vY+vH*0.22]];
-     for(const [wx,wy] of wins){
-      const wW=vW*0.068, wH=vH*0.32;
-      /* Fenêtre sombre */
-      ctx.fillStyle='rgba(6,3,12,0.90)';
-      ctx.beginPath(); ctx.roundRect(wx,wy,wW,wH,W*0.004); ctx.fill();
-      /* Lueur warm depuis l'intérieur */
-      const wg=ctx.createRadialGradient(wx+wW*0.5,wy+wH*0.5,0,wx+wW*0.5,wy+wH*0.5,wW*1.2);
-      wg.addColorStop(0,`rgba(255,185,60,${0.35+Math.sin(t*0.5+wx)*0.08})`);
-      wg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=wg; ctx.fillRect(wx-wW,wy-wH*0.5,wW*3,wH*2);
+     /* ── Fenêtres rez-de-chaussée ── */
+     const groundWins=[[vX+vW*0.08,upY+upH],[vX+vW*0.20,upY+upH],[vX+vW*0.76,upY+upH],[vX+vW*0.88,upY+upH]];
+     for(const [wx,wy] of groundWins){
+      const wW=vW*0.07,wH=(vH-upH)*0.38,wY=wy+H*0.028;
+      ctx.fillStyle='rgba(5,2,10,0.90)';
+      ctx.beginPath();
+      ctx.moveTo(wx,wY+wH);ctx.lineTo(wx,wY+wW/2);
+      ctx.arc(wx+wW/2,wY+wW/2,wW/2,Math.PI,0);
+      ctx.lineTo(wx+wW,wY+wH);ctx.closePath();ctx.fill();
+      const wg2=ctx.createRadialGradient(wx+wW/2,wY+wH*0.5,0,wx+wW/2,wY+wH*0.5,wW*1.6);
+      wg2.addColorStop(0,`rgba(255,185,60,${0.22+Math.sin(t*0.5+wx*0.01)*0.07})`);
+      wg2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=wg2;ctx.fillRect(wx-wW,wY-wH*0.5,wW*3,wH*2);
      }
+
+     /* ── Escalier devant la villa ── */
+     const stW=vW*0.38, stX=cx-stW/2;
+     for(let si=0;si<4;si++){
+      const sw=stW+si*W*0.024, sh=H*0.012;
+      const sx=cx-sw/2, sy=VILLA_Y+si*sh;
+      const stG=ctx.createLinearGradient(0,sy,0,sy+sh);
+      stG.addColorStop(0,'rgba(225,215,195,0.95)');
+      stG.addColorStop(1,'rgba(195,185,165,0.90)');
+      ctx.fillStyle=stG;
+      ctx.beginPath();ctx.roundRect(sx,sy,sw,sh,W*0.002);ctx.fill();
+      ctx.fillStyle='rgba(160,150,130,0.40)';
+      ctx.fillRect(sx,sy+sh-1,sw,1);
+     }
+
+     /* ── Ombre portée villa ── */
+     const shG=ctx.createLinearGradient(0,VILLA_Y+H*0.048,0,VILLA_Y+H*0.010);
+     shG.addColorStop(0,'rgba(0,0,0,0)');
+     shG.addColorStop(1,'rgba(0,0,0,0.28)');
+     ctx.fillStyle=shG;
+     ctx.beginPath();ctx.ellipse(cx,VILLA_Y+H*0.022,vW*0.50,H*0.018,0,0,Math.PI*2);ctx.fill();
     }
 
     /* ── Silhouette Tony Montana ── */
@@ -39491,7 +39630,7 @@ function closeAvModal(e){
      drawVilla();
 
      /* ── Palmiers ── */
-     for(const p of palms) drawPalm(p.x,p.baseY,p.h,p.lean,p.leaves);
+     for(const p of palms) drawPalm(p.x,p.baseY,p.h,p.lean,p.side);
 
      /* ── Tony ── */
      drawTony();
