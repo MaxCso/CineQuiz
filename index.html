@@ -36997,6 +36997,30 @@ function closeAvModal(e){
      ph:Math.random()*Math.PI*2,
     }));
 
+    /* ── Vautours / oiseaux qui tournent dans le ciel ── */
+    const birds=Array.from({length:5},(_,i)=>({
+     /* Chaque oiseau tourne en cercle elliptique */
+     cx:W*(0.18+Math.random()*0.55),
+     cy:H*(0.12+Math.random()*0.22),
+     rx:W*(0.08+Math.random()*0.12),
+     ry:H*(0.03+Math.random()*0.04),
+     speed:(0.004+Math.random()*0.006)*(Math.random()<0.5?1:-1),
+     phase:Math.random()*Math.PI*2,
+     size:W*(0.012+Math.random()*0.010),
+    }));
+
+    /* ── Tourbillons de sable au sol ── */
+    const sandParts=Array.from({length:45},()=>({
+     x:Math.random()*W,
+     y:H*(0.76+Math.random()*0.18),
+     vx:(Math.random()-0.5)*0.8,
+     vy:-(Math.random()*0.25+0.05),
+     r:Math.random()*2.2+0.5,
+     op:Math.random()*0.28+0.06,
+     life:Math.random()*80+20,
+     maxLife:100,
+    }));
+
     /* ── Herbes sèches au sol ── */
     const groundY=H*0.78;
     const grasses=Array.from({length:28},(_,i)=>({
@@ -37008,137 +37032,100 @@ function closeAvModal(e){
      })),
     }));
 
-    /* ── Dessin de l'arbre mort — plus expressif, tordu, tentaculaire ── */
+    /* ── Pré-calcul unique de la structure de l'arbre ── */
+    /* Construit une seule fois avec les vraies valeurs de W et H */
+    const treeSegs=(function buildTree(){
+     const segs=[];
+     function addBranch(x1,y1,x2,y2,depth,w){
+      if(depth<=0||w<0.8)return;
+      segs.push({x1,y1,x2,y2,w,depth});
+      if(depth<=1)return;
+      const dx=x2-x1, dy=y2-y1;
+      const len=Math.sqrt(dx*dx+dy*dy);
+      const spread=0.48+depth*0.04;
+      const a0=Math.atan2(dy,dx);
+      const a1=a0-spread;
+      const l1=len*(0.60+Math.random()*0.08);
+      addBranch(x2,y2, x2+Math.cos(a1)*l1, y2+Math.sin(a1)*l1, depth-1, w*0.66);
+      const a2=a0+spread*0.78;
+      const l2=len*(0.54+Math.random()*0.10);
+      addBranch(x2,y2, x2+Math.cos(a2)*l2, y2+Math.sin(a2)*l2, depth-1, w*0.60);
+      if(depth>=4){
+       const l3=len*0.70;
+       addBranch(x2,y2, x2+Math.cos(a0-0.10)*l3, y2+Math.sin(a0-0.10)*l3, depth-2, w*0.50);
+      }
+     }
+     addBranch(-W*0.01,-H*0.30, -W*0.22,-H*0.26, 5, W*0.016);
+     addBranch( W*0.01,-H*0.38,  W*0.18,-H*0.32, 5, W*0.013);
+     addBranch( W*0.01,-H*0.44, -W*0.14,-H*0.50, 4, W*0.010);
+     addBranch( W*0.015,-H*0.50, W*0.12,-H*0.56, 4, W*0.009);
+     addBranch( W*0.015,-H*0.50,-W*0.02,-H*0.60, 3, W*0.007);
+     addBranch( W*0.015,-H*0.50, W*0.03,-H*0.58, 3, W*0.006);
+     return segs;
+    })();
+
+    /* ── Dessin de l'arbre — utilise les segments pré-calculés ── */
     function drawDeadTree(tx,ty,windSway){
      ctx.save();
-     ctx.strokeStyle='rgba(38,18,4,0.97)';
-     ctx.lineCap='round';ctx.lineJoin='round';
+     ctx.strokeStyle='rgba(35,15,3,0.98)';
+     ctx.lineCap='round'; ctx.lineJoin='round';
 
-     /* Tronc principal — tordu en S */
-     ctx.lineWidth=W*0.028;
-     ctx.beginPath();
-     ctx.moveTo(tx,ty);
+     /* Tronc principal — S-curve fixe */
+     ctx.lineWidth=W*0.032;
+     ctx.beginPath(); ctx.moveTo(tx,ty);
      ctx.bezierCurveTo(
-      tx-W*0.025,ty-H*0.08,
-      tx+W*0.018,ty-H*0.16,
-      tx-W*0.010+windSway*0.3,ty-H*0.26
+      tx-W*0.02, ty-H*0.18,
+      tx+W*0.03, ty-H*0.34,
+      tx+W*0.015, ty-H*0.50
      );
+     ctx.stroke();
+     /* Second segment tronc */
+     ctx.lineWidth=W*0.020;
+     ctx.beginPath(); ctx.moveTo(tx-W*0.005,ty-H*0.20);
      ctx.bezierCurveTo(
-      tx-W*0.030+windSway*0.5,ty-H*0.32,
-      tx+W*0.012+windSway*0.7,ty-H*0.40,
-      tx+windSway,ty-H*0.48
+      tx-W*0.015,ty-H*0.28,
+      tx+W*0.010,ty-H*0.38,
+      tx+W*0.010, ty-H*0.46
      );
      ctx.stroke();
 
-     /* Branche principale gauche — longue, de laquelle pend la corde */
-     ctx.lineWidth=W*0.014;
-     ctx.beginPath();
-     ctx.moveTo(tx-W*0.010+windSway*0.3,ty-H*0.26);
-     ctx.bezierCurveTo(
-      tx-W*0.06+windSway*0.6,ty-H*0.30,
-      tx-W*0.14+windSway*0.8,ty-H*0.27,
-      tx-W*0.18+windSway,ty-H*0.24
-     );
-     ctx.stroke();
-
-     /* Branche principale droite */
-     ctx.lineWidth=W*0.012;
-     ctx.beginPath();
-     ctx.moveTo(tx+W*0.008+windSway*0.5,ty-H*0.34);
-     ctx.bezierCurveTo(
-      tx+W*0.05+windSway*0.7,ty-H*0.38,
-      tx+W*0.10+windSway*0.9,ty-H*0.36,
-      tx+W*0.13+windSway,ty-H*0.32
-     );
-     ctx.stroke();
-
-     /* Branche haute gauche */
-     ctx.lineWidth=W*0.009;
-     ctx.beginPath();
-     ctx.moveTo(tx-W*0.005+windSway*0.6,ty-H*0.40);
-     ctx.bezierCurveTo(
-      tx-W*0.04+windSway*0.8,ty-H*0.45,
-      tx-W*0.09+windSway,ty-H*0.44,
-      tx-W*0.12+windSway,ty-H*0.42
-     );
-     ctx.stroke();
-
-     /* Branche haute droite */
-     ctx.lineWidth=W*0.008;
-     ctx.beginPath();
-     ctx.moveTo(tx+W*0.006+windSway*0.7,ty-H*0.44);
-     ctx.bezierCurveTo(
-      tx+W*0.04+windSway*0.9,ty-H*0.49,
-      tx+W*0.07+windSway,ty-H*0.47,
-      tx+W*0.09+windSway,ty-H*0.45
-     );
-     ctx.stroke();
-
-     /* Petites branches terminales — nombreuses */
-     ctx.lineWidth=W*0.004;
-     const twigs=[
-      /* depuis branche gauche principale */
-      {bx:-W*0.09,by:-H*0.25,ex:-W*0.13,ey:-H*0.30},
-      {bx:-W*0.12,by:-H*0.24,ex:-W*0.16,ey:-H*0.28},
-      {bx:-W*0.15,by:-H*0.24,ex:-W*0.18,ey:-H*0.20},
-      {bx:-W*0.10,by:-H*0.25,ex:-W*0.08,ey:-H*0.30},
-      /* depuis branche droite */
-      {bx:W*0.07,by:-H*0.35,ex:W*0.11,ey:-H*0.39},
-      {bx:W*0.10,by:-H*0.34,ex:W*0.14,ey:-H*0.30},
-      {bx:W*0.12,by:-H*0.33,ex:W*0.16,ey:-H*0.36},
-      /* haute gauche */
-      {bx:-W*0.07,by:-H*0.43,ex:-W*0.11,ey:-H*0.47},
-      {bx:-W*0.09,by:-H*0.43,ex:-W*0.13,ey:-H*0.40},
-      {bx:-W*0.11,by:-H*0.42,ex:-W*0.09,ey:-H*0.46},
-      /* haute droite */
-      {bx:W*0.05,by:-H*0.46,ex:W*0.09,ey:-H*0.50},
-      {bx:W*0.07,by:-H*0.46,ex:W*0.10,ey:-H*0.43},
-      {bx:W*0.08,by:-H*0.45,ex:W*0.06,ey:-H*0.49},
-      /* sommet */
-      {bx:W*0.000,by:-H*0.47,ex:-W*0.03,ey:-H*0.52},
-      {bx:W*0.002,by:-H*0.47,ex:W*0.04,ey:-H*0.51},
-      {bx:W*0.001,by:-H*0.48,ex:W*0.000,ey:-H*0.53},
-     ];
-     for(const tw of twigs){
+     /* Branches pré-calculées — le vent déplace x proportionnellement à la profondeur */
+     for(const s of treeSegs){
+      /* Les segments en haut (depth faible) se balancent plus */
+      const swFactor=(6-s.depth)/5; /* 0 pour profondeur 5, 1 pour profondeur 1 */
+      const sw=windSway*swFactor*0.8;
+      ctx.lineWidth=s.w;
       ctx.beginPath();
-      ctx.moveTo(tx+tw.bx+windSway*0.85,ty+tw.by);
-      ctx.quadraticCurveTo(
-       tx+tw.bx+(tw.ex-tw.bx)*0.5+windSway*0.92,ty+tw.by+(tw.ey-tw.by)*0.5,
-       tx+tw.ex+windSway,ty+tw.ey
-      );
+      ctx.moveTo(tx+s.x1+sw*0.5, ty+s.y1);
+      /* Courbe légère pour l'effet vent */
+      const mx=(s.x1+s.x2)/2;
+      const my=(s.y1+s.y2)/2;
+      ctx.quadraticCurveTo(tx+mx+sw*0.8, ty+my, tx+s.x2+sw, ty+s.y2);
       ctx.stroke();
      }
 
-     /* ── CORDE DE PENDU — depuis branche gauche principale ── */
-     /* Point d'attache sur la branche */
-     const ropeX=tx-W*0.14+windSway;
-     const ropeAttachY=ty-H*0.255;
-     /* La corde se balance avec le vent */
-     const ropeSwing=windSway*1.8;
-     const ropeLen=H*0.12;
-     /* Corde */
-     ctx.strokeStyle='rgba(48,28,8,0.92)';
-     ctx.lineWidth=W*0.005;
-     ctx.lineCap='round';
-     ctx.beginPath();
-     ctx.moveTo(ropeX,ropeAttachY);
-     /* légère courbe due au balancement */
+     /* ── CORDE DE PENDU depuis branche gauche ── */
+     const ropeX=tx-W*0.16+windSway*0.8;
+     const ropeAttachY=ty-H*0.265;
+     const ropeSwing=windSway*2.2;
+     const ropeLen=H*0.14;
+     ctx.strokeStyle='rgba(45,22,5,0.94)';
+     ctx.lineWidth=W*0.0055;
+     ctx.beginPath(); ctx.moveTo(ropeX,ropeAttachY);
      ctx.bezierCurveTo(
-      ropeX+ropeSwing*0.3,ropeAttachY+ropeLen*0.3,
-      ropeX+ropeSwing*0.7,ropeAttachY+ropeLen*0.7,
+      ropeX+ropeSwing*0.25,ropeAttachY+ropeLen*0.35,
+      ropeX+ropeSwing*0.70,ropeAttachY+ropeLen*0.75,
       ropeX+ropeSwing,ropeAttachY+ropeLen
      );
      ctx.stroke();
-     /* Nœud coulant — boucle au bout de la corde */
+     /* Nœud coulant */
      const nooseX=ropeX+ropeSwing;
      const nooseY=ropeAttachY+ropeLen;
-     const nooseR=W*0.018;
-     ctx.beginPath();
-     ctx.arc(nooseX,nooseY+nooseR,nooseR,0,Math.PI*2);
-     ctx.stroke();
-     /* Petit nœud au point d'attache */
-     ctx.fillStyle='rgba(48,28,8,0.92)';
-     ctx.beginPath();ctx.arc(ropeX,ropeAttachY,W*0.006,0,Math.PI*2);ctx.fill();
+     const nooseR=W*0.022;
+     ctx.beginPath(); ctx.arc(nooseX,nooseY+nooseR,nooseR,0,Math.PI*2); ctx.stroke();
+     ctx.beginPath(); ctx.moveTo(nooseX,nooseY); ctx.lineTo(nooseX,nooseY+nooseR*0.5); ctx.stroke();
+     ctx.fillStyle='rgba(45,22,5,0.94)';
+     ctx.beginPath(); ctx.arc(ropeX,ropeAttachY,W*0.007,0,Math.PI*2); ctx.fill();
 
      ctx.restore();
     }
@@ -37171,47 +37158,54 @@ function closeAvModal(e){
       ctx.beginPath();ctx.ellipse(sx,gy+moundH*0.4,sr,sr*0.55,0,0,Math.PI*2);ctx.fill();
      }
 
-     /* Croix en bois — texture bois grossier */
-     const crossH=H*0.10,crossW=W*0.022;
-     const crossX=gx,crossY=gy-moundH;
+     /* ── Croix en bois — proportions western réalistes ── */
+     const crossH=H*0.13;           /* montant plus haut */
+     const crossW=W*0.018;          /* montant plus fin */
+     const crossX=gx, crossY=gy-moundH*0.5;
+     /* Traverse à 1/3 du haut — proportion de croix latine */
+     const armW=W*0.072, armH=H*0.016;
+     const armY=crossY-crossH*0.78;
 
-     /* Ombre portée de la croix */
-     ctx.fillStyle='rgba(20,8,0,0.22)';
-     ctx.beginPath();
-     ctx.roundRect(crossX-crossW/2+W*0.008,crossY-crossH+H*0.008,crossW,crossH,2);
-     ctx.fill();
+     /* Ombre portée légèrement décalée */
+     ctx.fillStyle='rgba(20,8,0,0.18)';
+     ctx.fillRect(crossX-crossW/2+W*0.006,crossY-crossH+H*0.006,crossW,crossH);
+     ctx.fillRect(crossX-armW/2+W*0.006,armY+H*0.006,armW,armH);
 
-     /* Montant vertical — bois foncé strié */
+     /* Montant vertical */
      const woodV=ctx.createLinearGradient(crossX-crossW/2,0,crossX+crossW/2,0);
-     woodV.addColorStop(0,'rgba(38,18,4,0.97)');
-     woodV.addColorStop(0.30,'rgba(52,26,7,0.97)');
-     woodV.addColorStop(0.55,'rgba(45,22,5,0.97)');
-     woodV.addColorStop(0.80,'rgba(58,28,8,0.97)');
-     woodV.addColorStop(1,'rgba(35,16,3,0.97)');
+     woodV.addColorStop(0,'rgba(32,14,2,0.98)');
+     woodV.addColorStop(0.28,'rgba(50,24,6,0.98)');
+     woodV.addColorStop(0.58,'rgba(43,20,4,0.98)');
+     woodV.addColorStop(0.80,'rgba(56,27,7,0.98)');
+     woodV.addColorStop(1,'rgba(30,13,2,0.98)');
      ctx.fillStyle=woodV;
-     ctx.beginPath();ctx.roundRect(crossX-crossW/2,crossY-crossH,crossW,crossH,1.5);ctx.fill();
+     ctx.beginPath(); ctx.roundRect(crossX-crossW/2,crossY-crossH,crossW,crossH,1); ctx.fill();
 
      /* Traverse horizontale */
-     const armW=W*0.058,armH=H*0.018,armY=crossY-crossH*0.72;
-     const woodH=ctx.createLinearGradient(crossX-armW/2,armY,crossX+armW/2,armY+armH);
-     woodH.addColorStop(0,'rgba(36,17,3,0.97)');
-     woodH.addColorStop(0.4,'rgba(55,27,7,0.97)');
-     woodH.addColorStop(0.7,'rgba(44,21,5,0.97)');
-     woodH.addColorStop(1,'rgba(38,18,4,0.97)');
+     const woodH=ctx.createLinearGradient(0,armY,0,armY+armH);
+     woodH.addColorStop(0,'rgba(52,24,6,0.98)');
+     woodH.addColorStop(0.5,'rgba(40,18,4,0.98)');
+     woodH.addColorStop(1,'rgba(32,14,2,0.98)');
      ctx.fillStyle=woodH;
-     ctx.beginPath();ctx.roundRect(crossX-armW/2,armY,armW,armH,1.5);ctx.fill();
+     ctx.beginPath(); ctx.roundRect(crossX-armW/2,armY,armW,armH,1); ctx.fill();
 
-     /* Clou central — jonction des deux pièces */
-     ctx.fillStyle='rgba(65,38,12,0.90)';
-     ctx.beginPath();ctx.arc(crossX,armY+armH/2,W*0.005,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle='rgba(80,50,18,0.70)';
-     ctx.beginPath();ctx.arc(crossX-W*0.002,armY+armH/2-H*0.002,W*0.002,0,Math.PI*2);ctx.fill();
+     /* Clou central visible */
+     ctx.fillStyle='rgba(70,42,14,0.95)';
+     ctx.beginPath(); ctx.arc(crossX,armY+armH/2,W*0.006,0,Math.PI*2); ctx.fill();
+     ctx.fillStyle='rgba(95,62,22,0.65)';
+     ctx.beginPath(); ctx.arc(crossX-W*0.002,armY+armH/2-H*0.002,W*0.0025,0,Math.PI*2); ctx.fill();
 
-     /* Stries de bois (veinures) sur le montant */
-     ctx.strokeStyle='rgba(28,12,2,0.25)';ctx.lineWidth=0.5;
-     for(let v=0;v<4;v++){
-      const vx=crossX-crossW/2+(v+1)*crossW/5;
-      ctx.beginPath();ctx.moveTo(vx,crossY-crossH);ctx.lineTo(vx,crossY);ctx.stroke();
+     /* Veinures bois sur montant */
+     ctx.strokeStyle='rgba(22,9,1,0.22)'; ctx.lineWidth=0.6;
+     for(let v=0;v<3;v++){
+      const vx=crossX-crossW/2+(v+1)*crossW/4;
+      ctx.beginPath(); ctx.moveTo(vx,crossY-crossH); ctx.lineTo(vx+W*0.001,crossY); ctx.stroke();
+     }
+     /* Veinures traverse */
+     ctx.strokeStyle='rgba(22,9,1,0.18)';
+     for(let v=0;v<2;v++){
+      const vy=armY+(v+1)*armH/3;
+      ctx.beginPath(); ctx.moveTo(crossX-armW/2,vy); ctx.lineTo(crossX+armW/2,vy+H*0.001); ctx.stroke();
      }
 
      ctx.restore();
@@ -37311,6 +37305,44 @@ function closeAvModal(e){
      const windSway=Math.sin(t*0.5)*W*0.006;
      drawDeadTree(W*0.75,groundY,windSway);
 
+     /* ── OISEAUX / VAUTOURS ── */
+     ctx.fillStyle='rgba(32,14,2,0.90)';
+     for(const b of birds){
+      b.phase+=b.speed;
+      const bx=b.cx+Math.cos(b.phase)*b.rx;
+      const by=b.cy+Math.sin(b.phase)*b.ry;
+      const bank=Math.sin(b.phase)*0.5; /* inclinaison en virage */
+      const sz=b.size;
+      ctx.save();
+      ctx.translate(bx,by);
+      ctx.rotate(bank);
+      /* Silhouette oiseau planant : corps + deux ailes courbées */
+      ctx.beginPath();
+      /* Corps ovale */
+      ctx.ellipse(0,0,sz*0.22,sz*0.10,0,0,Math.PI*2);
+      ctx.fill();
+      /* Aile gauche — bezier courbé vers le bas (oiseau qui plane) */
+      ctx.beginPath();
+      ctx.moveTo(-sz*0.05,0);
+      ctx.bezierCurveTo(-sz*0.30,sz*0.06,-sz*0.60,sz*0.14,-sz*0.80,sz*0.04);
+      ctx.bezierCurveTo(-sz*0.55,sz*0.02,-sz*0.28,-sz*0.04,-sz*0.05,0);
+      ctx.fill();
+      /* Aile droite */
+      ctx.beginPath();
+      ctx.moveTo(sz*0.05,0);
+      ctx.bezierCurveTo(sz*0.30,sz*0.06,sz*0.60,sz*0.14,sz*0.80,sz*0.04);
+      ctx.bezierCurveTo(sz*0.55,sz*0.02,sz*0.28,-sz*0.04,sz*0.05,0);
+      ctx.fill();
+      /* Queue */
+      ctx.beginPath();
+      ctx.moveTo(-sz*0.12,sz*0.04);
+      ctx.lineTo(-sz*0.22,sz*0.12);
+      ctx.lineTo(sz*0.22,sz*0.12);
+      ctx.lineTo(sz*0.12,sz*0.04);
+      ctx.fill();
+      ctx.restore();
+     }
+
      /* ── POUSSIÈRE flottante ── */
      for(const d of dust){
       d.x+=d.vx;d.y+=d.vy;d.ph+=0.025;
@@ -37321,11 +37353,24 @@ function closeAvModal(e){
       ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* ── VIGNETTE sépia marquée ── */
-     const vg=ctx.createRadialGradient(cx,H*0.44,H*0.08,cx,H*0.44,H*0.85);
+     /* ── SABLE au sol — tourbillons ── */
+     for(const p of sandParts){
+      p.x+=p.vx; p.y+=p.vy; p.life--;
+      if(p.life<=0){
+       p.x=Math.random()*W; p.y=H*(0.77+Math.random()*0.16);
+       p.vx=(Math.random()-0.5)*0.8; p.vy=-(Math.random()*0.25+0.05);
+       p.life=p.maxLife=60+Math.random()*80; p.op=Math.random()*0.28+0.06;
+      }
+      const fade=p.life/p.maxLife;
+      ctx.fillStyle=`rgba(160,105,40,${p.op*fade})`;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+     }
+
+     /* ── VIGNETTE sépia — douce, sans bandes latérales ── */
+     const vg=ctx.createRadialGradient(cx,H*0.44,H*0.08,cx,H*0.44,H*0.92);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.45,'rgba(30,12,0,0.15)');
-     vg.addColorStop(1,'rgba(20,6,0,0.92)');
+     vg.addColorStop(0.55,'rgba(30,12,0,0.10)');
+     vg.addColorStop(1,'rgba(20,6,0,0.42)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
      /* ── TEINTE SÉPIA globale ── */
      ctx.fillStyle=`rgba(45,22,4,${0.06+breathe*0.5})`;ctx.fillRect(0,0,W,H);
