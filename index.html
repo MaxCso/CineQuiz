@@ -41339,207 +41339,75 @@ function closeAvModal(e){
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
-      #splash{background:#e8890a!important;}
+      #splash{background:#7a3a18!important;}
       #splash-bg{background:none!important;}
     `;
     const _lnWatch=setInterval(()=>{if(stop.v){_lnStyle.textContent='';clearInterval(_lnWatch);}},200);
 
     let t=0;
     const cx=W/2;
-    const DARK='rgba(22,10,0,1)';
 
-    /* ── Pluie fine — pré-génération ── */
-    const rain=Array.from({length:120},()=>({
-     x:Math.random()*W*1.2-W*0.1,
-     y:Math.random()*H,
-     len:H*(0.012+Math.random()*0.018),
-     spd:H*(0.008+Math.random()*0.006),
-     op:0.06+Math.random()*0.10
-    }));
+    /* ── Charger le SVG une seule fois ── */
+    let svgImg=null;
+    const svgSrc=`data:image/svg+xml;charset=utf-8,`+encodeURIComponent(`<svg width="362" height="521" viewBox="0 0 362 521" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M35.4004 15.9238C36.1518 15.5066 36.9031 15.0893 38.2606 14.3341C39.5169 13.3998 40.1672 12.8035 40.8175 12.2072C40.8175 12.2072 41.071 12.1857 41.4002 11.9102C47.1602 8.84789 52.3387 5.29321 58.0667 3.41061C79.9355 -3.77688 99.8426 0.55587 117.695 14.896C117.695 14.896 117.753 15.0308 118.008 15.2922C119.769 16.9876 121.275 18.4217 122.78 19.8557C122.78 19.8557 122.812 19.9318 122.992 20.251C132.746 31.6311 137.553 44.6245 138.311 59.0103C145.994 59.9554 147.722 62.6926 145.289 69.3729C145.289 69.3729 145.352 69.4005 145.057 69.4986C144.221 70.1503 143.681 70.7039 143.141 71.2574C143.141 71.2574 143.255 71.2672 142.879 71.2529C141.773 71.3774 141.042 71.5162 139.874 71.5715C137.073 71.5415 134.708 71.5949 131.976 71.5586C130.861 71.5285 130.114 71.5883 128.903 71.5625C117.645 71.4684 106.85 71.4344 96.0552 71.456C70.1523 71.508 44.2494 71.586 17.9691 71.5628C13.9424 71.5222 11.3705 69.8467 10.7197 66.2606C10.0977 62.8335 12.0763 60.7424 15.1798 59.3764C16.0897 58.9759 17.0881 57.5965 17.1447 56.6138C18.0466 40.9672 25.2478 28.1373 34.8702 16.3557C34.8702 16.3557 35.2801 16.1901 35.3844 15.9835C35.4887 15.7769 35.4004 15.9238 35.4004 15.9238Z" fill="#020201"/>
+<path d="M32.5137 117.993C32.4311 117.652 32.2241 117.423 31.5398 116.936C29.5965 114.802 28.0059 113.04 26.4153 111.278C26.4153 111.278 26.4054 111.362 26.4422 110.92C26.4361 108.126 26.3932 105.773 26.5496 103.138C28.4979 97.1481 32.5675 93.6584 37.952 91.7266C45.4745 89.0279 52.6142 90.374 59.3466 94.4357C59.3466 94.4357 59.3477 94.4037 59.4874 94.6688C60.6226 95.8956 61.5818 95.681 62.3477 97C62.3477 97 63.0623 97.3398 63.3477 97.5C64.0565 97.898 64.4094 98.665 65.3477 99.5C64.9989 103.177 64.735 106.362 64.5075 110.056C63.0378 112.686 61.5935 114.972 60.1491 117.258C60.1491 117.258 60.2355 117.306 59.9175 117.334C58.8081 118.019 58.0169 118.677 57.2256 119.335C57.2256 119.335 57.2941 119.369 56.9033 119.383C50.4601 120.047 44.4075 120.696 38.355 121.346C38.355 121.346 38.3531 121.408 38.2186 121.092C36.2273 119.848 34.3705 118.92 32.5137 117.993Z" fill="#020201"/>
+<path d="M126.233 95.6436C126.242 95.9726 126.385 96.2253 127.008 96.8076C131.113 101.952 131.978 107.221 129.03 112.479C125.173 119.361 118.559 122.041 111.048 121.846C103.478 121.649 96.7042 119.313 93.2662 111.289C92.9971 110.458 92.7203 109.932 92.3091 109.183C92.1702 108.62 92.1657 108.279 92.2328 107.43C92.2529 106.241 92.2014 105.561 92.0664 104.577C92.0777 103.656 92.1727 103.036 92.5035 102.21C92.9364 101.202 93.1334 100.401 93.5251 99.3651C93.9935 98.6012 94.2671 98.0723 94.5407 97.5434C94.5407 97.5434 94.4399 97.5132 94.7679 97.3943C103.999 88.5176 114.61 87.9615 126.233 95.6436Z" fill="#020201"/>
+<path d="M17.1793 448.038C17.1091 446.951 17.039 445.865 16.8739 443.996C15.6595 433.083 14.5194 422.954 13.4364 412.819C13.2007 410.613 13.1688 408.385 13.3535 405.928C16.379 404.796 19.0972 403.118 21.8087 403.129C62.971 403.293 104.132 403.679 145.407 403.973C145.521 403.934 145.76 403.927 145.76 403.927C145.616 407.27 145.471 410.613 144.978 414.619C144.199 417.208 143.582 419.114 143.37 421.063C141.827 435.22 140.385 449.388 138.873 463.548C137.043 480.68 135.175 497.808 133.213 515.098C132.993 515.496 132.93 515.746 132.791 516.025C132.669 516.043 132.423 516.024 131.949 516.016C98.3548 516.007 65.2332 516.045 32.1122 515.921C29.8015 515.912 27.4953 514.705 25.0228 514.027C24.8585 513.998 24.5626 513.844 24.6306 513.578C24.5624 512.601 24.4262 511.89 24.3113 510.729C23.6437 504.864 22.9549 499.45 22.266 494.036C22.2869 493.581 22.3078 493.126 22.2884 491.907C20.5585 476.774 18.8689 462.406 17.1793 448.038Z" fill="#7A4A04"/>
+<path d="M274.348 165.063C274.449 164.285 274.55 163.508 274.702 161.953C276.572 155.238 278.392 149.299 280.211 143.361C280.211 143.361 279.959 143.128 280.309 143.05C281.413 141.681 282.168 140.39 282.922 139.1C282.922 139.1 282.828 139.101 283.091 139.034C283.671 138.504 283.987 138.042 284.304 137.579C284.304 137.579 284.247 137.5 284.493 137.348C284.99 136.962 285.153 136.676 285.229 136.34C285.229 136.34 285.11 136.334 285.382 136.24C286.141 135.551 286.629 134.956 287.117 134.361C287.117 134.361 287.022 134.337 287.312 134.234C288.138 133.502 288.676 132.873 289.213 132.243C289.213 132.243 289.583 132.178 289.982 131.943C291.874 130.506 293.366 129.305 294.858 128.103C294.858 128.103 294.778 128.041 295.066 128.044C295.617 127.807 295.881 127.569 296.145 127.33C296.145 127.33 296.047 127.31 296.414 127.262C307.52 121.391 318.833 120.679 330.533 123.425C330.533 123.425 330.536 123.283 330.723 123.54C332.473 124.293 334.035 124.789 335.598 125.285C335.598 125.285 335.584 125.171 335.725 125.434C336.461 125.878 337.056 126.061 337.65 126.243C337.65 126.243 337.625 126.125 337.754 126.401C338.831 127.108 339.78 127.54 340.728 127.972C340.728 127.972 340.731 128.016 340.907 128.252C341.595 128.743 342.107 128.998 342.619 129.253C342.619 129.253 342.616 129.152 342.728 129.441C344.073 130.579 345.307 131.428 346.541 132.277C346.541 132.277 346.55 132.193 346.658 132.504C349.69 136.275 352.614 139.737 355.538 143.198C355.538 143.198 355.639 143.081 355.621 143.415C355.942 144.227 356.28 144.706 356.618 145.184C356.618 145.184 356.642 145.102 356.664 145.466C360.205 153.188 361.26 160.913 361.072 169.065C360.696 185.353 360.841 201.653 360.771 217.948C360.771 217.948 360.45 218.316 360.33 218.493C360.21 218.669 360.248 218.819 360.248 218.819C360.248 218.819 359.919 218.833 359.369 218.921C355.226 219.01 351.632 219.01 347.799 219.01C348.867 200.774 349.895 183.246 350.938 165.452C328.321 165.452 306.181 165.452 283.784 165.452C284.861 182.554 285.915 199.291 286.97 216.028C286.714 216.919 286.427 218.595 286.208 218.586C282.357 218.428 278.513 218.065 274.635 216.877C274.517 199.026 274.432 182.045 274.348 165.063Z" fill="#020201"/>
+</svg>`);
+    const img=new Image();
+    img.onload=()=>{svgImg=img;};
+    img.src=svgSrc;
 
-    /* ── Lunettes — dimensions ── */
-    const LENS_R=W*0.148;
-    const BRIDGE=W*0.036;
-    const GLASSES_CY=H*0.28;
-
-    function drawGlasses(){
-     const sw=Math.sin(t*0.45)*0.008;
-     ctx.save();ctx.translate(cx,GLASSES_CY);ctx.rotate(sw);
-     ctx.fillStyle=DARK;
-     /* Verre gauche */
-     ctx.beginPath();ctx.arc(-LENS_R-BRIDGE/2,0,LENS_R,0,Math.PI*2);ctx.fill();
-     /* Verre droit */
-     ctx.beginPath();ctx.arc(LENS_R+BRIDGE/2,0,LENS_R,0,Math.PI*2);ctx.fill();
-     /* Pont */
-     ctx.beginPath();ctx.arc(0,-LENS_R*0.08,BRIDGE*1.15,0,Math.PI,true);ctx.fill();
-     /* Branches */
-     ctx.fillRect(-LENS_R*2-BRIDGE/2-W*0.055,-LENS_R*0.12,W*0.055,LENS_R*0.22);
-     ctx.fillRect(LENS_R+BRIDGE/2,-LENS_R*0.12,W*0.055,LENS_R*0.22);
-     /* Reflet subtil sur les verres */
-     ctx.fillStyle='rgba(232,137,10,0.18)';
-     ctx.beginPath();ctx.arc(-LENS_R-BRIDGE/2,-LENS_R*0.22,LENS_R*0.38,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.arc(LENS_R+BRIDGE/2,-LENS_R*0.22,LENS_R*0.38,0,Math.PI*2);ctx.fill();
-     ctx.restore();
-    }
-
-    /* ── Silhouette Léon — imperméable + chapeau, de dos ── */
-    function drawLeon(){
-     const lx=cx-W*0.04;
-     const baseY=H*0.98;
-     const s=W*0.38; /* échelle */
-     ctx.save();ctx.translate(lx,baseY);
-     ctx.fillStyle=DARK;
-
-     /* Corps imperméable — trapèze large */
-     ctx.beginPath();
-     ctx.moveTo(-s*0.38,-s*0.92);
-     ctx.bezierCurveTo(-s*0.42,-s*0.75,-s*0.52,-s*0.50,-s*0.56,-s*0.00);
-     ctx.lineTo( s*0.56,-s*0.00);
-     ctx.bezierCurveTo( s*0.52,-s*0.50, s*0.42,-s*0.75, s*0.38,-s*0.92);
-     ctx.closePath();ctx.fill();
-
-     /* Col imperméable relevé */
-     ctx.beginPath();
-     ctx.moveTo(-s*0.28,-s*0.92);
-     ctx.bezierCurveTo(-s*0.30,-s*1.00,-s*0.20,-s*1.06,-s*0.10,-s*1.08);
-     ctx.lineTo( s*0.10,-s*1.08);
-     ctx.bezierCurveTo( s*0.20,-s*1.06, s*0.30,-s*1.00, s*0.28,-s*0.92);
-     ctx.closePath();ctx.fill();
-
-     /* Tête — cercle */
-     ctx.beginPath();ctx.arc(0,-s*1.22,s*0.16,0,Math.PI*2);ctx.fill();
-
-     /* Chapeau borsalino — bord plat + calotte */
-     /* Calotte */
-     ctx.beginPath();
-     ctx.ellipse(0,-s*1.42,s*0.20,s*0.14,0,0,Math.PI*2);ctx.fill();
-     /* Bord plat */
-     ctx.beginPath();
-     ctx.ellipse(0,-s*1.30,s*0.32,s*0.055,0,0,Math.PI*2);ctx.fill();
-
-     /* Bras gauche tenant la plante */
-     ctx.beginPath();
-     ctx.moveTo(-s*0.36,-s*0.75);
-     ctx.bezierCurveTo(-s*0.52,-s*0.62,-s*0.60,-s*0.40,-s*0.58,-s*0.10);
-     ctx.lineTo(-s*0.48,-s*0.10);
-     ctx.bezierCurveTo(-s*0.50,-s*0.38,-s*0.44,-s*0.58,-s*0.28,-s*0.72);
-     ctx.closePath();ctx.fill();
-
-     /* Main gauche */
-     ctx.beginPath();ctx.ellipse(-s*0.54,-s*0.06,s*0.07,s*0.05,0,0,Math.PI*2);ctx.fill();
-
-     ctx.restore();
-    }
-
-    /* ── Plante — à gauche de Léon ── */
-    function drawPlant(){
-     const px=cx-W*0.30;
-     const py=H*0.92;
-     const s=W*0.22;
-     ctx.save();ctx.translate(px,py);
-
-     /* Pot */
-     ctx.fillStyle='rgba(35,18,5,1)';
-     ctx.beginPath();
-     ctx.moveTo(-s*0.32,0);
-     ctx.lineTo(-s*0.26,-s*0.38);
-     ctx.lineTo( s*0.26,-s*0.38);
-     ctx.lineTo( s*0.32,0);
-     ctx.closePath();ctx.fill();
-     /* Rebord pot */
-     ctx.fillStyle='rgba(50,26,6,1)';
-     ctx.beginPath();ctx.roundRect(-s*0.34,-s*0.42,s*0.68,s*0.08,2);ctx.fill();
-
-     /* Tige centrale */
-     ctx.strokeStyle='rgba(18,60,12,1)';ctx.lineWidth=s*0.05;ctx.lineCap='round';
-     ctx.beginPath();ctx.moveTo(0,-s*0.38);ctx.lineTo(0,-s*1.60);ctx.stroke();
-
-     /* Feuilles — ellipses pivotées, style plante d'intérieur */
-     const leaves=[
-      {x:-s*0.32,y:-s*0.80,rx:s*0.38,ry:s*0.12,rot:-0.55},
-      {x: s*0.30,y:-s*0.95,rx:s*0.36,ry:s*0.11,rot: 0.50},
-      {x:-s*0.28,y:-s*1.18,rx:s*0.34,ry:s*0.10,rot:-0.40},
-      {x: s*0.26,y:-s*1.32,rx:s*0.32,ry:s*0.10,rot: 0.42},
-      {x:-s*0.18,y:-s*1.48,rx:s*0.28,ry:s*0.09,rot:-0.30},
-      {x: s*0.16,y:-s*1.56,rx:s*0.26,ry:s*0.09,rot: 0.28},
-      {x: 0,     y:-s*1.68,rx:s*0.22,ry:s*0.08,rot: 0.10},
-     ];
-     const bob=Math.sin(t*0.35)*0.012;
-     for(const l of leaves){
-      ctx.save();
-      ctx.translate(l.x,l.y+Math.sin(t*0.35+l.rot)*s*0.012);
-      ctx.rotate(l.rot+bob);
-      /* Feuille */
-      const lg=ctx.createLinearGradient(-l.rx,0,l.rx,0);
-      lg.addColorStop(0,'rgba(20,68,15,1)');
-      lg.addColorStop(0.5,'rgba(38,92,22,1)');
-      lg.addColorStop(1,'rgba(20,68,15,1)');
-      ctx.fillStyle=lg;
-      ctx.beginPath();ctx.ellipse(0,0,l.rx,l.ry,0,0,Math.PI*2);ctx.fill();
-      /* Nervure centrale */
-      ctx.strokeStyle='rgba(18,55,12,0.55)';ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(-l.rx*0.72,0);ctx.lineTo(l.rx*0.72,0);ctx.stroke();
-      ctx.restore();
-     }
-     ctx.restore();
+    /* ── Grain de texture ── */
+    const grainCanvas=document.createElement('canvas');
+    grainCanvas.width=W;grainCanvas.height=H;
+    const gc=grainCanvas.getContext('2d');
+    for(let i=0;i<W*H*0.12;i++){
+     const gx2=Math.random()*W|0,gy2=Math.random()*H|0;
+     const gv=Math.random()*40-20;
+     gc.fillStyle=`rgba(${gv>0?255:0},${gv>0?200:0},${gv>0?100:0},${Math.random()*0.04})`;
+     gc.fillRect(gx2,gy2,1,1);
     }
 
     function frame(){
      if(stop.v)return;
 
-     /* Fond orange respirant */
-     const breathe=Math.sin(t*0.22)*6;
-     ctx.fillStyle=`rgb(${232+(breathe*0.3)|0},${137+(breathe*0.2)|0},10)`;
+     /* ── FOND brun-rouille de l'affiche ── */
+     const breathe=Math.sin(t*0.18)*4;
+     const r=122+breathe|0,g=58+breathe*0.3|0,b=24;
+     ctx.fillStyle=`rgb(${r},${g},${b})`;
      ctx.fillRect(0,0,W,H);
 
-     /* Halo central chaud */
-     const centG=ctx.createRadialGradient(cx,H*0.52,10,cx,H*0.52,W*0.70);
-     centG.addColorStop(0,`rgba(255,168,35,${0.14+Math.sin(t*0.18)*0.03})`);
-     centG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=centG;ctx.fillRect(0,0,W,H);
+     /* Halo central légèrement plus chaud */
+     const halo=ctx.createRadialGradient(cx,H*0.62,0,cx,H*0.62,W*0.75);
+     halo.addColorStop(0,`rgba(160,80,30,${0.18+Math.sin(t*0.22)*0.04})`);
+     halo.addColorStop(0.5,'rgba(100,40,10,0.06)');
+     halo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
 
-     /* Pluie très subtile */
-     ctx.save();ctx.globalAlpha=1;
-     for(const r of rain){
-      r.y+=r.spd;r.x+=r.spd*0.18;
-      if(r.y>H){r.y=-r.len;r.x=Math.random()*W*1.2-W*0.1;}
-      ctx.strokeStyle=`rgba(200,100,5,${r.op})`;
-      ctx.lineWidth=0.7;
-      ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x+r.len*0.18,r.y+r.len);ctx.stroke();
-     }
-     ctx.restore();
-
-     /* Léon silhouette */
-     drawLeon();
-
-     /* Plante */
-     drawPlant();
-
-     /* Lunettes par-dessus */
-     drawGlasses();
-
-     /* Grain affiche */
-     for(let i=0;i<120;i++){
-      const gv=Math.random()*50-25;
-      const alpha=Math.random()*0.038;
-      ctx.fillStyle=gv>0
-       ?`rgba(255,${(155+gv)|0},${(18+gv*0.2)|0},${alpha})`
-       :`rgba(${(95+gv)|0},${(35+gv*0.5)|0},0,${alpha})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.8+0.3,Math.random()*1.8+0.3);
+     /* ── SVG centré en bas — silhouettes Léon + Mathilda + plante ── */
+     if(svgImg){
+      /* Le SVG viewBox est 362×521 — on le scale pour occuper 88% de la largeur */
+      const svgW=W*0.88;
+      const svgH=svgW*(521/362);
+      const svgX=(W-svgW)/2;
+      const svgY=H-svgH+H*0.08; /* ancré en bas avec légère marge */
+      ctx.drawImage(svgImg,svgX,svgY,svgW,svgH);
      }
 
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.08,cx,H*0.50,H*0.90);
+     /* ── Grain texture affiche ── */
+     ctx.globalAlpha=0.55;
+     ctx.drawImage(grainCanvas,0,0);
+     ctx.globalAlpha=1;
+
+     /* ── Vignette douce — sans bandes latérales ── */
+     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.06,cx,H*0.48,H*0.85);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.50,'rgba(0,0,0,0.05)');
-     vg.addColorStop(1,'rgba(0,0,0,0.75)');
+     vg.addColorStop(0.45,'rgba(0,0,0,0.06)');
+     vg.addColorStop(1,'rgba(0,0,0,0.65)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     const vgL=ctx.createLinearGradient(0,0,W*0.12,0);
-     vgL.addColorStop(0,'rgba(0,0,0,0.50)');vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.12,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.88,0);
-     vgR.addColorStop(0,'rgba(0,0,0,0.50)');vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR;ctx.fillRect(W*0.88,0,W*0.12,H);
 
      t+=0.016;requestAnimationFrame(frame);
     }
@@ -41547,8 +41415,6 @@ function closeAvModal(e){
    }
   },
 
-
-  /* ══ LA HAINE ══ */
   {
    name:'La Haine',
    ref:'La Haine \u2014 Mathieu Kassovitz, 1995',
