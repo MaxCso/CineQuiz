@@ -46726,7 +46726,7 @@ function closeAvModal(e){
     const _oppWatch=setInterval(()=>{if(stop.v){_oppStyle.textContent='';clearInterval(_oppWatch);}},200);
 
     /* ── Paramètres du symbole atomique ── */
-    const atomCX=cx, atomCY=H*0.30;
+    const atomCX=cx, atomCY=H*0.36;
     const orbitRX=W*0.300, orbitRY=W*0.108;
 
     /* 3 orbites inclinées — accélération très rapide */
@@ -46867,6 +46867,39 @@ function closeAvModal(e){
       ctx.fillStyle=eg;ctx.beginPath();ctx.arc(ep.x,ep.y,electronSize*1.6,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=`rgba(255,250,220,${0.95+flashOp*0.05})`;
       ctx.beginPath();ctx.arc(ep.x,ep.y,electronSize,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Éclairs entre électrons — s'intensifient avec speedMult ── */
+     const boltAlpha=Math.max(0,Math.min(1,(speedMult-2.5)/7.0));
+     if(boltAlpha>0.01){
+      const epos=orbits.map(o=>electronPos(o.tilt,o.angle));
+      const pairs=[[0,1],[1,2],[2,0]];
+      for(const [a,b] of pairs){
+       const p1=epos[a],p2=epos[b];
+       const segs=5+Math.floor(speedMult*0.8);
+       const jitter=W*(0.018+speedMult*0.006);
+       for(let stroke=0;stroke<2;stroke++){
+        const lw=stroke===0?2.5:1.0;
+        const la=boltAlpha*(stroke===0?0.75:0.40)*(0.6+Math.random()*0.4);
+        ctx.save();
+        ctx.strokeStyle=`rgba(255,${200+Math.random()*55|0},80,${la})`;
+        ctx.lineWidth=lw;
+        ctx.shadowColor=`rgba(255,220,60,${la*0.8})`;
+        ctx.shadowBlur=stroke===0?10:4;
+        ctx.lineCap='round';
+        ctx.beginPath();
+        ctx.moveTo(p1.x,p1.y);
+        for(let si=1;si<segs;si++){
+         const frac=si/segs;
+         const mx=p1.x+(p2.x-p1.x)*frac+(Math.random()-0.5)*jitter;
+         const my=p1.y+(p2.y-p1.y)*frac+(Math.random()-0.5)*jitter;
+         ctx.lineTo(mx,my);
+        }
+        ctx.lineTo(p2.x,p2.y);
+        ctx.stroke();
+        ctx.restore();
+       }
+      }
      }
 
      /* Particules de brillance */
