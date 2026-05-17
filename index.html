@@ -25204,11 +25204,13 @@ function closeAvModal(e){
     let _leStyle=document.getElementById('_le_splash_style');
     if(!_leStyle){_leStyle=document.createElement('style');_leStyle.id='_le_splash_style';document.head.appendChild(_leStyle);}
     _leStyle.textContent=`
-      #splash{background:#5a7aaa!important;}
+      #splash{background:#2a3d5c!important;}
       #splash-bg::before{background:none!important;}
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
+      #splash-content-wrap{top:62%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _leWatch=setInterval(()=>{if(stop.v){_leStyle.textContent='';clearInterval(_leWatch);}},200);
 
@@ -25216,8 +25218,8 @@ function closeAvModal(e){
     const andyImg=new Image();let andyReady=false;
     andyImg.onload=()=>{andyReady=true;};andyImg.src=ANDY_SVG;
 
-    const ANDY_H=H*0.52, ANDY_W=H*0.52*(452/434);
-    const ANDY_X=cx-ANDY_W/2, ANDY_Y=H*0.16;
+    const ANDY_H=H*0.40, ANDY_W=H*0.40*(452/434);
+    const ANDY_X=cx-ANDY_W/2, ANDY_Y=H*0.14;
 
     const RAIN_ANGLE=Math.PI*0.08;
     const drops=Array.from({length:120},()=>{
@@ -25232,9 +25234,34 @@ function closeAvModal(e){
 
     function frame(){
      if(stop.v)return;
+     /* Fond aquatique — ciel orageux + eau en bas */
      const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0,'#4d6e9e');bg.addColorStop(0.45,'#5a7aaa');bg.addColorStop(0.80,'#6688b8');bg.addColorStop(1,'#4a6898');
+     bg.addColorStop(0.00,'#2a3d5c');
+     bg.addColorStop(0.30,'#3a5578');
+     bg.addColorStop(0.55,'#4a6a90');
+     bg.addColorStop(0.72,'#3d6080');
+     bg.addColorStop(0.85,'#2e4d6a');
+     bg.addColorStop(1.00,'#1e3350');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+     /* Reflets eau ondulants dans la moitié basse */
+     ctx.save();
+     for(let wi=0;wi<8;wi++){
+      const wy=H*(0.62+wi*0.048);
+      const wg=ctx.createLinearGradient(0,wy,0,wy+H*0.035);
+      wg.addColorStop(0,'rgba(0,0,0,0)');
+      wg.addColorStop(0.5,`rgba(100,155,210,${0.06+Math.sin(t*0.9+wi*0.7)*0.03})`);
+      wg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=wg;
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=6) ctx.lineTo(x,wy+Math.sin(x*0.025+t*0.8+wi)*3.5+Math.cos(x*0.015-t*0.5+wi)*2);
+      ctx.lineTo(W,wy+H*0.035);ctx.lineTo(0,wy+H*0.035);ctx.closePath();ctx.fill();
+     }
+     /* Lueur diffuse sous l'eau */
+     const waterGlow=ctx.createRadialGradient(cx,H*0.85,20,cx,H*0.85,W*0.7);
+     waterGlow.addColorStop(0,`rgba(80,130,190,${0.14+Math.sin(t*0.4)*0.04})`);
+     waterGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=waterGlow;ctx.fillRect(0,H*0.55,W,H*0.45);
+     ctx.restore();
      ctx.save();ctx.rotate(RAIN_ANGLE);
      for(const d of drops){
       d.y+=d.spd;
