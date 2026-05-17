@@ -32852,7 +32852,7 @@ function closeAvModal(e){
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ia3_s');if(!_s){_s=document.createElement('style');_s.id='_ia3_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#0c0802!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#0c0802!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:66%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     const horizY=H*0.52;
@@ -34624,133 +34624,207 @@ function closeAvModal(e){
    name:'Shrek',
    ref:'Shrek \u2014 Andrew Adamson & Vicky Jenson, 2001',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.85';
+    cv.style.opacity='1.0';
     let t=0;
     const cx=W/2;
 
-    /* Marécage — couche de brume basse */
-    const swampColors=['rgba(40,80,20,','rgba(55,100,15,','rgba(30,60,10,'];
+    /* ── Override fond + citation sous le logo ── */
+    let _skStyle=document.getElementById('_sk_s');
+    if(!_skStyle){_skStyle=document.createElement('style');_skStyle.id='_sk_s';document.head.appendChild(_skStyle);}
+    _skStyle.textContent=`
+      #splash{background:#030d04!important;}
+      #splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
+      #splash-content-wrap{top:22%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
+    `;
+    const _skW=setInterval(()=>{if(stop.v){_skStyle.textContent='';clearInterval(_skW);}},200);
 
-    /* Lucioles */
-    const fireflies=Array.from({length:28},()=>({
-     x:Math.random()*W, y:H*0.35+Math.random()*H*0.55,
-     vx:(Math.random()-0.5)*0.55, vy:(Math.random()-0.5)*0.35,
-     phase:Math.random()*Math.PI*2, freq:0.06+Math.random()*0.08,
-     r:Math.random()*1.8+0.8
+    /* ── SVG Shrek (silhouette paysage 736×538) ── */
+    const SHREK_SVG='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzM2IiBoZWlnaHQ9IjUzOCIgdmlld0JveD0iMCAwIDczNiA1MzgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01LjAwNjc5ZS0wNiAzODQuNTc5QzEwLjI1MTYgMzc1LjkzNSAxOS44NjQ0IDM2Ni43MTIgMzAuOTcyMyAzNTkuOTQxQzM4Ljc5MTcgMzU1LjE3NSA0MC43MjEyIDM0OS40MiA0MS4zNjY1IDM0MS40MDJDNDIuNzM4NSAzMjQuMzU3IDQ5LjY0NDEgMzA5Ljc5NSA2My40NTkgMjk5LjM1NkM2OS4yMjggMjk0Ljk5NyA3NS45MDggMjkzLjg3IDgzLjAwNjEgMjk4LjAwNUM4OS4yOTIxIDMwMS42NjcgOTYuMjkyMiAzMDQuMDgzIDEwMi43MDQgMzA3LjU1NUMxMDcuNjA0IDMxMC4yMDggMTEyLjAwNiAzMTMuNzY2IDExNi43ODMgMzE2LjY3QzExOC4yMDIgMzE3LjUzMiAxMjAuNDEzIDMxOC4zMDkgMTIxLjc5NyAzMTcuODE3QzEzMC40OTcgMzE0LjcyOCAxMzkuMzIxIDMxMS43ODcgMTQ3LjU3IDMwNy43MTZDMTUxLjY4IDMwNS42ODggMTU0LjUyIDMwMS4yIDE1OC4xODkgMjk4LjEzQzE2MS41MzQgMjk1LjMzIDE2NS4yMjQgMjkyLjk0MiAxNjguNzYxIDI5MC4zNzFDMTcwLjQ4MyAyODkuMTE5IDE3Mi4zMzggMjg4LjAxMSAxNzMuODk2IDI4Ni41ODFDMTc5LjA4MiAyODEuODE5IDE4NC4yNTIgMjc3LjM1OSAxOTEuODIgMjc2LjYxN0MxOTYuMzkzIDI3Ni4xNjkgMTk4LjM4IDI3Mi42NzIgMTk4Ljc4OCAyNjguMTdDMjAwLjc5NSAyNDUuOTkyIDIwMi40MTcgMjIzLjc2NiAyMDUuMDc0IDIwMS42NjVDMjA3LjE2NCAxODQuMjg0IDIxMS40OTggMTY3LjI4MiAyMTkuMDUzIDE1MS4zNjhDMjIyLjcxIDE0My42NjQgMjIyLjk0OSAxMzYuOTA0IDIxNy4xNDMgMTMwLjE3OUMyMTEuMzgyIDEyMy41MDUgMjA1Ljc0NyAxMTYuODQ0IDE5OC4wNiAxMTIuMTQ5QzE4OS4yOTIgMTA2Ljc5NCAxNzkuNTI5IDEwNC44NzMgMTY5LjY4MiAxMDMuMzhDMTYzLjExOSAxMDIuMzg1IDE1Ni40MTMgMTAyLjMxIDE0OS43NjcgMTAxLjg4NEMxMzUuNDU3IDEwMC45NjcgMTMwLjIzMSA5NC41NjY3IDEzMC43MjggODAuMjA0NkMxMzEuMjI5IDY1LjY4NjYgMTM1LjQ3MiA1Mi43NzA3IDE0NC43NTMgNDEuNjE2QzE1MS42MjggMzMuMzUzNyAxNjEuNTI4IDMyLjQxNDcgMTY5LjIyNSAzOS43MzA5QzE3My42MjEgNDMuOTA5NyAxNzcuNjEgNDguNzMxMSAxODAuODc3IDUzLjg0MTlDMTg4LjY4OSA2Ni4wNjMgMTk1LjkyNSA3OC43NzI3IDIwNy44OTIgODcuNDg5NUMyMTUuMjM0IDkyLjgzNzYgMjIzLjA3NCA5Ny42MTc5IDIzMS4xMTMgMTAxLjg1M0MyMzYuMTgzIDEwNC41MjQgMjQyLjg1NyAxMDEuMTUxIDI0NC45NDIgOTUuNzA4M0MyNDguNjIyIDg2LjEwMzIgMjUxLjk0IDc2LjM1ODYgMjU1LjY3NSA2Ni43NzU2QzI1OC4wMDQgNjAuNzk3OSAyNjAuMTE4IDU0LjU1MDkgMjYzLjU4MyA0OS4yNDQ3QzI2OC42NjEgNDEuNDcwNyAyNzcuMzE2IDM4LjA0OTUgMjg1LjQyNCAzNC4yMTU3QzI5MC4zMzYgMzEuODkzNCAyOTUuNjU4IDMwLjE3NDcgMzAwLjA5MyAyNy4xNTM0QzMxOS4yNDUgMTQuMTA1MiAzNDAuMDc3IDQuNjEzMzEgMzYyLjg4OCAxLjM4NjUxQzM4Ny40NzEgLTIuMDkwOTEgNDExLjczMSAwLjc3MTg4NCA0MzQuMzc0IDEyLjI1OTZDNDQ5LjU2OSAxOS45Njg3IDQ2My45NTggMjguNjgzIDQ3Ni41ODkgNDAuNDIxMUM0ODAuNzUyIDQ0LjI4OTQgNDg3LjU2NCA0NS4zMDY0IDQ5My4xNjQgNDcuNjI4NkM0OTQuMjE5IDQ4LjA2NjMgNDk1LjU1NiA0OC4yMzg2IDQ5Ni4yODIgNDguOTk1MkM1MDQuODczIDU3Ljk1NDcgNTEzLjcwOSA2Ni44MzU3IDUxNi45MTIgNzkuMzg4QzUxOS40NTcgODkuMzYzMSA1MjEuNTkgOTkuNDQzNCA1MjMuOTEyIDEwOS40NzZDNTI0LjE3NSAxMTAuNjA5IDUyNC40MTkgMTExLjc1MSA1MjQuNzY3IDExMi44NkM1MjYuMzU0IDExNy45MTQgNTI5LjIzMSAxMTkuODAyIDUzMy43MzMgMTE3LjIzNEM1NDIuNzk0IDExMi4wNjYgNTUxLjc0OSAxMDYuNTczIDU2MC4xMjQgMTAwLjM3MkM1NzEuNDQ1IDkxLjk4OTUgNTc3LjgwNSA3OS4zNTc4IDU4NS44OTkgNjguMjE3QzU4OC44MDEgNjQuMjIyNiA1OTIuMTg4IDYwLjM4NzIgNTk2LjAxNiA1Ny4zMDIzQzYwMi40NDEgNTIuMTI1NCA2MTAuOTgxIDUzLjI1MjYgNjE2LjU0MiA1OS40ODg3QzYyNy41MTEgNzEuNzg5MiA2MzEuNDkxIDg2Ljc4MDMgNjMyLjA2NSAxMDIuNzA4QzYzMi40IDExMS45NzQgNjI2Ljg3NyAxMTcuNzk2IDYxNy43NTYgMTE4LjkyMkM2MDcuMDQzIDEyMC4yNDYgNTk2LjI3NSAxMjEuMTMxIDU4NS41MjggMTIyLjE3NkM1NjcuMzY3IDEyMy45NDIgNTU0LjAwNSAxMzQuMTggNTQyLjc5OSAxNDcuNDA1QzUzOS4xNjYgMTUxLjY5MSA1MzcuODU5IDE1Ny40MTggNTQwLjYxNSAxNjMuNzY3QzU0OS45NjkgMTg1LjMyMSA1NTIuNDc1IDIwOC4zMjMgNTUzLjA0OCAyMzEuNTA2QzU1My4zNTEgMjQzLjc5OCA1NTIuNTE1IDI1Ni4xMjkgNTUxLjg5IDI2OC40MjhDNTUxLjY4OSAyNzIuMzg2IDU1My4wMjkgMjc0LjQzMyA1NTYuNjM1IDI3NS45ODFDNTY3LjkxMSAyODAuODIzIDU3OS4xNTIgMjg1Ljc3NCA1OTAuMjA2IDI5MS4wOTlDNTk3Ljk0NCAyOTQuODI3IDYwNS40MzYgMjk5LjA5MyA2MTIuODc4IDMwMy4zOTRDNjE3LjIzMyAzMDUuOTExIDYyMC42NjEgMzA1LjM4NiA2MjMuMzQzIDMwMS4zNzRDNjI0LjMyMSAyOTkuOTExIDYyNS44MTQgMjk4Ljc2OCA2MjcuMTY2IDI5Ny41ODZDNjI4LjAzNSAyOTYuODI2IDYyOS41MjcgMjk2LjQ3OSA2MjkuOTYzIDI5NS41NzNDNjMzLjIgMjg4Ljg0OCA2MzkuODYgMjg2LjI5OCA2NDUuMzkyIDI4Mi4yNzNDNjUwLjUxMyAyNzguNTQ3IDY1NS44NTMgMjc0LjA1IDY2Mi4wNiAyNzYuNTU5QzY2OS4yNTUgMjc5LjQ2NyA2NzMuMjU5IDI4Ni4wODMgNjc0Ljg5MiAyOTMuOTFDNjc1Ljc1NCAyOTguMDQxIDY3Ny4yOTkgMzAyLjAyNyA2NzguMjEgMzA2LjE1MUM2NzkuMzUyIDMxMS4zMjQgNjc5LjgyNiAzMTYuNjY2IDY4MS4yOCAzMjEuNzM3QzY4MS44NDUgMzIzLjcxMSA2ODQuMDI5IDMyNi4xNzcgNjg1LjkyNiAzMjYuNjY0QzcwMy43MDcgMzMxLjIyNSA3MTkuODAxIDMzOS40MTUgNzM1LjY4IDM0OC45ODJDNzM2IDQxMS43NTIgNzM2IDQ3NC4zOTMgNzM2IDUzNy4wNDFDNDkwLjY2NyA1MzcuMDQ4IDI0NS4zMzMgNTM3LjA0OCAwIDUzNy4wNDhDMCA0ODYuMzQgNi43OTAyOWUtMDkgNDM1LjY5NCA1LjAwNjc5ZS0wNiAzODQuNTc5WiIgZmlsbD0iI0EyQTI0QSIvPgo8L3N2Zz4K';
+    const shrekImg=new Image();let shrekReady=false,shrekSil=null;
+    shrekImg.onload=()=>{shrekReady=true;};shrekImg.src=SHREK_SVG;
+    /* Le SVG couvre toute la largeur, ratio 736/538 */
+    const SVG_W=736,SVG_H=538;
+    const shrekW=W;
+    const shrekH=shrekW*(SVG_H/SVG_W);
+    const shrekX=0;
+    const shrekY=H-shrekH; /* collé en bas d'écran */
+
+    /* ── Âne SVG (119×302, portrait) ── */
+    const DONKEY_SVG='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTE5IiBoZWlnaHQ9IjMwMiIgdmlld0JveD0iMCAwIDExOSAzMDIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xLjY2OTU2IDMwMS42MDdDMC44MDczNzMgMjgxLjg3MyAwLjM4MDQzMiAyNjIuMjU4IDAuMDEyMTMwNyAyNDIuNjQyQy0wLjIxOTM5MSAyMzAuMzExIDIuODU0NzcgMjE5LjA0MSA5Ljk1NTUxIDIwOC43MjdDMTMuNjkzNSAyMDMuMjk3IDE3LjAyODQgMTk3LjM1IDE5LjI2NjIgMTkxLjE3M0MyNS4wOTU0IDE3NS4wODMgMjUuMjUyNiAxNTguMTg0IDI0LjQ5NzcgMTQxLjM0N0MyNC4zNDM3IDEzNy45MTMgMjIuMTU4NiAxMzQuNTE3IDIwLjY3NDcgMTMxLjIwOUMxOS4wNDggMTI3LjU4MyAxNi45NTkxIDEyNC4xNiAxNS40MDU4IDEyMC41MDdDMTEuMzI5OCAxMTAuOTIgMTMuNTEzIDEwMi4zNDUgMTkuNzg2NCA5NC4zODA3QzI4LjkzNDggODIuNzY2NyAyOS4wOTQ0IDc3LjkxOSAyMS40OTA2IDY1LjA5ODlDMTEuMTEwMSA0Ny41OTcgNi4yNTcwNSAyOC45NjkyIDEwLjUxMzIgOC42MjQ2MkMxMS4yOTkzIDQuODY2NzIgMTIuMjU5IDAuMTcxMTMzIDE2Ljc0NjQgMC4wMDUyMDkzQzIxLjcwMDQgLTAuMTc3OTg4IDIzLjA5NDYgNC41MDUwMyAyNC4yNTQgOC42MzQ3QzI3LjYzMTIgMjAuNjYzNyAzMC45OTQ4IDMyLjY5NzUgMzQuNTE5MSA0NC42ODM3QzM1LjE3OTkgNDYuOTMxIDM2LjU1OSA0OC45NjcxIDM3LjEwNTEgNTAuMDc5NEM0MS44MDQ5IDQ3Ljc2NzQgNDUuNTI0NyA0NS4wODMxIDQ5LjY0NzQgNDQuMTE0OUM1NS40NTAyIDQyLjc1MjEgNTguMzM0NiA0Ni4xNDk1IDU3LjU2NzkgNTIuMDM5M0M1Ny4xOTI5IDU0LjkxOTkgNTcuMDIzMiA1Ny44MjcyIDU3Ljg0MiA2MS4yMjMxQzU4Ljg4MDkgNTkuODk3NSA2MC4wNjE2IDU4LjY1ODcgNjAuOTM2NSA1Ny4yMzI0QzY4LjI0ODkgNDUuMzA5OSA3NS40NzU3IDMzLjMzNDkgODIuNzk5NyAyMS40MTk1Qzg0LjUzODcgMTguNTkwMiA4Ni4xODc3IDE1LjU0NDIgODguNTU2IDEzLjMxOTRDOTAuMTM5IDExLjgzMjIgOTMuMTQ2NyAxMC42ODM3IDk1LjA4OTIgMTEuMTUzMkM5Ni40ODM0IDExLjQ5MDIgOTguMTQ3MiAxNC44MTY4IDk4LjAyMzIgMTYuNjk5OUM5Ni42ODgyIDM2Ljk3MjggOTEuOTY5MSA1NS44Mzc2IDc1LjE0MjkgNjkuNTIyOEM3My40NDI5IDcwLjkwNTQgNzIuOTM2NCA3My44MTY0IDcyLjAzMTkgNzYuMDgwNEM3MS43NDQxIDc2LjgwMDUgNzIuMjQwOCA3Ny44NjI1IDcxLjkwNTUgNzguNTMwOUM2Ny45Njg1IDg2LjM4MDUgNzEuOTQzNSA5MS43NTg5IDc2LjgzMDIgOTcuNjE0NUM4Ni4yMzg5IDEwOC44ODkgODYuMTg5NyAxMTQuODQ1IDc4LjE5MzggMTI3LjMyMkM3Ny42NTQ1IDEyOC4xNjQgNzcuMjE3OCAxMjkuMDg3IDc2LjU4NjYgMTI5Ljg1MkM2Ny40MTYxIDE0MC45NTMgNjQuOTgwOCAxNTMuMjg1IDY2Ljg3MDggMTY3LjY4QzY4LjMzNTIgMTc4LjgzMyA3MS40NzggMTg4LjQxMiA3OC4xNDUyIDE5Ny40MTJDODQuOTU0NSAyMDYuNjA0IDg3LjgxMjUgMjE3LjYzIDg3Ljg0OTUgMjI4LjkzNUM4Ny44ODQgMjM5LjQ5OCA4OS4zMDgzIDI0OS40ODEgOTQuMjU0OCAyNTguODY5Qzk0Ljg3MDYgMjYwLjAzOCA5NS4yOTUyIDI2MS4zMzEgOTUuNjQ5NiAyNjIuNjFDOTcuNTYwMyAyNjkuNTA4IDk5LjY1MjggMjc1LjI5OSAxMDcuNDAyIDI3OS4wNDVDMTE1LjM2MiAyODIuODkzIDExNy45NzYgMjkxLjg3MiAxMTguNDYgMzAxLjIzMUMxMDcuMzIzIDMwMS43NDYgOTYuMTc1MSAzMDEuOTA0IDg1LjAyNzYgMzAxLjg5N0M1Ny4zOTQ5IDMwMS44OCAyOS43NjIzIDMwMS43ODggMS42Njk1NiAzMDEuNjA3WiIgZmlsbD0iI0NCREM1NSIvPgo8L3N2Zz4K';
+    const donkeyImg=new Image();let donkeyReady=false,donkeySil=null;
+    donkeyImg.onload=()=>{donkeyReady=true;};donkeyImg.src=DONKEY_SVG;
+    /* Hauteur âne = 42% de l'écran, centré */
+    const donkeyH=H*0.28;
+    const donkeyW=donkeyH*(119/302);
+    const donkeyX=cx-donkeyW/2;
+    const donkeyY=shrekY-donkeyH*0.82; /* pied de l'âne dans la silhouette Shrek */
+
+    /* ── Étoiles nuit ── */
+    const stars=Array.from({length:130},()=>({
+     x:Math.random()*W, y:Math.random()*H*0.55,
+     r:Math.random()*1.2+0.2,
+     op:Math.random()*0.65+0.18,
+     tw:Math.random()*Math.PI*2,
+     tf:Math.random()*0.025+0.008
     }));
 
-    /* Bulles de marécage */
-    const bubbles=Array.from({length:14},()=>({
-     x:Math.random()*W, y:H*0.82+Math.random()*H*0.14,
-     r:Math.random()*5+2, vy:-(Math.random()*0.5+0.2),
-     op:Math.random()*0.5+0.2, life:1
+    /* ── Lucioles ── */
+    const fireflies=Array.from({length:32},()=>({
+     x:Math.random()*W,
+     y:H*0.42+Math.random()*H*0.50,
+     vx:(Math.random()-0.5)*0.50,
+     vy:(Math.random()-0.5)*0.32,
+     phase:Math.random()*Math.PI*2,
+     freq:0.055+Math.random()*0.075,
+     r:Math.random()*1.6+0.7
     }));
 
-    /* Étoiles nuit */
-    const stars=Array.from({length:120},()=>({
-     x:Math.random()*W, y:Math.random()*H*0.5,
-     r:Math.random()*1.2+0.2, op:Math.random()*0.7+0.2,
-     tw:Math.random()*Math.PI*2, tf:Math.random()*0.04+0.01
+    /* ── Bulles de marécage ── */
+    const bubbles=Array.from({length:16},()=>({
+     x:Math.random()*W,
+     y:H*0.82+Math.random()*H*0.14,
+     r:Math.random()*4+1.5,
+     vy:-(Math.random()*0.45+0.18),
+     op:Math.random()*0.45+0.18,
+     life:Math.random()
     }));
-
-    function drawOgre(){
-     const ox=W*0.72, oy=H*0.58;
-     const headR=W*0.11;
-     ctx.save();
-     /* Oreilles */
-     for(const ex of [-headR*0.9, headR*0.9]){
-      const eg=ctx.createRadialGradient(ox+ex,oy-headR*0.3,2,ox+ex,oy-headR*0.3,headR*0.38);
-      eg.addColorStop(0,'rgba(80,140,40,0.95)'); eg.addColorStop(1,'rgba(55,100,25,0.9)');
-      ctx.fillStyle=eg; ctx.beginPath(); ctx.ellipse(ox+ex,oy-headR*0.3,headR*0.28,headR*0.22,ex>0?0.3:-0.3,0,Math.PI*2); ctx.fill();
-     }
-     /* Tête */
-     const hg=ctx.createRadialGradient(ox-headR*0.2,oy-headR*0.2,headR*0.1,ox,oy,headR*1.1);
-     hg.addColorStop(0,'rgba(110,175,55,0.95)'); hg.addColorStop(0.5,'rgba(80,140,35,0.92)'); hg.addColorStop(1,'rgba(55,100,20,0.90)');
-     ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(ox,oy,headR,0,Math.PI*2); ctx.fill();
-     /* Yeux — deux gros ronds blancs */
-     for(const ex of [-headR*0.32, headR*0.32]){
-      ctx.fillStyle='rgba(245,240,200,0.96)'; ctx.beginPath(); ctx.ellipse(ox+ex,oy-headR*0.12,headR*0.24,headR*0.28,0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='rgba(60,90,20,0.95)'; ctx.beginPath(); ctx.arc(ox+ex+headR*0.05,oy-headR*0.10,headR*0.13,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.arc(ox+ex,oy-headR*0.18,headR*0.055,0,Math.PI*2); ctx.fill();
-     }
-     /* Sourire */
-     ctx.strokeStyle='rgba(40,70,10,0.80)'; ctx.lineWidth=2.5; ctx.lineCap='round';
-     ctx.beginPath(); ctx.moveTo(ox-headR*0.35,oy+headR*0.28); ctx.quadraticCurveTo(ox,oy+headR*0.50,ox+headR*0.35,oy+headR*0.28); ctx.stroke();
-     /* Nez façon oignon */
-     const ng=ctx.createRadialGradient(ox-headR*0.05,oy+headR*0.08,2,ox,oy+headR*0.12,headR*0.22);
-     ng.addColorStop(0,'rgba(130,190,60,0.90)'); ng.addColorStop(1,'rgba(70,120,25,0.85)');
-     ctx.fillStyle=ng; ctx.beginPath(); ctx.ellipse(ox,oy+headR*0.12,headR*0.20,headR*0.15,0,0,Math.PI*2); ctx.fill();
-     ctx.restore();
-    }
 
     function frame(){
      if(stop.v)return;
-     /* Ciel nuit forêt */
-     const sky=ctx.createLinearGradient(0,0,0,H*0.55);
-     sky.addColorStop(0,'rgba(2,4,8,0.18)'); sky.addColorStop(1,'rgba(10,18,6,0.18)');
-     ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.55);
+
+     /* Fond trail */
+     ctx.fillStyle='rgba(3,13,4,0.28)';ctx.fillRect(0,0,W,H);
+
+     /* Ciel nuit forêt — dégradé vert profond */
+     const sky=ctx.createLinearGradient(0,0,0,H*0.60);
+     sky.addColorStop(0,'#020a03');
+     sky.addColorStop(0.40,'#040e05');
+     sky.addColorStop(0.75,'#071408');
+     sky.addColorStop(1,'#0a1c0b');
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.60);
+
+     /* Lune verte caractéristique de Shrek */
+     const moonX=W*0.78, moonY=H*0.14;
+     const moonG=ctx.createRadialGradient(moonX-W*0.02,moonY-H*0.02,3,moonX,moonY,W*0.068);
+     moonG.addColorStop(0,`rgba(195,240,110,${0.90+Math.sin(t*0.4)*0.05})`);
+     moonG.addColorStop(0.55,`rgba(140,200,60,${0.60+Math.sin(t*0.3)*0.06})`);
+     moonG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=moonG;ctx.beginPath();ctx.arc(moonX,moonY,W*0.068,0,Math.PI*2);ctx.fill();
+     /* Disque solide */
+     ctx.fillStyle=`rgba(185,235,95,${0.88+Math.sin(t*0.4)*0.06})`;
+     ctx.beginPath();ctx.arc(moonX,moonY,W*0.042,0,Math.PI*2);ctx.fill();
+
+     /* Halo marécage au sol */
+     const swampGlow=ctx.createRadialGradient(cx,H*0.80,20,cx,H*0.80,W*0.65);
+     swampGlow.addColorStop(0,`rgba(50,110,20,${0.18+Math.sin(t*0.5)*0.04})`);
+     swampGlow.addColorStop(0.5,'rgba(25,60,10,0.08)');
+     swampGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=swampGlow;ctx.fillRect(0,H*0.50,W,H*0.50);
 
      /* Étoiles */
-     for(const s of stars){ s.tw+=s.tf; const op=s.op*(0.5+Math.sin(s.tw)*0.5); ctx.fillStyle=`rgba(255,255,220,${op})`; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); }
-
-     /* Lune verte (clin d'œil) */
-     const moonG=ctx.createRadialGradient(W*0.15,H*0.12,5,W*0.15,H*0.12,W*0.065);
-     moonG.addColorStop(0,'rgba(200,240,120,0.92)'); moonG.addColorStop(0.7,'rgba(150,200,70,0.65)'); moonG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=moonG; ctx.beginPath(); ctx.arc(W*0.15,H*0.12,W*0.065,0,Math.PI*2); ctx.fill();
-
-     /* Sol marécage */
-     const ground=ctx.createLinearGradient(0,H*0.52,0,H);
-     ground.addColorStop(0,'rgba(20,40,8,0.18)'); ground.addColorStop(0.3,'rgba(35,65,12,0.18)'); ground.addColorStop(1,'rgba(10,20,4,0.18)');
-     ctx.fillStyle=ground; ctx.fillRect(0,H*0.52,W,H*0.48);
-
-     /* Eau du marécage */
-     const water=ctx.createLinearGradient(0,H*0.72,0,H);
-     water.addColorStop(0,'rgba(20,55,15,0.55)'); water.addColorStop(1,'rgba(10,30,8,0.75)');
-     ctx.fillStyle=water; ctx.fillRect(0,H*0.72,W,H*0.28);
-
-     /* Reflets ondulants */
-     ctx.strokeStyle=`rgba(60,120,25,${0.12+Math.sin(t*1.2)*0.04})`; ctx.lineWidth=1.5;
-     for(let i=0;i<5;i++){
-      const wy=H*0.75+i*H*0.04;
-      ctx.beginPath(); for(let x=0;x<W;x+=4){ ctx.lineTo(x,wy+Math.sin(x*0.04+t*1.5+i)*2.5); } ctx.stroke();
+     for(const s of stars){
+      s.tw+=s.tf;
+      const op=s.op*(0.55+0.45*Math.sin(s.tw));
+      ctx.fillStyle=`rgba(240,255,200,${op})`;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* Brume basse */
-     const mist=ctx.createLinearGradient(0,H*0.68,0,H*0.82);
-     mist.addColorStop(0,'rgba(0,0,0,0)'); mist.addColorStop(0.4,`rgba(50,90,20,${0.18+Math.sin(t*0.4)*0.05})`); mist.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=mist; ctx.fillRect(0,H*0.68,W,H*0.14);
+     /* Zone eau/marécage */
+     const water=ctx.createLinearGradient(0,H*0.74,0,H);
+     water.addColorStop(0,'rgba(18,50,12,0.55)');
+     water.addColorStop(1,'rgba(8,25,5,0.80)');
+     ctx.fillStyle=water;ctx.fillRect(0,H*0.74,W,H*0.26);
+
+     /* Reflets ondulants dans l'eau */
+     ctx.strokeStyle=`rgba(55,120,22,${0.10+Math.sin(t*1.1)*0.04})`;ctx.lineWidth=1.5;
+     for(let i=0;i<5;i++){
+      const wy=H*0.76+i*H*0.038;
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=5) ctx.lineTo(x,wy+Math.sin(x*0.038+t*1.4+i)*2.2);
+      ctx.stroke();
+     }
+
+     /* Brume basse entre le SVG et le ciel */
+     const mist=ctx.createLinearGradient(0,shrekY-H*0.06,0,shrekY+H*0.04);
+     mist.addColorStop(0,'rgba(0,0,0,0)');
+     mist.addColorStop(0.5,`rgba(35,75,15,${0.22+Math.sin(t*0.35)*0.06})`);
+     mist.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=mist;ctx.fillRect(0,shrekY-H*0.06,W,H*0.10);
 
      /* Bulles */
      for(const b of bubbles){
-      b.y+=b.vy; b.life-=0.004;
-      if(b.y<H*0.70||b.life<=0){b.y=H*0.90+Math.random()*H*0.07;b.x=Math.random()*W;b.life=1;}
-      ctx.strokeStyle=`rgba(70,130,30,${b.op*b.life})`; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.stroke();
+      b.y+=b.vy;b.life-=0.003;
+      if(b.y<H*0.72||b.life<=0){b.y=H*0.90+Math.random()*H*0.07;b.x=Math.random()*W;b.life=1;}
+      ctx.strokeStyle=`rgba(65,125,28,${b.op*b.life})`;ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
      }
 
      /* Lucioles */
      for(const f of fireflies){
-      f.x+=f.vx+Math.sin(t*0.7+f.phase)*0.4;
-      f.y+=f.vy+Math.cos(t*0.6+f.phase)*0.3;
-      if(f.x<0)f.x=W; if(f.x>W)f.x=0; if(f.y<H*0.35)f.y=H*0.35; if(f.y>H*0.92)f.y=H*0.92;
+      f.x+=f.vx+Math.sin(t*0.65+f.phase)*0.42;
+      f.y+=f.vy+Math.cos(t*0.55+f.phase)*0.28;
+      if(f.x<0)f.x=W;if(f.x>W)f.x=0;
+      if(f.y<H*0.38)f.y=H*0.38;if(f.y>H*0.95)f.y=H*0.95;
       f.phase+=f.freq;
-      const glow=0.4+Math.sin(f.phase)*0.6;
-      if(glow<0.05)continue;
-      const fg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r*5);
-      fg.addColorStop(0,`rgba(200,255,100,${glow*0.9})`); fg.addColorStop(0.4,`rgba(120,210,40,${glow*0.4})`); fg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(f.x,f.y,f.r*5,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle=`rgba(240,255,180,${glow})`; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
+      const glow=0.35+Math.sin(f.phase)*0.65;
+      if(glow<0.04)continue;
+      const fg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r*6);
+      fg.addColorStop(0,`rgba(190,255,90,${glow*0.92})`);
+      fg.addColorStop(0.4,`rgba(110,210,35,${glow*0.40})`);
+      fg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(f.x,f.y,f.r*6,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=`rgba(230,255,170,${glow})`;
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* Silhouette ogre */
-     drawOgre();
+     /* SVG Âne — juste au-dessus de Shrek */
+     if(donkeyReady){
+      if(!donkeySil){
+       const oc=document.createElement('canvas');
+       oc.width=Math.ceil(donkeyW);oc.height=Math.ceil(donkeyH);
+       const ot=oc.getContext('2d');
+       ot.drawImage(donkeyImg,0,0,donkeyW,donkeyH);
+       /* Teinte vert-jaune marécage, légèrement plus claire que Shrek */
+       ot.globalCompositeOperation='source-in';
+       ot.fillStyle='rgba(42,88,18,0.97)';
+       ot.fillRect(0,0,donkeyW,donkeyH);
+       donkeySil=oc;
+      }
+      ctx.save();
+      ctx.globalAlpha=0.95;
+      ctx.drawImage(donkeySil,donkeyX,donkeyY,donkeyW,donkeyH);
+      ctx.restore();
+     }
 
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.05,cx,H*0.5,H*0.82);
-     vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(0.55,'rgba(5,12,2,0.18)'); vg.addColorStop(1,'rgba(0,0,0,0.90)');
-     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+     /* SVG Shrek — silhouette verte en bas */
+     if(shrekReady){
+      if(!shrekSil){
+       const oc=document.createElement('canvas');
+       oc.width=Math.ceil(shrekW);oc.height=Math.ceil(shrekH);
+       const ot=oc.getContext('2d');
+       ot.drawImage(shrekImg,0,0,shrekW,shrekH);
+       /* Teinter vert marécage foncé */
+       ot.globalCompositeOperation='source-in';
+       ot.fillStyle='rgba(28,68,14,0.97)';
+       ot.fillRect(0,0,shrekW,shrekH);
+       shrekSil=oc;
+      }
+      ctx.save();
+      ctx.globalAlpha=0.96;
+      ctx.drawImage(shrekSil,shrekX,shrekY,shrekW,shrekH);
+      ctx.restore();
+     }
 
-     t+=0.016; requestAnimationFrame(frame);
+     /* Vignette latérale douce */
+     const vgL=ctx.createLinearGradient(0,0,W*0.12,0);
+     vgL.addColorStop(0,'rgba(0,0,0,0.45)');vgL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.12,H);
+     const vgR=ctx.createLinearGradient(W,0,W*0.88,0);
+     vgR.addColorStop(0,'rgba(0,0,0,0.45)');vgR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=vgR;ctx.fillRect(W*0.88,0,W*0.12,H);
+
+     t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
@@ -38812,7 +38886,7 @@ function closeAvModal(e){
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_iuf_s');if(!_s){_s=document.createElement('style');_s.id='_iuf_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#0c0802!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#0c0802!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:66%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Géographie ── */
