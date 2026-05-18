@@ -2884,9 +2884,24 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
 #splash.curtain-open .splash-logo-wrap{
   opacity:0;
   pointer-events:none;
-  transition:opacity 0.8s ease;
+  transition:opacity 0.5s ease;
 }
-/* Classe ajoutée par JS à 2s — apparaît en haut avec la tagline */
+/* Masquage immédiat dès le swipe (avant curtain-open) */
+#splash.rideau-ouvert .splash-logo-wrap{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.35s ease;
+}
+#splash.rideau-ouvert .splash-tagline{
+  opacity:0;
+  transition:opacity 0.35s ease;
+}
+#splash.rideau-ouvert .splash-credit{
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+/* Logo-film-mode : réapparaît en haut en petit après l'ouverture */
 #splash .splash-logo-wrap.logo-film-mode{
   position:absolute;
   top:max(10px, env(safe-area-inset-top, 0px));
@@ -2898,20 +2913,25 @@ body.theme-rose    .xpw-nm{background:linear-gradient(90deg,#ffe8f4,#ff6eb4,#ffb
   transition:opacity 0.70s ease 0.10s, transform 0.70s cubic-bezier(.34,1.2,.64,1) 0.10s;
   pointer-events:none;
 }
+#splash .splash-logo-wrap.logo-film-mode .splash-tagline{
+  opacity:1;
+  transition:opacity 0.60s ease 0.35s;
+}
 /* Swipe-wrap masqué sur le splash film */
 #splash.curtain-open .splash-swipe-wrap{
   opacity:0;
   pointer-events:none;
   transition:opacity 0.4s ease;
 }
-/* Tagline masquée pendant rideau, réapparaît avec logo-film-mode */
+/* Tagline et credit masqués pendant rideau */
 #splash.curtain-open .splash-tagline{
   opacity:0;
   transition:opacity 0s;
 }
-#splash .splash-logo-wrap.logo-film-mode .splash-tagline{
-  opacity:1;
-  transition:opacity 0.60s ease 0.35s;
+#splash.curtain-open .splash-credit{
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity 0.3s ease, transform 0.3s ease;
 }
 .splash-logo-container{
   filter:
@@ -38867,11 +38887,11 @@ function closeAvModal(e){
     /* ── Noir et blanc total — pas d'orbes ── */
     let _s=document.getElementById('_rb_s');
     if(!_s){_s=document.createElement('style');_s.id='_rb_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#000!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#000!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Géométrie du ring ── */
-    const FLOOR_Y = H*0.74;
+    const FLOOR_Y = H*0.88;
     const RING_W  = W*0.90;
     const RING_X  = cx - RING_W/2;
     const POST_H  = H*0.36;
@@ -47792,11 +47812,16 @@ function runSplash(){
     // 0ms — Logo apparaît
     setTimeout(()=>{logo.classList.add('show');},50);
 
-    // 0ms — Rideau s'ouvre immédiatement au tap
+    // 0ms — Rideau s'ouvre + masquage immédiat logo/tagline/credit
+    splash.classList.add('rideau-ouvert');
     curtain.classList.add('open');
     // curtain-open est ajouté après la fin de l'animation du rideau (4.2s)
-    // pour ne pas masquer le canvas avant que le rideau soit ouvert
     setTimeout(()=>{ splash.classList.add('curtain-open'); }, 4200);
+
+    // À 2s — logo CinéQuiz + tagline réapparaissent en petit en haut
+    setTimeout(()=>{
+      logo.classList.add('logo-film-mode');
+    }, 2000);
 
     // ── Musique du film — fade-in au rideau ──
     var _splashClosed = false;
@@ -47883,14 +47908,12 @@ function runSplash(){
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
     const tapEl=document.getElementById('splash-tap');
     if(tapEl) tapEl.classList.add('hidden');
-    // Citation + wrapper + logo apparaissent à 2000ms
+    // Citation + wrapper du film apparaissent à 2000ms
     setTimeout(()=>{
       var wrap=document.getElementById('splash-content-wrap');
       if(wrap) wrap.classList.add('reveal');
       if(quoteEl) quoteEl.classList.add('reveal');
       if(typeof window._onLogoReveal==='function') window._onLogoReveal();
-      const logoWrap=document.getElementById('splash-logo');
-      if(logoWrap) logoWrap.classList.add('logo-film-mode');
     }, 2000);
 
     // "Appuyer pour passer" — apparaît 5s après l'ouverture du rideau (indépendant de l'audio)
@@ -56686,6 +56709,9 @@ function hmReopenTuto() {
         var curtainEl=document.getElementById('splash-curtain');
         if(curtainEl) curtainEl.classList.add('open');
 
+        // Masquer logo/tagline/credit immédiatement
+        splash.classList.add('rideau-ouvert');
+
         // Masquer le swipe immédiatement et complètement
         if(tapEl){tapEl.style.opacity='0';tapEl.style.pointerEvents='none';tapEl.style.visibility='hidden';}
 
@@ -56694,12 +56720,13 @@ function hmReopenTuto() {
           splash.classList.add('curtain-open');
         }, 2000);
 
-        // Révéler citation + logo film à 2s
+        // Révéler citation + logo film + logo CinéQuiz en haut à 2s
         setTimeout(function(){
           if(wrapReveal)wrapReveal.classList.add('reveal');
           if(qEl)qEl.classList.add('reveal');
           if(typeof window._onLogoReveal==='function')window._onLogoReveal();
-          if(logo)logo.classList.add('logo-film-mode');
+          var logoEl=document.getElementById('splash-logo');
+          if(logoEl)logoEl.classList.add('logo-film-mode');
         },2000);
 
         // Musique film
