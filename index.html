@@ -30991,16 +30991,206 @@ function closeAvModal(e){
    name:'Memento',
    ref:'Memento \u2014 Christopher Nolan, 2000',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
-    let _s=document.getElementById('_me_s');if(!_s){_s=document.createElement('style');_s.id='_me_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#0a0a0a!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    cv.style.opacity='1.0';
+    let t=0;
+    const cx=W/2,cy=H/2;
+
+    let _s=document.getElementById('_me_s');
+    if(!_s){_s=document.createElement('style');_s.id='_me_s';document.head.appendChild(_s);}
+    _s.textContent='#splash{background:#080808!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
-    const polaroids=Array.from({length:12},(_,i)=>({x:W*(0.1+Math.random()*0.8),y:H*(0.1+Math.random()*0.8),rot:(Math.random()-0.5)*0.4,op:0.3+Math.random()*0.5,size:W*(0.08+Math.random()*0.06),phase:Math.random()*Math.PI*2,spd:0.005+Math.random()*0.008}));
-    function frame(){if(stop.v)return;
-     ctx.fillStyle='#080808';ctx.fillRect(0,0,W,H);
-     for(const p of polaroids){p.phase+=p.spd;p.op=0.25+0.20*Math.abs(Math.sin(p.phase));ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot+Math.sin(p.phase)*0.02);ctx.globalAlpha=p.op;ctx.fillStyle='rgba(240,235,220,0.95)';ctx.fillRect(-p.size/2,-p.size*0.55,p.size,p.size*1.25);ctx.fillStyle='rgba(180,170,155,0.60)';ctx.fillRect(-p.size*0.42,-p.size*0.47,p.size*0.84,p.size*0.84);ctx.fillStyle='rgba(30,25,20,0.85)';ctx.font=`bold ${p.size*0.08}px monospace`;ctx.textAlign='center';ctx.fillText('???',0,p.size*0.62);ctx.restore();}
-     ctx.globalAlpha=1;const vg=ctx.createRadialGradient(cx,cy,H*0.05,cx,cy,H*0.88);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.5,'rgba(0,0,0,0.28)');vg.addColorStop(1,'rgba(0,0,0,0.97)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     t+=0.016;requestAnimationFrame(frame);}frame();
+
+    /* ── Contenu des polaroids : fragments du film ── */
+    const CONTENTS=[
+      {lines:['JOHN G.','KILLED','YOUR WIFE'],note:'Ne pas lui faire confiance',tags:['#314','suspect']},
+      {lines:['NATALIE','peut aider'],note:'Elle a perdu quelqu\'un aussi',tags:['alliée?']},
+      {lines:['TEDDY','= menteur'],note:'Ne JAMAIS croire Teddy',tags:['danger','#cop']},
+      {lines:['JE','NE PEUX PAS','ME SOUVENIR'],note:'système externe requis',tags:['règle n°1']},
+      {lines:['FACTS','NOT','FEELINGS'],note:'vérifié 3x',tags:['tatoué']},
+      {lines:['SHE IS','STILL','ALIVE?'],note:'photo non datée',tags:['clé']},
+      {lines:['EMMA','†'],note:'ne jamais oublier',tags:['raison','but']},
+      {lines:['MOTEL','DISCOUNT','ROOM 21'],note:'où suis-je?',tags:['aujourd\'hui']},
+      {lines:['MEMORY','IS','UNRELIABLE'],note:'écris tout',tags:['règle n°2']},
+      {lines:['LICENSE','SG 137 IU'],note:'voiture vue 2x',tags:['vérifier']},
+      {lines:['LENNY','c\'est toi'],note:'regarde le miroir',tags:['identité']},
+      {lines:['DO NOT','TRUST','ANYONE'],note:'surtout pas toi-même',tags:['règle n°0']},
+    ];
+
+    /* ── Seed déterministe pour positions stables ── */
+    function seededRand(seed){return(Math.abs(Math.sin(seed*127.1+311.7)*43758.5453123))%1;}
+
+    const SIZE_BASE=W*0.22;
+    /* Grille 3 colonnes × 4 rangées avec léger décalage naturel */
+    const COLS=3;
+    const polaroids=CONTENTS.map((c,i)=>{
+      const sr=n=>seededRand(i*17+n);
+      const col=i%COLS;
+      const row=Math.floor(i/COLS);
+      return {
+        x: W*(0.18+col*0.31) + (sr(1)-0.5)*W*0.08,
+        y: H*(0.18+row*0.20) + (sr(2)-0.5)*H*0.05,
+        rot: (sr(3)-0.5)*0.50,
+        size: SIZE_BASE*(0.82+sr(4)*0.32),
+        phase: sr(5)*Math.PI*2,
+        spd: 0.003+sr(6)*0.004,
+        devPhase: sr(7)*Math.PI*2,
+        devSpd: 0.0020+sr(8)*0.003,
+        content: c,
+        floatAmp: 0.004+sr(9)*0.006,
+      };
+    });
+
+    /* ── Dessine un polaroid avec effet développement photo ── */
+    function drawPolaroid(p, baseOp){
+      const {size, content}=p;
+      const pad=size*0.07;
+      const photoW=size*0.86;
+      const photoH=size*0.78;
+      const totalH=size*1.30;
+      const px=-size/2;
+      const py=-size*0.58;
+
+      /* Développement : 0=blanc laiteux → 1=image révélée */
+      const dev=0.40+0.60*Math.abs(Math.sin(p.devPhase));
+
+      ctx.save();
+
+      /* Ombre portée */
+      ctx.shadowColor='rgba(0,0,0,0.70)';
+      ctx.shadowBlur=size*0.18;
+      ctx.shadowOffsetX=size*0.04;
+      ctx.shadowOffsetY=size*0.06;
+
+      /* Carte polaroid — papier légèrement jauni */
+      ctx.fillStyle=`rgb(${238-dev*12},${233-dev*10},${215-dev*8})`;
+      ctx.beginPath();
+      ctx.roundRect(px,py,size,totalH,size*0.025);
+      ctx.fill();
+      ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+
+      /* Zone photo */
+      const imgX=px+pad;
+      const imgY=py+pad;
+
+      /* Fond photo : développement du blanc laiteux vers l'image N&B */
+      const whiteness=Math.round(255*(1-dev*0.82));
+      ctx.fillStyle=`rgb(${whiteness},${whiteness},${whiteness})`;
+      ctx.fillRect(imgX,imgY,photoW,photoH);
+
+      /* Image révélée progressivement — rendu N&B granuleux */
+      if(dev>0.15){
+        const imgAlpha=Math.max(0,(dev-0.15)/0.85);
+
+        /* Grain photo argentique */
+        const grainStep=Math.max(3,Math.floor(5*(1-dev*0.6)));
+        for(let gx=0;gx<photoW;gx+=grainStep){
+          for(let gy=0;gy<photoH;gy+=grainStep){
+            const bright=Math.round(25+Math.random()*150);
+            ctx.fillStyle=`rgba(${bright},${bright},${bright},${imgAlpha*0.50})`;
+            ctx.fillRect(imgX+gx,imgY+gy,grainStep,grainStep);
+          }
+        }
+
+        /* Lignes de texte manuscrit — révélées progressivement */
+        content.lines.forEach((line,li)=>{
+          const lineAlpha=Math.max(0,(dev-0.25-li*0.12)/0.6)*imgAlpha;
+          if(lineAlpha<=0)return;
+          const fontSize=size*(li===0?0.13:0.11);
+          ctx.font=`900 ${fontSize}px 'Courier New',monospace`;
+          ctx.textAlign='center';
+          ctx.textBaseline='middle';
+          /* Légère distorsion manuscrite */
+          const offX=Math.sin(p.phase*2+li)*size*0.012;
+          const lineY=imgY+photoH*(0.22+li*0.26);
+          /* Ombre texte */
+          ctx.fillStyle=`rgba(0,0,0,${lineAlpha*0.5})`;
+          ctx.fillText(line,imgX+photoW/2+offX+1,lineY+1);
+          /* Texte */
+          const col=li===0?`rgba(20,10,10,${lineAlpha})`:`rgba(30,20,20,${lineAlpha*0.88})`;
+          ctx.fillStyle=col;
+          ctx.fillText(line,imgX+photoW/2+offX,lineY);
+        });
+
+        /* Croix rouge sur certains polaroids (barré) */
+        if(dev>0.70&&(content.tags.includes('danger')||content.tags.includes('menteur'))){
+          ctx.strokeStyle=`rgba(180,20,20,${(dev-0.70)*2.5*imgAlpha})`;
+          ctx.lineWidth=size*0.025;
+          ctx.lineCap='round';
+          ctx.beginPath();ctx.moveTo(imgX+size*0.04,imgY+size*0.04);ctx.lineTo(imgX+photoW-size*0.04,imgY+photoH-size*0.04);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(imgX+photoW-size*0.04,imgY+size*0.04);ctx.lineTo(imgX+size*0.04,imgY+photoH-size*0.04);ctx.stroke();
+        }
+      }
+
+      /* Bordure photo légère */
+      ctx.strokeStyle=`rgba(180,170,150,0.30)`;
+      ctx.lineWidth=0.5;
+      ctx.strokeRect(imgX,imgY,photoW,photoH);
+
+      /* Zone note en bas du polaroid */
+      const noteY=py+pad+photoH+size*0.04;
+      const noteAlpha=Math.max(0,(dev-0.50)/0.50)*baseOp;
+      if(noteAlpha>0){
+        /* Note manuscrite */
+        ctx.font=`italic ${size*0.085}px Georgia,serif`;
+        ctx.textAlign='center';
+        ctx.textBaseline='top';
+        ctx.fillStyle=`rgba(40,30,20,${noteAlpha*0.80})`;
+        ctx.fillText(content.note,px+size/2,noteY,size*0.90);
+
+        /* Tags en bas */
+        if(dev>0.75){
+          const tagAlpha=Math.max(0,(dev-0.75)*4)*noteAlpha;
+          content.tags.forEach((tag,ti)=>{
+            ctx.font=`bold ${size*0.068}px 'Courier New',monospace`;
+            ctx.fillStyle=`rgba(100,10,10,${tagAlpha*0.70})`;
+            ctx.textAlign= ti===0?'left':'right';
+            const tagX=ti===0?px+size*0.07:px+size-size*0.07;
+            ctx.fillText(tag,tagX,py+totalH-size*0.12);
+          });
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function frame(){
+      if(stop.v)return;
+
+      /* Fond très sombre */
+      ctx.fillStyle='#070707';
+      ctx.fillRect(0,0,W,H);
+
+      /* Trier par taille (petits derrière) */
+      const sorted=[...polaroids].sort((a,b)=>a.size-b.size);
+
+      for(const p of sorted){
+        p.phase+=p.spd;
+        p.devPhase+=p.devSpd;
+        /* Flottement doux */
+        const floatY=Math.sin(p.phase)*p.floatAmp*H;
+        const floatRot=Math.sin(p.phase*0.7)*0.012;
+        const baseOp=0.55+0.30*Math.abs(Math.sin(p.phase*0.4));
+        ctx.save();
+        ctx.translate(p.x,p.y+floatY);
+        ctx.rotate(p.rot+floatRot);
+        ctx.globalAlpha=baseOp;
+        drawPolaroid(p,baseOp);
+        ctx.restore();
+      }
+
+      /* Vignette centrale douce — laisse le centre lisible */
+      ctx.globalAlpha=1;
+      const vg=ctx.createRadialGradient(cx,cy,H*0.08,cx,cy,H*0.72);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(0.6,'rgba(0,0,0,0.18)');
+      vg.addColorStop(1,'rgba(0,0,0,0.88)');
+      ctx.fillStyle=vg;
+      ctx.fillRect(0,0,W,H);
+
+      t+=0.016;
+      requestAnimationFrame(frame);
+    }
+    frame();
    }
   },
 
@@ -32701,7 +32891,7 @@ function closeAvModal(e){
 
     let _emPos=document.getElementById('_em_pos_s');
     if(!_emPos){_emPos=document.createElement('style');_emPos.id='_em_pos_s';document.head.appendChild(_emPos);}
-    _emPos.textContent='#splash-content-wrap{top:15%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _emPos.textContent='#splash-content-wrap{top:35%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _emW=setInterval(()=>{if(stop.v){_emPos.textContent='';clearInterval(_emW);}},200);
 
     // Marges sûres
@@ -35791,6 +35981,11 @@ function closeAvModal(e){
     cv.style.opacity='0.80';
     let t=0;
     const cx=W/2;
+
+    let _goS=document.getElementById('_go_s');
+    if(!_goS){_goS=document.createElement('style');_goS.id='_go_s';document.head.appendChild(_goS);}
+    _goS.textContent='#splash-content-wrap{top:68%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _goW=setInterval(()=>{if(stop.v){_goS.textContent='';clearInterval(_goW);}},200);
 
     /* Pièces d'or volantes */
     const coins=Array.from({length:22},()=>({
@@ -42922,6 +43117,8 @@ function closeAvModal(e){
       #splash-bg-anim::after{background:none!important;}
       #splash{background:#1a7bbf!important;}
       #splash-bg{background:none!important;}
+      #splash-content-wrap{top:15%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _mrWatch=setInterval(()=>{if(stop.v){_mrStyle.textContent='';clearInterval(_mrWatch);}},200);
 
@@ -43123,13 +43320,7 @@ function closeAvModal(e){
      vg.addColorStop(0.55,'rgba(8,28,65,0.20)');
      vg.addColorStop(1,'rgba(8,24,58,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     /* Bords latéraux */
-     const vgL=ctx.createLinearGradient(0,0,W*0.12,0);
-     vgL.addColorStop(0,'rgba(8,24,58,0.55)');vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.12,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.88,0);
-     vgR.addColorStop(0,'rgba(8,24,58,0.55)');vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR;ctx.fillRect(W*0.88,0,W*0.12,H);
+     /* Bords latéraux supprimés */
 
      t+=0.016;requestAnimationFrame(frame);
     }
@@ -43396,12 +43587,12 @@ function closeAvModal(e){
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
-      #splash-content-wrap{top:78%!important;transform:translateY(0)!important;}
+      #splash-content-wrap{top:62%!important;transform:translateY(0)!important;}
       #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
-    /* Positionner citation+logo en bas via style inline — uniquement ce splash */
+    /* Supprimer le positionnement inline résiduel */
     const _5eWrap=document.getElementById('splash-content-wrap');
-    if(_5eWrap){_5eWrap.style.position='absolute';_5eWrap.style.top='auto';_5eWrap.style.bottom='60px';}
+    if(_5eWrap){_5eWrap.style.position='';_5eWrap.style.top='';_5eWrap.style.bottom='';}
     const _5eWatch=setInterval(()=>{
       if(stop.v){
         if(_5eWrap){_5eWrap.style.position='';_5eWrap.style.top='';_5eWrap.style.bottom='';}
@@ -43409,9 +43600,11 @@ function closeAvModal(e){
       }
     },200);
 
-    /* Skyline NYC 2263 — tours serrées, générées une seule fois */
+    /* Skyline NYC 2263 — tours serrées, couleurs chaudes affiche */
+    /* Palette affiche : orange (15-35°), rouge (0-10°), or (40-50°), violet chaud (280-310°) */
+    const WARM_HUES=[18,28,8,45,295,22,35,5,42,300,15,30,12,48,285,20,38,10,50,305];
     const towers=Array.from({length:32},(_,i)=>{
-     const hue=Math.random()<0.5?200+Math.random()*50:270+Math.random()*60;
+     const hue=WARM_HUES[i%WARM_HUES.length]+(Math.random()-0.5)*8;
      /* Fenêtres générées une fois, état fixe (allumée/éteinte) */
      const tw=W*0.028+Math.random()*W*0.028;
      const th=H*(0.28+Math.random()*0.50);
@@ -43420,7 +43613,7 @@ function closeAvModal(e){
      for(let r=1;r<rows;r++){
       for(let c=0;c<2;c++){
        if(Math.random()<0.72){ /* 72% des fenêtres allumées */
-        wins.push({r,c,on:true,flicker:Math.random()<0.08,ph:Math.random()*Math.PI*2,sat:50+Math.random()*40,lit:45+Math.random()*30});
+        wins.push({r,c,on:true,flicker:Math.random()<0.08,ph:Math.random()*Math.PI*2,sat:60+Math.random()*35,lit:50+Math.random()*35});
        }
       }
      }
@@ -43456,26 +43649,26 @@ function closeAvModal(e){
      /* Fond — trail léger pour motion blur */
      ctx.fillStyle='rgba(2,1,14,0.30)';ctx.fillRect(0,0,W,H);
 
-     /* Ciel nuit futuriste — violet profond */
+     /* Ciel nuit futuriste — noir profond avec lueur orange/rouge en bas */
      const sky=ctx.createLinearGradient(0,0,0,skylineY);
-     sky.addColorStop(0,'#02010e');
-     sky.addColorStop(0.35,'#080520');
-     sky.addColorStop(0.70,'#100838');
-     sky.addColorStop(1,'#1a0c52');
+     sky.addColorStop(0,'#02010a');
+     sky.addColorStop(0.40,'#0a0308');
+     sky.addColorStop(0.75,'#1a0808');
+     sky.addColorStop(1,'#2d0f04');
      ctx.fillStyle=sky;ctx.fillRect(0,0,W,skylineY);
 
      /* Étoiles — fixes, pas de random par frame */
      for(let si=0;si<28;si++){
       const sx=W*(si*0.038+0.01),sy=H*(0.01+Math.sin(si*2.3)*0.07);
       const sop=0.18+Math.sin(t*0.4+si*0.9)*0.10;
-      ctx.fillStyle=`rgba(200,215,255,${sop})`;
+      ctx.fillStyle=`rgba(255,230,200,${sop})`;
       ctx.beginPath();ctx.arc(sx,sy,0.8,0,Math.PI*2);ctx.fill();
      }
 
-     /* Halo néon en hauteur (ambiance city glow) */
+     /* Halo néon en hauteur — orange/rouge chaud */
      const cityGlow=ctx.createRadialGradient(cx,skylineY,20,cx,skylineY,W*0.85);
-     cityGlow.addColorStop(0,`rgba(80,30,180,${0.22+Math.sin(t*0.3)*0.04})`);
-     cityGlow.addColorStop(0.4,'rgba(30,10,80,0.10)');
+     cityGlow.addColorStop(0,`rgba(200,60,10,${0.30+Math.sin(t*0.3)*0.05})`);
+     cityGlow.addColorStop(0.35,'rgba(120,30,5,0.12)');
      cityGlow.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=cityGlow;ctx.fillRect(0,0,W,skylineY);
 
