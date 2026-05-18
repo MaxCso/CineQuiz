@@ -56629,7 +56629,155 @@ function hmReopenTuto() {
   function closeCinemathequeForPreview(fx){
     document.getElementById('cinematheque-modal').style.display='none';
     window._cinePreviewMode=true;
-    openSplashEffectView(fx);
+    window._cinePendingFx=null;
+    window._splashSwipeCallback=null;
+
+    // Stopper tout canvas/audio en cours
+    _previewStop.v=true;
+    if(_previewAudio){try{_previewAudio.pause();_previewAudio.currentTime=0;}catch(e){}  _previewAudio=null;}
+    window._previewAudioGeneration=(window._previewAudioGeneration||0)+1;
+    if(window._stopSplashEffect)window._stopSplashEffect();
+
+    setTimeout(function(){
+      _previewStop={v:false};
+
+      // Masquer splash-preview-modal si ouvert
+      var spmModal=document.getElementById('splash-preview-modal');
+      if(spmModal)spmModal.style.display='none';
+      document.getElementById('spm-grid-view').style.display='none';
+      document.getElementById('spm-effect-view').style.display='none';
+
+      // Préparer et afficher #splash
+      var splash=document.getElementById('splash');
+      if(!splash)return;
+      splash.style.cssText='display:flex;z-index:999990;';
+      splash.className='';
+
+      // Rideau fermé au départ — reset complet avec reflow forcé
+      var curtainEl=document.getElementById('splash-curtain');
+      if(curtainEl){
+        curtainEl.style.display='';
+        curtainEl.className='splash-curtain';
+        // Reset les demi-rideaux (l'animation forwards bloque le transform)
+        var cl=curtainEl.querySelector('.splash-curtain-l');
+        var cr=curtainEl.querySelector('.splash-curtain-r');
+        if(cl){cl.style.animation='none';cl.style.transform='translateX(0)';}
+        if(cr){cr.style.animation='none';cr.style.transform='translateX(0)';}
+        // Forcer le reflow pour que le reset soit pris en compte
+        void curtainEl.offsetWidth;
+        if(cl){cl.style.animation='';cl.style.transform='';}
+        if(cr){cr.style.animation='';cr.style.transform='';}
+        void curtainEl.offsetWidth;
+      }
+      splash.classList.remove('curtain-open');
+
+      // Remettre swipe dans état initial
+      var tapEl=document.getElementById('splash-tap');
+      if(tapEl){tapEl.className='splash-swipe-wrap';tapEl.style.cssText='';}
+
+      // Logo initial
+      var logoEl=document.getElementById('splash-logo');
+      if(logoEl){logoEl.className='splash-logo-wrap';}
+
+      // Pré-remplir citation + ref
+      var FILM_QUOTES=window._splashFilmQuotes||{};
+      var q2=FILM_QUOTES[fx.name];
+      var qEl=document.getElementById('splash-quote');
+      var qText=document.getElementById('splash-quote-text');
+      var wrapReveal=document.getElementById('splash-content-wrap');
+      var refBot=document.getElementById('splash-film-ref-bottom');
+      if(qEl){qEl.className='';qEl.style.opacity='';}
+      if(q2&&qText){qText.innerHTML='<div class="splash-quote-inner">« '+q2.t+' »</div>';}
+      if(refBot){refBot.textContent=fx.ref||'';refBot.classList.remove('reveal');}
+      if(wrapReveal)wrapReveal.classList.remove('reveal');
+      var filmLogoEl=document.getElementById('splash-film-logo');
+      if(filmLogoEl){filmLogoEl.classList.remove('reveal');filmLogoEl.innerHTML='';}
+      if(typeof window._preloadFilmLogo==='function')window._preloadFilmLogo(fx.name);
+
+      // Accélérer l'animation du rideau (2s)
+      var spmCurtainStyle=document.getElementById('_spm_curtain_style');
+      if(!spmCurtainStyle){spmCurtainStyle=document.createElement('style');spmCurtainStyle.id='_spm_curtain_style';document.head.appendChild(spmCurtainStyle);}
+      spmCurtainStyle.textContent='.splash-curtain.open .splash-curtain-l{animation-duration:2s!important;}.splash-curtain.open .splash-curtain-r{animation-duration:2s!important;}';
+
+      // Bouton Retour
+      var existBtn=document.getElementById('spm-preview-back-btn');
+      if(existBtn)existBtn.remove();
+      var backBtn=document.createElement('div');
+      backBtn.id='spm-preview-back-btn';
+      backBtn.style.cssText="position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;height:36px;padding:0 14px;border-radius:20px;background:rgba(0,0,0,.60);border:1px solid rgba(255,255,255,.20);display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.90);z-index:99999;-webkit-tap-highlight-color:transparent;letter-spacing:.3px;touch-action:manipulation;pointer-events:all;";
+      backBtn.innerHTML='<svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6L6 11" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Retour';
+      backBtn.addEventListener('touchstart',function(e){e.stopPropagation();e.preventDefault();window.closeSplashEffectView();},{passive:false});
+      backBtn.addEventListener('click',function(e){e.stopPropagation();window.closeSplashEffectView();});
+      splash.appendChild(backBtn);
+
+      // Afficher logo + état ready (montre le swipe)
+      setTimeout(function(){
+        if(logoEl)logoEl.classList.add('show');
+        splash.classList.add('ready');
+      },300);
+
+      // Définir le callback swipe : lance canvas + ouvre rideau
+      window._splashSwipeCallback=function(){
+        window._splashSwipeCallback=null;
+        if(_previewStop.v)return;
+
+        // Lancer le canvas
+        var cv=document.getElementById('splash-canvas');
+        if(!cv)return;
+        cv.width=cv.offsetWidth||window.innerWidth;
+        cv.height=cv.offsetHeight||window.innerHeight;
+        var ctx=cv.getContext('2d');
+        ctx.clearRect(0,0,cv.width,cv.height);
+        var stop={v:false};
+        _previewStop=stop;
+        window._splashEffectName=fx.name;
+        fx.run(cv,ctx,cv.width,cv.height,stop);
+        window._stopSplashEffect=function(){stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
+
+        // Ouvrir le rideau
+        if(curtainEl)curtainEl.classList.add('open');
+
+        // Masquer logo/credit
+        splash.classList.add('rideau-ouvert');
+        if(tapEl){tapEl.style.opacity='0';tapEl.style.pointerEvents='none';tapEl.style.visibility='hidden';}
+
+        // curtain-open après 2s
+        setTimeout(function(){splash.classList.add('curtain-open');},2000);
+
+        // Révéler citation + logo film à 2s
+        setTimeout(function(){
+          if(wrapReveal)wrapReveal.classList.add('reveal');
+          if(qEl)qEl.classList.add('reveal');
+          if(logoEl)logoEl.classList.add('logo-film-mode');
+          if(refBot)refBot.classList.add('reveal');
+          if(typeof window._onLogoReveal==='function')window._onLogoReveal();
+        },2000);
+
+        // Musique film
+        var MUSIC=window.SPLASH_MUSIC||{};
+        var file=MUSIC[fx.name];
+        if(file){
+          var myGen=(window._previewAudioGeneration||0);
+          var aud=new Audio(file);
+          aud.volume=0;
+          _previewAudio=aud;
+          aud.play().then(function(){
+            var steps=30,step=0;
+            var fi=setInterval(function(){
+              if(window._previewAudioGeneration!==myGen){clearInterval(fi);return;}
+              step++;
+              if(!_previewAudio||_previewAudio!==aud){clearInterval(fi);return;}
+              aud.volume=Math.min(0.85,step/steps*0.85);
+              if(step>=steps)clearInterval(fi);
+            },800/steps);
+          }).catch(function(){});
+        }
+      };
+
+      // Reset swipe
+      if(typeof window._resetSwipe==='function')window._resetSwipe();
+
+    },30);
   }
 
   window.closeCinematheque=function(){
@@ -56938,9 +57086,18 @@ function hmReopenTuto() {
     ['splash-curtain','splash-bg-anim','splash-flash','splash-skip'].forEach(function(id){
       var el=document.getElementById(id);if(el)el.style.display='';
     });
-    // Remettre le rideau fermé
+    // Remettre le rideau fermé avec reset complet
     var curtainClose=document.getElementById('splash-curtain');
-    if(curtainClose) curtainClose.className='splash-curtain';
+    if(curtainClose){
+      curtainClose.className='splash-curtain';
+      var clL=curtainClose.querySelector('.splash-curtain-l');
+      var clR=curtainClose.querySelector('.splash-curtain-r');
+      if(clL){clL.style.animation='none';clL.style.transform='translateX(0)';}
+      if(clR){clR.style.animation='none';clR.style.transform='translateX(0)';}
+      void curtainClose.offsetWidth;
+      if(clL){clL.style.animation='';clL.style.transform='';}
+      if(clR){clR.style.animation='';clR.style.transform='';}
+    }
     var spmCurtainStyle=document.getElementById('_spm_curtain_style');
     if(spmCurtainStyle) spmCurtainStyle.textContent='';
     // Reset logo/wrap/quote
@@ -56957,11 +57114,18 @@ function hmReopenTuto() {
     var btn=document.getElementById('spm-preview-back-btn');
     if(btn)btn.remove();
 
-    // Revenir à la grille
+    // Revenir à la bonne modal selon le contexte
     document.getElementById('spm-effect-view').style.display='none';
-    var spmModal2=document.getElementById('splash-preview-modal');
-    if(spmModal2) spmModal2.style.display='flex';
-    document.getElementById('spm-grid-view').style.display='flex';
+    if(window._cinePreviewMode){
+      window._cinePreviewMode=false;
+      window._cinePendingFx=null;
+      var cineModal=document.getElementById('cinematheque-modal');
+      if(cineModal) cineModal.style.display='flex';
+    } else {
+      var spmModal2=document.getElementById('splash-preview-modal');
+      if(spmModal2) spmModal2.style.display='flex';
+      document.getElementById('spm-grid-view').style.display='flex';
+    }
   };
 
 
