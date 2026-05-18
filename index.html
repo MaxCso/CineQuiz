@@ -30258,6 +30258,11 @@ function closeAvModal(e){
     let doorOpen=0;   /* 0 = fermé, 1 = ouvert */
     let bloodY=H;
 
+    let _shPos=document.getElementById('_sh_pos_s');
+    if(!_shPos){_shPos=document.createElement('style');_shPos.id='_sh_pos_s';document.head.appendChild(_shPos);}
+    _shPos.textContent='';
+    const _shW=setInterval(()=>{if(stop.v){_shPos.textContent='';clearInterval(_shW);}},200);
+
     /* ── SVG source : 763 × 582
        On met à l'échelle pour occuper ~72% de la largeur, centré
        Portes : porte gauche x=118→338, porte droite x=425→645
@@ -30378,9 +30383,9 @@ function closeAvModal(e){
       halo.addColorStop(0,`rgba(200,5,5,${doorOpen*0.25})`);
       halo.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
-      /* Intérieur rouge sombre visible entre les portes */
+      /* Intérieur rouge sombre — toujours fixe entre x=338 et x=425 */
       ctx.fillStyle=`rgb(${50+doorOpen*30|0},2,2)`;
-      ctx.fillRect(sx(338)+shift*0.5, sy(108), Math.max(0,sw(425-338)+shift*(-1)+shift), sw(474));
+      ctx.fillRect(sx(338), sy(108), sw(425-338), sw(474));
      }
 
      /* ── Base/seuil (path trapèze bas, y=441..582) ── */
@@ -32576,6 +32581,11 @@ function closeAvModal(e){
     cv.style.opacity='0.82';
     let t=0;
     const cx=W/2;
+
+    let _emPos=document.getElementById('_em_pos_s');
+    if(!_emPos){_emPos=document.createElement('style');_emPos.id='_em_pos_s';document.head.appendChild(_emPos);}
+    _emPos.textContent='#splash-content-wrap{top:15%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _emW=setInterval(()=>{if(stop.v){_emPos.textContent='';clearInterval(_emW);}},200);
 
     // Marges sûres
     const SAFE_TOP=H*0.12, SAFE_BOT=H*0.88;
@@ -37996,7 +38006,7 @@ function closeAvModal(e){
 
     let _s=document.getElementById('_rb_s');
     if(!_s){_s=document.createElement('style');_s.id='_rb_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#06040e!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#06040e!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:15%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Géographie ── */
@@ -43475,7 +43485,7 @@ function closeAvModal(e){
     /* ── Override position citation/logo — sous le logo CinéQuiz ── */
     let _jhPos=document.getElementById('_jh_pos_s');
     if(!_jhPos){_jhPos=document.createElement('style');_jhPos.id='_jh_pos_s';document.head.appendChild(_jhPos);}
-    _jhPos.textContent=`#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}`;
+    _jhPos.textContent=`#splash-content-wrap{top:15%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}`;
     const _jhPosWatch=setInterval(()=>{if(stop.v){_jhPos.textContent='';clearInterval(_jhPosWatch);}},200);
 
     /* Cache silhouettes */
@@ -43580,20 +43590,15 @@ function closeAvModal(e){
     }
 
     function drawSoldiers(){
-     /* Troupe panoramique au loin */
+     /* Troupe panoramique au loin — plus petite et transparente */
      if(troopReady){
-      const TW=W*0.90,TH=TW*(640/1280);
-      drawSilhouette('troop',troopImg,W*0.05,groundY-TH*0.72,TW,TH,0.50);
+      const TW=W*0.70,TH=TW*(640/1280);
+      drawSilhouette('troop',troopImg,W*0.15,groundY-TH*0.65,TW,TH,0.38);
      }
-     /* Soldat centre — taille moyenne */
+     /* Un seul soldat — côté droit, taille moyenne */
      if(soldierReady){
-      const SH=H*0.28,SW=SH*(1264/1280);
-      drawSilhouette('s_cl',soldierImg,W*0.32-SW*0.5,groundY-SH,SW,SH,0.80);
-     }
-     /* Soldat droit — proche, plus grand */
-     if(soldierReady){
-      const SH=H*0.38,SW=SH*(1264/1280);
-      drawSilhouette('s_nr',soldierImg,W*0.72-SW*0.5,groundY-SH,SW,SH,0.90);
+      const SH=H*0.32,SW=SH*(1264/1280);
+      drawSilhouette('s_nr',soldierImg,W*0.65-SW*0.5,groundY-SH,SW,SH,0.88);
      }
     }
 
@@ -47824,11 +47829,11 @@ function runSplash(){
       if(logoWrap) logoWrap.classList.add('logo-film-mode');
     }, 2000);
 
-    // "Appuyer pour passer" — apparaît 3s après l'ouverture du rideau (indépendant de l'audio)
+    // "Appuyer pour passer" — apparaît 5s après l'ouverture du rideau (indépendant de l'audio)
     const skipEl = document.getElementById('splash-skip');
     var skipTimeout = setTimeout(()=>{
       if(skipEl && !_splashClosed) skipEl.classList.add('visible');
-    }, 4000);
+    }, 5000);
     if(skipEl){
       function onSkipTap(){
         if(_splashClosed) return;
