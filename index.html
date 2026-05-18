@@ -44499,7 +44499,11 @@ function closeAvModal(e){
     const dstX=cx-dstW*0.526;
     /* Bond à 28% du SVG → on veut Bond à 42% de l'écran (milieu visuel)
        dstY + dstH*0.28 = H*0.42  →  dstY = H*0.42 - dstH*0.28 */
-    const dstY=H*0.42-dstH*0.28;
+    const dstY0=H*0.42-dstH*0.28;  /* position de départ */
+    let dstY=dstY0;
+    /* Descente lente : Bond glisse vers le bas sur ~18s, puis reset doux */
+    const driftMax=H*0.10;   /* amplitude max de la descente (~10% de H) */
+    const driftSpd=0.018;    /* px/frame ≈ très lent */
 
     /* ── Léger balancement de la silhouette ── */
     let swingT=0;
@@ -44619,10 +44623,7 @@ function closeAvModal(e){
        const gl=ctx.createRadialGradient(0,0,0,0,0,g.size*8);
        gl.addColorStop(0,`rgba(200,240,245,${go})`);gl.addColorStop(1,'rgba(0,0,0,0)');
        ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,g.size*8,0,Math.PI*2);ctx.fill();
-       /* Croix d'éclat */
-       ctx.strokeStyle=`rgba(220,250,255,${go*0.8})`;ctx.lineWidth=g.size*0.5;
-       ctx.beginPath();ctx.moveTo(-g.size*5,0);ctx.lineTo(g.size*5,0);ctx.stroke();
-       ctx.beginPath();ctx.moveTo(0,-g.size*5);ctx.lineTo(0,g.size*5);ctx.stroke();
+
        ctx.restore();
       }
      }
@@ -44637,8 +44638,11 @@ function closeAvModal(e){
       ctx.lineWidth=0.7;ctx.stroke();
      }
 
-     /* ── Silhouette SVG — léger balancement ── */
+     /* ── Silhouette SVG — descente lente + léger balancement ── */
      swingT+=0.016;
+     /* Descente continue et douce — reset progressif quand limite atteinte */
+     dstY+=driftSpd;
+     if(dstY>dstY0+driftMax){ dstY=dstY0; }
      const swingX=Math.sin(swingT*0.35)*W*0.006;
      const swingY=Math.sin(swingT*0.25)*H*0.003;
      if(sfReady){
