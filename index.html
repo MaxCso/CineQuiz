@@ -7458,6 +7458,19 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         </div>
       </div>
 
+      <!-- LA SALLE DE PROJECTION -->
+      <div onclick="openCinematheque()" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(8,6,18,.96),rgba(5,4,14,.94));border:1px solid rgba(245,200,66,.13);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 5% 0%,rgba(245,200,66,.10) 0%,transparent 65%),radial-gradient(ellipse 45% 35% at 95% 100%,rgba(200,160,0,.05) 0%,transparent 60%);pointer-events:none;"></div>
+        <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);animation:btnglare 5s ease 3s infinite;pointer-events:none;"></div>
+        <div style="width:54px;height:54px;border-radius:16px;background:rgba(245,200,66,.08);border:1.5px solid rgba(245,200,66,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;position:relative;z-index:1;animation:xpIconFloat 4s ease-in-out infinite;animation-delay:2s;">🎞️</div>
+        <div style="flex:1;min-width:0;position:relative;z-index:1;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#f5c842;line-height:1;margin-bottom:4px;">LA SALLE DE PROJECTION</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.2px;line-height:1.4;">Tes splashs de films débloqués</div>
+          <div id="cinema-card-stat" style="font-size:10px;color:rgba(245,200,66,.5);margin-top:4px;letter-spacing:.3px;"></div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,200,66,.35)" stroke-width="2.2" style="flex-shrink:0;position:relative;z-index:1;"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
       <!-- ENTRAÎNEMENT -->
       <div onclick="openModeInfo('training',this)" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(20,16,6,.96),rgba(14,11,4,.94));border:1px solid rgba(245,200,66,.14);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
         <!-- Fond subtil -->
@@ -47776,6 +47789,7 @@ function closeAvModal(e){
     const fx=RUNNABLE[idx];
     if(refEl){refEl.textContent=fx.ref;}
     window._splashEffectName=fx.name;
+    try{var _cSeen=JSON.parse(localStorage.getItem('cq_cinema_seen')||'[]');if(!_cSeen.includes(fx.name)){_cSeen.push(fx.name);localStorage.setItem('cq_cinema_seen',JSON.stringify(_cSeen));}}catch(e){}
     if(typeof window._preloadFilmLogo==='function') window._preloadFilmLogo(fx.name);
 
     if(window._onSplashEffectReady){window._onSplashEffectReady();window._onSplashEffectReady=null;}
@@ -56280,6 +56294,33 @@ function hmReopenTuto() {
 <script src="supabase-leaderboard.js"></script>
   <script src="supabase-global.js"></script>
 <!-- ── SPLASH PREVIEW MODAL ── -->
+<div id="cinematheque-modal" style="display:none;position:fixed;inset:0;z-index:99990;flex-direction:column;background:#07050f;">
+  <!-- Fond animé -->
+  <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 40% at 50% 20%,rgba(245,200,66,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(180,120,0,.04) 0%,transparent 60%);"></div>
+  <!-- Header -->
+  <div style="position:relative;z-index:2;flex-shrink:0;padding:max(54px,env(safe-area-inset-top)) 18px 14px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+      <button onclick="closeCinematheque()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 13px;font-size:12px;color:rgba(255,255,255,.7);cursor:pointer;letter-spacing:.5px;display:flex;align-items:center;gap:6px;">
+        <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6L6 11" stroke="rgba(255,255,255,.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Retour
+      </button>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2.5px;color:#f5c842;line-height:1;">LA SALLE DE PROJECTION</div>
+        <div id="cine-count" style="font-size:11px;color:rgba(255,255,255,.30);font-family:'DM Sans',sans-serif;margin-top:2px;"></div>
+      </div>
+    </div>
+    <input id="cine-search" type="text" placeholder="Rechercher un film…"
+      oninput="cineFilter(this.value)"
+      style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;font-size:13px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;letter-spacing:.2px;">
+  </div>
+  <!-- Grille -->
+  <div id="cine-grid" style="position:relative;z-index:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 14px max(40px,calc(env(safe-area-inset-bottom)+20px));display:grid;grid-template-columns:repeat(2,1fr);gap:9px;flex:1;align-content:start;scrollbar-width:none;"></div>
+  <!-- Empty state -->
+  <div id="cine-empty" style="display:none;position:absolute;inset:0;z-index:2;align-items:center;justify-content:center;flex-direction:column;gap:10px;pointer-events:none;padding:40px;">
+    <div style="font-size:36px;">🎬</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:rgba(255,255,255,.5);">AUCUN FILM TROUVÉ</div>
+  </div>
+</div>
+
 <div id="splash-preview-modal" style="display:none;position:fixed;inset:0;z-index:99990;flex-direction:column;">
 
   <!-- ══ VUE GRILLE ══ -->
@@ -56529,6 +56570,90 @@ function hmReopenTuto() {
 
   var _previewStop={v:false};
   var _previewAudio=null;
+
+  /* ══ LA SALLE DE PROJECTION ══ */
+  function getCinemaSeen(){
+    try{return JSON.parse(localStorage.getItem('cq_cinema_seen')||'[]');}catch(e){return [];}
+  }
+
+  window.updateCinemaCardStat=function(){
+    var el=document.getElementById('cinema-card-stat');
+    if(!el)return;
+    var total=(window.EFFECTS||[]).filter(function(e){return typeof e.run==='function';}).length;
+    var seen=getCinemaSeen().length;
+    el.textContent=seen+' / '+total+' films débloqués';
+  };
+
+  window.openCinematheque=function(){
+    var modal=document.getElementById('cinematheque-modal');
+    modal.style.display='flex';
+    document.body.style.overflow='hidden';
+    if(typeof stopMus==='function') stopMus();
+    var grid=document.getElementById('cine-grid');
+    var searchInput=document.getElementById('cine-search');
+    if(searchInput) searchInput.value='';
+    document.getElementById('cine-empty').style.display='none';
+    grid.innerHTML='';
+    if(!window.EFFECTS) return;
+    var seen=getCinemaSeen();
+    var total=window.EFFECTS.filter(function(e){return typeof e.run==='function';}).length;
+    var seenCount=seen.length;
+    var countEl=document.getElementById('cine-count');
+    if(countEl) countEl.textContent=seenCount+' / '+total+' films débloqués';
+    window.EFFECTS.forEach(function(fx){
+      if(typeof fx.run!=='function') return;
+      var isSeen=seen.includes(fx.name);
+      var color=COLORS[fx.name]||'#6b7280';
+      var card=document.createElement('div');
+      card.className='spm-card'+(isSeen?'':' locked');
+      card.dataset.name=(fx.name||'').toLowerCase();
+      if(isSeen){
+        card.style.setProperty('--spm-color', color+'22');
+        card.innerHTML=
+          '<div class="spm-card-dot" style="background:'+color+';--spm-color:'+color+';box-shadow:0 0 10px '+color+';"></div>'
+          +'<div class="spm-card-name">'+fx.name+'</div>'
+          +'<div class="spm-card-year">'+(YEARS[fx.name]||'')+'</div>';
+        card.addEventListener('click', function(){ closeCinemathequeForPreview(fx); });
+      } else {
+        card.style.opacity='0.35';
+        card.style.setProperty('--spm-color', 'rgba(255,255,255,.03)');
+        card.innerHTML=
+          '<div style="font-size:15px;margin-bottom:7px;opacity:.45;">🔒</div>'
+          +'<div class="spm-card-name" style="color:rgba(255,255,255,.30);">'+fx.name+'</div>'
+          +'<div class="spm-card-year">'+(YEARS[fx.name]||'')+'</div>';
+      }
+      grid.appendChild(card);
+    });
+  };
+
+  function closeCinemathequeForPreview(fx){
+    document.getElementById('cinematheque-modal').style.display='none';
+    window._cinePreviewMode=true;
+    openSplashEffectView(fx);
+  }
+
+  window.closeCinematheque=function(){
+    document.getElementById('cinematheque-modal').style.display='none';
+    document.body.style.overflow='';
+    if(typeof musOn!=='undefined' && musOn && typeof playMus==='function') playMus();
+  };
+
+  window.cineFilter=function(val){
+    var q=(val||'').toLowerCase().trim();
+    var cards=document.getElementById('cine-grid').children;
+    var visible=0;
+    Array.from(cards).forEach(function(c){
+      var match=!q||c.dataset.name.includes(q);
+      c.style.display=match?'':'none';
+      if(match) visible++;
+    });
+    var empty=document.getElementById('cine-empty');
+    if(empty) empty.style.display=visible===0?'flex':'none';
+    var seen=getCinemaSeen().length;
+    var total=(window.EFFECTS||[]).filter(function(e){return typeof e.run==='function';}).length;
+    var countEl=document.getElementById('cine-count');
+    if(countEl) countEl.textContent=q?(visible+' résultat'+(visible>1?'s':'')):(seen+' / '+total+' films débloqués');
+  };
 
   window.openSplashPreview=function(){
     var modal=document.getElementById('splash-preview-modal');
