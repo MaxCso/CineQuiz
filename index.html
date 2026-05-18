@@ -43274,42 +43274,79 @@ function closeAvModal(e){
     let _5eStyle=document.getElementById('_5e_splash_style');
     if(!_5eStyle){_5eStyle=document.createElement('style');_5eStyle.id='_5e_splash_style';document.head.appendChild(_5eStyle);}
     _5eStyle.textContent=`
-      #splash{background:#02010e!important;}
+      #splash{background:#080406!important;}
       #splash-bg::before{background:none!important;}
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
-      #splash-content-wrap{top:78%!important;transform:translateY(0)!important;}
-      #splash-content-wrap.reveal{transform:translateY(0)!important;}
+      #splash-content-wrap{
+        position:fixed!important;
+        top:auto!important;
+        bottom:max(52px, calc(env(safe-area-inset-bottom) + 44px))!important;
+        left:0!important;right:0!important;
+        transform:none!important;
+        margin:0!important;
+      }
+      #splash-content-wrap.reveal{transform:none!important;}
+      #splash .splash-logo-wrap.logo-film-mode .splash-tagline{opacity:0!important;}
     `;
     const _5eWatch=setInterval(()=>{if(stop.v){_5eStyle.textContent='';clearInterval(_5eWatch);}},200);
 
-    /* Skyline NYC 2263 — tours serrées, générées une seule fois */
+    /* Voitures volantes futuristes — couloirs en hauteur entre les tours */
+    const flyingCars=Array.from({length:16},(_,i)=>{
+     const lane=i%5;
+     const dir=(i%2===0)?1:-1;
+     const speed=(0.6+Math.random()*1.4)*dir;
+     /* Y entre 8% et 52% de H — dans la zone des bâtiments, bien visible */
+     const y=H*(0.08+lane*0.088)+Math.random()*H*0.025;
+     return {
+      x:Math.random()*W,
+      y,
+      speed,
+      w:W*(0.040+Math.random()*0.024),
+      h:H*0.014,
+      hue:18+Math.floor(Math.random()*4)*12,
+      alpha:0.88+Math.random()*0.10,
+      ph:Math.random()*Math.PI*2,
+     };
+    });
+
+    /* Voitures basses — rasent les toits et circulent au niveau du sol */
+    const flyingCarsLow=Array.from({length:10},(_,i)=>{
+     const dir=(i%2===0)?1:-1;
+     const speed=(0.8+Math.random()*1.8)*dir;
+     /* Y entre 52% et 62% — juste au-dessus et au niveau de la skyline */
+     const y=H*(0.50+Math.random()*0.11);
+     return {
+      x:Math.random()*W,
+      y,
+      speed,
+      w:W*(0.050+Math.random()*0.030),
+      h:H*0.016,
+      hue:10+Math.floor(Math.random()*5)*10,
+      alpha:0.95,
+      ph:Math.random()*Math.PI*2,
+     };
+    });
+
+    /* Skyline NYC 2263 — tours béton sombre, teintes ambrées/rouille */
     const towers=Array.from({length:32},(_,i)=>{
-     const hue=Math.random()<0.5?200+Math.random()*50:270+Math.random()*60;
-     /* Fenêtres générées une fois, état fixe (allumée/éteinte) */
+     /* Palette : béton sombre avec reflets ambre/rouille/orange chaud */
+     const palette=[18,25,32,38,45]; /* teintes orangées chaudes */
+     const hue=palette[Math.floor(Math.random()*palette.length)]+Math.random()*8;
      const tw=W*0.028+Math.random()*W*0.028;
      const th=H*(0.28+Math.random()*0.50);
      const rows=Math.floor(th/(H*0.028));
      const wins=[];
      for(let r=1;r<rows;r++){
       for(let c=0;c<2;c++){
-       if(Math.random()<0.72){ /* 72% des fenêtres allumées */
-        wins.push({r,c,on:true,flicker:Math.random()<0.08,ph:Math.random()*Math.PI*2,sat:50+Math.random()*40,lit:45+Math.random()*30});
+       if(Math.random()<0.72){
+        wins.push({r,c,on:true,flicker:Math.random()<0.08,ph:Math.random()*Math.PI*2,sat:55+Math.random()*35,lit:50+Math.random()*30});
        }
       }
      }
      return {x:i*(W/31),w:tw,h:th,hue,wins};
     });
-
-    /* Voitures volantes */
-    const flyCars=Array.from({length:12},(_,i)=>({
-     x:Math.random()*W*1.6-W*0.3,
-     y:H*(0.08+i*0.07),
-     spd:(Math.random()<0.5?1:-1)*(Math.random()*2.2+0.9),
-     trail:[],
-     color:`hsl(${180+Math.random()*80},85%,68%)`
-    }));
 
     /* Particules d'énergie orange/dorée */
     const sparks=Array.from({length:70},()=>({
@@ -43323,108 +43360,90 @@ function closeAvModal(e){
     }));
 
     let mpPulse=0;
-    const skylineY=H*0.58; /* horizon des buildings */
+    const skylineY=H*0.58;
 
     function frame(){
      if(stop.v)return;
 
      /* Fond — trail léger pour motion blur */
-     ctx.fillStyle='rgba(2,1,14,0.30)';ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(8,4,6,0.30)';ctx.fillRect(0,0,W,H);
 
-     /* Ciel nuit futuriste — violet profond */
+     /* Ciel nuit — brun sombre chaud, pas de violet */
      const sky=ctx.createLinearGradient(0,0,0,skylineY);
-     sky.addColorStop(0,'#02010e');
-     sky.addColorStop(0.35,'#080520');
-     sky.addColorStop(0.70,'#100838');
-     sky.addColorStop(1,'#1a0c52');
+     sky.addColorStop(0,'#080406');
+     sky.addColorStop(0.35,'#120806');
+     sky.addColorStop(0.70,'#1e0d06');
+     sky.addColorStop(1,'#2a1208');
      ctx.fillStyle=sky;ctx.fillRect(0,0,W,skylineY);
 
-     /* Étoiles — fixes, pas de random par frame */
+     /* Étoiles — fixes */
      for(let si=0;si<28;si++){
       const sx=W*(si*0.038+0.01),sy=H*(0.01+Math.sin(si*2.3)*0.07);
       const sop=0.18+Math.sin(t*0.4+si*0.9)*0.10;
-      ctx.fillStyle=`rgba(200,215,255,${sop})`;
+      ctx.fillStyle=`rgba(255,230,200,${sop})`;
       ctx.beginPath();ctx.arc(sx,sy,0.8,0,Math.PI*2);ctx.fill();
      }
 
-     /* Halo néon en hauteur (ambiance city glow) */
+     /* Halo ambré au-dessus de la skyline */
      const cityGlow=ctx.createRadialGradient(cx,skylineY,20,cx,skylineY,W*0.85);
-     cityGlow.addColorStop(0,`rgba(80,30,180,${0.22+Math.sin(t*0.3)*0.04})`);
-     cityGlow.addColorStop(0.4,'rgba(30,10,80,0.10)');
+     cityGlow.addColorStop(0,`rgba(200,80,10,${0.20+Math.sin(t*0.3)*0.04})`);
+     cityGlow.addColorStop(0.4,'rgba(120,40,5,0.08)');
      cityGlow.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=cityGlow;ctx.fillRect(0,0,W,skylineY);
 
-     /* Tours futuristes */
+     /* Tours futuristes — béton sombre chaud */
      for(const twr of towers){
       const by=skylineY-twr.h;
-      /* Corps du building */
+      /* Corps : béton sombre avec légère teinte ambrée */
       const tg=ctx.createLinearGradient(twr.x,by,twr.x+twr.w,skylineY);
-      tg.addColorStop(0,`hsla(${twr.hue},28%,14%,1)`);
-      tg.addColorStop(1,`hsla(${twr.hue},18%,7%,1)`);
+      tg.addColorStop(0,`hsla(${twr.hue},22%,11%,1)`);
+      tg.addColorStop(1,`hsla(${twr.hue},15%,6%,1)`);
       ctx.fillStyle=tg;ctx.fillRect(twr.x,by,twr.w,twr.h);
-      /* Contour lumineux néon sur les bords */
-      ctx.strokeStyle=`hsla(${twr.hue},80%,55%,0.18)`;
+      /* Contour chaud */
+      ctx.strokeStyle=`hsla(${twr.hue},75%,55%,0.16)`;
       ctx.lineWidth=1;
       ctx.strokeRect(twr.x,by,twr.w,twr.h);
-      /* Fenêtres — état fixe, flickering optionnel */
+      /* Fenêtres ambrées/orangées */
       const fh=H*0.011,fw=twr.w*0.38;
       for(const w of twr.wins){
        const wy=by+w.r*H*0.027;if(wy>skylineY-fh)continue;
        const wx=twr.x+twr.w*(0.16+w.c*0.50)-fw/2;
-       let alpha=0.75;
+       let alpha=0.80;
        if(w.flicker){w.ph+=0.08;alpha*=(0.55+0.45*Math.sin(w.ph));}
        ctx.fillStyle=`hsla(${twr.hue},${w.sat}%,${w.lit}%,${alpha})`;
        ctx.fillRect(wx,wy,fw,fh);
        /* Halo de fenêtre */
        const wg=ctx.createRadialGradient(wx+fw/2,wy+fh/2,0,wx+fw/2,wy+fh/2,fw*1.5);
-       wg.addColorStop(0,`hsla(${twr.hue},80%,70%,${alpha*0.25})`);
+       wg.addColorStop(0,`hsla(${twr.hue},85%,65%,${alpha*0.28})`);
        wg.addColorStop(1,'rgba(0,0,0,0)');
        ctx.fillStyle=wg;ctx.fillRect(wx-fw,wy-fh,fw*3,fh*3);
       }
-      /* Antenne / balisage en haut */
-      if(Math.random()<0.3){
-       ctx.fillStyle=`hsla(${twr.hue},90%,70%,${0.6+Math.sin(t*2+twr.x)*0.4})`;
+      /* Antenne balisage — rouge/orange fixe, pas de random par frame */
+      const blinkOn=(Math.sin(t*2.2+twr.x*0.1)>0);
+      if(twr.h>H*0.35&&blinkOn){
+       ctx.fillStyle=`rgba(255,60,20,${0.7+Math.sin(t*2+twr.x)*0.3})`;
        ctx.beginPath();ctx.arc(twr.x+twr.w/2,by+2,2.5,0,Math.PI*2);ctx.fill();
       }
      }
 
-     /* Sol urbain */
+     /* Sol urbain — chaud sombre */
      const street=ctx.createLinearGradient(0,skylineY,0,H);
-     street.addColorStop(0,'rgba(12,8,28,1)');
-     street.addColorStop(0.3,'rgba(7,4,18,1)');
-     street.addColorStop(1,'rgba(2,1,8,1)');
+     street.addColorStop(0,'rgba(20,10,6,1)');
+     street.addColorStop(0.3,'rgba(12,6,4,1)');
+     street.addColorStop(1,'rgba(4,2,1,1)');
      ctx.fillStyle=street;ctx.fillRect(0,skylineY,W,H);
 
-     /* Reflets néon sur sol — plus intenses */
+     /* Reflets ambrés sur sol */
      for(const twr of towers){
       const rx=twr.x+twr.w/2;
       const rg=ctx.createRadialGradient(rx,skylineY,1,rx,skylineY+H*0.06,W*0.10);
-      rg.addColorStop(0,`hsla(${twr.hue},85%,55%,0.18)`);
+      rg.addColorStop(0,`hsla(${twr.hue},80%,50%,0.16)`);
       rg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=rg;ctx.beginPath();ctx.ellipse(rx,skylineY+H*0.04,W*0.07,H*0.03,0,0,Math.PI*2);ctx.fill();
      }
 
-     /* Voitures volantes */
-     for(const fc of flyCars){
-      fc.x+=fc.spd;fc.trail.push({x:fc.x,y:fc.y});
-      if(fc.trail.length>28)fc.trail.shift();
-      if(fc.x>W*1.35)fc.x=-W*0.35;if(fc.x<-W*0.35)fc.x=W*1.35;
-      for(let ti=1;ti<fc.trail.length;ti++){
-       const ag=ti/fc.trail.length;
-       ctx.strokeStyle=fc.color.replace('hsl(','hsla(').replace(')',`,${ag*0.40})`);
-       ctx.lineWidth=ag*2.0;
-       ctx.beginPath();ctx.moveTo(fc.trail[ti-1].x,fc.trail[ti-1].y);ctx.lineTo(fc.trail[ti].x,fc.trail[ti].y);ctx.stroke();
-      }
-      ctx.fillStyle=fc.color;
-      ctx.beginPath();ctx.roundRect(fc.x-15,fc.y-3,30,6,3);ctx.fill();
-      const hg=ctx.createRadialGradient(fc.spd>0?fc.x+15:fc.x-15,fc.y,0,fc.spd>0?fc.x+15:fc.x-15,fc.y,22);
-      hg.addColorStop(0,'rgba(255,245,190,0.65)');hg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(fc.spd>0?fc.x+15:fc.x-15,fc.y,22,0,Math.PI*2);ctx.fill();
-     }
-
      /* Colonne d'énergie 5ème élément — orange/doré, pulsante */
      mpPulse+=0.025;
-     /* Faisceau vertical */
      const mpBeam=ctx.createLinearGradient(cx,H*0.10,cx,skylineY);
      mpBeam.addColorStop(0,'rgba(0,0,0,0)');
      mpBeam.addColorStop(0.3,`rgba(255,120,20,${0.10+Math.sin(mpPulse*1.3)*0.04})`);
@@ -43450,6 +43469,64 @@ function closeAvModal(e){
       ctx.fillStyle=`hsla(${sp.hue},95%,68%,${sa})`;
       ctx.beginPath();ctx.arc(sp.x,sp.y,sp.r,0,Math.PI*2);ctx.fill();
      }
+
+     /* ── Voitures volantes au PREMIER PLAN (après bâtiments) ── */
+     function drawCar(car,scale){
+      car.x+=car.speed;
+      if(car.speed>0&&car.x>W+car.w*2)car.x=-car.w*2;
+      if(car.speed<0&&car.x<-car.w*2)car.x=W+car.w*2;
+      car.ph+=0.055;
+      const cy=car.y+Math.sin(car.ph*0.35)*H*0.005;
+      const cw=car.w*scale, ch=car.h*scale;
+      ctx.save();
+      ctx.globalAlpha=car.alpha||0.92;
+      const bodyGrad=ctx.createLinearGradient(car.x,cy,car.x,cy+ch);
+      bodyGrad.addColorStop(0,`hsla(${car.hue},45%,28%,1)`);
+      bodyGrad.addColorStop(0.5,`hsla(${car.hue},38%,18%,1)`);
+      bodyGrad.addColorStop(1,`hsla(${car.hue},30%,10%,1)`);
+      ctx.fillStyle=bodyGrad;
+      const bevel=cw*0.12;
+      ctx.beginPath();
+      ctx.moveTo(car.x+bevel,cy);
+      ctx.lineTo(car.x+cw-bevel*0.5,cy);
+      ctx.lineTo(car.x+cw,cy+ch*0.4);
+      ctx.lineTo(car.x+cw-bevel*0.3,cy+ch);
+      ctx.lineTo(car.x+bevel*0.3,cy+ch);
+      ctx.lineTo(car.x,cy+ch*0.4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle=`hsla(${car.hue},70%,65%,0.22)`;
+      ctx.beginPath();
+      ctx.ellipse(car.x+cw*0.40,cy+ch*0.28,cw*0.20,ch*0.36,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle=`hsla(${car.hue},100%,72%,0.55)`;
+      ctx.lineWidth=ch*0.12;
+      ctx.beginPath();
+      ctx.moveTo(car.x+bevel,cy+ch*0.65);
+      ctx.lineTo(car.x+cw-bevel*0.4,cy+ch*0.65);
+      ctx.stroke();
+      const dir=car.speed>0?1:-1;
+      const lx=car.speed>0?car.x+cw:car.x;
+      const trail=ctx.createLinearGradient(lx,cy+ch/2,lx+dir*cw*2.2,cy+ch/2);
+      trail.addColorStop(0,`hsla(${car.hue},100%,80%,0.80)`);
+      trail.addColorStop(0.25,`hsla(${car.hue},95%,68%,0.40)`);
+      trail.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=trail;
+      ctx.beginPath();
+      ctx.ellipse(lx+dir*cw,cy+ch/2,cw,ch*0.18,0,0,Math.PI*2);
+      ctx.fill();
+      const rx=car.speed>0?car.x+bevel*0.3:car.x+cw-bevel*0.3;
+      const rGlow=ctx.createRadialGradient(rx,cy+ch*0.5,0,rx,cy+ch*0.5,ch*0.55);
+      rGlow.addColorStop(0,`rgba(255,40,10,0.90)`);
+      rGlow.addColorStop(1,'rgba(255,0,0,0)');
+      ctx.fillStyle=rGlow;
+      ctx.beginPath();ctx.arc(rx,cy+ch*0.5,ch*0.55,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+     }
+     /* Couloirs célestes — devant les bâtiments */
+     for(const car of flyingCars) drawCar(car,1.0);
+     /* Couloirs bas — rase les toits et niveau sol */
+     for(const car of flyingCarsLow) drawCar(car,1.3);
 
      /* Vignette latérale douce */
      const vg=ctx.createRadialGradient(cx,H*0.45,H*0.18,cx,H*0.45,H*0.88);
@@ -56612,23 +56689,29 @@ function hmReopenTuto() {
       splash.style.cssText='display:flex;z-index:999990;';
       splash.className='';
 
+      // Cacher et vider le canvas — empêche tout effet visuel résiduel avant le swipe
+      var cvReset=document.getElementById('splash-canvas');
+      if(cvReset){
+        cvReset.style.display='none';
+        var ctxReset=cvReset.getContext('2d');
+        if(ctxReset)ctxReset.clearRect(0,0,cvReset.width,cvReset.height);
+      }
+
       // Remettre tous les éléments dans leur état par défaut
-      // Rideau fermé (pas de classe 'open', pas de curtain-open sur splash)
       var curtain=document.getElementById('splash-curtain');
       if(curtain){curtain.style.display='';curtain.className='splash-curtain';}
-      // S'assurer que splash n'a pas curtain-open dès le départ
       splash.classList.remove('curtain-open');
       ['splash-bg-anim','splash-flash'].forEach(function(id){
         var el=document.getElementById(id);if(el)el.style.display='';
       });
       var skipEl=document.getElementById('splash-skip');
-      if(skipEl){skipEl.style.display='none';} // on cache skip dans l'aperçu
+      if(skipEl){skipEl.style.display='none';}
 
       // Logo CinéQuiz : état initial
       var logo=document.getElementById('splash-logo');
       if(logo){logo.className='splash-logo-wrap';}
 
-      // Swipe : état initial (pas de hidden, pas de style inline)
+      // Vrai swipe : remettre à zéro et le laisser VISIBLE
       var tapEl=document.getElementById('splash-tap');
       if(tapEl){tapEl.className='splash-swipe-wrap';tapEl.style.cssText='';}
       var thumbEl=document.getElementById('splash-swipe-thumb');
@@ -56646,38 +56729,25 @@ function hmReopenTuto() {
       var filmLogoEl=document.getElementById('splash-film-logo');
       if(filmLogoEl){filmLogoEl.classList.remove('reveal');filmLogoEl.innerHTML='';}
 
-      // Précharger le logo film dès maintenant pour qu'il soit prêt au reveal
+      // Précharger le logo film
       if(typeof window._preloadFilmLogo==='function') window._preloadFilmLogo(fx.name);
 
-      // ── Callback swipe : le canvas du film tourne déjà en phase 1 ──
-      // On n'a qu'à passer en mode "rideau ouvert" et révéler citation + logo
-      window._splashSwipeCallback=function(){
-        window._splashSwipeCallback=null;
-        // Si la vue a déjà été fermée, ne rien faire
-        if(_previewStop.v) return;
+      // ── Fonction centrale : ouvre le rideau et révèle le splash film ──
+      function _doOpenCurtain(){
+        if(_previewStop.v)return;
 
-        // Préparer la citation
-        var FILM_QUOTES=window._splashFilmQuotes||{};
-        var q2=FILM_QUOTES[fx.name];
-        var qEl=document.getElementById('splash-quote');
-        var qText=document.getElementById('splash-quote-text');
-        var wrapReveal=document.getElementById('splash-content-wrap');
-        if(qEl){qEl.className='';qEl.style.opacity='';}
-        if(q2&&qText){qText.innerHTML='<div class="splash-quote-inner">« '+q2.t+' »</div>';}
+        // Masquer le swipe
+        if(tapEl){tapEl.style.opacity='0';tapEl.style.pointerEvents='none';}
 
-        // Ref film en bas
-        var refBot=document.getElementById('splash-film-ref-bottom');
-        if(refBot)refBot.textContent=fx.ref||'';
-
-        // Accélérer l'animation du rideau pour l'aperçu (2s au lieu de 4.2s)
+        // Accélérer le rideau : 2s au lieu de 4.2s
         var spmCurtainStyle=document.getElementById('_spm_curtain_style');
         if(!spmCurtainStyle){spmCurtainStyle=document.createElement('style');spmCurtainStyle.id='_spm_curtain_style';document.head.appendChild(spmCurtainStyle);}
         spmCurtainStyle.textContent='.splash-curtain.open .splash-curtain-l{animation-duration:2s!important;}.splash-curtain.open .splash-curtain-r{animation-duration:2s!important;}';
 
-        // Lancer le canvas du film maintenant (rideau en cours d'ouverture)
-        (function(){
-          var cv=document.getElementById('splash-canvas');
-          if(!cv)return;
+        // Lancer le canvas du film (reste invisible derrière le rideau, opacity:0 via CSS jusqu'à curtain-open)
+        var cv=document.getElementById('splash-canvas');
+        if(cv){
+          cv.style.display='';
           cv.width=cv.offsetWidth||window.innerWidth;
           cv.height=cv.offsetHeight||window.innerHeight;
           var ctx=cv.getContext('2d');
@@ -56687,29 +56757,38 @@ function hmReopenTuto() {
           window._splashEffectName=fx.name;
           fx.run(cv,ctx,cv.width,cv.height,stop);
           window._stopSplashEffect=function(){stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
-        })();
+        }
 
-        // Déclencher l'animation d'ouverture du rideau
+        // Ouvrir le rideau
         var curtainEl=document.getElementById('splash-curtain');
         if(curtainEl) curtainEl.classList.add('open');
 
-        // Masquer le swipe immédiatement et complètement
-        if(tapEl){tapEl.style.opacity='0';tapEl.style.pointerEvents='none';tapEl.style.visibility='hidden';}
-
-        // Après 2s → passer en curtain-open
+        // Après 2s : curtain-open + citation + logo film + logo CinéQuiz en haut
         setTimeout(function(){
+          if(_previewStop.v)return;
           splash.classList.add('curtain-open');
-        }, 2000);
 
-        // Révéler citation + logo film à 2s
-        setTimeout(function(){
+          // Citation
+          var FILM_QUOTES=window._splashFilmQuotes||{};
+          var q2=FILM_QUOTES[fx.name];
+          var qEl=document.getElementById('splash-quote');
+          var qText=document.getElementById('splash-quote-text');
+          var wrapReveal=document.getElementById('splash-content-wrap');
+          if(qEl){qEl.className='';}
+          if(q2&&qText){qText.innerHTML='<div class="splash-quote-inner">« '+q2.t+' »</div>';}
+
+          // Ref film en bas
+          var refBot=document.getElementById('splash-film-ref-bottom');
+          if(refBot){refBot.textContent=fx.ref||'';refBot.classList.add('reveal');}
+
+          // Reveal
           if(wrapReveal)wrapReveal.classList.add('reveal');
           if(qEl)qEl.classList.add('reveal');
           if(typeof window._onLogoReveal==='function')window._onLogoReveal();
           if(logo)logo.classList.add('logo-film-mode');
-        },2000);
+        }, 2000);
 
-        // Musique film
+        // Musique
         var MUSIC=window.SPLASH_MUSIC||{};
         var file=MUSIC[fx.name];
         if(file){
@@ -56720,7 +56799,6 @@ function hmReopenTuto() {
           aud.play().then(function(){
             var steps=30,step=0;
             var fi=setInterval(function(){
-              // Si une nouvelle génération a été lancée, arrêter ce fade-in
               if(window._previewAudioGeneration!==myGen){clearInterval(fi);return;}
               step++;
               if(!_previewAudio||_previewAudio!==aud){clearInterval(fi);return;}
@@ -56729,22 +56807,80 @@ function hmReopenTuto() {
             },800/steps);
           }).catch(function(){});
         }
-      };
+      }
 
-      // ── Reset swipe (triggered→false) pour que les listeners existants refassent ──
-      if(typeof window._resetSwipe==='function') window._resetSwipe();
+      // ── Swipe temporaire sur le vrai thumb ──
+      // On attache des listeners directs sur thumb/track qui contournent la closure du splash normal
+      var previewThumb=document.getElementById('splash-swipe-thumb');
+      var previewTrack=document.getElementById('splash-swipe-track');
+      var previewLabel=document.getElementById('splash-swipe-label');
+      var previewDragging=false;
+      var previewStartX=0;
+      var previewCurrentX=0;
+      var previewTriggered=false;
+      var THUMB_W_P=40, PADDING_P=4;
 
-      // ── Phase 1 : reproduire le démarrage du splash SANS recréer les listeners ──
-      // Le canvas du film n'est PAS lancé ici — il le sera uniquement au moment du swipe
-      var splashEl=document.getElementById('splash');
+      function previewGetMax(){
+        return (previewTrack?previewTrack.getBoundingClientRect().width:260)-THUMB_W_P-PADDING_P*2;
+      }
+      function previewSetPos(x){
+        var maxX=previewGetMax();
+        x=Math.max(0,Math.min(x,maxX));
+        previewCurrentX=x;
+        if(previewThumb)previewThumb.style.transform='translateX('+x+'px)';
+        if(previewTrack)previewTrack.style.setProperty('--swipe-fill',(x+THUMB_W_P+PADDING_P)+'px');
+        var pct=x/maxX;
+        if(previewLabel)previewLabel.style.opacity=Math.max(0,1-pct*2.5)+'';
+        if(pct>=0.85&&!previewTriggered){
+          previewTriggered=true;
+          if(previewThumb){previewThumb.style.transition='transform .15s ease';previewThumb.style.transform='translateX('+maxX+'px)';}
+          if(previewTrack)previewTrack.style.setProperty('--swipe-fill',(maxX+THUMB_W_P+PADDING_P)+'px');
+          setTimeout(function(){
+            if(previewThumb)previewThumb.style.transition='';
+            _doOpenCurtain();
+          },150);
+        }
+      }
+      function previewDown(e){
+        if(previewTriggered)return;
+        previewDragging=true;
+        previewStartX=(e.touches?e.touches[0].clientX:e.clientX)-previewCurrentX;
+        if(previewThumb)previewThumb.style.animation='none';
+        e.preventDefault();
+      }
+      function previewMove(e){
+        if(!previewDragging)return;
+        previewSetPos((e.touches?e.touches[0].clientX:e.clientX)-previewStartX);
+      }
+      function previewUp(){
+        if(!previewDragging)return;
+        previewDragging=false;
+        if(!previewTriggered){
+          if(previewThumb){previewThumb.style.transition='transform .35s cubic-bezier(.34,1.56,.64,1)';}
+          setTimeout(function(){if(previewThumb)previewThumb.style.transition='';},350);
+          previewSetPos(0);
+          if(previewLabel)previewLabel.style.opacity='';
+        }
+      }
+
+      if(previewThumb){
+        previewThumb.addEventListener('touchstart',previewDown,{passive:false});
+        previewThumb.addEventListener('mousedown',previewDown);
+      }
+      // Stocker les listeners pour pouvoir les retirer à la fermeture
+      window._previewMoveHandler=previewMove;
+      window._previewUpHandler=previewUp;
+      window.addEventListener('touchmove',previewMove,{passive:true});
+      window.addEventListener('mousemove',previewMove);
+      window.addEventListener('touchend',previewUp);
+      window.addEventListener('mouseup',previewUp);
+
+      // ── Phase 1 : afficher le splash avec logo + rideau fermé ──
       var logoEl=document.getElementById('splash-logo');
-      // Afficher le logo + état ready
       setTimeout(function(){
         if(logoEl) logoEl.classList.add('show');
-        if(splashEl) splashEl.classList.add('ready');
+        splash.classList.add('ready');
       }, 300);
-      // Reset swipe pour que les listeners originaux refassent
-      if(typeof window._resetSwipe==='function') window._resetSwipe();
 
       // Bouton retour — inséré dans #splash pour rester dans le même stacking context
       var existBtn=document.getElementById('spm-preview-back-btn');
@@ -56775,13 +56911,28 @@ function hmReopenTuto() {
     }
     window._splashSwipeCallback=null;
 
+    // Retirer les listeners swipe temporaires de la preview
+    if(window._previewMoveHandler){
+      window.removeEventListener('touchmove',window._previewMoveHandler);
+      window.removeEventListener('mousemove',window._previewMoveHandler);
+      window._previewMoveHandler=null;
+    }
+    if(window._previewUpHandler){
+      window.removeEventListener('touchend',window._previewUpHandler);
+      window.removeEventListener('mouseup',window._previewUpHandler);
+      window._previewUpHandler=null;
+    }
+
     // Cacher le splash proprement
     var splash=document.getElementById('splash');
     if(splash){splash.style.cssText='display:none;';splash.className='';}
+    // Remettre le canvas visible pour le prochain usage
+    var cvClose=document.getElementById('splash-canvas');
+    if(cvClose){cvClose.style.display='';}
 
     // Remettre splash-tap dans l'état qu'il avait après le vrai splash (hidden)
     var tapEl=document.getElementById('splash-tap');
-    if(tapEl){tapEl.style.cssText='';tapEl.classList.add('hidden');}
+    if(tapEl){tapEl.style.cssText='';tapEl.style.opacity='';tapEl.classList.add('hidden');}
 
     // Remettre les éléments cachés pendant l'aperçu
     ['splash-curtain','splash-bg-anim','splash-flash','splash-skip'].forEach(function(id){
@@ -56801,6 +56952,8 @@ function hmReopenTuto() {
     if(quoteEl){quoteEl.className='';quoteEl.style.opacity='';}
     var filmLogoEl=document.getElementById('splash-film-logo');
     if(filmLogoEl){filmLogoEl.classList.remove('reveal');filmLogoEl.innerHTML='';}
+    var refBotEl=document.getElementById('splash-film-ref-bottom');
+    if(refBotEl){refBotEl.textContent='';refBotEl.classList.remove('reveal');}
 
     // Bouton retour
     var btn=document.getElementById('spm-preview-back-btn');
