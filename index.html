@@ -62179,19 +62179,39 @@ if(!_s.onboardingDone){
 </script>
 
 
-<!-- PWA Service Worker -->
+<!-- PWA Service Worker + Install Prompt -->
 <script>
-if('serviceWorker' in navigator){
-  try {
-    var _swStandalone=(window.navigator.standalone===true)||(window.matchMedia('(display-mode: standalone)').matches);
-    if(!_swStandalone){
-      var _swCode="const CACHE='cinequiz-v78';const STATIC=['./',location.pathname];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});";
-      var _swBlob=new Blob([_swCode],{type:'application/javascript'});
-      var _swUrl=URL.createObjectURL(_swBlob);
-      navigator.serviceWorker.register(_swUrl).catch(function(){});
-    }
-  } catch(e){}
+// Enregistrement du SW via fichier réel (requis pour l'installabilité)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  });
 }
+
+// Capture du prompt d'installation
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  _pwaPrompt = e;
+  // Affiche le bouton d'installation si tu en as un
+  var btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', function () {
+  _pwaPrompt = null;
+  var btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'none';
+});
+
+window._triggerPWAInstall = function () {
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(function (r) {
+      if (r.outcome === 'accepted') _pwaPrompt = null;
+    });
+  }
+};
 </script>
   <script>
   // ── Orientation intelligente : plein écran auto quand une vidéo est active ──
