@@ -3295,40 +3295,22 @@ body.theme-rose    .splash-swipe-track::before{background:linear-gradient(90deg,
 }
 #splash-film-ref-bottom{
   position:absolute!important;
-  bottom:max(6px, env(safe-area-inset-bottom))!important;
+  bottom:max(10px, env(safe-area-inset-bottom))!important;
   top:auto!important;
   left:0;right:0;
-  padding:0 10px;
+  padding:0 10px 4px;
   font-size:9px;letter-spacing:3px;text-transform:uppercase;
   font-family:'DM Sans',sans-serif;
-  color:rgba(255,255,255,.32);
+  color:rgba(255,255,255,0.38);
   text-align:center;
-  z-index:7;
+  z-index:8;
   pointer-events:none;
   opacity:0;
-  text-shadow:0 1px 12px rgba(0,0,0,.95), 0 2px 24px rgba(0,0,0,.80);
-  transition:opacity .9s ease .5s;
+  text-shadow:0 1px 8px rgba(0,0,0,.90), 0 2px 20px rgba(0,0,0,.70);
+  transition:opacity 1.0s ease 0.3s;
 }
-#splash.curtain-open #splash-film-ref-bottom.reveal,
-#splash.rideau-ouvert #splash-film-ref-bottom.reveal{
+#splash-film-ref-bottom.reveal{
   opacity:1;
-  background:linear-gradient(90deg,
-    rgba(255,255,255,.32) 0%,
-    rgba(255,255,255,.32) 45%,
-    rgba(255,255,255,.32) 47%,
-    rgba(255,255,255,.90) 50%,
-    rgba(255,255,255,.32) 53%,
-    rgba(255,255,255,.32) 55%,
-    rgba(255,255,255,.32) 100%
-  );
-  background-size:600% auto;
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
-  color:transparent;
-  text-shadow:none;
-  animation:splash-ref-shimmer 9s linear 1s infinite;
-  will-change:background-position;
 }
 .splash-quote-inner{
   display:block;
@@ -55515,8 +55497,23 @@ function runSplash(){
       if(wrap) wrap.classList.add('reveal');
       if(quoteEl) quoteEl.classList.add('reveal');
       if(typeof window._onLogoReveal==='function') window._onLogoReveal();
+      /* ── ref en bas ── */
       var refBottom=document.getElementById('splash-film-ref-bottom');
-      if(refBottom) refBottom.classList.add('reveal');
+      if(refBottom){
+        if(!refBottom.textContent.trim()){
+          var filmRef=document.getElementById('splash-film-ref');
+          if(filmRef && filmRef.textContent) refBottom.textContent=filmRef.textContent;
+        }
+        refBottom.classList.add('reveal');
+      }
+      /* ── citation : re-injection si vide (double sécurité) ── */
+      var qTxt=document.getElementById('splash-quote-text');
+      if(qTxt && !qTxt.textContent.trim()){
+        var FQMAP=window._splashFilmQuotes||{};
+        var fn=window._splashEffectName||'';
+        var fq=FQMAP[fn]||{t:"Le cinéma, c'est l'écriture moderne dont l'encre est la lumière.",a:"Jean Cocteau"};
+        qTxt.innerHTML='<div class="splash-quote-inner">« '+fq.t+' »</div>';
+      }
     }, 2000);
 
     // "Appuyer pour passer" — apparaît 5s après l'ouverture du rideau (indépendant de l'audio)
