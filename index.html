@@ -21125,7 +21125,7 @@ function closeAvModal(e){
 
     /* ── Monolithe (pré-dessiné) ── */
     const monoW=W*0.16, monoH=H*0.18;
-    const monoX=W*0.5-monoW/2, monoY=H*0.72;
+    const monoX=W*0.5-monoW/2, monoY=H*0.65;
     const monoC=document.createElement('canvas');
     monoC.width=monoW+40; monoC.height=monoH+40;
     const mx=monoC.getContext('2d');
@@ -21310,6 +21310,10 @@ function closeAvModal(e){
     let spinX=-160, spinY=H*0.22, spinSpd=0.9;
     /* ── Spinner 2 — sens inverse, plus haut, plus lent ── */
     let spin2X=W+120, spin2Y=H*0.13, spin2Spd=0.55;
+    /* ── Spinner 3 — juste au-dessus de la citation, lent ── */
+    let spin3X=W+140, spin3Y=H*0.36, spin3Spd=0.40;
+    /* ── Spinner 4 — encore plus proche de la citation, sens contraire ── */
+    let spin4X=-160, spin4Y=H*0.44, spin4Spd=0.30;
     function drawSpinner(x,y){
      ctx.save();ctx.translate(x,y);
      /* corps principal */
@@ -21410,6 +21414,20 @@ function closeAvModal(e){
      ctx.translate(-W,0);
      drawSpinner(W-spin2X, spin2Y+Math.sin(t*0.6+1.5)*3);
      ctx.restore();
+
+     /* Spinner 3 — au-dessus de la citation, traverse de droite à gauche */
+     spin3X-=spin3Spd;
+     if(spin3X<-180)spin3X=W+140;
+     ctx.save();
+     ctx.scale(-1,1);
+     ctx.translate(-W,0);
+     drawSpinner(W-spin3X, spin3Y+Math.sin(t*0.5+2.8)*3);
+     ctx.restore();
+
+     /* Spinner 4 — juste au-dessus de la citation, gauche→droite, très lent */
+     spin4X+=spin4Spd;
+     if(spin4X>W+180)spin4X=-160;
+     drawSpinner(spin4X, spin4Y+Math.sin(t*0.45+1.2)*2.5);
 
      /* pluie */
      for(const d of drops){
@@ -24582,7 +24600,7 @@ function closeAvModal(e){
     const innerR=W*0.13;
 
     /* Coup de feu */
-    let shotTimer=260, flashAlpha=0, bloodY=0, bloodActive=false;
+    let shotTimer=260, shotCooldown=300, flashAlpha=0, bloodY=0, bloodActive=false;
 
     /* ── SVG Bond ── */
     const _b1=new Path2D('M483.304 909.482C484.303 894.022 488.713 878.056 492.046 863.206C495.327 848.589 499.27 834.413 502.318 819.744C505.055 810.912 509.581 803.908 517.609 799.07C528.439 792.534 544.275 792.326 555.961 786.23C565.701 781.146 574.028 774.065 578.749 763.974C588.269 743.625 582.692 718.295 579.812 697.037C578.191 685.105 575.299 672.343 575.299 660.294C575.299 646.105 565.623 627.286 562.576 613.084C558.962 595.919 556.033 578.616 553.795 561.218C549.153 526.866 545.934 492.337 544.146 457.719C543.549 445.463 544.716 431.494 538.556 420.366C525.651 397.047 491.761 387.812 468.428 379.265C454.083 373.999 439.648 368.773 426.017 361.782C416.238 356.763 392.866 345.622 389.066 334.416C382.438 314.87 386.783 289.021 358.587 300.565C358.016 300.798 359.261 289.32 359.663 288.036C361.116 283.406 363.554 279.113 366.2 275.053C371.687 266.61 378.431 259.061 383.761 250.488C388.288 243.212 385.292 233.005 387.964 225.055L393.164 204.692C420.608 182.021 418.806 144.707 414.655 140.142C413.41 137.444 409.908 136.419 409.182 135.641C407.301 133.67 407.639 125.823 408.611 120.946C416.082 107.587 412.775 81.8295 411.05 73.1138C409.714 66.6419 406.186 59.6901 403.216 52.9717C395.642 35.7998 389.196 17.7459 367.925 11.0535C339.846 3.64773 268.888 5.96932 236.723 44.9175C208.812 73.5807 221.108 149.246 215.868 150.362C214.765 149.558 209.915 151.944 209.642 157.495C207.567 171.399 207.956 204.044 228.267 218.44C231.717 220.697 229.369 236.533 229.369 242.24C228.85 254.69 240.264 273.38 239.486 279.605C239.486 288.944 236.321 294.469 244.155 299.06C249.823 302.782 282.429 314.935 279.887 328.475C278.317 336.854 282.921 349.759 285.36 357.735C287.772 365.673 290.379 375.841 295.619 382.43C304.555 393.674 328.925 364.181 334.917 358.954C356.927 347.1 367.925 381.82 386.55 389.433C406.861 474.074 397.587 631.722 392.477 666.221C385.837 699.981 383.165 675.533 383.165 675.533C379.637 600.438 254.077 320.175 230.809 315.804C212.223 306.855 202.885 334.429 185.103 334.429C179.916 325.933 183.353 316.906 189.254 310.564C201.77 302.056 198.021 297.231 192.12 292.407C187.295 288.114 184.17 279.035 187.218 271.071C188.67 262.356 186.673 250.787 179.384 243.562C174.65 238.867 154.586 233.641 159.683 225.171C161.745 221.747 171.848 222.837 174.987 220.891C183.91 215.327 179.877 208.038 171.031 206.754C163.185 205.613 159.358 199.349 158.126 190.996C156.998 183.292 159.371 175.536 159.631 167.845C159.761 164.213 159.799 160.426 158.502 156.963C157.154 153.371 153.25 151.464 151.914 148.507C151.771 148.183 151.2 147.158 151.654 139.35C151.784 136.99 155.221 140.142 155.403 137.301C154.767 137.612 163.262 3.29755 163.275 3.01222C162.782 0.366385 142.42 -0.956537 141.175 0.794381C141.447 1.02784 133.717 135.913 133.86 136.069C133.821 138.598 138.036 136.419 137.984 138.637C138.244 140.959 137.53 147.664 137.245 150.232C117.803 164.213 130.903 204.394 102.992 212.578C84.3673 218.025 99.5938 244.341 93.2127 255.261C89.0494 262.369 81.2675 265.78 77.9213 274.21C74.7827 282.147 74.3676 291.045 74.7567 299.475C75.5349 316.803 84.3932 325.57 84.3673 349.694C84.3413 369.33 102.149 383.091 120.501 386.762C143.756 395.944 161.395 375.932 175.778 386.087C176.038 401.262 174.339 415.542 167.996 427.357C153.807 453.776 116.831 460.806 93.6796 437.72C61.761 425.308 79.2961 407.254 75.898 392.014C76.1445 393.104 39.1936 404.893 35.5491 407.332C25.2252 414.219 27.1317 423.466 27.1577 434.542C27.3782 513.969 16.73 592.605 7.23612 671.305C5.64084 684.534 4.16228 697.79 2.64482 711.019C1.49051 721.2 -1.99835 733.249 1.55537 742.976C13.2411 775.024 44.9781 801.677 72.513 818.616C91.0078 829.99 109.477 808.655 125.948 815.685C142.057 822.572 139.528 852.428 140.5 866.098C142.148 889.703 139.748 913.879 135.741 937.16C127.764 983.617 112.797 1028.61 105.78 1075.25C103.69 1088.68 102.322 1102.21 101.682 1115.78C101.423 1122.06 98.3228 1155.7 103.173 1159.57C106.221 1166.23 115.754 1165.97 114.82 1184.26C106.299 1287.51 102.097 1391.04 97.778 1494.52C93.4721 1597.93 89.1272 1701.4 80.3207 1804.55C75.7165 1858.48 65.7816 1911.85 63.6416 1966.01C61.8388 2011.41 44.7965 2059.46 57.2605 2104.35C62.6429 2123.75 53.8754 2149.21 66.5728 2165.29C65.4574 2184.11 53.9143 2192.06 51.3333 2199.16C43.7201 2227.07 64.2642 2252.93 78.4271 2262.64C107.233 2285.19 121.552 2280 139.372 2275.34C164.767 2267.71 174.922 2245.73 191.005 2226.25C198.748 2209.21 183.391 2191.54 185.078 2171.23C220.2 2164.48 216.996 1916.2 236.71 1839.41C240.705 1810.18 257.812 1706.37 265.944 1606.92C268.577 1587.14 267.513 1575.51 270.561 1555.84C286.696 1488.58 305.268 1395.04 316.267 1312.08H319.652C328.523 1377.86 329.405 1453.25 344.748 1509.76C364.748 1596.83 365.707 1616.94 350.014 1672.31C336.11 1747.95 336.214 1848.34 338.886 1924.82C341.558 2001.2 340.533 2084.36 356.058 2159.37C356.823 2163.04 358.38 2163.17 360.999 2162.96C364.501 2162.4 367.342 2182.94 367.432 2191.98C367.225 2193.48 367.731 2197.59 367.912 2199.16C370.869 2220.74 417.068 2227.2 424.02 2228.18C445.368 2231.15 469.479 2211.84 499.102 2238.92C499.076 2238.87 502.629 2239.8 503.797 2239.86C553.004 2247.83 612.872 2250.83 653.999 2223.7C661.47 2218.25 658.98 2205.33 644.934 2201.58C609.306 2193.4 581.459 2170.62 550.734 2153.43C539.632 2147.21 525.521 2131.36 528.335 2125.01C529.269 2121.82 533.744 2120.96 529.567 2107.73C494.017 1985.84 500.528 1823.54 515.755 1695.71C516.17 1681.3 527.557 1664.27 529.567 1647.25C543.951 1465.28 507.272 1291.68 507.272 1114.75C512.486 1110.85 515.028 1100.12 511.215 1091.36C504.678 1064.85 500.139 1037.84 494.666 1011.1C490.944 992.981 488.804 964.02 484.511 947.924C482.954 941.997 482.915 915.552 483.304 909.482Z');
@@ -47961,7 +47979,7 @@ function closeAvModal(e){
     /* ── Pré-calculer les points du faisceau rouge ── */
     /* Le faisceau part du haut (légèrement à droite du centre) et s'évase vers le bas */
     const beamTopX=cx+W*0.02;
-    const beamTopW=W*0.16;   /* largeur en haut */
+    const beamTopW=W*0.55;   /* largeur en haut — élargie */
     const beamBotW=W*0.52;   /* largeur en bas */
     const beamBotY=H*0.86;   /* le faisceau descend jusqu'ici */
 
@@ -47971,7 +47989,7 @@ function closeAvModal(e){
     const SW=SH*(381/661);
 
     /* ── Particules de poussière légères ── */
-    const dust=Array.from({length:18},()=>({
+    const dust=Array.from({length:55},()=>({
      x:Math.random()*W, y:Math.random()*H,
      vx:(Math.random()-0.5)*0.08, vy:-(Math.random()*0.04+0.01),
      r:Math.random()*1.0+0.3, op:Math.random()*0.06+0.02,
@@ -47979,7 +47997,7 @@ function closeAvModal(e){
     }));
 
     /* ── Confettis bordeaux — discrets, peu nombreux ── */
-    const confetti=Array.from({length:22},()=>({
+    const confetti=Array.from({length:55},()=>({
      x:Math.random()*W,
      y:Math.random()*H-H*0.3,
      vx:(Math.random()-0.5)*0.55,
@@ -47992,17 +48010,8 @@ function closeAvModal(e){
      lit:28+Math.random()*12,
     }));
 
-    /* ── HA HA HA murmurants sur les côtés ── */
-    const hahas=[
-     {x:W*0.03, y:H*0.22, size:W*0.030, op:0, timer:0,  delay:0},
-     {x:W*0.64, y:H*0.15, size:W*0.022, op:0, timer:35, delay:35},
-     {x:W*0.05, y:H*0.42, size:W*0.018, op:0, timer:60, delay:60},
-     {x:W*0.66, y:H*0.38, size:W*0.016, op:0, timer:18, delay:18},
-     {x:W*0.02, y:H*0.62, size:W*0.014, op:0, timer:45, delay:45},
-    ];
-
     /* Particules dans le faisceau — montent lentement vers le haut */
-    const beamDust=Array.from({length:20},()=>({
+    const beamDust=Array.from({length:50},()=>({
      prog:Math.random(),  /* 0=haut du faisceau, 1=bas */
      xOff:(Math.random()-0.5)*0.8,  /* offset horizontal normalisé */
      vy:-(Math.random()*0.35+0.10),
@@ -48035,11 +48044,11 @@ function closeAvModal(e){
 
      /* Halo doux derrière le faisceau (bords dégradés) */
      const haloG=ctx.createLinearGradient(beamTopX-beamBotW*0.6+bSwing,0,beamTopX+beamBotW*0.6+bSwing,0);
-     haloG.addColorStop(0,'rgba(165,20,20,0)');
-     haloG.addColorStop(0.18,'rgba(165,20,20,0.12)');
-     haloG.addColorStop(0.5,'rgba(165,20,20,0.18)');
-     haloG.addColorStop(0.82,'rgba(165,20,20,0.12)');
-     haloG.addColorStop(1,'rgba(165,20,20,0)');
+     haloG.addColorStop(0,'rgba(145,29,29,0)');
+     haloG.addColorStop(0.18,'rgba(145,29,29,0.12)');
+     haloG.addColorStop(0.5,'rgba(145,29,29,0.18)');
+     haloG.addColorStop(0.82,'rgba(145,29,29,0.12)');
+     haloG.addColorStop(1,'rgba(145,29,29,0)');
      ctx.fillStyle=haloG;
      ctx.beginPath();
      ctx.moveTo(beamTopX-beamTopW*0.55+bSwing, 0);
@@ -48050,10 +48059,10 @@ function closeAvModal(e){
 
      /* Corps principal du faisceau — rouge profond */
      const beamG=ctx.createLinearGradient(0,0,0,beamBotY);
-     beamG.addColorStop(0,'rgba(145,18,18,1.0)');
-     beamG.addColorStop(0.35,'rgba(138,16,16,1.0)');
-     beamG.addColorStop(0.75,'rgba(125,14,14,0.98)');
-     beamG.addColorStop(1,'rgba(110,12,12,0.92)');
+     beamG.addColorStop(0,'rgba(145,29,29,1.0)');
+     beamG.addColorStop(0.35,'rgba(138,27,27,1.0)');
+     beamG.addColorStop(0.75,'rgba(125,24,24,0.98)');
+     beamG.addColorStop(1,'rgba(110,20,20,0.92)');
      ctx.fillStyle=beamG;
      ctx.beginPath();
      ctx.moveTo(beamTopX-beamTopW*0.50+bSwing, 0);
@@ -48147,29 +48156,7 @@ function closeAvModal(e){
       ctx.restore();
      }
 
-     /* ── HA HA HA — écrits sur le fond gris, très subtils ── */
-     ctx.save();
-     for(const n of hahas){
-      n.timer--;
-      if(n.timer<=0){
-       n.timer=40+Math.floor(Math.random()*100);
-       n.op=n.op>0.04?Math.random()*0.03:0.08+Math.random()*0.10;
-      }
-      if(n.op<0.008)continue;
-      ctx.font=`bold ${n.size}px 'DM Sans',sans-serif`;
-      ctx.textAlign='left'; ctx.textBaseline='top';
-      ctx.fillStyle=`rgba(110,18,18,${n.op})`;
-      ctx.fillText('HA HA HA',n.x,n.y);
-     }
-     ctx.restore();
-
-     /* ── Vignette subtile sur les côtés et en bas ── */
-     const vgL=ctx.createLinearGradient(0,0,W*0.12,0);
-     vgL.addColorStop(0,'rgba(100,88,78,0.55)'); vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL; ctx.fillRect(0,0,W*0.12,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.88,0);
-     vgR.addColorStop(0,'rgba(100,88,78,0.55)'); vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR; ctx.fillRect(W*0.88,0,W*0.12,H);
+     /* ── Vignette subtile en bas seulement ── */
      const vgB=ctx.createLinearGradient(0,H,0,H*0.80);
      vgB.addColorStop(0,'rgba(90,80,70,0.45)'); vgB.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=vgB; ctx.fillRect(0,H*0.80,W,H*0.20);
@@ -59381,7 +59368,7 @@ function runSplash(){
     'Transformers':    'Transformers.mp3',
     'Pirates des Caraïbes': 'Pirates.mp3',
     'Men in Black':    'MIB.mp3',
-    'E.T.':            'ET.mp3',
+    'E.T.':            'E.T.mp3',
     'Seven':           'Seven.mp3',
     'Les Goonies':     'Goonies.mp3',
     'Eternal Sunshine': 'Eternal.mp3',
