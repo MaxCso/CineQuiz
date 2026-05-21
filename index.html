@@ -27988,7 +27988,7 @@ function closeAvModal(e){
     _htS.textContent=`
       #splash{background:#01030a!important;}
       #splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-      #splash-content-wrap{top:30%!important;transform:translateY(0)!important;}
+      #splash-content-wrap{top:72%!important;transform:translateY(0)!important;}
       #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _htW=setInterval(()=>{if(stop.v){_htS.textContent='';clearInterval(_htW);}},200);
@@ -27998,7 +27998,7 @@ function closeAvModal(e){
     const heatImg=new Image();let heatReady=false;
     heatImg.onload=()=>{heatReady=true;};heatImg.src=HEAT_SVG;
     const svgW=W, svgH=svgW*(234/400);
-    const svgX=0, svgY=H*0.13;
+    const svgX=0, svgY=H*0.22;
 
     /* ── Skyline de LA — générée une seule fois ── */
     const SKYLINE_Y=H*0.82; /* horizon skyline */
@@ -28999,6 +28999,11 @@ function closeAvModal(e){
     cv.style.opacity='0.70';
     let t=0;
     const cx=W/2,cy=H/2;
+
+    let _hpS=document.getElementById('_hp_s');
+    if(!_hpS){_hpS=document.createElement('style');_hpS.id='_hp_s';document.head.appendChild(_hpS);}
+    _hpS.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _hpW=setInterval(()=>{if(stop.v){_hpS.textContent='';clearInterval(_hpW);}},200);
 
     // ── Étoiles fixes ──
     const stars=Array.from({length:120},()=>({
@@ -31498,7 +31503,7 @@ function closeAvModal(e){
     /* ── Citation + logo remontés sous logo CinéQuiz ── */
     let _mmPos=document.getElementById('_mm_pos_s');
     if(!_mmPos){_mmPos=document.createElement('style');_mmPos.id='_mm_pos_s';document.head.appendChild(_mmPos);}
-    _mmPos.textContent='#splash-content-wrap{top:calc(17% + 2px)!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _mmPos.textContent='#splash-content-wrap{top:calc(17% + 4px)!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _mmPosW=setInterval(()=>{if(stop.v){_mmPos.textContent='';clearInterval(_mmPosW);}},200);
 
     /* ── Horizon & perspective ── */
@@ -35655,7 +35660,7 @@ function closeAvModal(e){
      /* ── Débris tombants ── */
      for(const d of debris){
       d.y+=d.vy;d.x+=d.vx;d.angle+=d.rot;
-      if(d.y>HORIZON+20){d.y=-20;d.x=Math.random()*W;}
+      if(d.y>HORIZON){d.y=-20;d.x=Math.random()*W;}
       ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.angle);
       const dg=ctx.createLinearGradient(-d.size/2,-d.size/2,d.size/2,d.size/2);
       if(d.gold){dg.addColorStop(0,'rgba(255,195,50,0.90)');dg.addColorStop(1,'rgba(180,90,5,0.55)');}
@@ -35725,7 +35730,11 @@ function closeAvModal(e){
      sunGlow.addColorStop(0.38,'rgba(200,60,5,0.18)');
      sunGlow.addColorStop(0.65,'rgba(100,25,2,0.08)');
      sunGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.save();
+     ctx.beginPath();ctx.arc(cx,HORIZON,W*0.95,Math.PI,Math.PI*2);ctx.closePath();
+     ctx.clip();
      ctx.fillStyle=sunGlow;ctx.fillRect(0,HORIZON-H*0.25,W,H*0.45);
+     ctx.restore();
 
      /* ── Skyline ── */
      ctx.fillStyle='rgba(6,8,16,0.98)';
@@ -42595,7 +42604,7 @@ function closeAvModal(e){
     const SOL_H=H*0.55;
     const SOL_W=SOL_H*(144/183);
     const SOL_X=cx-SOL_W/2;
-    const SOL_Y=H*0.865-SOL_H; /* pied du soldat à 86.5% de l'écran */
+    const SOL_Y=H*0.96-SOL_H; /* pied du soldat à 96% de l'écran */
 
     /* ── Pluie fine — Normandie ── */
     const rain=Array.from({length:90},()=>{
@@ -42621,6 +42630,16 @@ function closeAvModal(e){
      };
     });
 
+
+    /* ── Avions de combat ── */
+    const av1Img=new Image();let av1Ready=false;
+    av1Img.onload=()=>{av1Ready=true;};av1Img.src='images/Avion_1.svg';
+    const av2Img=new Image();let av2Ready=false;
+    av2Img.onload=()=>{av2Ready=true;};av2Img.src='images/Avion_2.svg';
+    /* Avion 1 — gauche→droite, haut du ciel */
+    const plane1={x:-W*0.28, y:H*0.10, spd:W*0.0018, w:W*0.28, h:W*0.28*(640/1280)};
+    /* Avion 2 — droite→gauche, légèrement plus bas */
+    const plane2={x:W*1.15, y:H*0.20, spd:W*0.0013, w:W*0.22, h:W*0.22*(681/1280)};
     /* ── Éclairs d'obus périodiques ── */
     let flashTimer=0, flashOp=0, flashX=cx;
 
@@ -42652,6 +42671,25 @@ function closeAvModal(e){
       fg.addColorStop(0.4,`rgba(160,120,30,${flashOp*0.15})`);
       fg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=fg;ctx.fillRect(0,0,W,H);
+     }
+
+
+     /* ── Avions dans le ciel ── */
+     plane1.x+=plane1.spd;
+     if(plane1.x>W*1.15)plane1.x=-plane1.w;
+     if(av1Ready){
+      ctx.save();ctx.globalAlpha=0.68;
+      ctx.drawImage(av1Img,plane1.x,plane1.y+Math.sin(t*0.55)*H*0.006,plane1.w,plane1.h);
+      ctx.restore();
+     }
+     plane2.x-=plane2.spd;
+     if(plane2.x<-plane2.w)plane2.x=W*1.10;
+     if(av2Ready){
+      ctx.save();ctx.globalAlpha=0.60;
+      ctx.translate(plane2.x+plane2.w,plane2.y+Math.sin(t*0.42+1.2)*H*0.005);
+      ctx.scale(-1,1);
+      ctx.drawImage(av2Img,0,0,plane2.w,plane2.h);
+      ctx.restore();
      }
 
      /* Fumée de fond */
