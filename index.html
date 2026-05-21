@@ -51496,9 +51496,9 @@ function closeAvModal(e){
 
     /* ── Zones de la scene ── */
     const STAGE_TOP = H*0.52;   /* rideau de scene commence ici */
-    const FLOOR_Y   = H*0.88;   /* plancher de scene */
+    const FLOOR_Y   = H*0.90;   /* plancher de scene */
     const coilX     = cx;
-    const coilY     = STAGE_TOP + (FLOOR_Y-STAGE_TOP)*0.38;
+    const coilY     = STAGE_TOP + (FLOOR_Y-STAGE_TOP)*0.42;  /* bobine bien centrée dans la zone bleue */
 
     /* ── Bobine Tesla — arcs electriques ── */
     const bolts = Array.from({length:8},(_,i)=>({
@@ -51687,6 +51687,14 @@ function closeAvModal(e){
       ctx.lineTo(fx+(Math.random()-0.5)*W*0.008,STAGE_TOP+H*0.040);ctx.stroke();
      }
 
+     /* ── Fond de scene bleu electrique entre rideaux ── */
+     const stageBg=ctx.createRadialGradient(cx,STAGE_TOP+(FLOOR_Y-STAGE_TOP)*0.38,0,cx,STAGE_TOP+(FLOOR_Y-STAGE_TOP)*0.38,W*0.52);
+     stageBg.addColorStop(0,`rgba(30,80,200,${0.85+Math.sin(t*0.6)*0.06})`);
+     stageBg.addColorStop(0.35,`rgba(18,55,160,0.90)`);
+     stageBg.addColorStop(0.70,'rgba(10,30,100,0.92)');
+     stageBg.addColorStop(1,'rgba(5,12,50,0.95)');
+     ctx.fillStyle=stageBg;ctx.fillRect(W*0.18,STAGE_TOP,W*0.64,FLOOR_Y-STAGE_TOP);
+
      /* ── Plancher de scene — parquet ── */
      const floorG=ctx.createLinearGradient(0,FLOOR_Y-H*0.05,0,H);
      floorG.addColorStop(0,'rgba(35,28,18,0.97)');
@@ -51716,7 +51724,7 @@ function closeAvModal(e){
      ctx.strokeStyle='rgba(80,75,110,0.45)';ctx.lineWidth=1.0;
      ctx.beginPath();ctx.roundRect(baseX,baseY,baseW,baseH,W*0.006);ctx.stroke();
      /* Colonne */
-     const colW=W*0.030,colH=H*0.110;
+     const colW=W*0.036,colH=H*0.160;
      ctx.fillStyle='rgba(18,16,28,0.98)';
      ctx.fillRect(coilX-colW/2,coilY-colH,colW,colH);
      /* Spirales de la bobine */
@@ -51727,7 +51735,7 @@ function closeAvModal(e){
       ctx.beginPath();ctx.ellipse(coilX,sy,sw,H*0.005,0,0,Math.PI*2);ctx.stroke();
      }
      /* Sphere superieure */
-     const sphereR=W*0.040;
+     const sphereR=W*0.058;
      const sphereY=coilY-colH-sphereR*0.5;
      const sphereG=ctx.createRadialGradient(coilX-sphereR*0.28,sphereY-sphereR*0.28,0,coilX,sphereY,sphereR);
      sphereG.addColorStop(0,'rgba(110,125,175,0.95)');
@@ -51787,22 +51795,32 @@ function closeAvModal(e){
      if(!magReady)return;
      /* SVG ratio 833x1280 = 0.6508 */
      const RATIO=833/1280;
-     const mH=H*0.52;           /* hauteur affichee */
+     const mH=H*0.30;
      const mW=mH*RATIO;
-     const mX=cx-mW/2;          /* centre horizontal */
-     const mY=FLOOR_Y-mH*0.92;  /* pieds poses sur le plancher */
+     /* Décalé à droite pour laisser la bobine visible à gauche */
+     const mX=cx+W*0.08-mW/2;
+     const mY=FLOOR_Y-mH*1.00;
+     /* Éclairage latéral bleu de la bobine sur le magicien */
+     const rimLight=ctx.createLinearGradient(mX,mY,mX+mW*0.55,mY+mH);
+     rimLight.addColorStop(0,`rgba(80,130,255,${0.32+Math.sin(t*1.8)*0.10})`);
+     rimLight.addColorStop(0.30,`rgba(50,90,220,0.14)`);
+     rimLight.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.save();
+     ctx.fillStyle=rimLight;
+     ctx.fillRect(mX,mY,mW,mH);
+     ctx.restore();
      ctx.save();
      ctx.globalAlpha=0.96;
      ctx.drawImage(magImg,mX,mY,mW,mH);
      ctx.restore();
-     /* Bout lumineux de la baguette — halo anime en haut a gauche du magicien */
-     const wandX=mX+mW*0.18;
-     const wandY=mY+mH*0.08;
-     const wandG=ctx.createRadialGradient(wandX,wandY,0,wandX,wandY,W*0.032);
-     wandG.addColorStop(0,`rgba(255,240,180,${0.65+Math.sin(t*3.5)*0.22})`);
-     wandG.addColorStop(0.35,'rgba(255,200,80,0.22)');
+     /* Halo baguette */
+     const wandX=mX+mW*0.20;
+     const wandY=mY+mH*0.06;
+     const wandG=ctx.createRadialGradient(wandX,wandY,0,wandX,wandY,W*0.038);
+     wandG.addColorStop(0,`rgba(255,240,180,${0.70+Math.sin(t*3.5)*0.22})`);
+     wandG.addColorStop(0.35,'rgba(255,200,80,0.25)');
      wandG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=wandG;ctx.fillRect(wandX-W*0.04,wandY-W*0.04,W*0.08,W*0.08);
+     ctx.fillStyle=wandG;ctx.fillRect(wandX-W*0.05,wandY-W*0.05,W*0.10,W*0.10);
     }
 
     function frame(){
@@ -52956,7 +52974,7 @@ function closeAvModal(e){
     /* Position citation + logo */
     let _bp_pos=document.getElementById('_bp_pos');
     if(!_bp_pos){_bp_pos=document.createElement('style');_bp_pos.id='_bp_pos';document.head.appendChild(_bp_pos);}
-    _bp_pos.textContent='#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _bp_pos.textContent='#splash-content-wrap{top:18%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _bp_posW=setInterval(()=>{if(stop.v){_bp_pos.textContent='';clearInterval(_bp_posW);}},200);
 
     /* Zones */
@@ -56966,7 +56984,7 @@ function closeAvModal(e){
 
     function drawRaft(){
      /* Position avec légère oscillation */
-     const raftY=POOL_TOP+H*0.28+Math.sin(t*0.55)*H*0.008;
+     const raftY=POOL_TOP+H*0.42+Math.sin(t*0.55)*H*0.008;
      const tiltR=Math.sin(t*0.42)*0.025;
 
      ctx.save();ctx.translate(BEN_X,raftY);ctx.rotate(tiltR);
