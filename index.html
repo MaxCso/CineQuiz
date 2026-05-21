@@ -39500,7 +39500,7 @@ function closeAvModal(e){
     const MASK_H=H*0.54;
     const MASK_W=MASK_H*0.72; /* ratio approximatif du SVG */
     const MASK_X=cx-MASK_W/2;
-    const MASK_Y=H*0.155; /* commence à ~15.5% — sous le logo CinéQuiz */
+    const MASK_Y=H*0.185; /* commence à ~18.5% — sous le logo CinéQuiz */
 
     /* Citation + logo film juste sous le masque */
     let _scPos=document.getElementById('_sc_pos_s');
@@ -52509,93 +52509,310 @@ function closeAvModal(e){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_bp_s');
     if(!_s){_s=document.createElement('style');_s.id='_bp_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#020d08!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#010608!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* Vagues tropicales */
-    const waves=Array.from({length:8},(_,i)=>({
-     phase:Math.random()*Math.PI*2,spd:0.006+i*0.002,
-     amp:H*(0.008+i*0.003),offsetY:H*(0.58+i*0.032),
-     col:`rgba(${0+i*5},${120+i*16},${100+i*8},`,baseOp:0.28+i*0.05,
+    /* Position citation + logo */
+    let _bp_pos=document.getElementById('_bp_pos');
+    if(!_bp_pos){_bp_pos=document.createElement('style');_bp_pos.id='_bp_pos';document.head.appendChild(_bp_pos);}
+    _bp_pos.textContent='#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _bp_posW=setInterval(()=>{if(stop.v){_bp_pos.textContent='';clearInterval(_bp_posW);}},200);
+
+    /* Zones */
+    const horizonY = H*0.62;
+    const shoreY   = H*0.76;
+    const moonX    = W*0.72;
+    const moonY    = H*0.14;
+
+    /* Palmier SVG — silhouette noire (ratio 824x1280 ≈ 0.644) */
+    const palmImg=new Image();let palmReady=false;
+    palmImg.onload=()=>{palmReady=true;};
+    palmImg.src='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iODI0LjAwMDAwMHB0IiBoZWlnaHQ9IjEyODAuMDAwMDAwcHQiIHZpZXdCb3g9IjAgMCA4MjQuMDAwMDAwIDEyODAuMDAwMDAwIgogcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgbWVldCI+CjxtZXRhZGF0YT4KQ3JlYXRlZCBieSBwb3RyYWNlIDEuMTUsIHdyaXR0ZW4gYnkgUGV0ZXIgU2VsaW5nZXIgMjAwMS0yMDE3CjwvbWV0YWRhdGE+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLDEyODAuMDAwMDAwKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIgpmaWxsPSIjMDAwMDAwIiBzdHJva2U9Im5vbmUiPgo8cGF0aCBkPSJNNDA5MSAxMjc4MSBjLTQyIC00MiAtODQgLTIzOCAtMTE2IC01NDYgLTkgLTgzIC0xNSAtMTY5IC0xMyAtMTkwIDMKLTM1IDYgLTQwIDI3IC00MCAyMSAwIDI4IDExIDU1IDg1IGwzMSA4NSAzIC0xODAgYzMgLTE1MCAwIC0yMDYgLTIwIC0zMzQgLTE3Ci0xMTIgLTI3IC0xNTUgLTM4IC0xNTkgLTggLTMgLTI2IC0xMyAtNDAgLTIzIGwtMjYgLTE3IC0xMyAxMjEgYy00NSA0MzEgLTI4NQo5MzcgLTQ5MyAxMDQxIC03OCAzOSAtMTM0IDMyIC0xOTEgLTIyIC02NCAtNjAgLTEyMCAtMjMxIC0xMzMgLTQwMiAtNCAtNDkKLTExIC05MCAtMTUgLTkwIC01IDAgLTI2IDE1IC00NiAzMyAtMTE2IDEwMyAtMzA1IDIzMSAtNDUzIDMwNyAtMTg3IDk2IC0zNDgKMTQwIC01MDkgMTQwIC0xMTQgMCAtMTg5IC0xNyAtMjg2IC02NSAtMjM5IC0xMTggLTM5MSAtNDExIC00NDcgLTg2MCAtMTMKLTEwOCAtMTcgLTYyMiAtNSAtNjY3IDUgLTE5IDE0IC0yOCAyOCAtMjggMTcgMCAxMSAtMTEgLTM2IC02MiAtMTg3IC0yMDcKLTMyOSAtNDk5IC0zOTkgLTgyMyAtNTEgLTIzOCAtNjAgLTMzOCAtNjAgLTY1NSAtMSAtMTYyIDMgLTMwNyA3IC0zMjIgOCAtMzAKMzcgLTM4IDU0IC0xNSA2IDYgMTYgNDggMjMgOTIgNDEgMjY5IDEzMCA1NTEgMjQxIDc3MiAzMTEgNjE0IDg0MCA5NDYgMTY0OQoxMDMzIDEwNSAxMiA1OTggMjYgNTkwIDE3IC0zIC0zIC00MCAtMTcgLTgzIC0zMSAtNDU5IC0xNTQgLTg3NCAtNjE5IC0xMDYyCi0xMTkxIC05MSAtMjc4IC0xNDcgLTcxMyAtOTMgLTcyMyAxOSAtNCAzNyAyMiAxMjggMTg4IDIzMCA0MTggNDc3IDc2MiA3NTUKMTA0OSAxMDUgMTA4IDI4NSAyNzAgMjg1IDI1NiAwIC00IC0yNCAtMzUgLTU0IC02OCAtMjU3IC0yOTYgLTQyOSAtNjUzIC00ODAKLTk5OSAtMTYgLTEwNCAtMTMgLTExOCAxOSAtMTE4IDE3IDAgMzIgMTQgNTYgNTMgMjEgMzQgMzQgNDcgMzcgMzcgOCAtMjYgMzQKLTUwIDU0IC01MCAxNSAwIDE4IC04IDE4IC02MCAwIC01NyAxIC02MCAyNSAtNjAgMjEgMCAzMCAxMSA2MSA3OSAzMCA2NiAzOQo3OSA2MCA3OSAyOCAwIDU0IDE4IDU0IDM4IDAgOCAxNCAyNiAzMCA0MSAzNSAzMSAzOSA2NCA5IDk0IC0xMyAxMyAtMTggMjcKLTE0IDQwIDkgMjggMjIgMjMgMjkgLTExIDExIC02MCA5NyAtNjQgMTEyIC01IDkgMzQgMCA1MyAtMzYgNzMgLTE2IDkgLTMwIDIyCi0zMCAyOSAwIDI0IDE5IDIzIDQ0IC0yIDE0IC0xNCAzMiAtMjUgNDEgLTI1IDI1IDAgNjggNDggNjIgNzAgLTMgMTEgMyAyNiAxNQozNyAxNSAxNCAxOSAyNiAxNSA1NSAtNCAzMiAtMiAzNyAxNiA0MCAxMiAyIDI4IDE1IDM3IDMxIDE0IDI1IDEzIDMwIC0yIDU3Ci05IDE3IC0xMyAzMCAtOCAzMCA1IDAgMTMgLTYgMTcgLTE0IDQgLTcgMTkgLTE5IDMyIC0yNiAyMCAtMTAgMjcgLTkgNTAgNyAxNAoxMSAyNyAzMiAyOSA0NiA0IDM1IC0zMiA3MSAtNjQgNjQgLTE0IC0yIC0yNyAwIC0zMCA0IC0zIDUgNiA5IDIwIDkgMjYgMCA2NgozMSA2NiA1MCAwIDYgOSAxMCAyMCAxMCAzMCAwIDU1IDQ1IDQ0IDc4IC03IDIxIC01IDMxIDkgNDUgMTEgMTEgMTcgMjkgMTUgNDUKLTIgMjAgNCAzMSAyNSA0NCAxNSAxMCAyNyAyNyAyNyAzOCAwIDE3IDQgMTkgMjUgMTQgMTYgLTQgMzUgMCA1MSAxMSBsMjYgMTcKLTYgLTExNCBjLTMgLTYyIC04IC0yMDUgLTExIC0zMTggLTEyIC00NDggLTQzIC0xMzczIC05NSAtMjgzNSAtNiAtMTU5IC0xOQotNTYwIC0zMCAtODkwIC02OCAtMjA0NCAtNzggLTIzMTEgLTEwMCAtMjkyNSAtMzYgLTk4MSAtNDIgLTEwOTUgLTU1IC0xMTAyCi00MSAtMjQgLTIxMyAtMTUzIC0yODUgLTIxMiAtMjExIC0xNzYgLTM4NiAtMzg4IC0zNjAgLTQzNiAxNyAtMzIgMTEyIC0xMTAKMjAwIC0xNjQgMjMwIC0xNDIgNTc3IC0yODUgODUzIC0zNTEgbDk4IC0yMyAxMDcgMjUgYzIyOSA1MiA1MDUgMTU5IDY5NyAyNzAKMTY4IDk4IDMxNSAyMjYgMzE1IDI3NiAwIDM4IC05NyAxNzMgLTIwNCAyODQgLTExMSAxMTYgLTIzNSAyMTQgLTMzOCAyNjggLTU4CjMxIC02OCA0MCAtNzIgNjggLTIwIDEzMiAtMTExIDI0NzggLTE0NiAzNzY3IC0xMiA0MzYgLTI3IDk2MyAtNjUgMjI1NSAtMTQKNDczIC0yOCA5OTggLTMzIDExNjYgbC03IDMwNyAzMCAxMiBjMTcgOCAzNCAxNSAzOSAxOCA1IDIgLTIgLTkgLTE0IC0yNiAtMjgKLTM3IC0yMSAtNzUgMTYgLTk1IDIzIC0xMiAyNCAtMTUgMTAgLTI2IC0yMCAtMTcgLTIxIC01MSAtMiAtNzYgMTAgLTE0IDExCi0yNSA0IC0zOSAtMjMgLTQzIDU5IC05NyA5NSAtNjIgMTkgMjAgNDYgMTEgNDAgLTEzIC0zIC0xMyAtMTEgLTE3IC0yOCAtMTMKLTMxIDYgLTY3IC0zMSAtNjMgLTY1IDIgLTE0IDE1IC0zNSAyOSAtNDUgMjIgLTE2IDI5IC0xNyA1MiAtNyAxNCA2IDMwIDIyIDM0CjM0IDYgMTcgMTMgMjEgMjggMTUgMTggLTcgMTcgLTEwIC0xOSAtNDMgLTQyIC0zOSAtNTAgLTc1IC0yMiAtMTA2IDkgLTkgMTYKLTI0IDE2IC0zMyAwIC0yOCA0MSAtNzAgNjQgLTY2IDE5IDQgMjEgMSAxOCAtMjggLTMgLTI2IDEgLTM2IDIyIC01MCAyMyAtMTQKMzMgLTE1IDY0IC02IDgxIDI0IDc3IDI1IDExNiAtMjMgNjQgLTc4IDgxIC02MSA5OCA5OCAyMSAyMDIgLTE2IDQ5NCAtOTEgNzE2Ci00NCAxMjkgLTQ0IDEyOSAtMjEgODkgMjIgLTQxIDQwIC00NyA2MCAtMjMgMTAgMTIgMTEgNTYgNyAxODMgLTYgMTc2IC0yMgoyNjIgLTcxIDM4MiAtMjcgNjggLTI5IDY4IDgwIC0xNyAxMTYgLTkwIDMwOCAtMjc2IDQwNSAtMzk0IDE0NyAtMTc3IDMyMgotNDQxIDQwNSAtNjExIDI4IC01OSA1NiAtODAgNzggLTU4IDE3IDE3IDEyIDIxMSAtOCAzMDAgLTkyIDQxMyAtMzY3IDg3MAotNjY2IDExMDMgLTM2IDI4IC02OSA1NSAtNzUgNjAgLTE2IDE1IDM3NSAwIDQ5NCAtMTggMzc4IC01OSA2NjIgLTIwMSA5NDAKLTQ3MCAyMjMgLTIxNiA0MDkgLTQ4MyA1OTIgLTg0NyA1MiAtMTAzIDYzIC0xMTkgODIgLTExNiAyMSAzIDIyIDggMjAgNzggLTUKMjAzIC03MyA1MTkgLTE2MCA3NDMgLTE3MiA0NDcgLTQ2MCA3ODAgLTgzOCA5NzAgLTExNSA1NyAtMjQwIDEwMSAtMzY4IDEyOQotODggMTkgLTEzMiAyMiAtMzEyIDIyIC0xOTQgMCAtMjE5IC0yIC0zMjkgLTI4IC0yMTkgLTUxIC00NDEgLTE0MyAtNjE1IC0yNTYKLTQzIC0yOCAtNzMgLTQwIC05OSAtNDAgLTIwIDAgLTU0IC00IC03NCAtOSBsLTM3IC05IC0zIDc1IC0zIDc2IDc1IDYyIGMzNzQKMzA5IDc3NSA1MTggMTExNSA1ODEgMTM2IDI2IDM4NiAyNiA1MDUgMSAyNjkgLTU3IDUwNCAtMTg3IDczMyAtNDA3IDI5MyAtMjgxCjU1MSAtNjk0IDc2NSAtMTIyNSA3OSAtMTk3IDc3IC0xOTUgMTAyIC0xOTUgMjggMCAzMCAyMiAxNCAxMTcgLTEyMCA3MDggLTMyNQoxMjM3IC02MjUgMTYxNCAtMTQ1IDE4MiAtMzQxIDM0NSAtNTMyIDQ0MCAtMzU2IDE3OSAtNzk0IDE4NiAtMTIxMCAyMCAtODEKLTMyIC05NyAtMzMgLTk3IC0yIDAgNDggLTQ3IDE5NyAtOTAgMjg3IC01NiAxMTUgLTEyNyAxOTYgLTIxMyAyNDEgLTQ3IDI1Ci02MiAyOCAtMTUyIDI4IC05MyAwIC0xMDUgLTIgLTE2NSAtMzIgLTM2IC0xOCAtOTEgLTUzIC0xMjIgLTc4IC02NSAtNTMgLTE3MgotMTkwIC0yMjEgLTI4MiAtMTcgLTM1IC0zNSAtNjMgLTM5IC02MyAtNSAwIC04IDM0IC04IDc0IDAgOTYgLTI2IDI5MiAtNDYKMzU0IC0yNyA4MSAtNjMgMTAzIC0xMDMgNjN6IG04MjIgLTQ3OSBjNjkgLTM0IDI1MiAtMTk5IDIzMCAtMjA4IC0yNyAtMTIKLTE0MCAtODQgLTIyNSAtMTQ0IC0xNzAgLTEyMCAtNDAyIC0zNjMgLTUxMyAtNTM4IC0yMiAtMzQgLTQyIC02MiAtNDUgLTYyIC0zCjAgLTE0IDE2IC0yNSAzNiAtMTggMzMgLTcyIDg4IC0xMDkgMTA5IC0xNiA5IC0xMyAyMCAyOSAxMzUgMTYwIDQyNyAzMDYgNjU0CjQ1MyA3MDEgNTIgMTYgMTM2IDUgMjA1IC0yOXogbS0xNDI3IC0yMjggYzEwNiAtNTAgMjI5IC0yNTkgMzM4IC01NzIgMzkgLTExMgo0NCAtMTM2IDM0IC0xNTcgLTYgLTE0IC0xNCAtMjUgLTE3IC0yNSAtNCAwIC0zMyAzNSAtNjYgNzggLTkxIDExOCAtMjc5IDMzNAotNDAzIDQ2MiAtMTE5IDEyMyAtMTE4IDEyMiAtNjUgMTcyIDYxIDU4IDExNyA3MSAxNzkgNDJ6IG0tMTA4NCAtMTI4IGMzMjMKLTY5IDcxNCAtMjc0IDEyNjEgLTY2NCAxMzIgLTk0IDE2MyAtMTIyIDEzOSAtMTIyIC00IDAgLTYyIDI0IC0xMjkgNTQgLTE2MAo3MiAtMzQ0IDEzMCAtNTIzIDE2NiAtMTkzIDM4IC0zMDcgNTAgLTQ5NyA1MCAtNDcwIDAgLTg1NSAtMTI5IC0xMTYwIC0zODcKLTU1IC00NiAtNjMgLTUxIC02MyAtMzIgMCA0NCA1MyAyNzcgODYgMzc4IDEwMyAzMTUgMjg2IDUxMiA1MjQgNTY2IDgxIDE4CjI1NCAxNCAzNjIgLTl6IG0xMjQ4IC0xNjUxIGMtNyAtOSAtMTUgLTEzIC0xOCAtMTAgLTMgMiAxIDExIDggMjAgNyA5IDE1IDEzCjE4IDEwIDMgLTIgLTEgLTExIC04IC0yMHogbS04NSAtMTM1IGMzIC01IDEgLTEwIC00IC0xMCAtNiAwIC0xMSA1IC0xMSAxMCAwCjYgMiAxMCA0IDEwIDMgMCA4IC00IDExIC0xMHogbS02MiAtMTA3IGM3IC02IC0yMSAtMzIgLTM2IC0zMyAtNCAwIC0zIDkgMyAyMAoxMSAyMSAyMiAyNSAzMyAxM3ogbTkwMSAtMTEyIGMxNyAtMTkgMTcgLTE5IC0zIC0xNCAtMTIgMyAtMjEgMTIgLTIxIDE5IDAgMTgKNCAxOCAyNCAtNXogbS05MzQgLTEgYzAgLTUgLTQgLTEwIC0xMCAtMTAgLTUgMCAtMTAgNSAtMTAgMTAgMCA2IDUgMTAgMTAgMTAKNiAwIDEwIC00IDEwIC0xMHogbS01NCAtMzIgYy05IC0xMiAtMTYgLTMyIC0xNiAtNDUgMCAtMTIgLTQgLTI1IC0xMCAtMjggLTUKLTMgLTEwIDAgLTEwIDggMCAyNCAzMCA4NyA0MSA4NyA1IDAgMyAtMTAgLTUgLTIyeiBtLTM2NiAtMzU5IGMwIC0xNCAtNyAtMTkKLTI2IC0xOSAtMjUgMCAtMjUgNiAtMSAzNyAxMiAxNyAyNyA3IDI3IC0xOHogbTE2NzIgLTI2MSBjLTcgLTcgLTEyIC04IC0xMgotMiAwIDE0IDEyIDI2IDE5IDE5IDIgLTMgLTEgLTExIC03IC0xN3ogbTcxIC05NSBjLTcgLTIgLTIxIC0yIC0zMCAwIC0xMCAzCi00IDUgMTIgNSAxNyAwIDI0IC0yIDE4IC01eiIvPgo8L2c+Cjwvc3ZnPgo=';
+
+    /* Etoiles */
+    const stars=Array.from({length:110},()=>({
+     x:Math.random()*W,
+     y:Math.random()*horizonY*0.95,
+     r:Math.random()*1.3+0.15,
+     op:0.15+Math.random()*0.60,
+     ph:Math.random()*Math.PI*2,
+     spd:0.008+Math.random()*0.018,
     }));
-    /* Étoiles tropicales */
-    const stars=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H*0.45,r:Math.random()*1.2+0.2,op:0.20+Math.random()*0.45,ph:Math.random()*Math.PI*2}));
-    /* Lucioles/plancton bioluminescent */
-    const biolum=Array.from({length:25},()=>({
-     x:Math.random()*W,y:H*(0.55+Math.random()*0.35),
-     vx:(Math.random()-0.5)*0.20,vy:(Math.random()-0.5)*0.12,
-     r:W*(0.004+Math.random()*0.007),ph:Math.random()*Math.PI*2,spd:0.05+Math.random()*0.04,
+
+    /* Vagues */
+    const WAVE_LAYERS=[
+     {y0:horizonY+H*0.000,amp:H*0.006,freq:0.022,spd:0.008,col:[0, 90,110],op:0.55,foam:false},
+     {y0:horizonY+H*0.018,amp:H*0.008,freq:0.018,spd:0.010,col:[0,105,118],op:0.55,foam:false},
+     {y0:horizonY+H*0.038,amp:H*0.010,freq:0.016,spd:0.012,col:[0,120,128],op:0.60,foam:false},
+     {y0:horizonY+H*0.062,amp:H*0.013,freq:0.014,spd:0.014,col:[0,148,140],op:0.65,foam:false},
+     {y0:horizonY+H*0.090,amp:H*0.015,freq:0.012,spd:0.016,col:[0,165,148],op:0.68,foam:false},
+     {y0:horizonY+H*0.122,amp:H*0.018,freq:0.010,spd:0.018,col:[0,180,155],op:0.72,foam:true},
+     {y0:horizonY+H*0.158,amp:H*0.020,freq:0.009,spd:0.020,col:[12,195,160],op:0.76,foam:true},
+    ];
+    const wavePhases=WAVE_LAYERS.map(()=>Math.random()*Math.PI*2);
+
+    /* Plancton */
+    const biolum=Array.from({length:32},()=>({
+     x:Math.random()*W,
+     y:horizonY+Math.random()*(shoreY-horizonY)*0.90,
+     vx:(Math.random()-0.5)*0.18,
+     vy:(Math.random()-0.5)*0.10,
+     r:W*(0.003+Math.random()*0.006),
+     ph:Math.random()*Math.PI*2,
+     spd:0.04+Math.random()*0.05,
     }));
 
-    function frame(){
-     if(stop.v)return;
-     /* Nuit tropicale Thaïlande */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0,'#010608');bg.addColorStop(0.40,'#020d08');bg.addColorStop(0.70,'#031408');bg.addColorStop(1,'#041a08');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    /* Scintillements reflet lunaire */
+    const moonReflSparkles=Array.from({length:18},()=>({
+     xOff:(Math.random()-0.5)*W*0.10,
+     y:horizonY+Math.random()*(shoreY-horizonY)*0.75,
+     ph:Math.random()*Math.PI*2,
+     spd:0.06+Math.random()*0.08,
+    }));
 
-     /* Lune tropicale */
-     const moonG=ctx.createRadialGradient(W*0.80,H*0.15,0,W*0.80,H*0.15,W*0.16);
-     moonG.addColorStop(0,'rgba(210,240,200,0.16)');moonG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=moonG;ctx.fillRect(0,0,W,H);
-     ctx.fillStyle='rgba(220,245,215,0.88)';
-     ctx.beginPath();ctx.arc(W*0.80,H*0.15,W*0.038,0,Math.PI*2);ctx.fill();
+    /* Grains de sable precalcules */
+    const sandGrains=Array.from({length:260},()=>({
+     x:Math.random()*1.0,
+     y:Math.random()*1.0,
+     r:Math.random()*1.6+0.3,
+     op:0.08+Math.random()*0.20,
+     col:Math.random()<0.5?'45,58,32':'28,42,20',
+    }));
+    /* Cailloux/debris */
+    const pebbles=Array.from({length:28},()=>({
+     x:Math.random()*1.0,
+     y:0.15+Math.random()*0.70,
+     rx:Math.random()*W*0.014+W*0.006,
+     ry:Math.random()*H*0.006+H*0.003,
+     rot:Math.random()*Math.PI,
+     op:0.12+Math.random()*0.18,
+    }));
+    /* Traces de vague sechee — lignes horizontales */
+    const tideLines=Array.from({length:5},(_,i)=>({
+     y:0.08+i*0.14,
+     xStart:Math.random()*0.3,
+     xEnd:0.5+Math.random()*0.5,
+     op:0.08+Math.random()*0.10,
+    }));
 
-     /* Étoiles */
+    function drawSky(){
+     const sky=ctx.createLinearGradient(0,0,0,horizonY);
+     sky.addColorStop(0.00,'#010407');
+     sky.addColorStop(0.30,'#010608');
+     sky.addColorStop(0.60,'#010d0a');
+     sky.addColorStop(0.85,'#021208');
+     sky.addColorStop(1.00,'#021a08');
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizonY);
+
+     /* Halo lune */
+     const moonGlow=ctx.createRadialGradient(moonX,moonY,0,moonX,moonY,W*0.20);
+     moonGlow.addColorStop(0,`rgba(200,240,210,${0.18+Math.sin(t*0.4)*0.03})`);
+     moonGlow.addColorStop(0.35,`rgba(120,200,160,${0.08+Math.sin(t*0.3)*0.02})`);
+     moonGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=moonGlow;ctx.fillRect(0,0,W,horizonY);
+     /* Disque */
+     const moonR=W*0.042;
+     const lg=ctx.createRadialGradient(moonX-moonR*0.2,moonY-moonR*0.2,moonR*0.1,moonX,moonY,moonR);
+     lg.addColorStop(0,'rgba(245,252,240,0.96)');
+     lg.addColorStop(0.50,'rgba(220,242,228,0.90)');
+     lg.addColorStop(0.85,'rgba(185,228,200,0.75)');
+     lg.addColorStop(1,'rgba(140,200,170,0.0)');
+     ctx.fillStyle=lg;ctx.beginPath();ctx.arc(moonX,moonY,moonR,0,Math.PI*2);ctx.fill();
+
+     /* Etoiles */
      for(const s of stars){
-      s.ph+=0.014;
+      s.ph+=s.spd;
+      const brightness=0.50+0.50*Math.sin(s.ph);
       ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(200,240,220,${s.op*(0.5+0.5*Math.sin(s.ph))})`;ctx.fill();
+      ctx.fillStyle=`rgba(190,240,215,${s.op*brightness})`;ctx.fill();
      }
 
-     /* Reflet lunaire sur l'eau */
-     const ref=ctx.createLinearGradient(cx*0.9,H*0.55,cx*0.9,H);
-     ref.addColorStop(0,'rgba(180,230,180,0.08)');ref.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=ref;ctx.fillRect(cx*0.75,H*0.55,W*0.22,H*0.45);
+     /* Brume horizon */
+     const hazeG=ctx.createLinearGradient(0,horizonY-H*0.06,0,horizonY+H*0.01);
+     hazeG.addColorStop(0,'rgba(0,0,0,0)');
+     hazeG.addColorStop(0.55,`rgba(0,28,22,${0.30+Math.sin(t*0.2)*0.04})`);
+     hazeG.addColorStop(1,'rgba(0,35,28,0.55)');
+     ctx.fillStyle=hazeG;ctx.fillRect(0,horizonY-H*0.06,W,H*0.07);
+    }
 
-     /* Vagues turquoise */
-     for(const w of waves){
-      w.phase+=w.spd;
-      ctx.fillStyle=`${w.col}${w.baseOp})`;
-      ctx.beginPath();ctx.moveTo(0,w.offsetY);
-      for(let x=0;x<=W;x+=8){
-       ctx.lineTo(x,w.offsetY+Math.sin(w.phase+x*0.016)*w.amp+Math.sin(w.phase*0.6+x*0.028)*w.amp*0.35);
+    function drawSea(){
+     const seaBg=ctx.createLinearGradient(0,horizonY,0,shoreY);
+     seaBg.addColorStop(0,'#011008');
+     seaBg.addColorStop(0.50,'#011a0c');
+     seaBg.addColorStop(1,'#012010');
+     ctx.fillStyle=seaBg;ctx.fillRect(0,horizonY,W,shoreY-horizonY);
+
+     /* Reflet lunaire */
+     const reflW=W*0.12;
+     const reflG=ctx.createLinearGradient(moonX,horizonY,moonX,shoreY);
+     reflG.addColorStop(0,`rgba(180,240,200,${0.12+Math.sin(t*1.2)*0.04})`);
+     reflG.addColorStop(0.40,`rgba(130,210,175,${0.08+Math.sin(t*0.9)*0.03})`);
+     reflG.addColorStop(1,'rgba(80,180,150,0.03)');
+     ctx.fillStyle=reflG;
+     ctx.beginPath();
+     ctx.moveTo(moonX-reflW*0.15,horizonY);ctx.lineTo(moonX+reflW*0.15,horizonY);
+     ctx.lineTo(moonX+reflW*0.55,shoreY);ctx.lineTo(moonX-reflW*0.55,shoreY);
+     ctx.closePath();ctx.fill();
+
+     for(const sp of moonReflSparkles){
+      sp.ph+=sp.spd;
+      const bri=Math.max(0,Math.sin(sp.ph));
+      const sx=moonX+sp.xOff;
+      const sg=ctx.createRadialGradient(sx,sp.y,0,sx,sp.y,W*0.018);
+      sg.addColorStop(0,`rgba(210,255,230,${0.55*bri})`);
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.fillRect(sx-W*0.018,sp.y-W*0.018,W*0.036,W*0.036);
+     }
+
+     /* Vagues */
+     for(let wi=0;wi<WAVE_LAYERS.length;wi++){
+      const wl=WAVE_LAYERS[wi];
+      wavePhases[wi]+=wl.spd;
+      const [r,g,b]=wl.col;
+      ctx.fillStyle=`rgba(${r},${g},${b},${wl.op})`;
+      ctx.beginPath();ctx.moveTo(0,wl.y0);
+      for(let x=0;x<=W;x+=6){
+       const y=wl.y0+Math.sin(wavePhases[wi]+x*wl.freq)*wl.amp+Math.sin(wavePhases[wi]*0.62+x*wl.freq*1.55)*wl.amp*0.38;
+       ctx.lineTo(x,y);
       }
-      ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
-     }
-
-     /* Plancton bioluminescent */
-     for(const b of biolum){
-      b.x+=b.vx;b.y+=b.vy;b.ph+=b.spd;
-      if(b.x<0||b.x>W)b.vx*=-1;if(b.y<H*0.55||b.y>H*0.90)b.vy*=-1;
-      const ba=b.r*(0.5+0.5*Math.abs(Math.sin(b.ph)));
-      const bg2=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r*4);
-      bg2.addColorStop(0,`rgba(80,255,160,${0.55*Math.abs(Math.sin(b.ph))})`);
-      bg2.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=bg2;ctx.fillRect(b.x-b.r*4,b.y-b.r*4,b.r*8,b.r*8);
-      ctx.fillStyle=`rgba(120,255,180,${0.80*Math.abs(Math.sin(b.ph))})`;
-      ctx.beginPath();ctx.arc(b.x,b.y,ba,0,Math.PI*2);ctx.fill();
-     }
-
-     /* Palmiers de plage */
-     ctx.strokeStyle='rgba(4,12,6,0.98)';ctx.lineCap='round';
-     function drawPalm(px,py,lean){
-      ctx.lineWidth=W*0.016;
-      ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+lean*W*0.04,py-H*0.16,px+lean*W*0.09,py-H*0.26);ctx.stroke();
-      const angles=[-0.6,-0.1,0.4,0.9,1.4];
-      for(const a of angles){
-       ctx.lineWidth=W*0.008;
-       ctx.beginPath();ctx.moveTo(px+lean*W*0.09,py-H*0.26);
-       ctx.quadraticCurveTo(px+lean*W*0.09+Math.cos(a-Math.PI/2)*W*0.08,py-H*0.26+Math.sin(a-Math.PI/2)*H*0.06,px+lean*W*0.09+Math.cos(a-Math.PI/2)*W*0.14,py-H*0.26+Math.sin(a-Math.PI/2)*H*0.10);
+      ctx.lineTo(W,shoreY+H*0.05);ctx.lineTo(0,shoreY+H*0.05);
+      ctx.closePath();ctx.fill();
+      if(wl.foam){
+       ctx.strokeStyle='rgba(200,255,235,0.12)';ctx.lineWidth=1.5;
+       ctx.beginPath();ctx.moveTo(0,wl.y0);
+       for(let x=0;x<=W;x+=6){
+        const y=wl.y0+Math.sin(wavePhases[wi]+x*wl.freq)*wl.amp+Math.sin(wavePhases[wi]*0.62+x*wl.freq*1.55)*wl.amp*0.38;
+        ctx.lineTo(x,y);
+       }
        ctx.stroke();
       }
      }
-     drawPalm(W*0.08,H*0.80,-1);drawPalm(W*0.88,H*0.78,1);
 
+     /* Plancton */
+     for(const b of biolum){
+      b.x+=b.vx;b.y+=b.vy;b.ph+=b.spd;
+      if(b.x<0||b.x>W)b.vx*=-1;
+      if(b.y<horizonY+H*0.01||b.y>shoreY-H*0.01)b.vy*=-1;
+      const bri=Math.max(0,Math.sin(b.ph));
+      const bg2=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r*5);
+      bg2.addColorStop(0,`rgba(60,255,160,${0.60*bri})`);
+      bg2.addColorStop(0.40,`rgba(20,200,130,${0.25*bri})`);
+      bg2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=bg2;ctx.fillRect(b.x-b.r*5,b.y-b.r*5,b.r*10,b.r*10);
+      ctx.fillStyle=`rgba(140,255,200,${0.85*bri})`;
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r*bri,0,Math.PI*2);ctx.fill();
+     }
+    }
+
+    function drawShore(){
+     const sandH=H-shoreY;
+     /* Base sable sombre — nuit tropicale */
+     const sandG=ctx.createLinearGradient(0,shoreY,0,H);
+     sandG.addColorStop(0,'rgba(42,54,30,0.97)');
+     sandG.addColorStop(0.18,'rgba(35,46,22,0.98)');
+     sandG.addColorStop(0.45,'rgba(26,36,16,0.99)');
+     sandG.addColorStop(0.75,'rgba(18,26,10,1.0)');
+     sandG.addColorStop(1,'rgba(12,18,6,1.0)');
+     ctx.fillStyle=sandG;ctx.fillRect(0,shoreY,W,sandH);
+
+     /* Lueur teal de la mer sur le sable humide */
+     const wetG=ctx.createLinearGradient(0,shoreY-H*0.012,0,shoreY+H*0.040);
+     wetG.addColorStop(0,'rgba(0,40,28,0)');
+     wetG.addColorStop(0.40,`rgba(0,68,45,${0.38+Math.sin(t*0.7)*0.06})`);
+     wetG.addColorStop(0.75,'rgba(0,30,18,0.18)');
+     wetG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=wetG;ctx.fillRect(0,shoreY-H*0.012,W,H*0.052);
+
+     /* Reflet lunaire sur le sable humide */
+     const sandRefl=ctx.createLinearGradient(moonX-W*0.10,shoreY,moonX+W*0.10,shoreY);
+     sandRefl.addColorStop(0,'rgba(0,0,0,0)');
+     sandRefl.addColorStop(0.50,`rgba(160,220,180,${0.06+Math.sin(t*0.5)*0.02})`);
+     sandRefl.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sandRefl;ctx.fillRect(moonX-W*0.30,shoreY,W*0.60,sandH*0.30);
+
+     /* Grains de sable */
+     for(const g of sandGrains){
+      ctx.fillStyle=`rgba(${g.col},${g.op})`;
+      ctx.beginPath();ctx.arc(g.x*W, shoreY+g.y*sandH, g.r, 0, Math.PI*2);ctx.fill();
+     }
+     /* Petits cailloux/debris */
+     for(const p of pebbles){
+      ctx.save();
+      ctx.translate(p.x*W, shoreY+p.y*sandH);
+      ctx.rotate(p.rot);
+      ctx.fillStyle=`rgba(18,28,12,${p.op})`;
+      ctx.beginPath();ctx.ellipse(0,0,p.rx,p.ry,0,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+     }
+     /* Laisses de mer — lignes courbes laissees par les vagues */
+     for(const tl of tideLines){
+      ctx.strokeStyle=`rgba(0,80,52,${tl.op})`;
+      ctx.lineWidth=0.8;
+      ctx.beginPath();
+      ctx.moveTo(tl.xStart*W, shoreY+tl.y*sandH);
+      ctx.bezierCurveTo(
+       (tl.xStart+0.15)*W, shoreY+tl.y*sandH-H*0.004,
+       (tl.xEnd-0.15)*W,   shoreY+tl.y*sandH+H*0.003,
+       tl.xEnd*W,           shoreY+tl.y*sandH
+      );
+      ctx.stroke();
+     }
+     /* Ondulations de surface — texture legere */
+     for(let i=0;i<8;i++){
+      const ty=shoreY+sandH*(0.12+i*0.10);
+      const ripOp=0.04+i*0.006;
+      ctx.strokeStyle=`rgba(30,42,18,${ripOp})`;
+      ctx.lineWidth=0.6;
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=14){
+       const dy=Math.sin(x*0.04+i*1.2)*H*0.003;
+       if(x===0)ctx.moveTo(x,ty+dy);else ctx.lineTo(x,ty+dy);
+      }
+      ctx.stroke();
+     }
+    }
+
+    function drawPalms(){
+     if(!palmReady)return;
+     /* ratio SVG : 824 w x 1280 h => 0.6438 */
+     const RATIO=824/1280;
+     /* Palmier gauche — ancré au bord gauche, penché vers l'intérieur */
+     const lH=H*0.52;
+     const lW=lH*RATIO;
+     ctx.save();
+     ctx.translate(-lW*0.18, shoreY-lH*0.82);
+     ctx.drawImage(palmImg, 0, 0, lW, lH);
+     ctx.restore();
+     /* Palmier droit — ancré au bord droit, miroir, penché vers l'intérieur */
+     const rH=H*0.48;
+     const rW=rH*RATIO;
+     ctx.save();
+     /* scale(-1,1) depuis le bord droit = translate(W) + scale(-1,1) + translate(-rW décalage) */
+     ctx.translate(W + rW*0.18, shoreY-rH*0.82);
+     ctx.scale(-1,1);
+     ctx.drawImage(palmImg, 0, 0, rW, rH);
+     ctx.restore();
+    }
+
+    function frame(){
+     if(stop.v)return;
+
+     drawSky();
+     drawSea();
+     drawShore();
+     drawPalms();
+
+     /* Vignette */
+     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.12,cx,H*0.48,H*0.92);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.55,'rgba(0,0,0,0.04)');
+     vg.addColorStop(1,'rgba(0,0,0,0.72)');
+     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
+
   },
 
   /* ══ BABY DRIVER ══ */
