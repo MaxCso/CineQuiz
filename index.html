@@ -24588,6 +24588,7 @@ function closeAvModal(e){
     const cx=W/2;
     /* Centre légèrement en haut comme l'affiche */
     const spX=cx, spY=H*0.40;
+    const cy=spY;
 
     /* Couleurs strictes — noir + beige, rien d'autre */
     const BG   ='rgb(6,5,3)';
@@ -24601,6 +24602,20 @@ function closeAvModal(e){
 
     /* Coup de feu */
     let shotTimer=260, shotCooldown=300, flashAlpha=0, bloodY=0, bloodActive=false;
+
+    /* Watcher stop — indispensable pour terminer le splash */
+    const _jbW=setInterval(()=>{if(stop.v)clearInterval(_jbW);},200);
+
+    /* Particules orbitales dans la spirale */
+    const _bondParticles=Array.from({length:40},()=>({
+     angle:Math.random()*Math.PI*2,
+     dist:W*(0.06+Math.random()*0.42),
+     spd:(Math.random()-0.5)*0.006,
+     r:Math.random()*1.4+0.3,
+     op:0.06+Math.random()*0.16,
+     ph:Math.random()*Math.PI*2,
+     warm:Math.random()<0.6,
+    }));
 
     /* ── SVG Bond ── */
     const _b1=new Path2D('M483.304 909.482C484.303 894.022 488.713 878.056 492.046 863.206C495.327 848.589 499.27 834.413 502.318 819.744C505.055 810.912 509.581 803.908 517.609 799.07C528.439 792.534 544.275 792.326 555.961 786.23C565.701 781.146 574.028 774.065 578.749 763.974C588.269 743.625 582.692 718.295 579.812 697.037C578.191 685.105 575.299 672.343 575.299 660.294C575.299 646.105 565.623 627.286 562.576 613.084C558.962 595.919 556.033 578.616 553.795 561.218C549.153 526.866 545.934 492.337 544.146 457.719C543.549 445.463 544.716 431.494 538.556 420.366C525.651 397.047 491.761 387.812 468.428 379.265C454.083 373.999 439.648 368.773 426.017 361.782C416.238 356.763 392.866 345.622 389.066 334.416C382.438 314.87 386.783 289.021 358.587 300.565C358.016 300.798 359.261 289.32 359.663 288.036C361.116 283.406 363.554 279.113 366.2 275.053C371.687 266.61 378.431 259.061 383.761 250.488C388.288 243.212 385.292 233.005 387.964 225.055L393.164 204.692C420.608 182.021 418.806 144.707 414.655 140.142C413.41 137.444 409.908 136.419 409.182 135.641C407.301 133.67 407.639 125.823 408.611 120.946C416.082 107.587 412.775 81.8295 411.05 73.1138C409.714 66.6419 406.186 59.6901 403.216 52.9717C395.642 35.7998 389.196 17.7459 367.925 11.0535C339.846 3.64773 268.888 5.96932 236.723 44.9175C208.812 73.5807 221.108 149.246 215.868 150.362C214.765 149.558 209.915 151.944 209.642 157.495C207.567 171.399 207.956 204.044 228.267 218.44C231.717 220.697 229.369 236.533 229.369 242.24C228.85 254.69 240.264 273.38 239.486 279.605C239.486 288.944 236.321 294.469 244.155 299.06C249.823 302.782 282.429 314.935 279.887 328.475C278.317 336.854 282.921 349.759 285.36 357.735C287.772 365.673 290.379 375.841 295.619 382.43C304.555 393.674 328.925 364.181 334.917 358.954C356.927 347.1 367.925 381.82 386.55 389.433C406.861 474.074 397.587 631.722 392.477 666.221C385.837 699.981 383.165 675.533 383.165 675.533C379.637 600.438 254.077 320.175 230.809 315.804C212.223 306.855 202.885 334.429 185.103 334.429C179.916 325.933 183.353 316.906 189.254 310.564C201.77 302.056 198.021 297.231 192.12 292.407C187.295 288.114 184.17 279.035 187.218 271.071C188.67 262.356 186.673 250.787 179.384 243.562C174.65 238.867 154.586 233.641 159.683 225.171C161.745 221.747 171.848 222.837 174.987 220.891C183.91 215.327 179.877 208.038 171.031 206.754C163.185 205.613 159.358 199.349 158.126 190.996C156.998 183.292 159.371 175.536 159.631 167.845C159.761 164.213 159.799 160.426 158.502 156.963C157.154 153.371 153.25 151.464 151.914 148.507C151.771 148.183 151.2 147.158 151.654 139.35C151.784 136.99 155.221 140.142 155.403 137.301C154.767 137.612 163.262 3.29755 163.275 3.01222C162.782 0.366385 142.42 -0.956537 141.175 0.794381C141.447 1.02784 133.717 135.913 133.86 136.069C133.821 138.598 138.036 136.419 137.984 138.637C138.244 140.959 137.53 147.664 137.245 150.232C117.803 164.213 130.903 204.394 102.992 212.578C84.3673 218.025 99.5938 244.341 93.2127 255.261C89.0494 262.369 81.2675 265.78 77.9213 274.21C74.7827 282.147 74.3676 291.045 74.7567 299.475C75.5349 316.803 84.3932 325.57 84.3673 349.694C84.3413 369.33 102.149 383.091 120.501 386.762C143.756 395.944 161.395 375.932 175.778 386.087C176.038 401.262 174.339 415.542 167.996 427.357C153.807 453.776 116.831 460.806 93.6796 437.72C61.761 425.308 79.2961 407.254 75.898 392.014C76.1445 393.104 39.1936 404.893 35.5491 407.332C25.2252 414.219 27.1317 423.466 27.1577 434.542C27.3782 513.969 16.73 592.605 7.23612 671.305C5.64084 684.534 4.16228 697.79 2.64482 711.019C1.49051 721.2 -1.99835 733.249 1.55537 742.976C13.2411 775.024 44.9781 801.677 72.513 818.616C91.0078 829.99 109.477 808.655 125.948 815.685C142.057 822.572 139.528 852.428 140.5 866.098C142.148 889.703 139.748 913.879 135.741 937.16C127.764 983.617 112.797 1028.61 105.78 1075.25C103.69 1088.68 102.322 1102.21 101.682 1115.78C101.423 1122.06 98.3228 1155.7 103.173 1159.57C106.221 1166.23 115.754 1165.97 114.82 1184.26C106.299 1287.51 102.097 1391.04 97.778 1494.52C93.4721 1597.93 89.1272 1701.4 80.3207 1804.55C75.7165 1858.48 65.7816 1911.85 63.6416 1966.01C61.8388 2011.41 44.7965 2059.46 57.2605 2104.35C62.6429 2123.75 53.8754 2149.21 66.5728 2165.29C65.4574 2184.11 53.9143 2192.06 51.3333 2199.16C43.7201 2227.07 64.2642 2252.93 78.4271 2262.64C107.233 2285.19 121.552 2280 139.372 2275.34C164.767 2267.71 174.922 2245.73 191.005 2226.25C198.748 2209.21 183.391 2191.54 185.078 2171.23C220.2 2164.48 216.996 1916.2 236.71 1839.41C240.705 1810.18 257.812 1706.37 265.944 1606.92C268.577 1587.14 267.513 1575.51 270.561 1555.84C286.696 1488.58 305.268 1395.04 316.267 1312.08H319.652C328.523 1377.86 329.405 1453.25 344.748 1509.76C364.748 1596.83 365.707 1616.94 350.014 1672.31C336.11 1747.95 336.214 1848.34 338.886 1924.82C341.558 2001.2 340.533 2084.36 356.058 2159.37C356.823 2163.04 358.38 2163.17 360.999 2162.96C364.501 2162.4 367.342 2182.94 367.432 2191.98C367.225 2193.48 367.731 2197.59 367.912 2199.16C370.869 2220.74 417.068 2227.2 424.02 2228.18C445.368 2231.15 469.479 2211.84 499.102 2238.92C499.076 2238.87 502.629 2239.8 503.797 2239.86C553.004 2247.83 612.872 2250.83 653.999 2223.7C661.47 2218.25 658.98 2205.33 644.934 2201.58C609.306 2193.4 581.459 2170.62 550.734 2153.43C539.632 2147.21 525.521 2131.36 528.335 2125.01C529.269 2121.82 533.744 2120.96 529.567 2107.73C494.017 1985.84 500.528 1823.54 515.755 1695.71C516.17 1681.3 527.557 1664.27 529.567 1647.25C543.951 1465.28 507.272 1291.68 507.272 1114.75C512.486 1110.85 515.028 1100.12 511.215 1091.36C504.678 1064.85 500.139 1037.84 494.666 1011.1C490.944 992.981 488.804 964.02 484.511 947.924C482.954 941.997 482.915 915.552 483.304 909.482Z');
@@ -24796,8 +24811,15 @@ function closeAvModal(e){
      /* Sang plein écran */
      drawBlood();
 
-     /* Logo 007 — par-dessus le sang */
-     draw007();
+     /* Particules subtiles — poussière qui flotte dans la spirale */
+     for(const p of _bondParticles){
+      p.angle+=p.spd;p.ph+=0.022;
+      const px=cx+Math.cos(p.angle)*p.dist*(1+Math.sin(p.ph)*0.08);
+      const py=cy+Math.sin(p.angle)*p.dist*(0.55+Math.cos(p.ph)*0.06);
+      const pa=p.op*(0.35+0.65*Math.abs(Math.sin(p.ph)));
+      ctx.beginPath();ctx.arc(px,py,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.warm?'220,190,140':'180,160,120'},${pa})`;ctx.fill();
+     }
 
      shotTimer++;
      if(shotTimer>=shotCooldown){
@@ -24805,7 +24827,7 @@ function closeAvModal(e){
      }
      if(bloodActive){
       /* Descend rapidement... */
-      if(shotTimer>4&&shotTimer<80) bloodY+=H*0.022;
+      if(shotTimer>4&&shotTimer<80) bloodY+=H*0.008;
       /* ...s'arrête un instant en plein écran... */
       else if(shotTimer>=80&&shotTimer<160){/* pause */}
       /* ...puis remonte lentement */
@@ -32383,6 +32405,11 @@ function closeAvModal(e){
     let t=0;
     const cx=W/2,cy=H/2;
 
+    let _titS=document.getElementById('_tit_s');
+    if(!_titS){_titS=document.createElement('style');_titS.id='_tit_s';document.head.appendChild(_titS);}
+    _titS.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _titW=setInterval(()=>{if(stop.v){_titS.textContent='';clearInterval(_titW);}},200);
+
     const stars=Array.from({length:100},()=>({
      x:Math.random()*W,y:Math.random()*H*0.55,
      r:Math.random()*1.5+0.3,op:Math.random()*0.7+0.2,
@@ -32430,16 +32457,16 @@ function closeAvModal(e){
 
      ctx.fillStyle='rgba(200,220,240,0.35)';
      ctx.beginPath();
-     ctx.moveTo(cx-W*0.22,H*0.54);
-     ctx.lineTo(cx-W*0.14,H*0.36);
-     ctx.lineTo(cx-W*0.06,H*0.54);
+     ctx.moveTo(cx-W*0.22,H*0.60);
+     ctx.lineTo(cx-W*0.14,H*0.42);
+     ctx.lineTo(cx-W*0.06,H*0.60);
      ctx.closePath();ctx.fill();
      ctx.fillStyle='rgba(160,190,220,0.20)';
      ctx.beginPath();
-     ctx.moveTo(cx-W*0.22,H*0.54);
-     ctx.lineTo(cx-W*0.28,H*0.62);
-     ctx.lineTo(cx-W*0.04,H*0.64);
-     ctx.lineTo(cx-W*0.06,H*0.54);
+     ctx.moveTo(cx-W*0.22,H*0.60);
+     ctx.lineTo(cx-W*0.28,H*0.68);
+     ctx.lineTo(cx-W*0.04,H*0.70);
+     ctx.lineTo(cx-W*0.06,H*0.60);
      ctx.closePath();ctx.fill();
 
      for(const ic of ice){
@@ -51973,91 +52000,172 @@ function closeAvModal(e){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_tbc_s');
     if(!_s){_s=document.createElement('style');_s.id='_tbc_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#0a0005!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash{background:#1a1008!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* 5 silhouettes levant le poing */
-    const figs=[
-     {x:cx-W*0.32,armUp:true, col:'rgba(14,4,28,0.97)'},
-     {x:cx-W*0.16,armUp:false,col:'rgba(12,3,24,0.97)'},
-     {x:cx,        armUp:true, col:'rgba(16,5,32,0.97)'},
-     {x:cx+W*0.16,armUp:false,col:'rgba(12,3,24,0.97)'},
-     {x:cx+W*0.32,armUp:true, col:'rgba(14,4,28,0.97)'},
-    ];
-    /* Confettis 80s */
-    const confetti=Array.from({length:45},()=>({
-     x:Math.random()*W,y:Math.random()*H,
-     vy:0.4+Math.random()*0.8,vx:(Math.random()-0.5)*0.5,
-     rot:Math.random()*Math.PI*2,rotSpd:(Math.random()-0.5)*0.06,
-     w:W*0.010+Math.random()*W*0.012,h:H*0.005+Math.random()*H*0.007,
-     col:['255,40,120','255,200,0','0,180,255','180,0,255','0,220,100'][Math.floor(Math.random()*5)],
+    /* SVG groupe — viewBox 0 0 739 623, ratio 1.185 */
+    const bcImg=new Image();let bcReady=false;
+    bcImg.onload=()=>{bcReady=true;};bcImg.src='images/BC.svg';
+    const BC_W=W*0.88, BC_H=BC_W*(623/739);
+
+    /* Poussière dans les rayons de lumière */
+    const motes=Array.from({length:55},()=>({
+     x:Math.random()*W, y:H*0.25+Math.random()*H*0.55,
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(0.04+Math.random()*0.10),
+     r:Math.random()*1.6+0.3,
+     op:0.04+Math.random()*0.14,
+     ph:Math.random()*Math.PI*2,
     }));
 
-    function drawFig(fx,fy,armUp,col,bob){
-     ctx.fillStyle=col;
-     /* Jambes */
-     ctx.fillRect(fx-W*0.018,fy,W*0.014,H*0.14);
-     ctx.fillRect(fx+W*0.005,fy,W*0.014,H*0.14);
-     /* Corps */
-     ctx.beginPath();ctx.ellipse(fx,fy-H*0.065,W*0.032,H*0.070,0,0,Math.PI*2);ctx.fill();
-     /* Tête */
-     ctx.beginPath();ctx.arc(fx,fy-H*0.155+bob,W*0.026,0,Math.PI*2);ctx.fill();
-     /* Bras levé ou non */
-     ctx.lineWidth=W*0.016;ctx.strokeStyle=col;ctx.lineCap='round';
-     if(armUp){
-      ctx.beginPath();ctx.moveTo(fx,fy-H*0.09);ctx.lineTo(fx-W*0.06,fy-H*0.19+bob);ctx.stroke();
-      /* Poing levé */
-      ctx.fillStyle=col;ctx.beginPath();ctx.arc(fx-W*0.060,fy-H*0.205+bob,W*0.018,0,Math.PI*2);ctx.fill();
-     } else {
-      ctx.beginPath();ctx.moveTo(fx,fy-H*0.09);ctx.lineTo(fx+W*0.055,fy-H*0.04);ctx.stroke();
+    /* Confettis très discrets */
+    const confetti=Array.from({length:28},()=>({
+     x:Math.random()*W, y:Math.random()*H*0.60-H*0.10,
+     vy:0.3+Math.random()*0.55, vx:(Math.random()-0.5)*0.30,
+     rot:Math.random()*Math.PI*2, rotSpd:(Math.random()-0.5)*0.04,
+     w:W*0.007+Math.random()*W*0.009, h:H*0.003+Math.random()*H*0.005,
+     col:['255,40,120','255,200,0','0,180,255','180,0,255','0,220,100'][Math.floor(Math.random()*5)],
+     op:0.25+Math.random()*0.25,
+    }));
+
+    function drawLibrary(){
+     const shelfY=H*0.62; /* étagères du bas */
+
+     /* Sol parquet */
+     const floorG=ctx.createLinearGradient(0,shelfY,0,H);
+     floorG.addColorStop(0,'rgba(55,30,10,0.98)');
+     floorG.addColorStop(0.5,'rgba(40,22,6,0.98)');
+     floorG.addColorStop(1,'rgba(25,14,3,1.0)');
+     ctx.fillStyle=floorG;ctx.fillRect(0,shelfY,W,H-shelfY);
+     /* Lames de parquet */
+     ctx.strokeStyle='rgba(70,38,12,0.40)';ctx.lineWidth=0.8;
+     for(let li=0;li<7;li++){
+      const ly=shelfY+li*(H-shelfY)/6;
+      ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W,ly);ctx.stroke();
      }
-     ctx.beginPath();ctx.moveTo(fx,fy-H*0.09);ctx.lineTo(fx+W*0.045,(armUp?fy-H*0.06:fy-H*0.04));ctx.stroke();
+     for(let lc=0;lc<9;lc++){
+      ctx.beginPath();ctx.moveTo(W*lc/8,shelfY);ctx.lineTo(W*lc/8,H);ctx.stroke();
+     }
+
+     /* Mur du fond — brique/plâtre beige */
+     const wallG=ctx.createLinearGradient(0,0,0,shelfY);
+     wallG.addColorStop(0,'rgba(38,28,16,0.96)');
+     wallG.addColorStop(0.4,'rgba(48,34,18,0.94)');
+     wallG.addColorStop(1,'rgba(55,38,20,0.92)');
+     ctx.fillStyle=wallG;ctx.fillRect(0,0,W,shelfY);
+
+     /* Fenêtres hautes — lumière samedi matin */
+     const winW=W*0.18, winH=H*0.20, winY=H*0.06;
+     for(const wx of [W*0.10,W*0.48,W*0.82]){
+      /* Lumière extérieure */
+      const winGlow=ctx.createRadialGradient(wx,winY+winH*0.5,0,wx,winY+winH*0.5,W*0.30);
+      winGlow.addColorStop(0,`rgba(255,230,160,${0.20+Math.sin(t*0.3)*0.04})`);
+      winGlow.addColorStop(0.4,'rgba(220,180,80,0.07)');
+      winGlow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=winGlow;ctx.fillRect(0,0,W,shelfY*0.80);
+      /* Cadre fenêtre */
+      ctx.fillStyle='rgba(55,38,18,0.90)';
+      ctx.beginPath();ctx.roundRect(wx-winW/2-3,winY-3,winW+6,winH+6,4);ctx.fill();
+      /* Vitre */
+      const glassG=ctx.createLinearGradient(wx-winW/2,winY,wx+winW/2,winY+winH);
+      glassG.addColorStop(0,`rgba(200,220,255,${0.22+Math.sin(t*0.25)*0.04})`);
+      glassG.addColorStop(0.4,`rgba(180,210,250,0.16)`);
+      glassG.addColorStop(1,'rgba(140,180,220,0.12)');
+      ctx.fillStyle=glassG;ctx.fillRect(wx-winW/2,winY,winW,winH);
+      /* Croisillon */
+      ctx.strokeStyle='rgba(55,38,18,0.80)';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(wx,winY);ctx.lineTo(wx,winY+winH);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(wx-winW/2,winY+winH*0.50);ctx.lineTo(wx+winW/2,winY+winH*0.50);ctx.stroke();
+      /* Rayon de lumière diagonal */
+      const rayG=ctx.createLinearGradient(wx,winY+winH,wx+W*0.12,shelfY);
+      rayG.addColorStop(0,`rgba(255,230,140,${0.10+Math.sin(t*0.3)*0.03})`);
+      rayG.addColorStop(1,'rgba(255,220,120,0)');
+      ctx.fillStyle=rayG;
+      ctx.beginPath();
+      ctx.moveTo(wx-winW*0.4,winY+winH);
+      ctx.lineTo(wx+winW*0.4,winY+winH);
+      ctx.lineTo(wx+winW*0.4+W*0.14,shelfY);
+      ctx.lineTo(wx-winW*0.4-W*0.04,shelfY);
+      ctx.closePath();ctx.fill();
+     }
+
+     /* Étagères de livres */
+     const bookCols=['#8B2020','#1a5a8a','#1a6b2a','#7a6a10','#6a1a6a','#4a3010','#a04020'];
+     const shelfH=H*0.065;
+     /* Étagère gauche */
+     ctx.fillStyle='rgba(40,25,8,0.90)';ctx.fillRect(0,shelfY-shelfH,W*0.18,shelfH);
+     ctx.strokeStyle='rgba(60,38,12,0.60)';ctx.lineWidth=2;ctx.strokeRect(0,shelfY-shelfH,W*0.18,shelfH);
+     for(let bi=0;bi<7;bi++){
+      const bw=W*0.018,bh=shelfH*(0.72+Math.random()*0.22),bx=bi*W*0.024+W*0.005;
+      ctx.fillStyle=bookCols[bi%bookCols.length];ctx.fillRect(bx,shelfY-shelfH+(shelfH-bh),bw,bh);
+      ctx.strokeStyle='rgba(0,0,0,0.20)';ctx.lineWidth=0.5;ctx.strokeRect(bx,shelfY-shelfH+(shelfH-bh),bw,bh);
+     }
+     /* Étagère droite */
+     ctx.fillStyle='rgba(40,25,8,0.90)';ctx.fillRect(W*0.82,shelfY-shelfH,W*0.18,shelfH);
+     ctx.strokeStyle='rgba(60,38,12,0.60)';ctx.lineWidth=2;ctx.strokeRect(W*0.82,shelfY-shelfH,W*0.18,shelfH);
+     for(let bi=0;bi<7;bi++){
+      const bw=W*0.018,bh=shelfH*(0.70+Math.random()*0.24),bx=W*0.824+bi*W*0.024;
+      ctx.fillStyle=bookCols[(bi+3)%bookCols.length];ctx.fillRect(bx,shelfY-shelfH+(shelfH-bh),bw,bh);
+      ctx.strokeStyle='rgba(0,0,0,0.20)';ctx.lineWidth=0.5;ctx.strokeRect(bx,shelfY-shelfH+(shelfH-bh),bw,bh);
+     }
     }
 
     function frame(){
      if(stop.v)return;
-     /* Coucher de soleil années 80 — violet-magenta */
+
+     /* Fond général chaud */
      const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0.00,'#060008');
-     bg.addColorStop(0.30,'#120015');
-     bg.addColorStop(0.60,'#1e0025');
-     bg.addColorStop(0.80,'#2a1035');
-     bg.addColorStop(1.00,'#1a0820');
+     bg.addColorStop(0,'#100a04');
+     bg.addColorStop(0.40,'#1a1008');
+     bg.addColorStop(0.75,'#22140a');
+     bg.addColorStop(1.00,'#120a04');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-     /* Soleil couchant */
-     const sunX=cx,sunY=H*0.62;
-     const sunG=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,W*0.35);
-     sunG.addColorStop(0,'rgba(255,180,40,0.25)');
-     sunG.addColorStop(0.3,'rgba(255,80,120,0.12)');
-     sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H);
+     /* Bibliothèque / salle de détention */
+     drawLibrary();
 
-     /* Confettis */
+     /* Poussière dans les rayons */
+     for(const m of motes){
+      m.x+=m.vx;m.y+=m.vy;m.ph+=0.018;
+      if(m.y<H*0.15){m.y=H*0.75;m.x=Math.random()*W;}
+      const ma=m.op*(0.45+0.55*Math.abs(Math.sin(m.ph)));
+      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,220,140,${ma})`;ctx.fill();
+     }
+
+     /* Confettis discrets */
      for(const c of confetti){
       c.y+=c.vy;c.x+=c.vx;c.rot+=c.rotSpd;
       if(c.y>H+20){c.y=-20;c.x=Math.random()*W;}
       ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);
-      ctx.fillStyle=`rgba(${c.col},0.70)`;
+      ctx.fillStyle=`rgba(${c.col},${c.op})`;
       ctx.fillRect(-c.w/2,-c.h/2,c.w,c.h);
       ctx.restore();
      }
 
-     /* Sol */
-     ctx.fillStyle='rgba(10,4,18,0.98)';
-     ctx.fillRect(0,H*0.78,W,H*0.22);
-
-     /* 5 silhouettes */
-     const baseY=H*0.78;
-     figs.forEach((f,i)=>{
-      const bob=Math.sin(t*1.2+i*0.8)*H*0.006;
-      drawFig(f.x,baseY,f.armUp,f.col,bob);
-     });
+     /* Groupe BC — centré en bas */
+     if(bcReady){
+      const bcy=H*0.92-BC_H; /* ancré en bas */
+      /* Légère ombre portée */
+      ctx.save();ctx.shadowColor='rgba(0,0,0,0.45)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;
+      ctx.globalAlpha=0.96;
+      ctx.drawImage(bcImg,cx-BC_W/2,bcy+Math.sin(t*0.35)*H*0.003,BC_W,BC_H);
+      ctx.restore();
+     }
 
      /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.65,H*0.12,cx,H*0.65,H*0.72);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.55)');
+     const vg=ctx.createRadialGradient(cx,H*0.52,H*0.10,cx,H*0.52,H*0.82);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.40,'rgba(0,0,0,0.08)');
+     vg.addColorStop(0.72,'rgba(0,0,0,0.50)');
+     vg.addColorStop(1,'rgba(0,0,0,0.94)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+     /* Grain pellicule chaud */
+     for(let i=0;i<25;i++){
+      ctx.fillStyle=`rgba(${180+Math.random()*40|0},${120+Math.random()*40|0},${40+Math.random()*30|0},${Math.random()*0.014})`;
+      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2+0.3,1);
+     }
 
      t+=0.016;requestAnimationFrame(frame);
     }
