@@ -1,5 +1,8 @@
-const CACHE = 'cinequiz-v78';
-const STATIC = ['./'];
+const CACHE = 'cinequiz-v79';
+const STATIC = [
+  './',
+  './splash-effects.js'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
