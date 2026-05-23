@@ -37194,81 +37194,185 @@
    name:'Casino',
    ref:'Casino \u2014 Martin Scorsese, 1995',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2;
-    let _s=document.getElementById('_cas_s');
-    if(!_s){_s=document.createElement('style');_s.id='_cas_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#050200!important;}#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
-    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+    cv.style.opacity='1';
+    let t=0;
+    const cx=W/2;
 
-    /* Machine à sous — rouleaux */
-    let slotT=0;
-    const slotSymbols=['7','$','♦','★','BAR','♣'];
-    const reels=Array.from({length:3},()=>({offset:Math.random()*slotSymbols.length,spd:0.08+Math.random()*0.04}));
-    /* Pièces qui tombent */
-    const coins=Array.from({length:20},()=>({x:Math.random()*W,y:Math.random()*H,vy:0.5+Math.random()*1.0,vx:(Math.random()-0.5)*0.3,r:W*(0.010+Math.random()*0.012),op:0.4+Math.random()*0.35,ph:Math.random()*Math.PI*2}));
-    /* Néons Vegas */
-    const neons2=[
-     {x:W*0.05,y:H*0.22,col:'rgba(255,30,30,',ph:0,spd:0.040},{x:W*0.88,y:H*0.28,col:'rgba(255,180,0,',ph:1.5,spd:0.032},
-     {x:W*0.10,y:H*0.58,col:'rgba(0,160,255,',ph:2.2,spd:0.028},{x:W*0.84,y:H*0.62,col:'rgba(80,255,80,',ph:3.1,spd:0.035},
-    ];
+    /* ── Style ── */
+    let _csS=document.getElementById('_cs_s');
+    if(!_csS){_csS=document.createElement('style');_csS.id='_cs_s';document.head.appendChild(_csS);}
+    _csS.textContent=`
+     #splash{background:#c0200a!important;}
+     #splash-bg::before,#splash-bg::after,
+     #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
+     #splash-content-wrap{top:22%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
+     #splash-quote-text{color:rgba(255,245,225,0.92)!important;font-size:14px!important;text-shadow:0 1px 8px rgba(80,0,0,0.70)!important;}
+     #splash-film-logo{max-width:62%!important;}
+    `;
+    const _csW=setInterval(()=>{if(stop.v){_csS.textContent='';clearInterval(_csW);}},200);
+
+    /* ── SVG revolver (432×579, ratio ~0.745) ── */
+    const gunImg=new Image(); let gunReady=false;
+    gunImg.onload=()=>{ gunReady=true; };
+    gunImg.src='images/Casino.svg';
+    const GUN_RATIO=432/579;
+
+    /* ── Jetons qui tombent ── */
+    /* Chaque jeton : ellipse noire/rouge avec rotation en perspective */
+    function mkChip(){
+      const side=Math.random()<0.5?-1:1;
+      return {
+        x: cx + side*(W*(0.05+Math.random()*0.38)),
+        y: -(H*(0.05+Math.random()*0.20)),
+        vy: H*(0.004+Math.random()*0.006),
+        vx: (Math.random()-0.5)*W*0.002,
+        rot: Math.random()*Math.PI*2,      /* angle de rotation plan XY */
+        rotSpd: (Math.random()-0.5)*0.08,  /* vitesse de rotation */
+        tilt: Math.random()*0.85,          /* inclinaison perspective 0=face, 1=tranche */
+        tiltSpd: (Math.random()-0.5)*0.025,
+        r: W*(0.048+Math.random()*0.038),  /* rayon du jeton */
+        col: Math.random()<0.55 ? 'dark':'light', /* noir ou blanc cassé */
+        accel: 0.08+Math.random()*0.12,    /* accélération gravité */
+        op: 0.80+Math.random()*0.20,
+        shadow: Math.random()*0.40+0.20,
+      };
+    }
+    const chips=Array.from({length:14}, mkChip);
+
+    function drawChip(chip){
+      const {x,y,rot,tilt,r,col,op} = chip;
+
+      /* Hauteur apparente selon inclinaison (tilt) — 0=cercle, 1=ligne */
+      const tiltClamped=Math.max(0.05, Math.abs(Math.cos(tilt)));
+      const ry=r*tiltClamped; /* demi-hauteur apparente */
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.globalAlpha=op;
+
+      /* Ombre portée sous le jeton */
+      const shG=ctx.createRadialGradient(0,ry*0.4,0,0,ry*0.4,r*1.2);
+      shG.addColorStop(0,`rgba(80,0,0,${chip.shadow*0.6})`);
+      shG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=shG;
+      ctx.beginPath();ctx.ellipse(0,ry*0.5,r*1.1,ry*0.35,0,0,Math.PI*2);ctx.fill();
+
+      if(col==='dark'){
+        /* Jeton noir — comme l'affiche */
+        /* Tranche */
+        if(tiltClamped<0.7){
+          ctx.fillStyle='rgba(20,15,12,0.95)';
+          ctx.beginPath();ctx.ellipse(0,ry*0.12,r,ry*1.1,0,0,Math.PI*2);ctx.fill();
+        }
+        /* Face principale */
+        const cG=ctx.createRadialGradient(-r*0.25,-ry*0.25,0,0,0,r);
+        cG.addColorStop(0,'rgba(55,50,45,1.0)');
+        cG.addColorStop(0.5,'rgba(30,25,22,1.0)');
+        cG.addColorStop(1,'rgba(15,12,10,1.0)');
+        ctx.fillStyle=cG;
+        ctx.beginPath();ctx.ellipse(0,0,r,ry,0,0,Math.PI*2);ctx.fill();
+        /* Cercle intérieur */
+        ctx.strokeStyle='rgba(220,210,195,0.35)';ctx.lineWidth=r*0.08;
+        ctx.beginPath();ctx.ellipse(0,0,r*0.72,ry*0.72,0,0,Math.PI*2);ctx.stroke();
+        /* Petits marqueurs blancs sur le bord */
+        for(let mi=0;mi<8;mi++){
+          const ma=mi/8*Math.PI*2;
+          const mx=Math.cos(ma)*r*0.88;
+          const my=Math.sin(ma)*ry*0.88;
+          ctx.fillStyle='rgba(255,250,240,0.45)';
+          ctx.beginPath();ctx.ellipse(mx,my,r*0.05,ry*0.05,0,0,Math.PI*2);ctx.fill();
+        }
+        /* Reflet lumière */
+        const rG=ctx.createRadialGradient(-r*0.30,-ry*0.30,0,-r*0.20,-ry*0.20,r*0.55);
+        rG.addColorStop(0,'rgba(255,245,230,0.22)');
+        rG.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=rG;
+        ctx.beginPath();ctx.ellipse(0,0,r,ry,0,0,Math.PI*2);ctx.fill();
+
+      } else {
+        /* Jeton blanc/rouge — comme l'affiche */
+        if(tiltClamped<0.7){
+          ctx.fillStyle='rgba(200,200,190,0.90)';
+          ctx.beginPath();ctx.ellipse(0,ry*0.12,r,ry*1.1,0,0,Math.PI*2);ctx.fill();
+        }
+        const cG=ctx.createRadialGradient(-r*0.2,-ry*0.2,0,0,0,r);
+        cG.addColorStop(0,'rgba(240,235,225,1.0)');
+        cG.addColorStop(0.6,'rgba(215,210,200,1.0)');
+        cG.addColorStop(1,'rgba(185,180,170,1.0)');
+        ctx.fillStyle=cG;
+        ctx.beginPath();ctx.ellipse(0,0,r,ry,0,0,Math.PI*2);ctx.fill();
+        /* Bande rouge */
+        ctx.fillStyle='rgba(180,20,10,0.75)';
+        ctx.beginPath();ctx.ellipse(0,0,r*0.65,ry*0.65,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='rgba(255,250,240,0.50)';ctx.lineWidth=r*0.06;
+        ctx.beginPath();ctx.ellipse(0,0,r*0.85,ry*0.85,0,0,Math.PI*2);ctx.stroke();
+        const rG=ctx.createRadialGradient(-r*0.28,-ry*0.28,0,-r*0.15,-ry*0.15,r*0.5);
+        rG.addColorStop(0,'rgba(255,255,255,0.30)');
+        rG.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=rG;
+        ctx.beginPath();ctx.ellipse(0,0,r,ry,0,0,Math.PI*2);ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function drawGun(){
+      if(!gunReady)return;
+      const imgW=W*0.78;
+      const imgH=imgW/GUN_RATIO;
+      const imgX=cx-imgW/2;
+      const imgY=H*0.36-imgH*0.45;
+      ctx.drawImage(gunImg, imgX, imgY, imgW, imgH);
+    }
 
     function frame(){
-     if(stop.v)return;
-     slotT+=0.016;
-     /* Nuit Vegas années 70 — fond rouge sombre */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0,'#020100');bg.addColorStop(0.5,'#050200');bg.addColorStop(1,'#0a0400');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+      if(stop.v)return;
 
-     /* Néons */
-     for(const n of neons2){
-      n.ph+=n.spd;const flk=0.55+0.45*Math.abs(Math.sin(n.ph));
-      const ng=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,W*0.12);
-      ng.addColorStop(0,`${n.col}${0.28*flk})`);ng.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=ng;ctx.fillRect(n.x-W*0.12,n.y-W*0.12,W*0.24,W*0.24);
-     }
+      /* Fond rouge Casino — dégradé radial très subtil */
+      const bg=ctx.createRadialGradient(cx,H*0.40,0,cx,H*0.40,H*0.80);
+      bg.addColorStop(0,'#d42510');
+      bg.addColorStop(0.55,'#c0200a');
+      bg.addColorStop(1,'#8a1206');
+      ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-     /* Pièces d'or */
-     for(const c of coins){
-      c.y+=c.vy;c.x+=c.vx;c.ph+=0.050;
-      if(c.y>H+20){c.y=-20;c.x=Math.random()*W;}
-      const cg=ctx.createRadialGradient(c.x-c.r*0.3,c.y-c.r*0.3,0,c.x,c.y,c.r);
-      cg.addColorStop(0,'rgba(255,230,80,1)');cg.addColorStop(0.6,'rgba(220,160,20,0.8)');cg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=cg;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fill();
-     }
+      /* Mise à jour et dessin des jetons */
+      for(let i=0;i<chips.length;i++){
+        const c=chips[i];
+        c.vy+=c.accel*0.016;
+        c.x+=c.vx;
+        c.y+=c.vy;
+        c.rot+=c.rotSpd;
+        c.tilt+=c.tiltSpd;
+        if(c.y>H+c.r*2) chips[i]=mkChip();
+        drawChip(c);
+      }
 
-     /* Machine à sous */
-     const slotX=cx,slotY=H*0.40,slotW=W*0.50,slotH=H*0.24;
-     ctx.fillStyle='rgba(120,30,0,0.90)';ctx.beginPath();ctx.roundRect(slotX-slotW/2,slotY-slotH/2,slotW,slotH,W*0.018);ctx.fill();
-     ctx.strokeStyle='rgba(255,200,40,0.70)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(slotX-slotW/2,slotY-slotH/2,slotW,slotH,W*0.018);ctx.stroke();
-     /* Rouleaux */
-     for(let ri=0;ri<3;ri++){
-      reels[ri].offset=(reels[ri].offset+reels[ri].spd)%slotSymbols.length;
-      const rx=slotX+(-1+ri)*slotW*0.30,ry=slotY;
-      ctx.fillStyle='rgba(240,230,200,0.88)';ctx.beginPath();ctx.roundRect(rx-W*0.06,ry-H*0.055,W*0.12,H*0.110,W*0.008);ctx.fill();
-      ctx.fillStyle='rgba(20,10,0,0.90)';ctx.font=`bold ${W*0.042}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-      const sym=slotSymbols[Math.floor(reels[ri].offset)%slotSymbols.length];
-      ctx.fillText(sym==='7'?'7':sym,rx,ry);
-     }
-     /* Levier */
-     ctx.fillStyle='rgba(200,40,0,0.85)';ctx.beginPath();ctx.arc(slotX+slotW/2-W*0.015,slotY-slotH*0.10,W*0.012,0,Math.PI*2);ctx.fill();
-     ctx.strokeStyle='rgba(180,30,0,0.85)';ctx.lineWidth=W*0.008;
-     ctx.beginPath();ctx.moveTo(slotX+slotW/2-W*0.015,slotY-slotH*0.10);ctx.lineTo(slotX+slotW/2-W*0.015,slotY+slotH*0.20);ctx.stroke();
+      drawGun();
 
-     /* Silhouette Sam Rothstein — costume voyant */
-     const samX=cx-W*0.22,samY=H*0.68;
-     ctx.fillStyle='rgba(8,3,0,0.97)';
-     ctx.beginPath();ctx.arc(samX,samY-H*0.17,W*0.025,0,Math.PI*2);ctx.fill();
-     ctx.beginPath();ctx.ellipse(samX,samY-H*0.075,W*0.032,H*0.080,0,0,Math.PI*2);ctx.fill();
-     ctx.strokeStyle='rgba(8,3,0,0.97)';ctx.lineWidth=W*0.014;ctx.lineCap='round';
-     ctx.beginPath();ctx.moveTo(samX,samY-H*0.096);ctx.lineTo(samX-W*0.055,samY-H*0.025);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(samX,samY-H*0.096);ctx.lineTo(samX+W*0.050,samY-H*0.035);ctx.stroke();
+      /* Vignette rouge sombre sur les bords */
+      const vg=ctx.createRadialGradient(cx,H*0.46,H*0.06,cx,H*0.46,H*0.85);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(0.50,'rgba(60,0,0,0.04)');
+      vg.addColorStop(0.78,'rgba(60,0,0,0.38)');
+      vg.addColorStop(1,'rgba(40,0,0,0.88)');
+      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 
-     t+=0.016;requestAnimationFrame(frame);
+      /* Grain pellicule teinté rouge — texture affiche sérigraphiée */
+      for(let i=0;i<28;i++){
+        const gv=Math.random()*20|0;
+        ctx.fillStyle=`rgba(${gv+40},${gv},${gv},${Math.random()*0.018})`;
+        ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.4,Math.random()*1.5+0.4);
+      }
+
+      t+=0.016; requestAnimationFrame(frame);
     }
     frame();
    }
   },
+
+
 
   /* ══ FURY ══ */
   {
