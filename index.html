@@ -16733,65 +16733,64 @@ if(_hbg2)_hbg2.classList.add('visible');
 
 /* ── Fond animé léger : canvas ~10fps, 3 halos ── */
 (function initLightBg(){
-  const cv=document.getElementById('home-neuro');
+  var cv=document.getElementById('home-neuro');
   if(!cv)return;
-  const ctx=cv.getContext('2d');
-  if(!ctx)return;
+  var ctx2=cv.getContext('2d');
+  if(!ctx2)return;
 
-  // Resize canvas
   function resize(){
-    cv.width=cv.offsetWidth||window.innerWidth;
-    cv.height=cv.offsetHeight||window.innerHeight;
+    // Utiliser le wrap ou la fenêtre — pas cv.offsetWidth qui vaut 0 si parent caché
+    var wrap=document.getElementById('wrap');
+    cv.width = (wrap ? wrap.offsetWidth : 0) || window.innerWidth;
+    cv.height= (wrap ? wrap.offsetHeight: 0) || window.innerHeight;
   }
   resize();
-  window.addEventListener('resize',resize,{passive:true});
+  setTimeout(resize, 80); // re-resize après rendu
+  window.addEventListener('resize', resize, {passive:true});
 
-  // 3 halos — positions, couleurs, vitesses très lentes
-  const halos=[
-    {x:0.38, y:0.28, vx:0.00012, vy:0.00009,  rx:0.52, ry:0.42, r:200, g:120, b:20,  a:0.32},
-    {x:0.68, y:0.62, vx:-0.00010, vy:-0.00007, rx:0.44, ry:0.38, r:20,  g:55,  b:155, a:0.26},
-    {x:0.28, y:0.70, vx:0.00008,  vy:-0.00011, rx:0.38, ry:0.32, r:130, g:20,  b:75,  a:0.20},
+  // 3 halos — couleurs dorée, bleue, violette
+  var halos=[
+    {x:0.38, y:0.28, vx:0.00014, vy:0.00010,  rx:0.55, ry:0.44, r:200,g:120,b:20,  a:0.34},
+    {x:0.68, y:0.62, vx:-0.00011,vy:-0.00008, rx:0.46, ry:0.40, r:20, g:55, b:160, a:0.28},
+    {x:0.26, y:0.72, vx:0.00009, vy:-0.00012, rx:0.40, ry:0.34, r:130,g:20, b:80,  a:0.22},
   ];
 
-  let lastFrame=0;
-  const FPS=10; // max 10fps — très économe
-  const interval=1000/FPS;
-  let rafId=null;
-  let paused=false;
+  var lastFrame=0;
+  var interval=1000/10; // 10fps max
+  var rafId=null;
+  var active=true;
 
-  // Pause quand l'app est en arrière-plan
-  document.addEventListener('visibilitychange',function(){
-    paused=document.hidden;
-    if(!paused&&!rafId)rafId=requestAnimationFrame(draw);
+  document.addEventListener('visibilitychange', function(){
+    active=!document.hidden;
+    if(active && !rafId) rafId=requestAnimationFrame(draw);
   });
 
   function draw(ts){
     rafId=null;
-    if(paused)return;
-
-    // Throttle à FPS cible
-    if(ts-lastFrame<interval){
-      rafId=requestAnimationFrame(draw);return;
+    if(!active) return;
+    if(ts-lastFrame < interval){
+      rafId=requestAnimationFrame(draw); return;
     }
     lastFrame=ts;
 
-    const W=cv.width, H=cv.height;
-    ctx.clearRect(0,0,W,H);
+    var W=cv.width, H=cv.height;
+    if(!W||!H){ resize(); rafId=requestAnimationFrame(draw); return; }
 
-    for(const h of halos){
-      // Déplacer très lentement, rebondir sur les bords
+    ctx2.clearRect(0,0,W,H);
+
+    for(var i=0;i<halos.length;i++){
+      var h=halos[i];
       h.x+=h.vx; h.y+=h.vy;
-      if(h.x<0.15||h.x>0.85)h.vx*=-1;
-      if(h.y<0.15||h.y>0.85)h.vy*=-1;
-
-      // Dessiner le halo avec gradient radial
-      const gx=h.x*W, gy=h.y*H;
-      const gr=ctx.createRadialGradient(gx,gy,0,gx,gy,Math.min(W*h.rx,H*h.ry));
-      gr.addColorStop(0,  `rgba(${h.r},${h.g},${h.b},${h.a})`);
-      gr.addColorStop(0.5,`rgba(${h.r},${h.g},${h.b},${h.a*0.35})`);
-      gr.addColorStop(1,  'rgba(0,0,0,0)');
-      ctx.fillStyle=gr;
-      ctx.fillRect(0,0,W,H);
+      if(h.x<0.12||h.x>0.88) h.vx*=-1;
+      if(h.y<0.12||h.y>0.88) h.vy*=-1;
+      var gx=h.x*W, gy=h.y*H;
+      var rad=Math.min(W*h.rx, H*h.ry);
+      var gr=ctx2.createRadialGradient(gx,gy,0,gx,gy,rad);
+      gr.addColorStop(0,   'rgba('+h.r+','+h.g+','+h.b+','+h.a+')');
+      gr.addColorStop(0.5, 'rgba('+h.r+','+h.g+','+h.b+','+(h.a*0.30)+')');
+      gr.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx2.fillStyle=gr;
+      ctx2.fillRect(0,0,W,H);
     }
 
     rafId=requestAnimationFrame(draw);
