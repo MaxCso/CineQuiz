@@ -13963,6 +13963,15 @@ function runSplash(){
         }
       }
       splash.classList.add('out');
+      // Afficher la nav immédiatement, sans attendre le MutationObserver
+      if(typeof cqUpdateNav === 'function') {
+        var _activeScreen = null;
+        ['home','modes-screen','profile'].forEach(function(id){
+          var el = document.getElementById(id);
+          if(el && el.classList.contains('on')) _activeScreen = id;
+        });
+        if(_activeScreen) cqUpdateNav(_activeScreen);
+      }
       setTimeout(()=>{
         splash.style.display='none';
         splash.style.animation='none';
@@ -19308,8 +19317,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var splash = document.getElementById('splash');
   if (splash) {
     new MutationObserver(function() {
-      /* Le splash se cache via style.display='none' ou classe 'out' */
-      var hidden = splash.style.display === 'none';
+      /* Le splash se cache via la classe 'out' (opacité → 0) puis display:none.
+         On déclenche la nav dès la classe 'out' pour éviter le délai de 700ms. */
+      var hidden = splash.style.display === 'none' || splash.classList.contains('out');
       var nav = document.getElementById('cq-global-nav');
       if (!nav) return;
       if (hidden) {
