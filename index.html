@@ -645,15 +645,20 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
           <div class="logo" style="font-size:20px;line-height:1;">🏅 BADGES & EASTER EGGS</div>
           <div class="logo-sub">Ta collection de succès</div>
         </div>
-        <div class="bsc-count-wrap">
-          <span id="bsc-bc" class="bsc-count"></span>
-        </div>
       </div>
 
       <!-- Tabs -->
       <div class="bsc-tabs">
-        <button id="bsc-tab-badges" class="bsc-tab bsc-tab-active" onclick="bscSwitchTab('badges')">BADGES</button>
-        <button id="bsc-tab-ee" class="bsc-tab" onclick="bscSwitchTab('ee')">🥚 EASTER EGGS</button>
+        <button id="bsc-tab-badges" class="bsc-tab bsc-tab-active" onclick="bscSwitchTab('badges')">
+          <span class="bsc-tab-label">BADGES</span>
+          <span class="bsc-tab-count" id="bsc-tab-badges-count"></span>
+          <span class="bsc-tab-bar-wrap"><span class="bsc-tab-bar" id="bsc-tab-badges-bar"></span></span>
+        </button>
+        <button id="bsc-tab-ee" class="bsc-tab" onclick="bscSwitchTab('ee')">
+          <span class="bsc-tab-label">🥚 EASTER EGGS</span>
+          <span class="bsc-tab-count" id="bsc-tab-ee-count"></span>
+          <span class="bsc-tab-bar-wrap"><span class="bsc-tab-bar" id="bsc-tab-ee-bar"></span></span>
+        </button>
       </div>
 
       <!-- Panel Badges -->
@@ -6337,15 +6342,10 @@ function openModeInfo(m,el){
   if(qcWrap)qcWrap.style.display=(m==='versus'||m==='survie'||m==='training'?'none':'block');
   // Difficulté : gérée uniquement par le Mode Découverte
   selDiff=null;
-  // Mode Découverte : visible uniquement sur Trivia Ciné (quiz)
+  // Mode Découverte : retiré des modales, disponible uniquement comme mode dédié
   selDecouverte=false;
-  const decouverteModes=['quiz','photo','year','bo','boxoffice','replique','vraifaux','blindtest','pitch','rebus','pendu','generique','location','filmographie','realisateur','casting','acteur','compositeur','decennie','versusfilms','survie'];
   const decWrap=document.getElementById('decouverte-wrap');
-  if(decWrap){
-    decWrap.style.display=decouverteModes.includes(m)?'block':'none';
-    const btn=document.getElementById('decouverte-toggle-btn');
-    if(btn)btn.classList.remove('on');
-  }
+  if(decWrap){ decWrap.style.display='none'; }
 
 
   // Sélecteur de sous-mode pour l'entraînement
@@ -10043,8 +10043,18 @@ function openBadgesEE(){
     eeRenderProfile();
     filterBadges('all');
     const s=ls();
-    const bc=document.getElementById('bsc-bc');
-    if(bc)bc.textContent=s.unlocked.length+'/'+BADGES.length;
+    // Compteur badges dans le tab
+    const bc=document.getElementById('bsc-tab-badges-count');
+    const bb=document.getElementById('bsc-tab-badges-bar');
+    if(bc) bc.textContent=s.unlocked.length+'/'+BADGES.length;
+    if(bb) setTimeout(()=>bb.style.width=Math.round((s.unlocked.length/BADGES.length)*100)+'%',150);
+    // Compteur EE dans le tab (mis à jour aussi dans eeRenderProfile via bsc-tab-ee-count)
+    const found=(s.ee||[]).length;
+    const total=EE_DEFS?EE_DEFS.length:0;
+    const ec=document.getElementById('bsc-tab-ee-count');
+    const eb=document.getElementById('bsc-tab-ee-bar');
+    if(ec) ec.textContent=found+'/'+(total||'?');
+    if(eb&&total) setTimeout(()=>eb.style.width=Math.round((found/total)*100)+'%',150);
     bscSwitchTab('badges');
   },100);
 }
@@ -10156,7 +10166,8 @@ function refProfile(){
   document.getElementById('p-pt').textContent=fmtT(sanePt);
   document.getElementById('p-bs').textContent=s.best;
   const pbc=document.getElementById('p-bc');if(pbc)pbc.textContent=s.unlocked.length+'/'+BADGES.length;
-  const bscbc=document.getElementById('bsc-bc');if(bscbc)bscbc.textContent=s.unlocked.length+'/'+BADGES.length;
+  const bscbc=document.getElementById('bsc-tab-badges-count');if(bscbc)bscbc.textContent=s.unlocked.length+'/'+BADGES.length;
+  const bscbb=document.getElementById('bsc-tab-badges-bar');if(bscbb)bscbb.style.width=Math.round((s.unlocked.length/BADGES.length)*100)+'%';
   updateSectionDots();
   const hist=document.getElementById('p-hist');hist.innerHTML='';
   const rec=[...(s.history||[])].reverse().slice(0,6);
