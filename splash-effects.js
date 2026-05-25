@@ -7,6 +7,14 @@
    ref:'The Matrix \u2014 Wachowski, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
+    /* Fond noir pur + suppression des orbes colorées */
+    const _s=document.createElement('style');
+    _s.id='matrix-bg-override';
+    _s.textContent='#splash{background:#000!important;}#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-bg{background:none!important;}';
+    document.head.appendChild(_s);
+    const origStop=stop;
+    const _cleanup=stop.cleanup;
+    stop.cleanup=function(){if(_cleanup)_cleanup();const el=document.getElementById('matrix-bg-override');if(el)el.remove();};
     const cols=Math.floor(W/14);
     const drops=Array.from({length:cols},()=>Math.random()*-40|0);
     const chars='\u30A2\u30A4\u30A6\u30A8\u30AA\u30AB\u30AD\u30AF\u30B1\u30B3\u30B5\u30B7\u30B9\u30BB\u30BD\u30BF\u30C1\u30C4\u30C6\u30C8\u30CA\u30CB\u30CC\u30CD\u30CE\u30CF\u30D2\u30D5\u30D8\u30DB\u30DE\u30DF\u30E0\u30E1\u30E2\u30E4\u30E6\u30E8\u30E9\u30EA\u30EB\u30EC\u30ED\u30EF\u30F2\u30F30123456789';
@@ -134,6 +142,11 @@
     /* ── Rayons du stargate (couleur) — dynamiques ── */
     const RAYS=80;
 
+    /* ── HAL 9000 — pré-calcul position ── */
+    const halR=W*0.085;
+    const halX=W/2, halY=H*0.36;
+    let halPulse=0;
+
     function frame(){
      if(stop.v)return;
      /* fond espace */
@@ -180,6 +193,91 @@
      moHalo.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=moHalo; ctx.fillRect(0,0,W,H);
 
+     /* ── HAL 9000 ── */
+     halPulse+=0.028;
+     const hp=halPulse;
+     const hx=halX, hy=halY;
+
+     /* lueur rouge ambiante */
+     const halAmb=ctx.createRadialGradient(hx,hy,halR,hx,hy,halR*4.5);
+     halAmb.addColorStop(0,`rgba(180,15,5,${0.18+Math.sin(hp)*0.07})`);
+     halAmb.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=halAmb; ctx.fillRect(0,0,W,H);
+
+     /* anneau externe argenté — bord sombre */
+     ctx.beginPath(); ctx.arc(hx,hy,halR*1.48,0,Math.PI*2);
+     const ringOuter=ctx.createLinearGradient(hx-halR*1.48,hy-halR*1.48,hx+halR*1.48,hy+halR*1.48);
+     ringOuter.addColorStop(0,'rgba(60,60,65,1)');
+     ringOuter.addColorStop(0.5,'rgba(30,30,33,1)');
+     ringOuter.addColorStop(1,'rgba(50,50,55,1)');
+     ctx.fillStyle=ringOuter; ctx.fill();
+
+     /* anneau argenté brillant */
+     ctx.beginPath(); ctx.arc(hx,hy,halR*1.38,0,Math.PI*2);
+     const ringMetal=ctx.createLinearGradient(hx-halR*1.38,hy-halR*1.5,hx+halR*1.38,hy+halR*1.5);
+     ringMetal.addColorStop(0,'rgba(195,195,200,1)');
+     ringMetal.addColorStop(0.25,'rgba(235,235,240,1)');
+     ringMetal.addColorStop(0.45,'rgba(160,160,165,1)');
+     ringMetal.addColorStop(0.65,'rgba(210,210,215,1)');
+     ringMetal.addColorStop(0.85,'rgba(120,120,125,1)');
+     ringMetal.addColorStop(1,'rgba(180,180,185,1)');
+     ctx.fillStyle=ringMetal; ctx.fill();
+
+     /* verre sombre intérieur (entre anneau et lentille) */
+     ctx.beginPath(); ctx.arc(hx,hy,halR*1.12,0,Math.PI*2);
+     const glassRing=ctx.createRadialGradient(hx,hy,halR*0.7,hx,hy,halR*1.12);
+     glassRing.addColorStop(0,'rgba(18,14,14,1)');
+     glassRing.addColorStop(0.5,'rgba(12,9,9,1)');
+     glassRing.addColorStop(1,'rgba(8,5,5,1)');
+     ctx.fillStyle=glassRing; ctx.fill();
+
+     /* lentille rouge principale */
+     ctx.beginPath(); ctx.arc(hx,hy,halR,0,Math.PI*2);
+     const lens=ctx.createRadialGradient(hx,hy,0,hx,hy,halR);
+     const rPulse=180+Math.sin(hp*1.3)*20|0;
+     lens.addColorStop(0,`rgba(255,${100+Math.sin(hp)*30|0},20,1)`);
+     lens.addColorStop(0.15,`rgba(${rPulse},15,5,1)`);
+     lens.addColorStop(0.45,'rgba(120,8,3,1)');
+     lens.addColorStop(0.75,'rgba(55,3,2,1)');
+     lens.addColorStop(1,'rgba(20,1,1,1)');
+     ctx.fillStyle=lens; ctx.fill();
+
+     /* anneaux concentriques internes (profondeur de la lentille) */
+     for(let ri=1;ri<=3;ri++){
+       ctx.beginPath(); ctx.arc(hx,hy,halR*(0.35+ri*0.18),0,Math.PI*2);
+       ctx.strokeStyle=`rgba(80,5,3,${0.35-ri*0.08})`;
+       ctx.lineWidth=1;
+       ctx.stroke();
+     }
+
+     /* point chaud central jaune-orange */
+     const hotR=halR*0.12;
+     const hot=ctx.createRadialGradient(hx,hy,0,hx,hy,hotR*2.5);
+     hot.addColorStop(0,'rgba(255,240,80,1)');
+     hot.addColorStop(0.3,'rgba(255,180,30,0.9)');
+     hot.addColorStop(0.7,`rgba(255,80,10,${0.5+Math.sin(hp*2)*0.2})`);
+     hot.addColorStop(1,'rgba(200,20,5,0)');
+     ctx.fillStyle=hot;
+     ctx.beginPath(); ctx.arc(hx,hy,hotR*2.5,0,Math.PI*2); ctx.fill();
+
+     /* reflets blancs sur le verre (caractéristiques de HAL) */
+     /* reflet principal — arc en haut */
+     ctx.save();
+     ctx.beginPath(); ctx.arc(hx,hy,halR,0,Math.PI*2); ctx.clip();
+     const ref1=ctx.createLinearGradient(hx-halR*0.6,hy-halR*0.85,hx-halR*0.1,hy-halR*0.45);
+     ref1.addColorStop(0,'rgba(255,255,255,0.0)');
+     ref1.addColorStop(0.3,'rgba(255,255,255,0.55)');
+     ref1.addColorStop(0.6,'rgba(255,255,255,0.25)');
+     ref1.addColorStop(1,'rgba(255,255,255,0.0)');
+     ctx.fillStyle=ref1;
+     ctx.fillRect(hx-halR,hy-halR,halR*2,halR*0.7);
+     /* petit reflet secondaire à gauche */
+     ctx.beginPath();
+     ctx.ellipse(hx-halR*0.52, hy-halR*0.55, halR*0.08, halR*0.18, -0.4, 0, Math.PI*2);
+     ctx.fillStyle='rgba(255,255,255,0.45)';
+     ctx.fill();
+     ctx.restore();
+
      /* vignette */
      const vg=ctx.createRadialGradient(cx,cy,H*0.08,cx,cy,H*0.88);
      vg.addColorStop(0,'rgba(0,0,0,0)');
@@ -198,6 +296,13 @@
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
     let t=0;
+
+    /* Fond sombre urbain — suppression des orbes colorées */
+    const _brS=document.createElement('style');
+    _brS.id='_br_bg_override';
+    _brS.textContent='#splash{background:linear-gradient(180deg,#03010a 0%,#060310 40%,#080410 70%,#0a0508 100%)!important;}#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-bg{background:none!important;}';
+    document.head.appendChild(_brS);
+    const _brCleanup=setInterval(()=>{if(stop.v){clearInterval(_brCleanup);const el=document.getElementById('_br_bg_override');if(el)el.remove();}},200);
 
     /* ── Préchargement licorne origami ── */
     const _uImg=document.getElementById('unicornSvg');
@@ -449,6 +554,7 @@
 
      t+=0.016;requestAnimationFrame(frame);
     }
+
     frame();
    }
   },
@@ -44901,8 +45007,8 @@
         tapCount=0;
         setTimeout(function(){
           if(window._stopSplashEffect) window._stopSplashEffect();
-          var splash=document.getElementById('splash');
-          if(splash){splash.classList.add('out');setTimeout(function(){splash.style.display='none';},600);}
+          // Ne pas ajouter la classe 'out' — ça déclencherait le MutationObserver
+          // et afficherait la navbar avant la preview. Laisser openSplashPreview gérer.
           if(typeof openSplashPreview==='function') openSplashPreview();
         },120);
       } else {
