@@ -5527,7 +5527,7 @@ async function fetchBlindTestPreview(entry){
   // 1. iTunes JSONP — contourne CORS sur mobile (script tag, pas de preflight)
   try{
     const q=encodeURIComponent(entry.search);
-    const d=await _jsonp(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,8000);
+    const d=await _jsonp(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,4000);
     const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
     if(tracks.length>0)return toHttps(tracks[0].previewUrl);
   }catch(e){}
@@ -5535,7 +5535,7 @@ async function fetchBlindTestPreview(entry){
   // 2. iTunes fetch standard (fonctionne quand CORS autorisé — desktop + Android Chrome)
   try{
     const q=encodeURIComponent(entry.search);
-    const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,7000);
+    const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,4000);
     if(r.ok){
       const d=await r.json();
       const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
@@ -5547,7 +5547,7 @@ async function fetchBlindTestPreview(entry){
   try{
     const q=encodeURIComponent(entry.search);
     const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.deezer.com/search?q='+q+'&limit=5')}`;
-    const r=await _fetchWithTimeout(proxy,10000);
+    const r=await _fetchWithTimeout(proxy,5000);
     if(r.ok){
       const d=await r.json();
       const data=JSON.parse(d.contents||'{}');
@@ -5559,7 +5559,7 @@ async function fetchBlindTestPreview(entry){
   // 4. Deezer JSONP direct (dernier recours mobile)
   try{
     const q=encodeURIComponent(entry.search);
-    const d=await _jsonp(`https://api.deezer.com/search?q=${q}&limit=5&output=jsonp`,6000);
+    const d=await _jsonp(`https://api.deezer.com/search?q=${q}&limit=5&output=jsonp`,4000);
     const tracks=(d.data||[]).filter(t=>t.preview);
     if(tracks.length>0)return toHttps(tracks[0].preview);
   }catch(e){}
@@ -10016,12 +10016,22 @@ function renderDailyAnecdote(){
   const el=document.getElementById('h-anecdote');
   if(!el)return;
   const d=new Date();
+  // Seed basé sur la date — même résultat pour tous les utilisateurs le même jour
   const seed=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
-  const anecs=[
-    ANECDOTES[seed%ANECDOTES.length],
-    ANECDOTES[(seed+7)%ANECDOTES.length],
-    ANECDOTES[(seed+17)%ANECDOTES.length],
-  ];
+  // Générateur pseudo-aléatoire déterministe (mulberry32)
+  function seededRng(s){
+    return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  }
+  // Fisher-Yates shuffle avec le RNG seedé
+  function seededShuffle(arr, rng){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+    return a;
+  }
+  // On prend les 3 premières anecdotes du tableau shufflé — distribution parfaitement uniforme
+  const rng=seededRng(seed);
+  const shuffled=seededShuffle(ANECDOTES,rng);
+  const anecs=[shuffled[0],shuffled[1],shuffled[2]];
   _anecIdx=0;
 
   function render(i){
@@ -10803,6 +10813,7 @@ async function startGame(){
       if(qs.length<2)throw new Error('Not enough');
       setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
     } else if(selMode==='pendu'){
+      TOTAL=5;
       sltxt('Préparation du pendu…');
       initSteps([{icon:'💀',label:'Sélection des mots'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');qs=buildPenduQuestions(TOTAL);
@@ -11493,21 +11504,26 @@ function loadQ(){
         <div class="bt-composer" id="bt-composer"></div>
       </div>`;
 
-    // ── Fallback : si fetch bloqué > 10s, débloquer sans audio ──
+    // ── Fallback : si fetch bloqué > 20s, débloquer sans audio ──
     const _btFallback=setTimeout(()=>{
       if(!_btReady){ _btReady=true; _btUrl=null; _btUpdateUI(); _btUnlock(true); }
-    },10000);
+    },20000);
 
     // ── Fetch de l'URL preview (en arrière-plan pendant que l'user voit le player) ──
     fetchBlindTestPreview(q).then(url=>{
       clearTimeout(_btFallback);
       _btReady=true;
       _btUrl=url||null;
+      if(!url){ _btUpdateUI(); _btUnlock(true); return; }
+      // Créer et précharger l'Audio dès que l'URL est connue — iOS autorise
+      // la création de l'objet Audio hors geste, seul .play() nécessite un geste
+      if(!_btAudio){
+        _btAudio=new Audio();
+        _btAudio.preload='auto'; // préchargement immédiat dès l'URL connue
+        _btAudio.volume=0.85;
+        _btAudio.src=_btUrl;
+      }
       _btUpdateUI();
-      if(!url){ _btUnlock(true); return; }
-      // Préparer l'objet Audio — PAS de .play() ici (interdit sans geste sur iOS)
-      // URL prête — le bouton s'active, l'Audio sera créé au premier clic (iOS safe)
-      // NE PAS créer Audio() ici — doit être dans le contexte du geste utilisateur
     }).catch(()=>{
       clearTimeout(_btFallback);
       _btReady=true; _btUrl=null;
@@ -11520,10 +11536,10 @@ function loadQ(){
       if(!_btUrl){return;} // pas d'extrait
       if(_btPlaying){_btDoPause();return;}
       // iOS Safari : créer ET jouer l'Audio dans le même contexte de geste utilisateur
-      // Si _btAudio n'existe pas encore (premier appui), on le crée ici
+      // Si _btAudio n'a pas pu être créé au preload (rare), on le crée ici
       if(!_btAudio){
         _btAudio=new Audio();
-        _btAudio.preload='none'; // pas de preload — on joue directement
+        _btAudio.preload='auto';
         _btAudio.volume=0.85;
         _btAudio.src=_btUrl;
       }
