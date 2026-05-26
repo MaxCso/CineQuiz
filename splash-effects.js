@@ -20728,7 +20728,7 @@
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
-      #splash-content-wrap{top:76%!important;transform:translateY(0)!important;}
+      #splash-content-wrap{top:18%!important;transform:translateY(0)!important;}
       #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _dhWatch=setInterval(()=>{if(stop.v){_dhStyle.textContent='';clearInterval(_dhWatch);}},200);
@@ -20743,9 +20743,9 @@
     /* Hauteur cible : 60% de l'écran */
     const cerfH=H*0.42;
     const cerfW=cerfH*(SVG_W/SVG_H);
-    /* Positionné à droite, base sur les collines */
-    const cerfX=W*0.48;
-    const cerfY=H*0.72-cerfH; /* pied du cerf sur la ligne des collines */
+    /* Centré horizontalement, base sur les collines plus basse */
+    const cerfX=W/2-cerfW/2;
+    const cerfY=H*0.78-cerfH; /* pied du cerf sur la ligne des collines */
 
     /* ── Collines de Pennsylvanie ── */
     function drawHills(){
