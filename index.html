@@ -379,6 +379,11 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   <div id="onboarding">
     <div class="ob-card">
       <div class="ob-step-dots" id="ob-dots"></div>
+      <div class="ob-swipe-hint" id="ob-swipe-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Glisse pour naviguer</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
       <div class="ob-slider" id="ob-slider">
         <!-- slides injected by JS -->
       </div>
@@ -12999,6 +13004,7 @@ function _obInitSwipe(){
         const step=OB_STEPS[obStep];
         const demo=step.demo?_obDemo:null;
         if(demo&&!_obStepAnswered[obStep])return; // block swipe if unanswered
+        _obHideHint();
         obNext();
       } else if(dx>0&&obStep>0){
         _obGoTo(obStep-1);
@@ -13024,7 +13030,13 @@ function obAnswer(idx,correct,slideIdx){
   },500);
 }
 
+function _obHideHint(){
+  const h=document.getElementById('ob-swipe-hint');
+  if(h){h.classList.add('ob-swipe-hint-gone');}
+}
+
 function obNext(){
+  _obHideHint();
   obStep++;
   if(obStep>=OB_STEPS.length){obSkip();return;}
   _obGoTo(obStep);
@@ -16837,108 +16849,118 @@ if(!_s.onboardingDone){
   left: 50%;
   transform: translateX(-50%) translateY(20px);
   width: calc(100% - 32px);
-  max-width: 380px;
-  background: rgba(22, 22, 34, 0.96);
-  border: 1px solid rgba(245, 200, 66, 0.22);
-  border-radius: 18px;
-  padding: 13px 14px 13px 14px;
+  max-width: 400px;
+  background: rgba(18, 18, 30, 0.97);
+  border: 1px solid rgba(245, 200, 66, 0.25);
+  border-radius: 20px;
+  padding: 16px;
   z-index: 99999;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04) inset;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.04) inset;
   color: #f0f0f0;
   font-family: 'DM Sans', sans-serif;
-  font-size: 13.5px;
-  align-items: center;
-  gap: 11px;
   opacity: 0;
   transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 #pwa-banner.visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+/* Header */
+#pwa-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 12px;
+}
 #pwa-banner-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 42px; height: 42px;
+  border-radius: 11px;
   background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
   border: 1px solid rgba(245,200,66,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 20px;
-}
-#pwa-banner-text {
-  flex: 1;
-  line-height: 1.35;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 21px;
 }
 #pwa-banner-title {
-  font-weight: 700;
-  font-size: 14px;
-  color: #fff;
-  letter-spacing: 0.01em;
+  font-weight: 700; font-size: 14px; color: #fff; letter-spacing: 0.01em; line-height: 1.2;
 }
 #pwa-banner-sub {
-  font-size: 11.5px;
-  color: rgba(200,200,220,0.65);
-  margin-top: 1px;
+  font-size: 11px; color: rgba(200,200,220,0.55); margin-top: 2px;
 }
-#pwa-banner-actions {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+#pwa-banner-close {
+  background: none; border: none; color: rgba(180,180,200,0.45);
+  font-size: 17px; cursor: pointer; padding: 2px 4px; line-height: 1;
+  flex-shrink: 0; margin-left: auto;
+}
+/* Steps iOS */
+#pwa-banner-steps {
+  display: none;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 13px;
+  padding: 11px 12px;
+  margin-bottom: 12px;
+  gap: 0;
+  flex-direction: column;
+}
+#pwa-banner-steps.show { display: flex; }
+.pwa-step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0;
+  font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.35;
+}
+.pwa-step + .pwa-step {
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.pwa-step-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.3);
+  color: #f5c842; font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+}
+.pwa-step-text { flex: 1; }
+.pwa-step-text b { color: rgba(255,255,255,0.9); }
+.pwa-step-icon {
+  font-size: 16px; flex-shrink: 0; opacity: 0.8;
+}
+/* Actions Android */
+#pwa-banner-actions {
+  display: flex; align-items: center; gap: 8px;
 }
 #pwa-banner-install {
+  flex: 1;
   background: linear-gradient(135deg, #f5c842, #e8a800);
-  border: none;
-  border-radius: 10px;
-  padding: 7px 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 12.5px;
-  color: #0a0a0f;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  border: none; border-radius: 11px; padding: 10px 16px;
+  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px;
+  color: #0a0a0f; cursor: pointer; letter-spacing: 0.02em;
 }
 #pwa-banner-install:active { opacity: 0.85; }
-#pwa-banner-close {
-  background: none;
-  border: none;
-  color: rgba(180,180,200,0.5);
-  font-size: 17px;
-  cursor: pointer;
-  padding: 2px 4px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-#pwa-banner-close:hover { color: rgba(180,180,200,0.9); }
-/* Petite flèche iOS qui pointe vers le bouton partager */
+/* Flèche iOS */
 #pwa-banner-ios-arrow {
-  display: none;
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
+  display: none; position: absolute; bottom: -10px; left: 50%;
   transform: translateX(-50%);
   width: 0; height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid rgba(22,22,34,0.96);
+  border-left: 10px solid transparent; border-right: 10px solid transparent;
+  border-top: 10px solid rgba(18,18,30,0.97);
 }
 </style>
 
 <div id="pwa-banner">
-  <div id="pwa-banner-icon">🎬</div>
-  <div id="pwa-banner-text">
-    <div id="pwa-banner-title">CinéQuiz</div>
-    <div id="pwa-banner-sub" id="pwa-banner-sub">Installer l'application</div>
-  </div>
-  <div id="pwa-banner-actions">
-    <button id="pwa-banner-install">Installer</button>
+  <div id="pwa-banner-header">
+    <div id="pwa-banner-icon">🎬</div>
+    <div id="pwa-banner-text">
+      <div id="pwa-banner-title">Installer CinéQuiz</div>
+      <div id="pwa-banner-sub">Conçu pour fonctionner en app</div>
+    </div>
     <button id="pwa-banner-close">✕</button>
+  </div>
+  <!-- Étapes iOS (injectées par JS) -->
+  <div id="pwa-banner-steps"></div>
+  <!-- Bouton Android -->
+  <div id="pwa-banner-actions">
+    <button id="pwa-banner-install">Installer l'application</button>
   </div>
   <div id="pwa-banner-ios-arrow"></div>
 </div>
@@ -17021,9 +17043,28 @@ if(!_s.onboardingDone){
   var isStandalone = window.navigator.standalone === true;
 
   if (isIOS && !isStandalone) {
-    // Adapter le texte et cacher le bouton Installer
-    if (subText) subText.textContent = 'Appuie sur ⎙ puis « Sur l\'écran d\'accueil »';
-    installBtn.style.display = 'none';
+    // Cacher le bouton Installer (inutilisable sur iOS)
+    document.getElementById('pwa-banner-actions').style.display = 'none';
+
+    // Injecter les étapes iOS
+    var stepsEl = document.getElementById('pwa-banner-steps');
+    stepsEl.innerHTML =
+      '<div class="pwa-step">' +
+        '<div class="pwa-step-num">1</div>' +
+        '<div class="pwa-step-text">Appuie sur <b>Partager</b> dans Safari</div>' +
+        '<div class="pwa-step-icon">⎙</div>' +
+      '</div>' +
+      '<div class="pwa-step">' +
+        '<div class="pwa-step-num">2</div>' +
+        '<div class="pwa-step-text">Fais défiler et appuie sur <b>Sur l\'écran d\'accueil</b></div>' +
+        '<div class="pwa-step-icon">📱</div>' +
+      '</div>' +
+      '<div class="pwa-step">' +
+        '<div class="pwa-step-num">3</div>' +
+        '<div class="pwa-step-text">Confirme en appuyant sur <b>Ajouter</b></div>' +
+        '<div class="pwa-step-icon">✅</div>' +
+      '</div>';
+    stepsEl.classList.add('show');
     setTimeout(showBanner, 4000);
   }
 
