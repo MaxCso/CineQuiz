@@ -4659,7 +4659,8 @@ function buildRepliqueQuestions(){
   let src=REPLIQUES;
   if(selDecouverte||selDiff==='easy') src=REPLIQUES.filter(r=>r.quoteVO&&r.id>0&&r.year>=1975);
   else if(selDiff==='hard') src=REPLIQUES.filter(r=>!r.quoteVO||r.id===0||r.year<1985);
-  const pool=shuffle([...src]).slice(0,TOTAL+5);
+  const poolKeyR='replique'+(selDiff||'')+(selDecouverte?'_deco':'');
+  const pool=pickWithoutRepeat(src,poolKeyR,TOTAL+5);
   const qs=[];
   for(let i=0;i<pool.length&&qs.length<TOTAL;i++){
     const q=pool[i];
@@ -5397,7 +5398,8 @@ async function fetchDecennieQuestions(count){
 
 function buildPitchQuestions(count){
   const _psrc=selDecouverte?PITCHES.filter(p=>['Toy Story','Ratatouille','Nemo','Harry Potter','Shrek','Jurassic Park','Pretty Woman','Maman, j\'ai raté','Titanic','Forrest Gump','Matrix','Star Wars','Avengers','Spider-Man','Lion King','Le Roi Lion','Batman','Interstellar','Avatar','Retour vers le futur','Indiana Jones','Terminator','Rocky','Dirty Dancing','Grease'].some(t=>p.title.includes(t))):PITCHES;
-  const pool=shuffle([...(_psrc.length>=Math.min(count,3)?_psrc:PITCHES)]).slice(0,count);
+  const src_p=(_psrc.length>=Math.min(count,3)?_psrc:PITCHES);
+  const pool=pickWithoutRepeat(src_p,'pitch'+(selDecouverte?'_deco':''),count);
   return pool.map(p=>{
     const others=PITCHES.filter(x=>x.title!==p.title);
     const wrong=shuffle(others).slice(0,3).map(x=>x.title);
@@ -5414,7 +5416,8 @@ function buildPitchQuestions(count){
 function buildRebusQuestions(count){
   const KNOWN_REBUS=['Toy Story','Star Wars','Matrix','Titanic','Forrest Gump','Jurassic Park','Batman','Spider-Man','Avengers','Harry Potter','Lion King','Avatar','Terminator','Rocky','Shrek','Indiana Jones','Interstellar','Frozen','Nemo','Up','Cars','Inception','Gladiator','Top Gun','Barbie'];
   const _rsrc=selDecouverte?REBUS_DB.filter(r=>KNOWN_REBUS.some(k=>r.title.includes(k))):REBUS_DB;
-  const pool=shuffle([...(_rsrc.length>=Math.min(count,3)?_rsrc:REBUS_DB)]).slice(0,Math.min(count,(_rsrc.length||REBUS_DB.length)));
+  const src_r=(_rsrc.length>=Math.min(count,3)?_rsrc:REBUS_DB);
+  const pool=pickWithoutRepeat(src_r,'rebus'+(selDecouverte?'_deco':''),Math.min(count,src_r.length));
   return pool.map(r=>{
     const others=REBUS_DB.filter(x=>x.title!==r.title);
     const wrong=shuffle(others).slice(0,3).map(x=>x.title);
@@ -5431,7 +5434,8 @@ function buildRebusQuestions(count){
 function buildPenduQuestions(count){
   const KNOWN_PENDU=['INCEPTION','TITANIC','MATRIX','AVATAR','JOKER','ROCKY','ALIEN','BARBIE','TOP GUN','GLADIATOR','INTERSTELLAR','OPPENHEIMER','BATMAN','TERMINATOR','SCARFACE','SHINING'];
   const _psrc=selDecouverte?PENDU_DB.filter(p=>KNOWN_PENDU.includes(p.word)):PENDU_DB;
-  const pool=shuffle([...(_psrc.length>=Math.min(count,3)?_psrc:PENDU_DB)]).slice(0,Math.min(count,(_psrc.length||PENDU_DB.length)));
+  const src_pd=(_psrc.length>=Math.min(count,3)?_psrc:PENDU_DB);
+  const pool=pickWithoutRepeat(src_pd,'pendu'+(selDecouverte?'_deco':''),Math.min(count,src_pd.length));
   return pool.map(p=>({
     type:'pendu',
     word:p.word.toUpperCase(),
@@ -5627,9 +5631,9 @@ function buildVraiFauxQuestions(count){
     const filtered=VRAI_FAUX.filter(q=>(q.difficulty||'medium')===selDiff);
     src=filtered.length>=count?filtered:VRAI_FAUX;
   }
-  const pool=shuffle([...src]).slice(0,count);
+  const poolKeyVF='vraifaux'+(selDiff||'')+(selDecouverte?'_deco':'');
+  const pool=pickWithoutRepeat(src,poolKeyVF,count);
   return pool.map(q=>({
-    type:'vraifaux',
     q:q.q,
     ans:q.ans,
     expl:q.expl,
@@ -5737,7 +5741,7 @@ function fetchGeneriqueQuestions(count){
 
 function fetchLocationQuestions(count){
   if(selDecouverte) count=Math.max(count,1); // garde-fou
-  const pool=shuffle([...LOCATION_FILMS]).slice(0,count);
+  const pool=pickWithoutRepeat(LOCATION_FILMS,'location',count);
   const allTitles=LOCATION_FILMS.map(f=>f.title);
   return pool.map(film=>{
     const others=shuffle(allTitles.filter(t=>t!==film.title)).slice(0,3);
@@ -5753,7 +5757,8 @@ function fetchLocationQuestions(count){
 
 async function fetchCastingQuestions(count){
   const _csrc=selDecouverte?CASTING_FILMS.filter(f=>isGrandPublic(f.id)):CASTING_FILMS;
-  const pool=shuffle([...(_csrc.length>=count?_csrc:CASTING_FILMS)]).slice(0,count);
+  const src_c=(_csrc.length>=count?_csrc:CASTING_FILMS);
+  const pool=pickWithoutRepeat(src_c,'casting'+(selDecouverte?'_deco':''),count);
   // Construire un index acteur -> films pour les questions "duo"
   const actorIndex={};
   CASTING_FILMS.forEach(film=>{
@@ -5984,7 +5989,7 @@ async function fetchRealisateurQuestions(count){
 async function fetchTrivia(){
   // Mode Découverte : banque curatée grand public uniquement
   if(selDecouverte&&typeof TRIVIA_DECOUVERTE!=='undefined'&&TRIVIA_DECOUVERTE.length>=TOTAL){
-    const pool=shuffle([...TRIVIA_DECOUVERTE]).slice(0,TOTAL);
+    const pool=pickWithoutRepeat(TRIVIA_DECOUVERTE,'trivia_decouverte',TOTAL);
     return pool.map(q=>{
       const ans=shuffle([q.correct,...q.wrong]);
       return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:'easy',category:q.category};
@@ -5993,7 +5998,9 @@ async function fetchTrivia(){
   // Essayer d'abord la base française curatée, sinon OpenTDB
   if(TRIVIA_FR.length>=TOTAL){
     const filtered=selDiff?TRIVIA_FR.filter(q=>q.difficulty===selDiff):TRIVIA_FR;
-    const pool=shuffle([...(filtered.length>=TOTAL?filtered:TRIVIA_FR)]).slice(0,TOTAL);
+    const src=filtered.length>=TOTAL?filtered:TRIVIA_FR;
+    const poolKey='trivia'+(selDiff||'')+(selDecouverte?'_deco':'');
+    const pool=pickWithoutRepeat(src,poolKey,TOTAL);
     return pool.map(q=>{
       const ans=shuffle([q.correct,...q.wrong]);
       return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:q.category};
@@ -6098,6 +6105,35 @@ const go=id=>{
 };
 const dh=s=>{const el=document.createElement('div');el.innerHTML=s;return el.textContent||'';};
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+// ── Système anti-répétition ──────────────────────────────────────────────────
+// Pour chaque pool, on maintient une file glissante des index déjà vus dans
+// le localStorage. On tire toujours parmi les questions jamais vues en premier,
+// et les questions récentes ne reviennent qu'une fois tout le pool épuisé.
+const _CQ_SEEN_KEY='cq_seen_rotations';
+function _cqGetRotations(){try{return JSON.parse(localStorage.getItem(_CQ_SEEN_KEY)||'{}');}catch{return {};}}
+function _cqSaveRotations(r){try{localStorage.setItem(_CQ_SEEN_KEY,JSON.stringify(r));}catch{}}
+function pickWithoutRepeat(pool,poolKey,count){
+  if(!pool||!pool.length)return[];
+  count=Math.min(count,pool.length);
+  const rots=_cqGetRotations();
+  const seen=new Set(rots[poolKey]||[]);
+  const allIdx=pool.map((_,i)=>i);
+  let unseen=allIdx.filter(i=>!seen.has(i));
+  // Plus assez d'inédits → on garde un "black-out" des 20% les plus récents
+  if(unseen.length<count){
+    const recentBlock=new Set((rots[poolKey]||[]).slice(-Math.max(1,Math.floor(pool.length*0.2))));
+    unseen=shuffle(allIdx.filter(i=>!recentBlock.has(i)));
+    rots[poolKey]=[];
+  }
+  const picked=shuffle(unseen).slice(0,count);
+  // File glissante : on garde max 75 % du pool pour ne pas saturer le localStorage
+  rots[poolKey]=([...(rots[poolKey]||[]),...picked]).slice(-Math.floor(pool.length*0.75));
+  _cqSaveRotations(rots);
+  return picked.map(i=>pool[i]);
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 function sltxt(t){const el=document.getElementById('ltxt');if(el)el.textContent=t;}
 function initSteps(steps){const c=document.getElementById('lsteps');if(!c)return;c.innerHTML=steps.map((s,i)=>`<div class="lstep" id="ls${i}"><span class="lsi">${s.icon}</span><span>${s.label}</span></div>`).join('');}
 function setStep(i,st){const el=document.getElementById('ls'+i);if(!el)return;el.className='lstep '+st;if(st==='don')el.querySelector('.lsi').textContent='✅';}
