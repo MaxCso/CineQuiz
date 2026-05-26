@@ -4,6 +4,7 @@
  const EFFECTS = [
   {
    name:'Matrix',
+   color:'0,200,50',
    ref:'The Matrix \u2014 Wachowski, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -39,6 +40,7 @@
   },
   {
    name:'2001',
+   color:'80,120,255',
    ref:'2001: A Space Odyssey \u2014 Kubrick, 1968',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.74';
@@ -292,6 +294,7 @@
   },
   {
    name:'Blade Runner',
+   color:'255,60,30',
    ref:'Blade Runner \u2014 Ridley Scott, 1982',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -560,6 +563,7 @@
   },
   {
    name:'Star Wars',
+   color:'255,200,50',
    ref:'Star Wars \u2014 George Lucas, 1977',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.7';
@@ -593,6 +597,7 @@
   },
   {
    name:'Interstellar',
+   color:'180,140,80',
    ref:'Interstellar \u2014 Christopher Nolan, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -723,6 +728,7 @@
   },
   {
    name:'Tron',
+   color:'0,200,255',
    ref:'Tron \u2014 Steven Lisberger, 1982',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.78';
@@ -964,6 +970,7 @@
   },
   {
    name:'Psycho',
+   color:'60,60,60',
    ref:'Psycho \u2014 Alfred Hitchcock, 1960',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.5';
@@ -994,6 +1001,7 @@
   },
   {
    name:'Vertigo',
+   color:'180,40,180',
    ref:'Vertigo \u2014 Alfred Hitchcock, 1958',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.65';
@@ -1032,6 +1040,7 @@
   },
   {
    name:'Apocalypse Now',
+   color:'255,120,20',
    ref:'Apocalypse Now \u2014 Coppola, 1979',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -1256,6 +1265,7 @@
   },
   {
    name:'Le Grand Bleu',
+   color:'20,100,220',
    ref:'Le Grand Bleu \u2014 Luc Besson, 1988',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -1484,6 +1494,7 @@
   },
   {
    name:'Metropolis',
+   color:'200,160,50',
    ref:'Metropolis — Fritz Lang, 1927',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -1629,6 +1640,7 @@
   },
   {
    name:'Alien',
+   color:'0,180,40',
    ref:'Alien \u2014 Ridley Scott, 1979',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -1987,6 +1999,7 @@
   },
   {
    name:'Amélie',
+   color:'220,60,30',
    ref:'Le Fabuleux Destin d\u2019Am\u00e9lie Poulain \u2014 Jeunet, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.70';
@@ -2046,6 +2059,7 @@
   },
   {
    name:'American Beauty',
+   color:'200,20,20',
    ref:'American Beauty \u2014 Sam Mendes, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -2118,6 +2132,7 @@
   },
   {
    name:'Tree of Life',
+   color:'255,180,60',
    ref:'The Tree of Life \u2014 Terrence Malick, 2011',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -2183,6 +2198,7 @@
   },
   {
    name:'Her',
+   color:'255,120,60',
    ref:'Her \u2014 Spike Jonze, 2013',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.68';
@@ -2246,6 +2262,7 @@
   },
   {
    name:'Drive',
+   color:'200,20,60',
    ref:'Drive \u2014 Nicolas Winding Refn, 2011',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -2664,6 +2681,7 @@
   },
     {
    name:'Taxi Driver',
+   color:'80,20,120',
    ref:'Taxi Driver \u2014 Martin Scorsese, 1976',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -3001,6 +3019,7 @@
 
   {
    name:'Magnolia',
+   color:'80,20,140',
    ref:'Magnolia \u2014 Paul Thomas Anderson, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -3263,6 +3282,7 @@
   },
   {
    name:'Spider-Man',
+   color:'200,20,20',
    ref:'Spider-Man \u2014 Sam Raimi, 2002',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -3534,6 +3554,7 @@
   
   {
    name:'Batman',
+   color:'240,200,30',
    ref:'Batman \u2014 Tim Burton, 1989',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.68';
@@ -3666,6 +3687,7 @@
   },
   {
    name:'James Bond',
+   color:'150,10,10',
    ref:'James Bond \u2014 Eon Productions, 1962\u2013',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -3927,6 +3949,7 @@
   },
   {
    name:'Mission Impossible',
+   color:'200,30,30',
    ref:'Mission: Impossible \u2014 Brian De Palma, 1996',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.85';
@@ -4095,6 +4118,7 @@
   /* ══ AVATAR ══ */
     {
    name:'Avatar',
+   color:'0,200,180',
    ref:'Avatar \u2014 James Cameron, 2009',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -4400,6 +4424,7 @@
   /* ══ LE PARRAIN ══ */
   {
    name:'Le Parrain',
+   color:'120,90,30',
    ref:'Le Parrain \u2014 Francis Ford Coppola, 1972',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
@@ -4419,6 +4444,7 @@
 
   {
    name:'Le Seigneur des Anneaux',
+   color:'180,140,60',
    ref:'Le Seigneur des Anneaux \u2014 Peter Jackson, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -4596,6 +4622,7 @@
   /* ══ THE DARK KNIGHT ══ */
 {
    name:'Les Évadés',
+   color:'60,100,160',
    ref:'Les Évadés — Frank Darabont, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -4686,6 +4713,7 @@
   },
   {
    name:'Pulp Fiction',
+   color:'200,160,30',
    ref:'Pulp Fiction \u2014 Quentin Tarantino, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -4939,6 +4967,7 @@
   },
   {
    name:'Forrest Gump',
+   color:'100,180,230',
    ref:'Forrest Gump \u2014 Robert Zemeckis, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -5136,6 +5165,7 @@
   },
   {
    name:'Fight Club',
+   color:'180,40,20',
    ref:'Fight Club \u2014 David Fincher, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -5538,6 +5568,7 @@
   },
   {
    name:'Inception',
+   color:'60,100,200',
    ref:'Inception \u2014 Christopher Nolan, 2010',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -5854,6 +5885,7 @@
   {
 
    name:'Les Affranchis',
+   color:'200,60,20',
    ref:'Les Affranchis \u2014 Martin Scorsese, 1990',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -6323,6 +6355,7 @@
 
   {
    name:'Terminator',
+   color:'200,60,10',
    ref:'Terminator \u2014 James Cameron, 1984',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -6545,6 +6578,7 @@
   },
   {
    name:'Gladiator',
+   color:'200,160,60',
    ref:'Gladiator \u2014 Ridley Scott, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -6951,6 +6985,7 @@
   },
   {
    name:'WALL·E',
+   color:'20,80,200',
    ref:'WALL\u00b7E \u2014 Andrew Stanton, 2008',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -7191,6 +7226,7 @@
   },
   {
    name:'Heat',
+   color:'30,80,180',
    ref:'Heat \u2014 Michael Mann, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -7360,6 +7396,7 @@
   },
   {
    name:'Jurassic Park',
+   color:'40,160,40',
    ref:'Jurassic Park \u2014 Steven Spielberg, 1993',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.68';
@@ -7505,6 +7542,7 @@
   },
   {
    name:'Nemo',
+   color:'20,120,220',
    ref:'Le Monde de Nemo \u2014 Andrew Stanton, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;
@@ -7542,6 +7580,7 @@
 
   {
    name:'Les Dents de la Mer',
+   color:'20,80,180',
    ref:'Les Dents de la Mer \u2014 Steven Spielberg, 1975',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.65';
@@ -7722,6 +7761,7 @@
   },
   {
    name:'Stand by Me',
+   color:'180,140,80',
    ref:'Stand by Me \u2014 Rob Reiner, 1986',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.74';
@@ -7974,6 +8014,7 @@
   },
   {
    name:'Avengers',
+   color:'200,30,30',
    ref:'Avengers: Endgame \u2014 Russo Brothers, 2019',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -8175,6 +8216,7 @@
   },
   {
    name:'Harry Potter',
+   color:'120,60,200',
    ref:'Harry Potter \u2014 Chris Columbus, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.70';
@@ -8498,6 +8540,7 @@
   },
   {
    name:'Indiana Jones',
+   color:'180,120,40',
    ref:'Indiana Jones \u2014 Steven Spielberg, 1981',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.70';
@@ -8964,6 +9007,7 @@
   },
   {
    name:'Retour vers le Futur',
+   color:'255,140,20',
    ref:'Retour vers le Futur \u2014 Robert Zemeckis, 1985',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -9319,6 +9363,7 @@
   },
   {
    name:'Rocky',
+   color:'200,60,20',
    ref:'Rocky \u2014 John G. Avildsen, 1976',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -9552,6 +9597,7 @@
   },
   {
    name:'The Big Lebowski',
+   color:'180,140,60',
    ref:'The Big Lebowski \u2014 Coen Brothers, 1998',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.70';
@@ -9801,6 +9847,7 @@
   },
   {
    name:'The Shining',
+   color:'180,10,10',
    ref:'The Shining \u2014 Stanley Kubrick, 1980',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -10011,6 +10058,7 @@
   },
   {
    name:'Get Out',
+   color:'80,40,20',
    ref:'Get Out \u2014 Jordan Peele, 2017',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.72';
@@ -10215,6 +10263,7 @@
   },
   {
    name:'No Country for Old Men',
+   color:'180,140,60',
    ref:'No Country for Old Men \u2014 Coen Brothers, 2007',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -10440,6 +10489,7 @@
   /* ══ MEMENTO ══ */
   {
    name:'Memento',
+   color:'100,80,60',
    ref:'Memento \u2014 Christopher Nolan, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -10684,6 +10734,7 @@
 
   {
    name:'Mad Max: Fury Road',
+   color:'255,100,10',
    ref:'Mad Max: Fury Road \u2014 George Miller, 2015',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -11003,6 +11054,7 @@
   },
   {
    name:'Parasite',
+   color:'20,80,20',
    ref:'Parasite \u2014 Bong Joon-ho, 2019',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.65';
@@ -11077,6 +11129,7 @@
   },
   {
    name:'La La Land',
+   color:'200,100,200',
    ref:'La La Land \u2014 Damien Chazelle, 2016',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -11327,6 +11380,7 @@
   },
   {
    name:"Schindler's List",
+   color:'200,30,30',
    ref:"Schindler's List \u2014 Steven Spielberg, 1993",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -11596,6 +11650,7 @@
   },
   {
    name:'Titanic',
+   color:'20,80,180',
    ref:'Titanic \u2014 James Cameron, 1997',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.68';
@@ -11681,6 +11736,7 @@
   },
   {
    name:'Coco',
+   color:'255,100,20',
    ref:'Coco \u2014 Lee Unkrich, 2017',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.70';
@@ -11751,6 +11807,7 @@
   },
   {
    name:'Le Roi Lion',
+   color:'255,140,20',
    ref:'Le Roi Lion \u2014 Roger Allers, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -12064,6 +12121,7 @@
   },
   {
    name:'Spirited Away',
+   color:'20,100,200',
    ref:'Spirited Away \u2014 Hayao Miyazaki, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -12376,6 +12434,7 @@
   },
   {
    name:'Ex Machina',
+   color:'20,180,200',
    ref:'Ex Machina \u2014 Alex Garland, 2015',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -12662,6 +12721,7 @@
   /* ══ OLD BOY ══ */
   {
    name:'Old Boy',
+   color:'80,20,80',
    ref:'Old Boy \u2014 Park Chan-wook, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
@@ -12683,6 +12743,7 @@
   /* ══ IL ÉTAIT UNE FOIS EN AMÉRIQUE ══ */
   {
    name:'Il \u00e9tait une fois en Am\u00e9rique',
+   color:'120,80,20',
    ref:'Il \u00e9tait une fois en Am\u00e9rique \u2014 Sergio Leone, 1984',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -12972,6 +13033,7 @@
   /* ══ TOP GUN ══ */
   {
    name:'Top Gun',
+   color:'60,140,200',
    ref:'Top Gun \u2014 Tony Scott, 1986',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0'; let t=0; const cx=W/2, cy=H/2;
@@ -13228,6 +13290,7 @@
   /* ══ THE PLACE BEYOND THE PINES ══ */
   {
    name:'The Place Beyond the Pines',
+   color:'80,140,180',
    ref:'The Place Beyond the Pines \u2014 Derek Cianfrance, 2012',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -13620,6 +13683,7 @@
 
   {
    name:'Dans la peau de John Malkovich',
+   color:'80,40,120',
    ref:'Dans la peau de John Malkovich \u2014 Spike Jonze, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0'; let t=0; const cx=W/2, cy=H/2;
@@ -13771,6 +13835,7 @@
   /* ══ GRAN TORINO ══ */
   {
    name:'Gran Torino',
+   color:'120,100,60',
    ref:'Gran Torino \u2014 Clint Eastwood, 2008',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -13968,6 +14033,7 @@
 
   {
    name:'Dune',
+   color:'200,160,60',
    ref:'Dune \u2014 Denis Villeneuve, 2021',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -14284,6 +14350,7 @@
 
 {
    name:'Ghostbusters',
+   color:'20,200,40',
    ref:'Ghostbusters \u2014 Ivan Reitman, 1984',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.92';
@@ -14757,6 +14824,7 @@
     /* ══ SHREK ══ */
   {
    name:'Shrek',
+   color:'60,160,40',
    ref:'Shrek \u2014 Andrew Adamson & Vicky Jenson, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -14968,6 +15036,7 @@
   /* ══ TRANSFORMERS ══ */
   {
    name:'Transformers',
+   color:'80,140,200',
    ref:'Transformers \u2014 Michael Bay, 2007',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -15209,6 +15278,7 @@
   /* ══ PIRATES DES CARAÏBES ══ */
   {
    name:'Pirates des Caraïbes',
+   color:'40,100,160',
    ref:'Pirates des Cara\u00efbes \u2014 Gore Verbinski, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -15349,6 +15419,7 @@
   /* ══ MEN IN BLACK ══ */
   {
    name:'Men in Black',
+   color:'40,40,180',
    ref:'Men in Black \u2014 Barry Sonnenfeld, 1997',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -15523,6 +15594,7 @@
   /* ══ E.T. ══ */
   {
    name:'E.T.',
+   color:'80,40,120',
    ref:'E.T. l\u2019extra-terrestre \u2014 Steven Spielberg, 1982',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -15821,6 +15893,7 @@
   /* ══ SEVEN ══ */
   {
    name:'Seven',
+   color:'160,60,20',
    ref:'Seven \u2014 David Fincher, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -16093,6 +16166,7 @@
   /* ══ LES GOONIES ══ */
   {
    name:'Les Goonies',
+   color:'40,120,200',
    ref:'Les Goonies \u2014 Richard Donner, 1985',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.80';
@@ -16209,6 +16283,7 @@
   /* ══ ETERNAL SUNSHINE ══ */
   {
    name:'Eternal Sunshine',
+   color:'80,140,200',
    ref:'Eternal Sunshine of the Spotless Mind \u2014 Michel Gondry, 2004',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -16382,6 +16457,7 @@
   /* ══ TRUMAN SHOW ══ */
   {
    name:'Truman Show',
+   color:'80,160,220',
    ref:'The Truman Show \u2014 Peter Weir, 1998',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -16621,6 +16697,7 @@
   /* ══ INTO THE WILD ══ */
   {
    name:'Into the Wild',
+   color:'60,160,60',
    ref:'Into the Wild \u2014 Sean Penn, 2007',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.78';
@@ -16720,6 +16797,7 @@
 /* ══ KILL BILL ══ */
    {
    name:'Kill Bill',
+   color:'240,200,10',
    ref:'Kill Bill \u2014 Quentin Tarantino, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -17107,6 +17185,7 @@
   /* ══ DJANGO ══ */
   {
    name:'Django',
+   color:'200,80,20',
    ref:'Django Unchained \u2014 Quentin Tarantino, 2012',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -17527,6 +17606,7 @@
   /* ══ LA LIGNE VERTE ══ */
   {
    name:'La Ligne Verte',
+   color:'40,160,80',
    ref:'La Ligne Verte \u2014 Frank Darabont, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -17786,6 +17866,7 @@
   /* ══ REQUIEM FOR A DREAM ══ */
   {
    name:'Requiem for a Dream',
+   color:'120,20,120',
    ref:'Requiem for a Dream \u2014 Darren Aronofsky, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.92';
@@ -18045,6 +18126,7 @@
   /* ══ LE BON, LA BRUTE ET LE TRUAND ══ */
   {
    name:'Le Bon, la Brute et le Truand',
+   color:'200,140,40',
    ref:'Le Bon, la Brute et le Truand \u2014 Sergio Leone, 1966',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -18472,6 +18554,7 @@
   /* ══ LES GREMLINS ══ */
   {
    name:'Les Gremlins',
+   color:'40,160,40',
    ref:'Gremlins \u2014 Joe Dante, 1984',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.88';
@@ -18773,6 +18856,7 @@
   /* ══ ALICE AU PAYS DES MERVEILLES ══ */
   {
    name:'Alice au Pays des Merveilles',
+   color:'180,60,180',
    ref:"Alice au Pays des Merveilles \u2014 Tim Burton, 2010",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -18896,6 +18980,7 @@
   /* ══ RISKY BUSINESS ══ */
   {
    name:'Risky Business',
+   color:'80,40,120',
    ref:'Risky Business \u2014 Paul Brickman, 1983',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -19226,6 +19311,7 @@
   /* ══ LE LOUP DE WALL STREET ══ */
   {
    name:'Le Loup de Wall Street',
+   color:'240,160,20',
    ref:'Le Loup de Wall Street \u2014 Martin Scorsese, 2013',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -19408,6 +19494,7 @@
   /* ══ USUAL SUSPECTS ══ */
   {
    name:'Usual Suspects',
+   color:'80,60,40',
    ref:'Usual Suspects \u2014 Bryan Singer, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.78';
@@ -19468,6 +19555,7 @@
   /* ══ SCREAM ══ */
   {
    name:'Scream',
+   color:'200,10,10',
    ref:'Scream \u2014 Wes Craven, 1996',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -19671,6 +19759,7 @@
   /* ══ RAGING BULL ══ */
   {
    name:'Raging Bull',
+   color:'80,20,20',
    ref:'Raging Bull \u2014 Martin Scorsese, 1980',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -19933,6 +20022,7 @@
   /* ══ DIE HARD ══ */
   {
    name:'Die Hard',
+   color:'220,60,20',
    ref:'Die Hard \u2014 John McTiernan, 1988',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.80';
@@ -20005,6 +20095,7 @@
   /* ══ SCARFACE ══ */
   {
    name:'Scarface',
+   color:'20,160,220',
    ref:'Scarface \u2014 Brian De Palma, 1983',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -20510,6 +20601,7 @@
   /* ══ RENCONTRE DU TROISIÈME TYPE ══ */
   {
    name:'Rencontre du Troisième Type',
+   color:'200,180,60',
    ref:'Rencontres du Troisi\u00e8me Type \u2014 Steven Spielberg, 1977',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -20713,6 +20805,7 @@
   /* ══ VOYAGE AU BOUT DE L'ENFER ══ */
   {
    name:"Voyage au bout de l'enfer",
+   color:'220,80,20',
    ref:"Voyage au bout de l\u2019enfer \u2014 Michael Cimino, 1978",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -20883,6 +20976,7 @@
   /* ══ TOY STORY ══ */
   {
    name:'Toy Story',
+   color:'100,160,230',
    ref:'Toy Story \u2014 John Lasseter, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -21308,6 +21402,7 @@
   /* ══ MONSTRES & CIE ══ */
   {
    name:'Monstres & Cie',
+   color:'60,80,200',
    ref:'Monstres & Cie \u2014 Pete Docter, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.82';
@@ -21361,6 +21456,7 @@
   /* ══ RATATOUILLE ══ */
   {
    name:'Ratatouille',
+   color:'200,60,30',
    ref:'Ratatouille \u2014 Brad Bird, 2007',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -21673,6 +21769,7 @@
   /* ══ LÀ-HAUT ══ */
   {
    name:'Là-Haut',
+   color:'200,120,40',
    ref:'L\u00e0-Haut \u2014 Pete Docter, 2009',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -21797,6 +21894,7 @@
   /* ══ THE REVENANT ══ */
   {
    name:'The Revenant',
+   color:'120,160,200',
    ref:'The Revenant \u2014 Alejandro G. I\u00f1\u00e1rritu, 2015',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -22031,6 +22129,7 @@
   /* ══ UNCUT GEMS ══ */
   {
    name:'Uncut Gems',
+   color:'60,200,180',
    ref:'Uncut Gems \u2014 Benny & Josh Safdie, 2019',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
@@ -22291,6 +22390,7 @@
   /* ══ DONNIE DARKO ══ */
   {
    name:'Donnie Darko',
+   color:'40,60,160',
    ref:'Donnie Darko \u2014 Richard Kelly, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -22650,6 +22750,7 @@
   /* ══ VOL AU-DESSUS D'UN NID DE COUCOU ══ */
   {
    name:'Vol au-dessus d\u2019un nid de coucou',
+   color:'80,120,80',
    ref:'Vol au-dessus d\u2019un nid de coucou \u2014 Milos Forman, 1975',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -23087,6 +23188,7 @@
   /* ══ IL FAUT SAUVER LE SOLDAT RYAN ══ */
   {
    name:'Il faut sauver le soldat Ryan',
+   color:'80,100,60',
    ref:'Il faut sauver le soldat Ryan \u2014 Steven Spielberg, 1998',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -23258,6 +23360,7 @@
   /* ══ LE TOMBEAU DES LUCIOLES ══ */
   {
    name:'Le Tombeau des lucioles',
+   color:'255,160,20',
    ref:'Le Tombeau des lucioles \u2014 Isao Takahata, 1988',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.80';
@@ -23340,6 +23443,7 @@
   /* ══ WHIPLASH ══ */
   {
    name:'Whiplash',
+   color:'180,40,20',
    ref:'Whiplash \u2014 Damien Chazelle, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -23603,6 +23707,7 @@
   /* ══ LÉON ══ */
   {
    name:'L\u00e9on',
+   color:'40,120,60',
    ref:'L\u00e9on \u2014 Luc Besson, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -23770,6 +23875,7 @@
 
   {
    name:'La Haine',
+   color:'60,60,60',
    ref:'La Haine \u2014 Mathieu Kassovitz, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -23945,6 +24051,7 @@
   /* ══ PLATOON ══ */
   {
    name:'Platoon',
+   color:'255,100,20',
    ref:'Platoon \u2014 Oliver Stone, 1986',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='0.95';
@@ -24307,6 +24414,7 @@
   /* ══ LE GÉANT DE FER ══ */
   {
    name:'Le G\u00e9ant de fer',
+   color:'40,120,200',
    ref:'Le G\u00e9ant de fer \u2014 Brad Bird, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -24498,6 +24606,7 @@
   /* ══ INTOUCHABLES ══ */
   {
    name:'Intouchables',
+   color:'40,120,200',
    ref:'Intouchables \u2014 Nakache & Toledano, 2011',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -24824,6 +24933,7 @@
 /* ══ MYSTIC RIVER ══ */
   {
    name:'Mystic River',
+   color:'40,80,120',
    ref:'Mystic River \u2014 Clint Eastwood, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -25051,6 +25161,7 @@
   /* ══ THERE WILL BE BLOOD ══ */
   {
    name:'There Will Be Blood',
+   color:'160,80,20',
    ref:'There Will Be Blood \u2014 Paul Thomas Anderson, 2007',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -25293,6 +25404,7 @@
   /* ══ LE CINQUIÈME ÉLÉMENT ══ */
   {
    name:'Le Cinqui\u00e8me \u00c9l\u00e9ment',
+   color:'200,80,200',
    ref:'Le Cinqui\u00e8me \u00c9l\u00e9ment \u2014 Luc Besson, 1997',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -25506,6 +25618,7 @@
   /* ══ JARHEAD ══ */
   {
    name:'Jarhead',
+   color:'220,80,20',
    ref:'Jarhead \u2014 Sam Mendes, 2005',
    run(cv,ctx,W,H,stop){
     /* ── Images soldats ── */
@@ -25537,14 +25650,30 @@
     const groundY=H*0.78;
 
     /* ── GEYSER DE PETROLE — colonne fine qui s'evase en panache ── */
-    const FX=W*0.28;
+    const FX=W*0.28;   /* geyser gauche */
+    const FX2=W*0.72;  /* geyser droit — symétrique */
     const F_BASE=groundY;
     const F_STEM_W=W*0.028;
     const F_CROWN_W=W*0.22;
     const F_HEIGHT=H*0.72;
 
-    /* Particules : 40% tige serree, 60% panache evase */
+    /* Particules geyser gauche */
     const flameP=Array.from({length:110},()=>{
+     const isStem=Math.random()<0.40;
+     return {
+      yOff:Math.random()*(isStem?F_HEIGHT*0.45:F_HEIGHT),
+      xOff:(Math.random()-0.5)*(isStem?F_STEM_W*1.2:F_CROWN_W*0.9),
+      vy:Math.random()*(isStem?4.5:2.8)+(isStem?2.5:1.4),
+      r:Math.random()*(isStem?F_STEM_W*0.8:F_CROWN_W*0.55)+(isStem?F_STEM_W*0.3:F_CROWN_W*0.18),
+      hot:Math.random(),
+      ph:Math.random()*Math.PI*2,
+      wobble:Math.random()*Math.PI*2,
+      stem:isStem,
+     };
+    });
+
+    /* Particules geyser droit — indépendantes pour décalage de phase */
+    const flameP2=Array.from({length:110},()=>{
      const isStem=Math.random()<0.40;
      return {
       yOff:Math.random()*(isStem?F_HEIGHT*0.45:F_HEIGHT),
@@ -25571,9 +25700,33 @@
      phSpd:Math.random()*0.007+0.002,
     }));
 
-    /* Braises / gouttelettes enflammees */
+    /* Fumee geyser droit — derive vers la gauche (symétrique) */
+    const smokePuffs2=Array.from({length:42},(_,i)=>({
+     x:FX2+(Math.random()-0.7)*W*0.14,
+     y:groundY-F_HEIGHT*0.50-Math.random()*F_HEIGHT*0.50,
+     r:W*(0.09+Math.random()*0.22),
+     vx:-(0.22+Math.random()*0.35),
+     vy:-(0.03+Math.random()*0.06),
+     op:0.32+Math.random()*0.36,
+     tone:Math.random()*0.25,
+     ph:Math.random()*Math.PI*2,
+     phSpd:Math.random()*0.007+0.002,
+    }));
+
+    /* Braises / gouttelettes enflammees — geyser gauche */
     const embers=Array.from({length:55},()=>({
      x:FX+(Math.random()-0.5)*F_STEM_W*3,
+     y:groundY-Math.random()*F_HEIGHT*0.6,
+     vx:(Math.random()-0.5)*0.90,
+     vy:-(Math.random()*2.2+0.8),
+     r:Math.random()*2.5+0.6,
+     op:Math.random()*0.85+0.15,
+     ph:Math.random()*Math.PI*2,
+    }));
+
+    /* Braises geyser droit */
+    const embers2=Array.from({length:55},()=>({
+     x:FX2+(Math.random()-0.5)*F_STEM_W*3,
      y:groundY-Math.random()*F_HEIGHT*0.6,
      vx:(Math.random()-0.5)*0.90,
      vy:-(Math.random()*2.2+0.8),
@@ -25610,9 +25763,9 @@
      ctx.restore();
     }
 
-    function drawFireColumn(){
+    function drawFireColumn(fx, particles){
      /* Halo intense a la base */
-     const baseGlow=ctx.createRadialGradient(FX,F_BASE,0,FX,F_BASE,W*0.52);
+     const baseGlow=ctx.createRadialGradient(fx,F_BASE,0,fx,F_BASE,W*0.52);
      baseGlow.addColorStop(0,`rgba(255,180,20,${0.72+Math.sin(t*2.3)*0.12})`);
      baseGlow.addColorStop(0.15,`rgba(255,110,5,${0.45+Math.sin(t*1.6)*0.08})`);
      baseGlow.addColorStop(0.40,'rgba(200,50,3,0.18)');
@@ -25622,7 +25775,7 @@
 
      /* Tige fine du geyser */
      const stemPulse=Math.sin(t*8)*0.15+1.0;
-     const stemG=ctx.createLinearGradient(FX,F_BASE,FX,F_BASE-F_HEIGHT*0.55);
+     const stemG=ctx.createLinearGradient(fx,F_BASE,fx,F_BASE-F_HEIGHT*0.55);
      stemG.addColorStop(0,'rgba(255,230,100,0.80)');
      stemG.addColorStop(0.08,'rgba(255,160,15,0.68)');
      stemG.addColorStop(0.28,'rgba(240,80,5,0.48)');
@@ -25631,24 +25784,24 @@
      ctx.fillStyle=stemG;
      ctx.beginPath();
      const sw=F_STEM_W*stemPulse;
-     ctx.moveTo(FX-sw*1.2,F_BASE);
-     ctx.bezierCurveTo(FX-sw*0.9,F_BASE-F_HEIGHT*0.18,FX-sw*0.7,F_BASE-F_HEIGHT*0.38,FX-sw*0.5,F_BASE-F_HEIGHT*0.55);
-     ctx.lineTo(FX+sw*0.5,F_BASE-F_HEIGHT*0.55);
-     ctx.bezierCurveTo(FX+sw*0.7,F_BASE-F_HEIGHT*0.38,FX+sw*0.9,F_BASE-F_HEIGHT*0.18,FX+sw*1.2,F_BASE);
+     ctx.moveTo(fx-sw*1.2,F_BASE);
+     ctx.bezierCurveTo(fx-sw*0.9,F_BASE-F_HEIGHT*0.18,fx-sw*0.7,F_BASE-F_HEIGHT*0.38,fx-sw*0.5,F_BASE-F_HEIGHT*0.55);
+     ctx.lineTo(fx+sw*0.5,F_BASE-F_HEIGHT*0.55);
+     ctx.bezierCurveTo(fx+sw*0.7,F_BASE-F_HEIGHT*0.38,fx+sw*0.9,F_BASE-F_HEIGHT*0.18,fx+sw*1.2,F_BASE);
      ctx.closePath();ctx.fill();
 
      /* Panache superieur en champignon */
      const crownY=F_BASE-F_HEIGHT*0.48;
-     const crownG=ctx.createRadialGradient(FX,crownY,F_STEM_W,FX,crownY,F_CROWN_W*0.85);
+     const crownG=ctx.createRadialGradient(fx,crownY,F_STEM_W,fx,crownY,F_CROWN_W*0.85);
      crownG.addColorStop(0,`rgba(255,140,10,${0.52+Math.sin(t*1.9)*0.10})`);
      crownG.addColorStop(0.28,`rgba(220,55,4,${0.32+Math.sin(t*1.3)*0.07})`);
      crownG.addColorStop(0.55,'rgba(160,25,2,0.14)');
      crownG.addColorStop(0.80,'rgba(80,10,0,0.05)');
      crownG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=crownG;ctx.beginPath();ctx.arc(FX,crownY,F_CROWN_W*0.85,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle=crownG;ctx.beginPath();ctx.arc(fx,crownY,F_CROWN_W*0.85,0,Math.PI*2);ctx.fill();
 
      /* Particules volumetriques */
-     for(const fp of flameP){
+     for(const fp of particles){
       fp.yOff+=fp.vy;
       fp.ph+=0.08;
       fp.wobble+=fp.stem?0.05:0.025;
@@ -25662,7 +25815,7 @@
       const prog=fp.yOff/F_HEIGHT;
       const maxX=fp.stem?F_STEM_W*(1.5-prog*0.5):F_CROWN_W*(0.25+prog*0.75);
       const wobble=Math.sin(fp.wobble)*maxX*0.30*(fp.stem?0.4:1.0);
-      const px=FX+Math.max(-maxX,Math.min(maxX,fp.xOff*(1-prog*0.3)+wobble));
+      const px=fx+Math.max(-maxX,Math.min(maxX,fp.xOff*(1-prog*0.3)+wobble));
       const py=F_BASE-fp.yOff;
       const radius=fp.r*(0.55+Math.random()*0.12)*(fp.stem?1-prog*0.45:1-prog*0.55);
       const alpha=Math.max(0,0.90-prog*0.75)*(0.60+Math.sin(fp.ph)*0.40);
@@ -25679,18 +25832,22 @@
      }
     }
 
-    function drawSmoke(){
-     for(const s of smokePuffs){
+    function drawSmoke(puffs, fx){
+     for(const s of puffs){
       s.x+=s.vx;s.y+=s.vy;s.ph+=s.phSpd;
-      if(s.x>W+s.r*2){
-       s.x=FX+(Math.random()-0.4)*W*0.10;
+      if(s.vx>0&&s.x>W+s.r*2){
+       s.x=fx+(Math.random()-0.4)*W*0.10;
+       s.y=groundY-F_HEIGHT*0.42-Math.random()*F_HEIGHT*0.42;
+       s.op=0.28+Math.random()*0.34;
+      }
+      if(s.vx<0&&s.x<-s.r*2){
+       s.x=fx+(Math.random()-0.6)*W*0.10;
        s.y=groundY-F_HEIGHT*0.42-Math.random()*F_HEIGHT*0.42;
        s.op=0.28+Math.random()*0.34;
       }
       const pulse=0.90+Math.sin(s.ph)*0.10;
       const tr=s.r*pulse;
-      /* Fumee de petrole = tres sombre, ambree pres du feu */
-      const fire=Math.max(0,1-(s.x-FX)/(W*0.30));
+      const fire=Math.max(0,1-Math.abs(s.x-fx)/(W*0.30));
       const R=Math.round(22+s.tone*55+fire*65);
       const G=Math.round(15+s.tone*38+fire*32);
       const B=Math.round(5+s.tone*14);
@@ -25748,23 +25905,32 @@
      dg.addColorStop(1,'rgba(18,9,2,1.0)');
      ctx.fillStyle=dg;ctx.fillRect(0,groundY,W,H-groundY);
 
-     /* Mare de petrole au pied du geyser */
+     /* Mare de petrole au pied du geyser gauche */
      const poolG=ctx.createRadialGradient(FX,groundY,0,FX,groundY,W*0.18);
      poolG.addColorStop(0,`rgba(8,5,1,${0.72+Math.sin(t*1.5)*0.08})`);
      poolG.addColorStop(0.55,'rgba(15,8,2,0.40)');
      poolG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=poolG;ctx.beginPath();ctx.ellipse(FX,groundY+4,W*0.18,H*0.015,0,0,Math.PI*2);ctx.fill();
 
-     /* Fumee (fond) */
-     drawSmoke();
+     /* Mare de petrole au pied du geyser droit */
+     const poolG2=ctx.createRadialGradient(FX2,groundY,0,FX2,groundY,W*0.18);
+     poolG2.addColorStop(0,`rgba(8,5,1,${0.72+Math.sin(t*1.5+1)*0.08})`);
+     poolG2.addColorStop(0.55,'rgba(15,8,2,0.40)');
+     poolG2.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=poolG2;ctx.beginPath();ctx.ellipse(FX2,groundY+4,W*0.18,H*0.015,0,0,Math.PI*2);ctx.fill();
 
-     /* Geyser */
-     drawFireColumn();
+     /* Fumee (fond) */
+     drawSmoke(smokePuffs,FX);
+     drawSmoke(smokePuffs2,FX2);
+
+     /* Geysers */
+     drawFireColumn(FX,flameP);
+     drawFireColumn(FX2,flameP2);
 
      /* Soldats */
      drawSoldiers();
 
-     /* Braises */
+     /* Braises geyser gauche */
      for(const e of embers){
       e.x+=e.vx+Math.sin(t*2.2+e.ph)*0.20;
       e.y+=e.vy;
@@ -25780,18 +25946,28 @@
       ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* Vignette */
+     /* Braises geyser droit */
+     for(const e of embers2){
+      e.x+=e.vx+Math.sin(t*2.2+e.ph)*0.20;
+      e.y+=e.vy;
+      e.vy+=0.018;
+      if(e.y<groundY-F_HEIGHT*1.05||e.y>groundY+2||e.x<-5||e.x>W+5){
+       e.x=FX2+(Math.random()-0.5)*F_STEM_W*4;
+       e.y=groundY-F_HEIGHT*0.08-Math.random()*F_HEIGHT*0.25;
+       e.vy=-(Math.random()*2.2+0.8);
+       e.vx=(Math.random()-0.5)*0.90;
+      }
+      const ep=Math.max(0,1-(groundY-e.y)/(F_HEIGHT));
+      ctx.fillStyle=`rgba(255,${Math.round(150+ep*90)},${Math.round(ep*30)},${e.op*(0.45+Math.sin(e.ph+t*5)*0.55)})`;
+      ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Vignette (haut/bas seulement, pas de bandes latérales) */
      const vg=ctx.createRadialGradient(cx,H*0.45,H*0.10,cx,H*0.45,H*0.92);
      vg.addColorStop(0,'rgba(0,0,0,0)');
      vg.addColorStop(0.50,'rgba(0,0,0,0.06)');
      vg.addColorStop(1,'rgba(0,0,0,0.82)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-     const vgL=ctx.createLinearGradient(0,0,W*0.10,0);
-     vgL.addColorStop(0,'rgba(0,0,0,0.75)');vgL.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgL;ctx.fillRect(0,0,W*0.10,H);
-     const vgR=ctx.createLinearGradient(W,0,W*0.90,0);
-     vgR.addColorStop(0,'rgba(0,0,0,0.75)');vgR.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=vgR;ctx.fillRect(W*0.90,0,W*0.10,H);
 
      /* Grain pellicule */
      for(let i=0;i<24;i++){const g=6+Math.random()*16|0;ctx.fillStyle=`rgba(${g+6},${g+2},${g},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.5+0.3,1);}
@@ -25804,6 +25980,7 @@
   /* ══ THE PLAYER ══ */
   {
    name:'The Player',
+   color:'60,120,180',
    ref:'The Player \u2014 Robert Altman, 1992',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -26119,6 +26296,7 @@
   /* ══ THELMA ET LOUISE ══ */
   {
    name:'Thelma et Louise',
+   color:'220,140,40',
    ref:'Thelma et Louise \u2014 Ridley Scott, 1991',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -26462,6 +26640,7 @@
   /* ══ SKYFALL ══ */
   {
    name:'Skyfall',
+   color:'40,80,160',
    ref:'Skyfall \u2014 Sam Mendes, 2012',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -26672,6 +26851,7 @@
     /* ══ CASINO ROYALE ══ */
   {
    name:'Casino Royale',
+   color:'40,80,160',
    ref:'Casino Royale \u2014 Martin Campbell, 2006',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -26840,6 +27020,7 @@
   /* ══ NOPE ══ */
   {
    name:'Nope',
+   color:'60,40,120',
    ref:'Nope \u2014 Jordan Peele, 2022',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -27114,6 +27295,7 @@
   /* ══ THE SOCIAL NETWORK ══ */
   {
    name:'The Social Network',
+   color:'40,80,160',
    ref:'The Social Network \u2014 David Fincher, 2010',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -27254,6 +27436,7 @@
   /* ══ SOUND OF METAL ══ */
   {
    name:'Sound of Metal',
+   color:'80,60,40',
    ref:'Sound of Metal \u2014 Darius Marder, 2019',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -27427,6 +27610,7 @@
   /* ══ EYES WIDE SHUT ══ */
   {
    name:'Eyes Wide Shut',
+   color:'180,140,60',
    ref:'Eyes Wide Shut \u2014 Stanley Kubrick, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -27593,6 +27777,7 @@
   /* ══ VANILLA SKY ══ */
   {
    name:'Vanilla Sky',
+   color:'80,120,200',
    ref:'Vanilla Sky \u2014 Cameron Crowe, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -27751,6 +27936,7 @@
   /* ══ JUSTE LA FIN DU MONDE ══ */
   {
    name:'Juste la fin du Monde',
+   color:'180,80,80',
    ref:'Juste la fin du Monde \u2014 Xavier Dolan, 2016',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -28061,6 +28247,7 @@
   /* ══ LORD OF WAR ══ */
   {
    name:'Lord of War',
+   color:'180,140,40',
    ref:'Lord of War \u2014 Andrew Niccol, 2005',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -28208,6 +28395,7 @@
   /* ══ NARNIA ══ */
   {
    name:'Narnia',
+   color:'120,180,220',
    ref:'Narnia \u2014 Andrew Adamson, 2005',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -28533,6 +28721,7 @@
   /* ══ JOKER ══ */
   {
    name:'Joker',
+   color:'180,60,20',
    ref:'Joker \u2014 Todd Phillips, 2019',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -28756,6 +28945,7 @@
     /* ══ DIRTY DANCING ══ */
   {
    name:'Dirty Dancing',
+   color:'200,80,120',
    ref:'Dirty Dancing \u2014 Emile Ardolino, 1987',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -28878,6 +29068,7 @@
   /* ══ OPPENHEIMER ══ */
   {
    name:'Oppenheimer',
+   color:'255,120,20',
    ref:'Oppenheimer \u2014 Christopher Nolan, 2023',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -29109,6 +29300,7 @@
   /* ══ L'ÂGE DE GLACE ══ */
   {
    name:"L'Âge de Glace",
+   color:'120,180,220',
    ref:"L'Âge de Glace \u2014 Chris Wedge, 2002",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -29497,6 +29689,7 @@
   /* ══ AFTERSUN ══ */
   {
    name:'Aftersun',
+   color:'60,160,200',
    ref:'Aftersun \u2014 Charlotte Wells, 2022',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -29701,6 +29894,7 @@
   /* ══ TRAINING DAY ══ */
   {
    name:'Training Day',
+   color:'120,100,40',
    ref:'Training Day \u2014 Antoine Fuqua, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -29851,6 +30045,7 @@
   /* ══ FAST AND FURIOUS ══ */
   {
    name:'Fast and Furious',
+   color:'200,60,20',
    ref:'The Fast and the Furious \u2014 Rob Cohen, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -30203,6 +30398,7 @@
   /* ══ RAMBO ══ */
   {
    name:'Rambo',
+   color:'80,60,20',
    ref:'First Blood \u2014 Ted Kotcheff, 1982',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -30379,6 +30575,7 @@
   /* ══ PROJET HAIL MARY ══ */
   {
    name:'Projet Hail Mary',
+   color:'40,120,200',
    ref:'Project Hail Mary \u2014 Andy Weir, 2021',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
@@ -30559,6 +30756,7 @@
   /* ══ SUPERMAN ══ */
   {
    name:'Superman',
+   color:'40,80,200',
    ref:'Superman \u2014 Richard Donner, 1978',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -30664,6 +30862,7 @@
   /* ══ CHARLIE ET LA CHOCOLATERIE ══ */
   {
    name:'Charlie et la Chocolaterie',
+   color:'180,80,160',
    ref:'Charlie and the Chocolate Factory \u2014 Tim Burton, 2005',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -30761,6 +30960,7 @@
   /* ══ RESERVOIR DOGS ══ */
   {
    name:'Reservoir Dogs',
+   color:'180,20,20',
    ref:'Reservoir Dogs \u2014 Quentin Tarantino, 1992',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -31126,6 +31326,7 @@
   /* ══ FULL METAL JACKET ══ */
   {
    name:'Full Metal Jacket',
+   color:'60,100,60',
    ref:'Full Metal Jacket \u2014 Stanley Kubrick, 1987',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -31202,6 +31403,7 @@
     /* ══ SNATCH ══ */
   {
    name:'Snatch',
+   color:'80,60,40',
    ref:'Snatch \u2014 Guy Ritchie, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -31662,6 +31864,7 @@
   /* ══ WILL HUNTING ══ */
   {
    name:'Rain Man',
+   color:'100,140,180',
    ref:'Rain Man \u2014 Barry Levinson, 1988',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -32037,6 +32240,7 @@
   /* ══ WILL HUNTING ══ */
   {
    name:'Will Hunting',
+   color:'60,100,160',
    ref:'Good Will Hunting \u2014 Gus Van Sant, 1997',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -32237,6 +32441,7 @@
   /* ══ THE DARK KNIGHT ══ */
   {
    name:'The Dark Knight',
+   color:'40,100,200',
    ref:'The Dark Knight \u2014 Christopher Nolan, 2008',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -32420,6 +32625,7 @@
   /* ══ GREASE ══ */
   {
    name:'Grease',
+   color:'200,100,180',
    ref:'Grease \u2014 Randal Kleiser, 1978',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -32522,6 +32728,7 @@
   /* ══ ORANGE MÉCANIQUE ══ */
   {
    name:'Orange M\u00e9canique',
+   color:'180,40,40',
    ref:'A Clockwork Orange \u2014 Stanley Kubrick, 1971',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -32626,6 +32833,7 @@
   /* ══ LOST IN TRANSLATION ══ */
   {
    name:'Lost in Translation',
+   color:'60,120,200',
    ref:'Lost in Translation \u2014 Sofia Coppola, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -32883,6 +33091,7 @@
   /* ══ LE SILENCE DES AGNEAUX ══ */
   {
    name:'Le Silence des agneaux',
+   color:'40,80,40',
    ref:'The Silence of the Lambs \u2014 Jonathan Demme, 1991',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -33234,6 +33443,7 @@
   /* ══ INGLOURIOUS BASTERDS ══ */
   {
    name:'Inglourious Basterds',
+   color:'200,140,40',
    ref:'Inglourious Basterds \u2014 Quentin Tarantino, 2009',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -33407,6 +33617,7 @@
   /* ══ BIRDMAN ══ */
   {
    name:'Birdman',
+   color:'60,100,160',
    ref:'Birdman \u2014 Alejandro G. I\u00f1\u00e1rritu, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';
@@ -33563,6 +33774,7 @@
   /* ══ THE BREAKFAST CLUB ══ */
   {
    name:'The Breakfast Club',
+   color:'200,60,40',
    ref:'The Breakfast Club \u2014 John Hughes, 1985',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -33744,6 +33956,7 @@
   /* ══ LE PRESTIGE ══ */
   {
    name:'Le Prestige',
+   color:'40,80,160',
    ref:'The Prestige \u2014 Christopher Nolan, 2006',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -34127,6 +34340,7 @@
   /* ══ MULHOLLAND DRIVE ══ */
   {
    name:'Mulholland Drive',
+   color:'160,40,120',
    ref:'Mulholland Drive \u2014 David Lynch, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -34410,6 +34624,7 @@
   /* ══ MOONLIGHT ══ */
   {
    name:'Moonlight',
+   color:'40,80,180',
    ref:'Moonlight \u2014 Barry Jenkins, 2016',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -34574,6 +34789,7 @@
   /* ══ GHOST IN THE SHELL ══ */
   {
    name:'Ghost in the Shell',
+   color:'0,180,220',
    ref:'Ghost in the Shell \u2014 Mamoru Oshii, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -34652,6 +34868,7 @@
   /* ══ VIRGIN SUICIDES ══ */
   {
    name:'Virgin Suicides',
+   color:'200,160,120',
    ref:'The Virgin Suicides \u2014 Sofia Coppola, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -34808,6 +35025,7 @@
   /* ══ EDWARD AUX MAINS D'ARGENT ══ */
   {
    name:"Edward aux mains d'argent",
+   color:'120,160,200',
    ref:"Edward Scissorhands \u2014 Tim Burton, 1990",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -34986,6 +35204,7 @@
   /* ══ BLOW ══ */
   {
    name:'Blow',
+   color:'40,160,80',
    ref:'Blow \u2014 Ted Demme, 2001',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -35794,6 +36013,7 @@
   /* ══ LA PLAGE ══ */
   {
    name:'La plage',
+   color:'40,180,180',
    ref:'The Beach \u2014 Danny Boyle, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -36113,6 +36333,7 @@
   /* ══ BABY DRIVER ══ */
   {
    name:'Baby Driver',
+   color:'200,40,40',
    ref:'Baby Driver \u2014 Edgar Wright, 2017',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -36301,6 +36522,7 @@
   /* ══ GARDEN STATE ══ */
   {
    name:'Garden State',
+   color:'80,120,80',
    ref:'Garden State \u2014 Zach Braff, 2004',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -36592,6 +36814,7 @@
   /* ══ LITTLE MISS SUNSHINE ══ */
   {
    name:'Little Miss Sunshine',
+   color:'220,160,40',
    ref:'Little Miss Sunshine \u2014 Dayton & Faris, 2006',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -36762,6 +36985,7 @@
   /* ══ POINT BREAK ══ */
   {
    name:'Point Break',
+   color:'40,120,200',
    ref:'Point Break \u2014 Kathryn Bigelow, 1991',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -37002,6 +37226,7 @@
   /* ══ JUMANJI ══ */
   {
    name:'Jumanji',
+   color:'60,140,60',
    ref:'Jumanji \u2014 Joe Johnston, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.52;
@@ -37356,6 +37581,7 @@
   /* ══ LA NUIT AU MUSÉE ══ */
   {
    name:'La nuit au mus\u00e9e',
+   color:'200,160,60',
    ref:'Night at the Museum \u2014 Shawn Levy, 2006',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -37757,6 +37983,7 @@
 
   {
    name:"Maman j'ai rat\u00e9 l'avion",
+   color:'200,80,40',
    ref:"Home Alone \u2014 Chris Columbus, 1990",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -37864,6 +38091,7 @@
   /* ══ LE DERNIER SAMOURAÏ ══ */
   {
    name:'Le dernier samoura\u00ef',
+   color:'60,80,40',
    ref:'The Last Samurai \u2014 Edward Zwick, 2003',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -38056,6 +38284,7 @@
   /* ══ SIXIÈME SENS ══ */
   {
    name:'Sixi\u00e8me Sens',
+   color:'60,20,80',
    ref:'The Sixth Sense \u2014 M. Night Shyamalan, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -38234,6 +38463,7 @@
   /* ══ INCASSABLE ══ */
   {
    name:'Incassable',
+   color:'60,20,80',
    ref:'Unbreakable \u2014 M. Night Shyamalan, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -38495,6 +38725,7 @@
   /* ══ PRISONERS ══ */
   {
    name:'Prisoners',
+   color:'60,80,40',
    ref:'Prisoners \u2014 Denis Villeneuve, 2013',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -38729,6 +38960,7 @@
   /* ══ BOYZ N THE HOOD ══ */
   {
    name:'Boyz n the Hood',
+   color:'200,60,20',
    ref:"Boyz n the Hood \u2014 John Singleton, 1991",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -38950,6 +39182,7 @@
   /* ══ OCEAN'S ELEVEN ══ */
   {
    name:"Ocean's Eleven",
+   color:'40,120,180',
    ref:"Ocean's Eleven \u2014 Steven Soderbergh, 2001",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -39314,6 +39547,7 @@
 
   {
    name:'La M\u00e9moire dans la peau',
+   color:'80,120,160',
    ref:'The Bourne Identity \u2014 Doug Liman, 2002',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -39670,6 +39904,7 @@
   /* ══ THE MASK ══ */
   {
    name:'Un jour sans fin',
+   color:'120,160,200',
    ref:'Groundhog Day \u2014 Harold Ramis, 1993',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -39897,6 +40132,7 @@
 
   {
    name:'The Mask',
+   color:'40,180,40',
    ref:'The Mask \u2014 Chuck Russell, 1994',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -40048,6 +40284,7 @@
   /* ══ CASINO ══ */
   {
    name:'Casino',
+   color:'200,40,40',
    ref:'Casino \u2014 Martin Scorsese, 1995',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -40237,6 +40474,7 @@
   /* ══ FURY ══ */
   {
    name:'Fury',
+   color:'60,80,40',
    ref:'Fury \u2014 David Ayer, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -40403,6 +40641,7 @@
   /* ══ COLLATÉRAL ══ */
   {
    name:'Collat\u00e9ral',
+   color:'40,80,160',
    ref:'Collateral \u2014 Michael Mann, 2004',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -40653,6 +40892,7 @@
   /* ══ BIG ══ */
   {
    name:'Big',
+   color:'40,120,200',
    ref:'Big \u2014 Penny Marshall, 1988',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -40897,6 +41137,7 @@
   /* ══ HOOK ══ */
   {
    name:'Hook',
+   color:'60,120,200',
    ref:'Hook \u2014 Steven Spielberg, 1991',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -41139,6 +41380,7 @@
   /* ══ L'EFFET PAPILLON ══ */
   {
    name:"L'effet papillon",
+   color:'60,40,120',
    ref:"The Butterfly Effect \u2014 Eric Bress, 2004",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.30;
@@ -41411,6 +41653,7 @@
   /* ══ LA CITÉ DE DIEU ══ */
   {
    name:'La Cit\u00e9 de Dieu',
+   color:'200,120,40',
    ref:'City of God \u2014 Fernando Meirelles, 2002',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -41454,6 +41697,7 @@
   /* ══ BIENVENUE À GATTACA ══ */
   {
    name:'Bienvenue \u00e0 Gattaca',
+   color:'40,80,160',
    ref:'Gattaca \u2014 Andrew Niccol, 1997',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -41558,6 +41802,7 @@
   /* ══ LE LAURÉAT ══ */
   {
    name:'Le Laur\u00e9at',
+   color:'80,120,60',
    ref:'The Graduate \u2014 Mike Nichols, 1967',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -41831,6 +42076,7 @@
   /* ══ WINTER BREAK ══ */
   {
    name:'Winter Break',
+   color:'120,180,220',
    ref:'The Holdovers \u2014 Alexander Payne, 2023',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -42195,6 +42441,7 @@
   /* ══ SINNERS ══ */
   {
    name:'Sinners',
+   color:'180,20,20',
    ref:'Sinners \u2014 Ryan Coogler, 2025',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -42409,6 +42656,7 @@
   /* ══ AMERICAN PSYCHO ══ */
   {
    name:'American Psycho',
+   color:'60,60,60',
    ref:'American Psycho \u2014 Mary Harron, 2000',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
@@ -42602,6 +42850,7 @@
   /* ══ MARTY SUPREME ══ */
   {
    name:'Marty Supreme',
+   color:'40,120,200',
    ref:'Marty Supreme \u2014 Jonah Hill, 2025',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -42760,6 +43009,7 @@
   /* ══ AFTER HOURS ══ */
   {
    name:'After Hours',
+   color:'60,40,100',
    ref:'After Hours \u2014 Martin Scorsese, 1985',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -43033,6 +43283,7 @@
   /* ══ CHALLENGERS ══ */
   {
    name:'Challengers',
+   color:'200,100,40',
    ref:'Challengers \u2014 Luca Guadagnino, 2024',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -43155,6 +43406,7 @@
   /* ══ CALL ME BY YOUR NAME ══ */
   {
    name:'Call Me by Your Name',
+   color:'220,140,60',
    ref:'Call Me by Your Name \u2014 Luca Guadagnino, 2017',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -43282,6 +43534,7 @@
   /* ══ N'OUBLIE JAMAIS ══ */
   {
    name:"N'oublie jamais",
+   color:'80,120,180',
    ref:"The Notebook \u2014 Nick Cassavetes, 2004",
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -43507,6 +43760,7 @@
   /* ══ IRON MAN ══ */
   {
    name:'Iron Man',
+   color:'200,80,20',
    ref:'Iron Man \u2014 Jon Favreau, 2008',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -43666,6 +43920,7 @@
   /* ══ LES GARDIENS DE LA GALAXIE ══ */
   {
    name:'Les Gardiens de la Galaxie',
+   color:'60,20,140',
    ref:'Guardians of the Galaxy \u2014 James Gunn, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -44012,6 +44267,7 @@
   /* ══ ZODIAC ══ */
   {
    name:'Zodiac',
+   color:'60,80,120',
    ref:'Zodiac \u2014 David Fincher, 2007',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -44166,6 +44422,7 @@
   /* ══ NIGHT CALL ══ */
   {
    name:'Night Call',
+   color:'60,40,120',
    ref:'Nightcrawler \u2014 Dan Gilroy, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -44309,6 +44566,7 @@
   /* ══ JOHN WICK ══ */
   {
    name:'John Wick',
+   color:'40,80,160',
    ref:'John Wick \u2014 Chad Stahelski, 2014',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -44467,6 +44725,7 @@
   /* ══ VERY BAD TRIP ══ */
   {
    name:'Very Bad Trip',
+   color:'200,140,40',
    ref:'The Hangover \u2014 Todd Phillips, 2009',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -44690,6 +44949,7 @@
   /* ══ 28 JOURS PLUS TARD ══ */
   {
    name:'28 jours plus tard',
+   color:'40,160,40',
    ref:'28 Days Later \u2014 Danny Boyle, 2002',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -44732,6 +44992,7 @@
   /* ══ À TOMBEAU OUVERT ══ */
   {
    name:'\u00c0 tombeau ouvert',
+   color:'180,20,20',
    ref:'Bringing Out the Dead \u2014 Martin Scorsese, 1999',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
@@ -45041,6 +45302,52 @@
 
     if(window._onSplashEffectReady){window._onSplashEffectReady();window._onSplashEffectReady=null;}
     fx.run(cv,ctx,cv.width,cv.height,stop);
+
+    /* ── Lueur dominante sur le splash principal ── */
+    /* Priorité : fx.color (défini manuellement) → fallback getComputedStyle */
+    setTimeout(function(){
+      if(stop.v) return;
+      try{
+        let r=0,g=0,b=0,found=false;
+
+        /* 1. Couleur explicite de l'effet */
+        if(fx.color){
+          const parts=fx.color.split(',');
+          if(parts.length===3){r=+parts[0];g=+parts[1];b=+parts[2];found=true;}
+        }
+
+        /* 2. Fallback : lire la couleur CSS de #splash */
+        if(!found){
+          const splashEl=document.getElementById('splash');
+          const bgColor=splashEl?window.getComputedStyle(splashEl).backgroundColor:'';
+          const m=bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+          if(m){r=+m[1];g=+m[2];b=+m[3];found=r+g+b>18;}
+        }
+
+        if(!found||r+g+b<10) return;
+
+        let glowStyle=document.getElementById('_cq_splash_glow');
+        if(!glowStyle){glowStyle=document.createElement('style');glowStyle.id='_cq_splash_glow';document.head.appendChild(glowStyle);}
+        glowStyle.textContent=`
+          #splash-bg::before {
+            background: radial-gradient(ellipse 85% 65% at 50% 40%,
+              rgba(${r},${g},${b},0.40) 0%,
+              rgba(${r},${g},${b},0.15) 35%,
+              transparent 70%) !important;
+          }
+          #splash-bg-anim::before {
+            background: radial-gradient(ellipse 85% 65% at 50% 40%,
+              rgba(${r},${g},${b},0.50) 0%,
+              rgba(${r},${g},${b},0.20) 35%,
+              transparent 70%) !important;
+          }
+        `;
+        const _glowWatch=setInterval(function(){
+          if(stop.v){glowStyle.textContent='';clearInterval(_glowWatch);}
+        },300);
+      }catch(e){}
+    },20);
+
     window._stopSplashEffect=()=>{stop.v=true;ctx.clearRect(0,0,cv.width,cv.height);};
   };
   // Exposer pour la preview
