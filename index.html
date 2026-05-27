@@ -5499,72 +5499,9 @@ async function fetchVersusQuestions(count){
 // ══════════════════════════════════════════════
 let _btAudio=null,_btProgTimer=null,_btRevealTimer=null;
 
-// JSONP helper — contourne les restrictions CORS/ITP de Chrome iOS et Safari PWA
-// iTunes supporte nativement le callback JSONP via ?callback=
-function _jsonp(url, timeout=7000){
-  return new Promise((resolve, reject)=>{
-    const cbName='_itunesCb'+Date.now();
-    const script=document.createElement('script');
-    const tid=setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, timeout);
-    function cleanup(){ clearTimeout(tid); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
-    window[cbName]=function(data){ cleanup(); resolve(data); };
-    script.src=url+(url.includes('?')?'&':'?')+'callback='+cbName;
-    script.onerror=()=>{ cleanup(); reject(new Error('script error')); };
-    document.head.appendChild(script);
-  });
-}
-
-// Polyfill AbortSignal.timeout pour iOS < 16.4
-function _fetchWithTimeout(url, ms){
-  const ctrl=new AbortController();
-  const tid=setTimeout(()=>ctrl.abort(),ms);
-  return fetch(url,{signal:ctrl.signal}).finally(()=>clearTimeout(tid));
-}
-
-async function fetchBlindTestPreview(entry){
-  const toHttps=u=>u?u.replace(/^http:/,'https:'):u;
-
-  // 1. iTunes JSONP — contourne CORS sur mobile (script tag, pas de preflight)
-  try{
-    const q=encodeURIComponent(entry.search);
-    const d=await _jsonp(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,4000);
-    const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
-    if(tracks.length>0)return toHttps(tracks[0].previewUrl);
-  }catch(e){}
-
-  // 2. iTunes fetch standard (fonctionne quand CORS autorisé — desktop + Android Chrome)
-  try{
-    const q=encodeURIComponent(entry.search);
-    const r=await _fetchWithTimeout(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8&media=music`,4000);
-    if(r.ok){
-      const d=await r.json();
-      const tracks=(d.results||[]).filter(t=>t.previewUrl&&!((t.trackName||'').toLowerCase().includes('karaoke')));
-      if(tracks.length>0)return toHttps(tracks[0].previewUrl);
-    }
-  }catch(e){}
-
-  // 3. Deezer via proxy allorigins (fonctionne même si iTunes est bloqué réseau mobile)
-  try{
-    const q=encodeURIComponent(entry.search);
-    const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.deezer.com/search?q='+q+'&limit=5')}`;
-    const r=await _fetchWithTimeout(proxy,5000);
-    if(r.ok){
-      const d=await r.json();
-      const data=JSON.parse(d.contents||'{}');
-      const tracks=(data.data||[]).filter(t=>t.preview);
-      if(tracks.length>0)return toHttps(tracks[0].preview);
-    }
-  }catch(e){}
-
-  // 4. Deezer JSONP direct (dernier recours mobile)
-  try{
-    const q=encodeURIComponent(entry.search);
-    const d=await _jsonp(`https://api.deezer.com/search?q=${q}&limit=5&output=jsonp`,4000);
-    const tracks=(d.data||[]).filter(t=>t.preview);
-    if(tracks.length>0)return toHttps(tracks[0].preview);
-  }catch(e){}
-
-  return null;
+// Résolution locale uniquement — fichier MP3 présent à la racine du site
+function fetchBlindTestPreview(entry){
+  return Promise.resolve(entry.file || null);
 }
 
 function buildBlindTestQuestions(count){
@@ -5574,7 +5511,7 @@ function buildBlindTestQuestions(count){
   return pool.map(entry=>{
     const others=shuffle(BLINDTEST_DB.filter(e=>e.title!==entry.title)).slice(0,3).map(e=>e.title);
     const answers=shuffle([entry.title,...others]);
-    return{type:'blindtest',title:entry.title,search:entry.search,composer:entry.composer,tmdb_id:entry.tmdb_id,year:entry.year,answers,correct:answers.indexOf(entry.title),difficulty:'medium',category:'🎵 Blind Test',previewUrl:null};
+    return{type:'blindtest',title:entry.title,file:entry.file,tmdb_id:entry.tmdb_id,year:entry.year,answers,correct:answers.indexOf(entry.title),difficulty:'medium',category:'🎵 Blind Test'};
   });
 }
 
@@ -6087,7 +6024,7 @@ const go=id=>{
       else{gbg.classList.remove('on');}
     }
     // Musique
-    // Blind Test gère son propre audio (extraits iTunes/Deezer) — pas de musique de fond
+    // Blind Test gère son propre audio (fichiers MP3 locaux) — pas de musique de fond
     if(id==='game'&&selMode!=='blindtest'){switchMusic(selMode,0.22);}
     else if(id==='game'&&selMode==='blindtest'){stopMus();}
     else if(id==='home'){switchMusic('home',0.3);}
@@ -11438,19 +11375,14 @@ function loadQ(){
     document.getElementById('dbadge').style.color='#a78bfa';
 
     // ── État local de la question ──
-    let _btUrl=null;       // URL preview résolue
-    let _btReady=false;    // fetch terminé (avec ou sans URL)
-    let _btPlaying=false;  // audio en cours
-    let _btUnlocked=false; // réponses déjà affichées
+    const _btUrl=q.file||null;  // fichier MP3 local — disponible immédiatement
+    let _btPlaying=false;
+    let _btUnlocked=false;
 
     // ── Afficher les réponses (une seule fois) ──
-    function _btUnlock(noAudio){
+    function _btUnlock(){
       if(_btUnlocked)return;
       _btUnlocked=true;
-      const status=document.getElementById('bt-status');
-      if(noAudio&&!_btUrl){
-        if(status){status.textContent='Extrait indisponible — devine quand même !';status.className='bt-status error';}
-      }
       grid.innerHTML='';
       q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
       grid.className='agrid bt-visible';
@@ -11462,20 +11394,6 @@ function loadQ(){
       const btn=document.getElementById('bt-play-btn');
       const status=document.getElementById('bt-status');
       const bars=document.querySelectorAll('.bt-note-bar');
-      if(!_btReady){
-        // Chargement en cours
-        if(btn)btn.disabled=true;
-        if(status){status.textContent='Chargement…';status.className='bt-status loading';}
-        return;
-      }
-      if(!_btUrl){
-        // Pas d'extrait disponible
-        if(btn){btn.disabled=true;btn.style.opacity='0.35';}
-        if(status){status.textContent='Extrait indisponible';status.className='bt-status error';}
-        return;
-      }
-      // Extrait prêt
-      if(btn)btn.disabled=false;
       if(_btPlaying){
         bars.forEach(b=>{b.classList.remove('paused');b.classList.add('playing');});
         if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
@@ -11487,7 +11405,7 @@ function loadQ(){
       }
     }
 
-    // ── UI initiale (bouton grisé pendant le fetch) ──
+    // ── UI initiale — bouton actif immédiatement (fichier local) ──
     grid.className='agrid bt-hidden';
     qa.innerHTML=`
       <div class="qtl">🎵 Blind Test</div>
@@ -11495,48 +11413,28 @@ function loadQ(){
         <div class="bt-note-row">
           ${[1,2,3,4,5,6,7].map(()=>'<div class="bt-note-bar paused"></div>').join('')}
         </div>
-        <button class="bt-play-btn" id="bt-play-btn" disabled onclick="_btToggle()">
+        <button class="bt-play-btn" id="bt-play-btn" onclick="_btToggle()">
           <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
         </button>
         <div class="bt-progress-wrap"><div class="bt-progress-fill" id="bt-prog"></div></div>
-        <div class="bt-time-row"><span id="bt-cur">0:00</span><span>0:30</span></div>
-        <div class="bt-status loading" id="bt-status">Chargement de l'extrait…</div>
+        <div class="bt-time-row"><span id="bt-cur">0:00</span><span>0:15</span></div>
+        <div class="bt-status" id="bt-status">Prêt — appuie sur ▶</div>
         <div class="bt-composer" id="bt-composer"></div>
       </div>`;
 
-    // ── Fallback : si fetch bloqué > 20s, débloquer sans audio ──
-    const _btFallback=setTimeout(()=>{
-      if(!_btReady){ _btReady=true; _btUrl=null; _btUpdateUI(); _btUnlock(true); }
-    },20000);
-
-    // ── Fetch de l'URL preview (en arrière-plan pendant que l'user voit le player) ──
-    fetchBlindTestPreview(q).then(url=>{
-      clearTimeout(_btFallback);
-      _btReady=true;
-      _btUrl=url||null;
-      if(!url){ _btUpdateUI(); _btUnlock(true); return; }
-      // Créer et précharger l'Audio dès que l'URL est connue — iOS autorise
-      // la création de l'objet Audio hors geste, seul .play() nécessite un geste
-      if(!_btAudio){
-        _btAudio=new Audio();
-        _btAudio.preload='auto'; // préchargement immédiat dès l'URL connue
-        _btAudio.volume=0.85;
-        _btAudio.src=_btUrl;
-      }
-      _btUpdateUI();
-    }).catch(()=>{
-      clearTimeout(_btFallback);
-      _btReady=true; _btUrl=null;
-      _btUpdateUI(); _btUnlock(true);
-    });
+    // Précharger l'audio dès l'affichage (hors geste — iOS autorise la création)
+    if(_btUrl && !_btAudio){
+      _btAudio=new Audio();
+      _btAudio.preload='auto';
+      _btAudio.volume=0.85;
+      _btAudio.src=_btUrl;
+    }
 
     // ── Toggle play/pause — DOIT être appelé directement depuis un onclick ──
     window._btToggle=function(){
-      if(!_btReady)return;
-      if(!_btUrl){return;} // pas d'extrait
+      if(!_btUrl){return;}
       if(_btPlaying){_btDoPause();return;}
       // iOS Safari : créer ET jouer l'Audio dans le même contexte de geste utilisateur
-      // Si _btAudio n'a pas pu être créé au preload (rare), on le crée ici
       if(!_btAudio){
         _btAudio=new Audio();
         _btAudio.preload='auto';
@@ -11563,16 +11461,16 @@ function loadQ(){
         if(!_btAudio||_btAudio.paused)return;
         const t=_btAudio.currentTime;
         const prog=document.getElementById('bt-prog');
-        if(prog)prog.style.width=Math.min((t/30)*100,100)+'%';
+        if(prog)prog.style.width=Math.min((t/15)*100,100)+'%';
         const cur=document.getElementById('bt-cur');
         if(cur)cur.textContent='0:'+Math.floor(t).toString().padStart(2,'0');
-        if(t>=30){_btDoPause();_btAudio.currentTime=0;}
+        if(t>=15){_btDoPause();_btAudio.currentTime=0;}
       },150);
       // Révéler réponses après 5s d'écoute cumulée (le timer repart à chaque play)
       if(_btRevealTimer)clearTimeout(_btRevealTimer);
       const _msAlreadyPlayed=_btAudio.currentTime*1000;
       const _msRemaining=Math.max(0,5000-_msAlreadyPlayed);
-      _btRevealTimer=setTimeout(()=>{if(!ansed)_btUnlock(false);},_msRemaining);
+      _btRevealTimer=setTimeout(()=>{if(!ansed)_btUnlock();},_msRemaining);
     };
 
     window._btDoPause=function(){
