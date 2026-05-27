@@ -17170,8 +17170,16 @@ if(!_s.onboardingDone){
       const active = getActiveVideo();
 
       if(!active){
-        // Zone non-vidéo : on verrouille et on s'assure qu'on sort du plein écran
         exitFullscreen();
+        // Forcer un reflow de la navbar sur iOS Safari après retour en portrait
+        setTimeout(function(){
+          var nav = document.getElementById('cq-global-nav');
+          if(!nav || nav.style.display === 'none') return;
+          nav.style.display = 'none';
+          // eslint-disable-next-line no-unused-expressions
+          nav.offsetHeight; // force reflow
+          nav.style.display = 'flex';
+        }, 300);
         return;
       }
 
@@ -17179,6 +17187,14 @@ if(!_s.onboardingDone){
         setTimeout(()=>{ if(isLandscape()) enterFullscreen(active); }, 150);
       } else {
         exitFullscreen();
+        // Forcer un reflow de la navbar
+        setTimeout(function(){
+          var nav = document.getElementById('cq-global-nav');
+          if(!nav || nav.style.display === 'none') return;
+          nav.style.display = 'none';
+          nav.offsetHeight;
+          nav.style.display = 'flex';
+        }, 300);
       }
     }
 
@@ -17187,6 +17203,19 @@ if(!_s.onboardingDone){
       screen.orientation.addEventListener('change', onOrientationChange);
     }
     window.addEventListener('orientationchange', onOrientationChange);
+
+    // Fallback resize pour iOS Safari — reflow navbar après rotation
+    var _navResizeTimer = null;
+    window.addEventListener('resize', function(){
+      clearTimeout(_navResizeTimer);
+      _navResizeTimer = setTimeout(function(){
+        var nav = document.getElementById('cq-global-nav');
+        if(!nav || nav.style.display === 'none') return;
+        nav.style.display = 'none';
+        nav.offsetHeight;
+        nav.style.display = 'flex';
+      }, 200);
+    });
 
     // Au démarrage : verrouiller portrait + activer le fallback CSS
     document.body.classList.remove('allow-landscape');
