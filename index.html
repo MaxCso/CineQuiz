@@ -11405,35 +11405,10 @@ function loadQ(){
       }
     }
 
-    // ── UI initiale — bouton actif immédiatement (fichier local) ──
-    grid.className='agrid bt-hidden';
-    qa.innerHTML=`
-      <div class="qtl">🎵 Blind Test</div>
-      <div class="bt-player" id="bt-player">
-        <div class="bt-note-row">
-          ${[1,2,3,4,5,6,7].map(()=>'<div class="bt-note-bar paused"></div>').join('')}
-        </div>
-        <button class="bt-play-btn" id="bt-play-btn" onclick="_btToggle()">
-          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-        </button>
-        <div class="bt-progress-wrap"><div class="bt-progress-fill" id="bt-prog"></div></div>
-        <div class="bt-time-row"><span id="bt-cur">0:00</span><span>0:15</span></div>
-        <div class="bt-status" id="bt-status">Prêt — appuie sur ▶</div>
-        <div class="bt-composer" id="bt-composer"></div>
-      </div>`;
-
-    // Précharger l'audio dès l'affichage (hors geste — iOS autorise la création)
-    if(_btUrl && !_btAudio){
-      _btAudio=new Audio();
-      _btAudio.preload='auto';
-      _btAudio.volume=0.85;
-      _btAudio.src=_btUrl;
-    }
-
-    // ── Toggle play/pause — DOIT être appelé directement depuis un onclick ──
+    // ── Définir toutes les fonctions window.* AVANT l'injection du DOM ──
     window._btToggle=function(){
       if(!_btUrl){return;}
-      if(_btPlaying){_btDoPause();return;}
+      if(_btPlaying){window._btDoPause();return;}
       // iOS Safari : créer ET jouer l'Audio dans le même contexte de geste utilisateur
       if(!_btAudio){
         _btAudio=new Audio();
@@ -11441,14 +11416,13 @@ function loadQ(){
         _btAudio.volume=0.85;
         _btAudio.src=_btUrl;
       }
-      _btDoPlay();
+      window._btDoPlay();
     };
 
     window._btDoPlay=function(){
       if(!_btAudio||_btPlaying)return;
-      // Appel .play() synchrone dans le onclick → iOS l'autorise
       const p=_btAudio.play();
-      if(p&&p.catch)p.catch(err=>{
+      if(p&&p.catch)p.catch(()=>{
         const status=document.getElementById('bt-status');
         if(status){status.textContent='Appuie à nouveau sur ▶';status.className='bt-status error';}
         _btPlaying=false; _btUpdateUI();
@@ -11464,9 +11438,9 @@ function loadQ(){
         if(prog)prog.style.width=Math.min((t/15)*100,100)+'%';
         const cur=document.getElementById('bt-cur');
         if(cur)cur.textContent='0:'+Math.floor(t).toString().padStart(2,'0');
-        if(t>=15){_btDoPause();_btAudio.currentTime=0;}
+        if(t>=15){window._btDoPause();_btAudio.currentTime=0;}
       },150);
-      // Révéler réponses après 5s d'écoute cumulée (le timer repart à chaque play)
+      // Révéler réponses après 5s d'écoute cumulée
       if(_btRevealTimer)clearTimeout(_btRevealTimer);
       const _msAlreadyPlayed=_btAudio.currentTime*1000;
       const _msRemaining=Math.max(0,5000-_msAlreadyPlayed);
@@ -11484,6 +11458,31 @@ function loadQ(){
     // Alias legacy utilisés dans _btStop / advanceQ
     window._btPlay=window._btDoPlay;
     window._btPause=window._btDoPause;
+
+    // ── Injecter le DOM du player ──
+    grid.className='agrid bt-hidden';
+    qa.innerHTML=`
+      <div class="qtl">🎵 Blind Test</div>
+      <div class="bt-player" id="bt-player">
+        <div class="bt-note-row">
+          ${[1,2,3,4,5,6,7].map(()=>'<div class="bt-note-bar paused"></div>').join('')}
+        </div>
+        <button class="bt-play-btn" id="bt-play-btn" onclick="_btToggle()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="bt-progress-wrap"><div class="bt-progress-fill" id="bt-prog"></div></div>
+        <div class="bt-time-row"><span id="bt-cur">0:00</span><span>0:15</span></div>
+        <div class="bt-status" id="bt-status">Prêt — appuie sur ▶</div>
+        <div class="bt-composer" id="bt-composer"></div>
+      </div>`;
+
+    // Précharger l'audio après injection du DOM (hors geste — iOS autorise la création)
+    if(_btUrl && !_btAudio){
+      _btAudio=new Audio();
+      _btAudio.preload='auto';
+      _btAudio.volume=0.85;
+      _btAudio.src=_btUrl;
+    }
 
   } else if(q.type==='generique'){
     game.style.overflowY='auto';
