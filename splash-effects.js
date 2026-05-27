@@ -26682,7 +26682,7 @@
     let dstY=dstY0;
     /* Descente lente : Bond glisse vers le bas sur ~18s, puis reset doux */
     const driftMax=H*0.10;   /* amplitude max de la descente (~10% de H) */
-    const driftSpd=0.032;    /* px/frame ≈ lent mais visible */
+    const driftSpd=0.055;    /* px/frame — légèrement plus rapide */
 
     /* ── Léger balancement de la silhouette ── */
     let swingT=0;
@@ -26824,10 +26824,23 @@
      if(dstY>dstY0+driftMax){ dstY=dstY0; }
      const swingX=Math.sin(swingT*0.35)*W*0.006;
      const swingY=Math.sin(swingT*0.25)*H*0.003;
+     /* ── Animation coulée : rotation lente sous-marine + étirement courant ── */
+     /* Rotation très douce — corps qui tournoie au gré du courant (±2.2°) */
+     const sinkRot=Math.sin(swingT*0.18)*0.038+Math.sin(swingT*0.09)*0.014;
+     /* Légère compression/étirement vertical — effet flottabilité nulle */
+     const sinkScaleY=1+Math.sin(swingT*0.22)*0.012;
+     /* Dérive latérale subtile — courant sous-marin lent */
+     const driftX=Math.sin(swingT*0.11)*W*0.008;
      if(sfReady){
       ctx.save();
       ctx.globalAlpha=0.95;
-      ctx.drawImage(sfImg,dstX+swingX,dstY+swingY,dstW,dstH);
+      /* Pivot au centre de Bond dans le SVG (~52.6% x, ~28% y) */
+      const pivX=dstX+swingX+driftX+dstW*0.526;
+      const pivY=dstY+swingY+dstH*0.28;
+      ctx.translate(pivX,pivY);
+      ctx.rotate(sinkRot);
+      ctx.scale(1,sinkScaleY);
+      ctx.drawImage(sfImg,-dstW*0.526,-dstH*0.28,dstW,dstH);
       ctx.restore();
      }
 
@@ -27671,6 +27684,9 @@
     /* ── Ondulation de lumière autour de la pupille ── supprimée ── */
     const rings=[];
 
+    /* ── Rectangles violets Old Boy — même animation, superposée ── */
+    const ants=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H,angle:Math.random()*Math.PI*2,spd:0.35+Math.random()*0.45,size:W*(0.006+Math.random()*0.008),op:0.20+Math.random()*0.35,turn:(Math.random()-0.5)*0.12}));
+
     let breathT=0;
 
     function frame(){
@@ -27752,6 +27768,10 @@
        ctx.stroke();
       }
      }
+
+     /* ── Rectangles violets (Old Boy) ── */
+     for(const a of ants){a.angle+=a.turn;a.x+=Math.cos(a.angle)*a.spd;a.y+=Math.sin(a.angle)*a.spd;if(a.x<0)a.x=W;if(a.x>W)a.x=0;if(a.y<0)a.y=H;if(a.y>H)a.y=0;
+      ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.angle);ctx.globalAlpha=a.op;ctx.fillStyle='rgba(80,40,110,0.85)';ctx.fillRect(-a.size*2,-a.size*0.5,a.size*4,a.size);ctx.restore();}
 
      /* ── Grain pellicule ── */
      for(let gi=0;gi<50;gi++){
@@ -42856,7 +42876,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ms_s');
     if(!_s){_s=document.createElement('style');_s.id='_ms_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}'
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{margin-top:2px!important;}'
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Balle de ping-pong — physique simple ── */
