@@ -628,11 +628,6 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       <div class="sparkline-wrap" id="sparkline-bars"></div>
       <div class="spark-labels" id="sparkline-labels"></div>
     </div>
-    <!-- Barres par mode -->
-    <div class="stats-chart-wrap" style="cursor:pointer;" onclick="openModeStatsDetail('games')">
-      <div class="stats-chart-title">Parties par mode <span>Voir tout →</span></div>
-      <div class="mode-bars" id="mode-heatmap"></div>
-    </div>
     <div class="sgrid">
       <div class="sc sc-xp" onclick="openProfileStat('xp')" style="cursor:pointer;">
         <div class="sc-icon" style="background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.2);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gold)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
@@ -659,18 +654,18 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div class="sv" id="p-bs" style="color:#fbbf24">0</div><div class="sl">Meilleur score</div>
       </div>
     </div>
-    <div class="shd" style="margin-bottom:10px;margin-top:8px;cursor:pointer;" onclick="openModeStatsDetail('scores')">
-      <span>Meilleurs scores par mode</span>
-      <span style="color:var(--gold);font-size:9px;">Voir tout →</span>
+    <!-- Parties & meilleurs scores par mode — card fusionnée -->
+    <div class="stats-chart-wrap" style="cursor:pointer;" onclick="openModeStatsDetail('games')">
+      <div class="stats-chart-title">Stats par mode <span>Voir tout →</span></div>
+      <div id="mode-heatmap"></div>
     </div>
-    <div id="p-best-scores" style="margin-bottom:28px;"></div>
-    <div class="shd" id="themes-shd" style="margin-bottom:10px;">
+    <div class="shd" id="themes-shd" style="margin-bottom:10px;margin-top:8px;">
       <span style="display:flex;align-items:center;gap:6px;">THÈMES<span id="themes-new-pill"></span></span>
       <span style="color:var(--mt);font-size:9px;">Débloquer en jouant</span>
     </div>
     <div class="theme-picker" id="theme-picker"></div>
 
-    <div class="shd" style="margin-bottom:9px;margin-top:8px;">Historique récent</div>
+    <div class="shd" style="margin-bottom:9px;margin-top:28px;">Historique récent</div>
     <div id="p-hist"></div>
       <!-- Slot pour supabase-global.js (Mon Rang) -->
       <div id="profile-ldb-slot" style="margin-top:28px;"></div>
@@ -3866,56 +3861,75 @@ function showToastMsg(msg){
 }
 
 function renderBestScores(s){
-  const el=document.getElementById('p-best-scores');
-  if(!el)return;
+  // Délégué à renderModeStats — p-best-scores n'existe plus
+}
+
+function renderModeStats(s){
+  const wrap=document.getElementById('mode-heatmap');if(!wrap)return;
   const hist=s.history||[];
-  if(!hist.length){
-    el.innerHTML='<div class="hitem" style="justify-content:center;color:rgba(255,255,255,.3);font-size:12px;">Joue pour voir tes records !</div>';
-    return;
-  }
-  // Agréger meilleur score par mode
+
+  // Clés parties jouées par mode
+  const modes=[
+    {k:'quizGames',    mk:'quiz',  l:'⚡',n:'Trivia Ciné'},
+    {k:'photoGames',   mk:'photo', l:'🎬',n:'Affiche Mystère'},
+    {k:'repliqueGames',mk:'replique',l:'💬',n:'La Réplique'},
+    {k:'acteurGames',  mk:'acteur',l:'👤',n:'Acteur Mystère'},
+    {k:'yearGames',    mk:'year',  l:'📅',n:'Quelle Année ?'},
+    {k:'boGames',      mk:'bo',    l:'💡',n:'Indices Mystère'},
+    {k:'boxofficeGames',mk:'boxoffice',l:'💰',n:'Box-office'},
+    {k:'realisateurGames',mk:'realisateur',l:'🎥',n:'Réalisateur'},
+    {k:'castingGames', mk:'casting',l:'🧩',n:'Le Casting'},
+    {k:'vraifauxGames',mk:'vraifaux',l:'🎯',n:'Vrai ou Faux'},
+    {k:'filmographieGames',mk:'filmographie',l:'🎭',n:'Filmographie'},
+    {k:'compositeurGames',mk:'compositeur',l:'🎼',n:'Compositeur'},
+    {k:'generiqueGames',mk:'generique',l:'📜',n:'Le Générique'},
+    {k:'locationGames',mk:'location',l:'🌍',n:'Lieu de tournage'},
+    {k:'decennieGames',mk:'decennie',l:'📅',n:'Décennie'},
+    {k:'blindtestGames',mk:'blindtest',l:'🎵',n:'Blind Test'},
+    {k:'trainingGames',mk:'training',l:'📚',n:'Entraînement'},
+    {k:'versusGames',  mk:'versus', l:'⚔️',n:'2+ Joueurs'},
+    {k:'pitchGames',   mk:'pitch',  l:'📝',n:'Le Pitch'},
+    {k:'versusfilmsGames',mk:'versusfilms',l:'📊',n:'Versus Films'},
+    {k:'survieGames',  mk:'survie', l:'❤️',n:'Survie'},
+  ];
+
+  // Agréger meilleur score par mode depuis l'historique
   const bests={};
   hist.forEach(h=>{
     if(!h.mode||!h.score)return;
-    if(!bests[h.mode]||h.score>bests[h.mode].score)
-      bests[h.mode]={score:h.score,correct:h.correct||0,total:h.total||10,date:h.date||''};
+    if(!bests[h.mode]||h.score>bests[h.mode])bests[h.mode]=h.score;
   });
-  const modeIcons={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',
-    acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',
-    generique:'📜',location:'🌍',training:'📚',vraifaux:'🎯',decennie:'🗓️',blindtest:'🎵',versus:'⚔️'};
-  const modeLabels={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',
-    bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',
-    acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',
-    realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',
-    location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',
-    decennie:'Décennie',blindtest:'Blind Test',versus:'Multijoueur',rebus:'Rébus',pendu:'Le Pendu'};
-  const entries=Object.entries(bests).sort((a,b)=>b[1].score-a[1].score);
-  const top3=entries.slice(0,3);
-  const maxScore=top3[0]?.[1].score||1;
-  const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
-  el.innerHTML=top3.map(([mode,d],i)=>{
-    const pct=Math.round((d.score/maxScore)*100);
-    const icon=modeIcons[mode]||'🎬';
-    const label=modeLabels[mode]||mode;
+
+  const played=modes.filter(m=>(s[m.k]||0)>0).sort((a,b)=>(s[b.k]||0)-(s[a.k]||0));
+  const max=played.length?Math.max(...played.map(m=>s[m.k])):1;
+
+  if(!played.length){
+    wrap.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.25);font-size:12px;padding:8px 0;">Joue pour voir tes stats par mode !</div>';
+    return;
+  }
+
+  const top3=played.slice(0,3);
+  wrap.innerHTML=top3.map((m,i)=>{
+    const v=s[m.k]||0;
+    const pct=Math.round((v/max)*100);
+    const best=bests[m.mk]||null;
     const isTop=i===0;
-    const rankColor=rankColors[i]||'rgba(255,255,255,.25)';
-    return`<div class="hitem${isTop?' hitem-top':''}">
-      <div class="hi" style="width:28px;height:28px;border-radius:8px;background:${isTop?'rgba(245,200,66,.12)':'rgba(255,255,255,.05)'};border:1px solid ${isTop?'rgba(245,200,66,.25)':'rgba(255,255,255,.08)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${icon}</div>
-      <div class="hinfo" style="flex:1;min-width:0;">
-        <div class="hs" style="font-size:13px;color:${isTop?'var(--gold)':'rgba(255,255,255,.7)'};">${label}</div>
-        <div style="height:3px;border-radius:2px;background:rgba(255,255,255,.06);margin-top:5px;overflow:hidden;">
-          <div style="height:100%;width:${pct}%;border-radius:2px;background:${isTop?'linear-gradient(90deg,var(--gold2),var(--gold))':'rgba(255,255,255,.18)'};transition:width .8s ease;"></div>
+    const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
+    return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;${i<top3.length-1?'border-bottom:1px solid rgba(255,255,255,.05);':''}">
+      <div style="width:28px;height:28px;border-radius:8px;background:${isTop?'rgba(245,200,66,.12)':'rgba(255,255,255,.05)'};border:1px solid ${isTop?'rgba(245,200,66,.2)':'rgba(255,255,255,.07)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${m.l}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;color:${isTop?'var(--gold)':'rgba(255,255,255,.65)'};margin-bottom:4px;">${m.n}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;">
+            <div style="height:100%;width:${pct}%;border-radius:2px;background:${isTop?'linear-gradient(90deg,var(--gold2),var(--gold))':'rgba(255,255,255,.18)'};transition:width .8s ease;"></div>
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);flex-shrink:0;">${v} partie${v>1?'s':''}</div>
         </div>
       </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${rankColor};letter-spacing:.5px;">${d.score}</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.28);">${d.correct}/${d.total}</div>
-      </div>
+      ${best?`<div style="text-align:right;flex-shrink:0;"><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${rankColors[i]||'rgba(255,255,255,.3)'};letter-spacing:.5px;">${best}</div><div style="font-size:8px;color:rgba(255,255,255,.25);margin-top:-2px;">record</div></div>`:''}
     </div>`;
-  }).join('');
+  }).join('')+(played.length>3?`<div style="font-size:10px;color:rgba(255,255,255,.22);text-align:center;padding-top:8px;">+${played.length-3} autres modes</div>`:'');
 }
-
-function renderModeStats(s){renderBestScores(s);}
 
 function openModeStatsDetail(type){
   const s=ls();
@@ -13137,47 +13151,7 @@ function buildSparkline(s){
 
 function buildModeHeatmap(s){
   const wrap=document.getElementById('mode-heatmap');if(!wrap)return;
-  const modes=[
-    {k:'quizGames',    l:'⚡',n:'Trivia Ciné'},
-    {k:'photoGames',   l:'🎬',n:'Affiche Mystère'},
-    {k:'repliqueGames',l:'💬',n:'La Réplique'},
-    {k:'acteurGames',  l:'👤',n:'Acteur Mystère'},
-    {k:'yearGames',    l:'📅',n:'Quelle Année ?'},
-    {k:'boMusicGames', l:'💡',n:'Indices Mystère'},
-    {k:'boGames',      l:'💰',n:'Box-office'},
-    {k:'realisateurGames',l:'🎥',n:'Réalisateur'},
-    {k:'castingGames', l:'🧩',n:'Le Casting'},
-    {k:'vraifauxGames',l:'🎯',n:'Vrai ou Faux'},
-    {k:'filmographieGames',l:'🎭',n:'Filmographie'},
-    {k:'compositeurGames',l:'🎼',n:'Compositeur'},
-    {k:'generiqueGames',l:'📜',n:'Le Générique'},
-    {k:'locationGames',l:'🌍',n:'Lieu tournage'},
-    {k:'decennieGames',l:'📅',n:'Décennie'},
-    {k:'blindtestGames', l:'🎵',n:'Blind Test'},
-    {k:'trainingGames',l:'📚',n:'Entraînement'},
-    {k:'versusGames',  l:'⚔️',n:'2+ Joueurs'},
-    {k:'pitchGames',   l:'📝',n:'Le Pitch'},
-    {k:'versusfilmsGames',l:'📊',n:'Versus Films'},
-    {k:'survieGames',  l:'❤️',n:'Survie'},
-  ];
-  const played=modes.filter(m=>(s[m.k]||0)>0).sort((a,b)=>(s[b.k]||0)-(s[a.k]||0));
-  const max=played.length?Math.max(...played.map(m=>s[m.k])):1;
-  if(!played.length){
-    wrap.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.25);font-size:12px;padding:8px 0;">Joue pour voir tes stats par mode !</div>';
-    return;
-  }
-  // Afficher seulement top 3
-  const top3=played.slice(0,3);
-  wrap.innerHTML=top3.map(m=>{
-    const v=s[m.k]||0;
-    const pct=Math.round((v/max)*100);
-    return`<div class="mode-bar-row">
-      <div class="mode-bar-icon">${m.l}</div>
-      <div class="mode-bar-name">${m.n}</div>
-      <div class="mode-bar-track"><div class="mode-bar-fill" style="width:${pct}%"></div></div>
-      <div class="mode-bar-count">${v}</div>
-    </div>`;
-  }).join('')+(played.length>3?`<div style="font-size:10px;color:rgba(255,255,255,.25);text-align:center;padding-top:6px;">+${played.length-3} autres modes</div>`:'');
+  renderModeStats(s);
 }
 
 // Injecte les stats globales sous le sparkline
