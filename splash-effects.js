@@ -4660,6 +4660,26 @@
      };
     });
 
+    /* ── Anneaux d'ondulation depuis le corps d'Andy ── */
+    /* Chaque anneau naît au centre du personnage et s'étend vers l'extérieur */
+    const RIPPLE_CX=cx;
+    const RIPPLE_CY=ANDY_Y+(H*0.40)*0.55; /* centre vertical d'Andy */
+    const ripples=Array.from({length:5},(_,i)=>({
+     life: i/5,          /* décalage de phase pour les avoir en permanence */
+     spd: 0.0055,        /* vitesse d'expansion */
+    }));
+
+    /* ── Caustiques — taches lumineuses qui bougent sous l'eau ── */
+    const caustics=Array.from({length:18},()=>({
+     x: cx+(Math.random()-0.5)*W*0.80,
+     y: ANDY_Y+(H*0.40)*0.30 + Math.random()*(H*0.40)*0.80,
+     rx: W*(0.022+Math.random()*0.040),
+     ry: H*(0.008+Math.random()*0.014),
+     ph: Math.random()*Math.PI*2,
+     phSpd: 0.018+Math.random()*0.025,
+     op: 0.04+Math.random()*0.07,
+    }));
+
     function frame(){
      if(stop.v)return;
      /* Fond aquatique — ciel orageux + eau en bas */
@@ -4702,6 +4722,46 @@
      hg.addColorStop(0,`rgba(200,215,240,${0.18+Math.sin(t*0.5)*0.05})`);
      hg.addColorStop(0.45,'rgba(160,185,220,0.06)');hg.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=hg;ctx.fillRect(0,0,W,H);
+
+     /* ── Caustiques — lumière réfractée sous l'eau ── */
+     for(const c of caustics){
+      c.ph+=c.phSpd;
+      const co=c.op*(0.4+0.6*Math.abs(Math.sin(c.ph)));
+      ctx.save();
+      ctx.globalAlpha=co;
+      const cg=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.rx);
+      cg.addColorStop(0,'rgba(140,190,240,0.85)');
+      cg.addColorStop(0.5,'rgba(100,160,220,0.30)');
+      cg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=cg;
+      ctx.beginPath();ctx.ellipse(c.x,c.y,c.rx,c.ry,Math.sin(c.ph*0.3)*0.4,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+     }
+
+     /* ── Anneaux d'ondulation — surface de l'eau autour d'Andy ── */
+     for(const rp of ripples){
+      rp.life+=rp.spd;
+      if(rp.life>1) rp.life=0;
+      /* Rayon : de 0 jusqu'à ~80% de la largeur */
+      const rR=rp.life*W*0.80;
+      /* Opacité : pic au quart de vie, fondu vers 0 */
+      const rOp=Math.sin(rp.life*Math.PI)*0.13;
+      /* Ellipse aplatie pour donner l'effet perspective eau */
+      ctx.save();
+      ctx.strokeStyle=`rgba(160,210,240,${rOp})`;
+      ctx.lineWidth=1.2;
+      ctx.beginPath();
+      ctx.ellipse(RIPPLE_CX,RIPPLE_CY,rR,rR*0.28,0,0,Math.PI*2);
+      ctx.stroke();
+      /* Second anneau très léger décalé */
+      ctx.strokeStyle=`rgba(120,180,220,${rOp*0.4})`;
+      ctx.lineWidth=0.6;
+      ctx.beginPath();
+      ctx.ellipse(RIPPLE_CX,RIPPLE_CY,rR*0.88,rR*0.88*0.28,0,0,Math.PI*2);
+      ctx.stroke();
+      ctx.restore();
+     }
+
      if(andyReady){ctx.save();ctx.globalAlpha=0.97;ctx.drawImage(andyImg,ANDY_X,ANDY_Y,ANDY_W,ANDY_H);ctx.restore();}
      const vg=ctx.createRadialGradient(cx,H*0.48,H*0.12,cx,H*0.48,H*0.88);
      vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.60,'rgba(0,0,0,0.06)');vg.addColorStop(1,'rgba(0,0,0,0.42)');
@@ -16476,7 +16536,7 @@
     /* ── Citation + logo remontés sous logo CinéQuiz ── */
     let _tsPos=document.getElementById('_tshow_pos_s');
     if(!_tsPos){_tsPos=document.createElement('style');_tsPos.id='_tshow_pos_s';document.head.appendChild(_tsPos);}
-    _tsPos.textContent='#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 2px 12px rgba(0,0,80,0.25)!important;}';
+    _tsPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 2px 12px rgba(0,0,80,0.25)!important;}';
     const _tsPosW=setInterval(()=>{if(stop.v){_tsPos.textContent='';clearInterval(_tsPosW);}},200);
 
     let t=0;
@@ -16704,6 +16764,12 @@
     let t=0;
     const cx=W/2;
 
+    /* ── CSS override : remonter citation + logo (~25%), descendre bus géré via BY ── */
+    let _itwStyle=document.getElementById('_itw_splash_style');
+    if(!_itwStyle){_itwStyle=document.createElement('style');_itwStyle.id='_itw_splash_style';document.head.appendChild(_itwStyle);}
+    _itwStyle.textContent='#splash-content-wrap{top:48%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _itwWatch=setInterval(()=>{if(stop.v){_itwStyle.textContent='';clearInterval(_itwWatch);}},200);
+
     /* Étoiles — nuit Alaska */
     const stars=Array.from({length:200},()=>({x:Math.random()*W,y:Math.random()*H*0.60,r:Math.random()*1.6+0.2,op:Math.random()*0.85+0.10,tw:Math.random()*Math.PI*2,tf:Math.random()*0.025+0.005}));
 
@@ -16772,7 +16838,7 @@
       const BW=W*0.72;
       const BH=BW*(117/391);
       const BX=cx-BW*0.5;
-      const BY=H*0.635;
+      const BY=H*0.665;
       ctx.save();
       ctx.globalAlpha=0.94;
       ctx.drawImage(imgBus,BX,BY,BW,BH);
@@ -21476,6 +21542,23 @@
       spd:Math.random()*0.025+0.008
     }));
 
+    /* ── Lune ── */
+    const MOON_X=W*0.78, MOON_Y=H*0.10, MOON_R=W*0.065;
+
+    /* ── Éclaboussures de la casserole ── */
+    const splatters=Array.from({length:14},(_,i)=>({
+      life:Math.random(),
+      spd:0.018+Math.random()*0.022,
+      angle:-Math.PI*0.5+(Math.random()-0.5)*Math.PI*0.8,
+      vel:H*(0.0030+Math.random()*0.0035),
+      baseX:cx+(Math.random()-0.5)*W*0.28,
+      r:W*(0.004+Math.random()*0.005),
+      hue:Math.random()*25+10,
+    }));
+
+    /* ── Rémy — amplitude de respiration ── */
+    let remyBreath=0;
+
     /* ── Particules d'arômes dorées ── */
     const aromas=Array.from({length:38},()=>({
       x:cx+(Math.random()-0.5)*W*0.55,
@@ -21503,8 +21586,16 @@
     const flames=Array.from({length:6},(_,i)=>({idx:i, ph:Math.random()*Math.PI*2}));
 
     /* ── Silhouette Paris (toits) ── */
+    /* ── Fenêtres pré-calculées (positions fixes, pas de scintillement) ── */
+    const skylineBaseY=H*0.92;
+    const windows=Array.from({length:18},(_,i)=>({
+      x: W*(0.04+i*0.054),
+      y: skylineBaseY-H*(0.03+((i*7+3)%9)*0.008),
+      warm: i%3!==2,
+    }));
+
     function drawParisSkyline(){
-      const baseY=H*0.88;
+      const baseY=skylineBaseY;
       ctx.fillStyle='rgba(8,5,2,0.97)';
       ctx.beginPath();
       ctx.moveTo(0,H);
@@ -21538,13 +21629,15 @@
       for(const [px,py] of pts) ctx.lineTo(px,py);
       ctx.closePath();ctx.fill();
 
-      /* Lumières de fenêtres dans les immeubles */
+      /* Lumières de fenêtres — positions fixes, seul le flicker est animé */
       ctx.save();
-      for(let i=0;i<18;i++){
-        const wx=Math.random()*W, wy=baseY-H*0.03-Math.random()*H*0.08;
+      for(let i=0;i<windows.length;i++){
+        const w=windows[i];
         const flicker=0.4+Math.sin(t*3+i*1.7)*0.3;
-        ctx.fillStyle=`rgba(255,${180+Math.random()*50|0},80,${flicker*0.55})`;
-        ctx.fillRect(wx,wy,3,2);
+        ctx.fillStyle=w.warm
+          ?`rgba(255,200,80,${flicker*0.55})`
+          :`rgba(180,210,255,${flicker*0.40})`;
+        ctx.fillRect(w.x,w.y,3,2);
       }
       ctx.restore();
     }
@@ -21715,11 +21808,28 @@
         ctx.fillStyle=`rgba(255,245,220,${op})`;ctx.fill();
       }
 
-      /* Skyline Paris */
-      drawParisSkyline();
+      /* ── Lune — halo + disque ── */
+      const moonHalo=ctx.createRadialGradient(MOON_X,MOON_Y,MOON_R*0.6,MOON_X,MOON_Y,MOON_R*3.2);
+      moonHalo.addColorStop(0,`rgba(255,245,200,${0.14+Math.sin(t*0.3)*0.03})`);
+      moonHalo.addColorStop(0.4,'rgba(255,235,160,0.04)');
+      moonHalo.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=moonHalo;ctx.fillRect(0,0,W,H);
+      const moonG=ctx.createRadialGradient(MOON_X-MOON_R*0.25,MOON_Y-MOON_R*0.25,0,MOON_X,MOON_Y,MOON_R);
+      moonG.addColorStop(0,'rgba(255,252,230,0.97)');
+      moonG.addColorStop(0.55,'rgba(248,242,210,0.93)');
+      moonG.addColorStop(1,'rgba(230,220,180,0.85)');
+      ctx.fillStyle=moonG;ctx.beginPath();ctx.arc(MOON_X,MOON_Y,MOON_R,0,Math.PI*2);ctx.fill();
+      /* Ombre douce sur la lune */
+      const moonShadow=ctx.createRadialGradient(MOON_X+MOON_R*0.4,MOON_Y+MOON_R*0.1,0,MOON_X+MOON_R*0.3,MOON_Y,MOON_R*0.9);
+      moonShadow.addColorStop(0,'rgba(30,20,8,0.22)');
+      moonShadow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=moonShadow;ctx.beginPath();ctx.arc(MOON_X,MOON_Y,MOON_R,0,Math.PI*2);ctx.fill();
 
       /* Cuisinière + casserole */
       drawStove();
+
+      /* Skyline Paris — dessinée après le sol pour être visible */
+      drawParisSkyline();
 
       /* Vapeur */
       const potTopY=H*0.53;
@@ -21750,8 +21860,29 @@
         ctx.fillStyle=`hsla(${a.hue},90%,65%,${op})`;ctx.fill();
       }
 
-      /* Rémy le rat chef */
+      /* ── Éclaboussures de la casserole bouillonnante ── */
+      const splatTopY=H*0.52;
+      for(const sp of splatters){
+        sp.life+=sp.spd;
+        if(sp.life>=1){ sp.life=0; sp.angle=-Math.PI*0.5+(Math.random()-0.5)*Math.PI*0.8; sp.vel=H*(0.0030+Math.random()*0.0035); sp.baseX=cx+(Math.random()-0.5)*W*0.28; }
+        const progress=sp.life;
+        const sx=sp.baseX+Math.cos(sp.angle)*sp.vel*progress*60;
+        const sy=splatTopY+Math.sin(sp.angle)*sp.vel*progress*60+0.5*0.0008*progress*progress*3600;
+        if(sy>splatTopY) continue; /* reste au-dessus de la casserole */
+        const sop=(1-progress)*(0.55+Math.sin(progress*Math.PI)*0.35);
+        ctx.beginPath();ctx.arc(sx,sy,sp.r*(1-progress*0.5),0,Math.PI*2);
+        ctx.fillStyle=`hsla(${sp.hue},85%,55%,${sop})`;ctx.fill();
+      }
+
+      /* Rémy le rat chef — avec légère respiration */
+      remyBreath=Math.sin(t*1.1)*0.012;
+      ctx.save();
+      const _remyCX=cx+W*0.10, _remyCY=H*0.565;
+      ctx.translate(_remyCX,_remyCY);
+      ctx.scale(1+remyBreath, 1-remyBreath*0.5);
+      ctx.translate(-_remyCX,-_remyCY);
       drawRemy();
+      ctx.restore();
 
       /* Vignette douce */
       const vg=ctx.createRadialGradient(cx,H*0.48,H*0.08,cx,H*0.48,H*0.95);
@@ -26688,17 +26819,27 @@
     let swingT=0;
 
     /* ── Bulles aquatiques ── */
-    const bubbles=Array.from({length:38},()=>{
+    const bubbles=Array.from({length:90},()=>{
      return {
-      x:cx+(Math.random()-0.5)*W*0.70,
-      y:H*0.30+Math.random()*H*0.70,
-      vy:-(0.15+Math.random()*0.35),
+      x:cx+(Math.random()-0.5)*W*0.90,
+      y:H*0.10+Math.random()*H*0.90,
+      vy:-(0.10+Math.random()*0.45),
       r:Math.random()*3.0+0.5,
       op:Math.random()*0.22+0.04,
       wobble:Math.random()*Math.PI*2,
       wobbleSpd:0.015+Math.random()*0.018,
      };
     });
+    /* Micro-bulles fines — traîne de bulles rapides */
+    const microbubbles=Array.from({length:60},()=>({
+     x:cx+(Math.random()-0.5)*W*0.80,
+     y:H*0.20+Math.random()*H*0.80,
+     vy:-(0.35+Math.random()*0.70),
+     r:Math.random()*1.2+0.15,
+     op:Math.random()*0.16+0.05,
+     wobble:Math.random()*Math.PI*2,
+     wobbleSpd:0.022+Math.random()*0.030,
+    }));
 
     /* ── Rayons lumineux depuis le haut ── */
     const rays=Array.from({length:7},(_,i)=>({
@@ -26815,6 +26956,15 @@
       ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
       ctx.strokeStyle=`rgba(140,200,210,${b.op*(0.5+0.5*Math.sin(b.wobble))})`;
       ctx.lineWidth=0.7;ctx.stroke();
+     }
+     /* ── Micro-bulles rapides ── */
+     for(const mb of microbubbles){
+      mb.y+=mb.vy;mb.wobble+=mb.wobbleSpd;
+      mb.x+=Math.sin(mb.wobble)*0.18;
+      if(mb.y<-10){mb.y=H+mb.r;mb.x=cx+(Math.random()-0.5)*W*0.80;}
+      ctx.beginPath();ctx.arc(mb.x,mb.y,mb.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(160,215,225,${mb.op*(0.4+0.6*Math.abs(Math.sin(mb.wobble)))})`;
+      ctx.lineWidth=0.5;ctx.stroke();
      }
 
      /* ── Silhouette SVG — descente lente + léger balancement ── */
@@ -35236,8 +35386,8 @@
      
      #splash-bg::before,#splash-bg::after,
      #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-     #splash-content-wrap{top:22%!important;bottom:auto!important;transform:none!important;}
-     #splash-content-wrap.reveal{transform:none!important;}
+     #splash-content-wrap{top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;}
+     #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
      #splash-quote-text{
        color:rgba(245,238,215,0.92)!important;
        text-shadow:0 2px 20px rgba(0,0,0,1),0 0 40px rgba(0,0,0,0.9)!important;
@@ -43035,13 +43185,13 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ah_s');
     if(!_s){_s=document.createElement('style');_s.id='_ah_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:18%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* ── Horloge — légèrement réduite ── */
+    /* ── Horloge ── */
     const clockR=W*0.36;
     const clockCX=cx;
-    const clockCY=H*0.72;
+    const clockCY=H*0.78;
     const rimW=clockR*0.10;
 
     /* Aiguilles animées — démarrent à 3h07, avancent en temps réel accéléré */
@@ -43236,14 +43386,18 @@
     function frame(){
      if(stop.v)return;
 
-     /* Fond bleu cobalt */
+     /* Fond solide d'abord — garantit que tout le canvas est couvert */
+     ctx.fillStyle='#04080e';
+     ctx.fillRect(0,0,W,H);
+
+     /* Dégradé bleu cobalt par-dessus */
      const bg=ctx.createLinearGradient(0,0,0,H);
      bg.addColorStop(0,'#0a1428');bg.addColorStop(0.4,'#122050');bg.addColorStop(0.75,'#0e1a40');bg.addColorStop(1,'#04080e');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
      /* Halo central */
-     const glow=ctx.createRadialGradient(cx,H*0.50,0,cx,H*0.50,W*0.75);
-     glow.addColorStop(0,'rgba(40,80,160,0.20)');glow.addColorStop(1,'rgba(0,0,0,0)');
+     const glow=ctx.createRadialGradient(cx,H*0.50,0,cx,H*0.50,W*0.95);
+     glow.addColorStop(0,'rgba(40,80,160,0.22)');glow.addColorStop(0.6,'rgba(20,40,100,0.08)');glow.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
 
      /* Étoiles scintillantes */
@@ -43289,9 +43443,12 @@
      /* Tête */
      drawHead(t);
 
-     /* Vignette */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.12,cx,H*0.50,H*0.78);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.72)');
+     /* Vignette haut/bas uniquement — pas de noircissement latéral */
+     const vg=ctx.createLinearGradient(0,0,0,H);
+     vg.addColorStop(0,'rgba(0,0,0,0.20)');
+     vg.addColorStop(0.12,'rgba(0,0,0,0)');
+     vg.addColorStop(0.88,'rgba(0,0,0,0)');
+     vg.addColorStop(1,'rgba(0,0,0,0.25)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
@@ -43442,10 +43599,17 @@
     },200);
 
     /* Particules lumineuses — été italien */
-    const pollen=Array.from({length:40},()=>({
+    const pollen=Array.from({length:110},()=>({
      x:Math.random()*W, y:Math.random()*H,
      vx:(Math.random()-0.5)*0.14, vy:-(0.04+Math.random()*0.09),
      r:Math.random()*1.4+0.3, op:0.08+Math.random()*0.18,
+     ph:Math.random()*Math.PI*2,
+    }));
+    /* Particules fines — poussière de lumière plus rapides */
+    const dust2=Array.from({length:80},()=>({
+     x:Math.random()*W, y:Math.random()*H,
+     vx:(Math.random()-0.5)*0.09, vy:-(0.12+Math.random()*0.22),
+     r:Math.random()*0.7+0.15, op:0.05+Math.random()*0.10,
      ph:Math.random()*Math.PI*2,
     }));
 
@@ -43519,6 +43683,14 @@
       if(po.x<0||po.x>W)po.vx*=-1;
       ctx.beginPath();ctx.arc(po.x,po.y,po.r,0,Math.PI*2);
       ctx.fillStyle=`rgba(255,255,255,${po.op*(0.4+0.6*Math.abs(Math.sin(po.ph)))})`;ctx.fill();
+     }
+     /* Poussière fine rapide */
+     for(const d of dust2){
+      d.x+=d.vx;d.y+=d.vy;d.ph+=0.022;
+      if(d.y<-10){d.y=H+10;d.x=Math.random()*W;}
+      if(d.x<0||d.x>W)d.vx*=-1;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,235,255,${d.op*(0.3+0.7*Math.abs(Math.sin(d.ph)))})`;ctx.fill();
      }
 
      /* ── Silhouettes SVG — ancrées dans le bas ── */
