@@ -144,7 +144,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
           <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#4ade80;line-height:1;">PARTIE RAPIDE</span>
           <span style="font-size:9px;letter-spacing:2px;font-weight:700;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:8px;padding:2px 8px;">ALÉATOIRE</span>
         </div>
-        <div id="random-mode-label" style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;">Un mode tiré au sort</div>
+        <div id="random-mode-label" style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;">Un mode de jeu tiré au sort</div>
       </div>
       <div style="position:relative;z-index:1;color:rgba(34,197,94,.6);flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
     </div>
@@ -17029,9 +17029,14 @@ if(!_s.onboardingDone){
 
   // ── iOS Safari : pas de beforeinstallprompt ──
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  var isStandalone = window.navigator.standalone === true;
+  var isStandalone = window.navigator.standalone === true
+    || window.matchMedia('(display-mode: standalone)').matches
+    || window.matchMedia('(display-mode: fullscreen)').matches;
 
-  if (isIOS && !isStandalone) {
+  // Si déjà installé en PWA, ne rien faire
+  if (isStandalone) return;
+
+  if (isIOS) {
     // Cacher le bouton Installer (inutilisable sur iOS)
     document.getElementById('pwa-banner-actions').style.display = 'none';
 
@@ -17062,6 +17067,12 @@ if(!_s.onboardingDone){
       '</div>';
     stepsEl.classList.add('show');
     setTimeout(showBanner, 4000);
+  } else {
+    // Android/desktop : si beforeinstallprompt n'est pas venu après 6s,
+    // afficher quand même la bannière avec instructions génériques
+    setTimeout(function() {
+      if (!_pwaPrompt) showBanner();
+    }, 6000);
   }
 
   // ── Expose pour usage externe (ex: bouton dans les settings) ──
