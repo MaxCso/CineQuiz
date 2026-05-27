@@ -5519,8 +5519,9 @@ function _btStop(){
   if(_btAudio){try{_btAudio.pause();}catch(e){}; _btAudio.src='';_btAudio=null;}
   if(_btProgTimer){clearInterval(_btProgTimer);_btProgTimer=null;}
   if(_btRevealTimer){clearTimeout(_btRevealTimer);_btRevealTimer=null;}
-  // Réinitialiser les fonctions locales pour éviter les appels fantômes
-  window._btToggle=window._btDoPlay=window._btDoPause=window._btPlay=window._btPause=function(){};
+  window._bt=null;
+  var noop=function(){};
+  window._btToggle=window._btDoPlay=window._btDoPause=window._btPlay=window._btPause=window._btUpdateUI=window._btUnlockAnswers=noop;
 }
 
 function _btRevealPoster(q){
@@ -11374,100 +11375,26 @@ function loadQ(){
     document.getElementById('dbadge').style.background='rgba(167,139,250,.15)';
     document.getElementById('dbadge').style.color='#a78bfa';
 
-    // ── État local de la question ──
-    const _btUrl=q.file||null;  // fichier MP3 local — disponible immédiatement
-    let _btPlaying=false;
-    let _btUnlocked=false;
-
-    // ── Afficher les réponses (une seule fois) ──
-    function _btUnlock(){
-      if(_btUnlocked)return;
-      _btUnlocked=true;
-      grid.innerHTML='';
-      q.answers.forEach((a,i)=>{const b=mkBtn(a,i);grid.appendChild(b);});
-      grid.className='agrid bt-visible';
-      startTimer();
-    }
-
-    // ── Mettre à jour le bouton play selon l'état ──
-    function _btUpdateUI(){
-      const btn=document.getElementById('bt-play-btn');
-      const status=document.getElementById('bt-status');
-      const bars=document.querySelectorAll('.bt-note-bar');
-      if(_btPlaying){
-        bars.forEach(b=>{b.classList.remove('paused');b.classList.add('playing');});
-        if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-        if(status){status.textContent='En écoute…';status.className='bt-status';}
-      } else {
-        bars.forEach(b=>{b.classList.add('paused');b.classList.remove('playing');});
-        if(btn)btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
-        if(status){status.textContent=_btAudio?'En pause — appuie pour reprendre':'Prêt — appuie sur ▶';status.className='bt-status';}
-      }
-    }
-
-    // ── Définir toutes les fonctions window.* AVANT l'injection du DOM ──
-    window._btToggle=function(){
-      if(!_btUrl){return;}
-      if(_btPlaying){window._btDoPause();return;}
-      // iOS Safari : créer ET jouer l'Audio dans le même contexte de geste utilisateur
-      if(!_btAudio){
-        _btAudio=new Audio();
-        _btAudio.preload='auto';
-        _btAudio.volume=0.85;
-        _btAudio.src=_btUrl;
-      }
-      window._btDoPlay();
+    // ── State object sur window — aucun problème de closure/hoisting sur iOS Safari ──
+    window._bt = {
+      url: q.file || null,
+      answers: q.answers,
+      playing: false,
+      unlocked: false,
+      grid: grid,
+      mkBtn: mkBtn,
+      startTimer: startTimer
     };
-
-    window._btDoPlay=function(){
-      if(!_btAudio||_btPlaying)return;
-      const p=_btAudio.play();
-      if(p&&p.catch)p.catch(()=>{
-        const status=document.getElementById('bt-status');
-        if(status){status.textContent='Appuie à nouveau sur ▶';status.className='bt-status error';}
-        _btPlaying=false; _btUpdateUI();
-      });
-      _btPlaying=true;
-      _btUpdateUI();
-      // Barre de progression
-      if(_btProgTimer)clearInterval(_btProgTimer);
-      _btProgTimer=setInterval(()=>{
-        if(!_btAudio||_btAudio.paused)return;
-        const t=_btAudio.currentTime;
-        const prog=document.getElementById('bt-prog');
-        if(prog)prog.style.width=Math.min((t/15)*100,100)+'%';
-        const cur=document.getElementById('bt-cur');
-        if(cur)cur.textContent='0:'+Math.floor(t).toString().padStart(2,'0');
-        if(t>=15){window._btDoPause();_btAudio.currentTime=0;}
-      },150);
-      // Révéler réponses après 5s d'écoute cumulée
-      if(_btRevealTimer)clearTimeout(_btRevealTimer);
-      const _msAlreadyPlayed=_btAudio.currentTime*1000;
-      const _msRemaining=Math.max(0,5000-_msAlreadyPlayed);
-      _btRevealTimer=setTimeout(()=>{if(!ansed)_btUnlock();},_msRemaining);
-    };
-
-    window._btDoPause=function(){
-      if(!_btAudio||!_btPlaying)return;
-      _btAudio.pause();
-      _btPlaying=false;
-      _btUpdateUI();
-      if(_btProgTimer){clearInterval(_btProgTimer);_btProgTimer=null;}
-    };
-
-    // Alias legacy utilisés dans _btStop / advanceQ
-    window._btPlay=window._btDoPlay;
-    window._btPause=window._btDoPause;
 
     // ── Injecter le DOM du player ──
-    grid.className='agrid bt-hidden';
-    qa.innerHTML=`
+    grid.className = 'agrid bt-hidden';
+    qa.innerHTML = `
       <div class="qtl">🎵 Blind Test</div>
       <div class="bt-player" id="bt-player">
         <div class="bt-note-row">
           ${[1,2,3,4,5,6,7].map(()=>'<div class="bt-note-bar paused"></div>').join('')}
         </div>
-        <button class="bt-play-btn" id="bt-play-btn" onclick="_btToggle()">
+        <button class="bt-play-btn" id="bt-play-btn" onclick="window._btToggle()">
           <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
         </button>
         <div class="bt-progress-wrap"><div class="bt-progress-fill" id="bt-prog"></div></div>
@@ -11476,13 +11403,90 @@ function loadQ(){
         <div class="bt-composer" id="bt-composer"></div>
       </div>`;
 
-    // Précharger l'audio après injection du DOM (hors geste — iOS autorise la création)
-    if(_btUrl && !_btAudio){
-      _btAudio=new Audio();
-      _btAudio.preload='auto';
-      _btAudio.volume=0.85;
-      _btAudio.src=_btUrl;
-    }
+    // NE PAS précharger hors geste sur iOS Safari PWA — l'Audio doit être créé ET joué
+    // dans le même contexte de tap utilisateur. On crée l'objet dans _btToggle uniquement.
+
+    // ── Helpers UI — lus depuis window._bt, pas de closure locale ──
+    window._btUpdateUI = function(){
+      const btn = document.getElementById('bt-play-btn');
+      const status = document.getElementById('bt-status');
+      const bars = document.querySelectorAll('.bt-note-bar');
+      if(window._bt.playing){
+        bars.forEach(function(b){b.classList.remove('paused');b.classList.add('playing');});
+        if(btn) btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        if(status){status.textContent='En écoute…';status.className='bt-status';}
+      } else {
+        bars.forEach(function(b){b.classList.add('paused');b.classList.remove('playing');});
+        if(btn) btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+        if(status){status.textContent=_btAudio?'En pause — appuie pour reprendre':'Prêt — appuie sur ▶';status.className='bt-status';}
+      }
+    };
+
+    window._btUnlockAnswers = function(){
+      if(window._bt.unlocked) return;
+      window._bt.unlocked = true;
+      var g = window._bt.grid;
+      g.innerHTML = '';
+      window._bt.answers.forEach(function(a,i){ g.appendChild(window._bt.mkBtn(a,i)); });
+      g.className = 'agrid bt-visible';
+      window._bt.startTimer();
+    };
+
+    // ── Toggle play/pause — appelé via window.* depuis onclick ──
+    window._btToggle = function(){
+      if(!window._bt || !window._bt.url) return;
+      if(window._bt.playing){ window._btDoPause(); return; }
+      // Toujours créer un nouvel Audio dans le contexte du geste (iOS Safari PWA)
+      // Si _btAudio pointe sur une ancienne piste, on le remplace
+      if(!_btAudio || _btAudio.src.indexOf(window._bt.url) === -1){
+        if(_btAudio){ try{_btAudio.pause();}catch(e){} _btAudio.src=''; }
+        _btAudio = new Audio();
+        _btAudio.volume = 0.85;
+        _btAudio.src = window._bt.url;
+      }
+      window._btDoPlay();
+    };
+
+    window._btDoPlay = function(){
+      if(!_btAudio || window._bt.playing) return;
+      var p = _btAudio.play();
+      if(p && p.catch) p.catch(function(){
+        var status = document.getElementById('bt-status');
+        if(status){status.textContent='Appuie à nouveau sur ▶';status.className='bt-status error';}
+        window._bt.playing = false;
+        window._btUpdateUI();
+      });
+      window._bt.playing = true;
+      window._btUpdateUI();
+      if(_btProgTimer) clearInterval(_btProgTimer);
+      _btProgTimer = setInterval(function(){
+        if(!_btAudio || _btAudio.paused) return;
+        var t = _btAudio.currentTime;
+        var prog = document.getElementById('bt-prog');
+        if(prog) prog.style.width = Math.min((t/15)*100,100)+'%';
+        var cur = document.getElementById('bt-cur');
+        if(cur) cur.textContent = '0:'+Math.floor(t).toString().padStart(2,'0');
+        if(t >= 15){ window._btDoPause(); _btAudio.currentTime = 0; }
+      }, 150);
+      if(_btRevealTimer) clearTimeout(_btRevealTimer);
+      var already = _btAudio.currentTime * 1000;
+      var remaining = Math.max(0, 5000 - already);
+      _btRevealTimer = setTimeout(function(){
+        if(!ansed) window._btUnlockAnswers();
+      }, remaining);
+    };
+
+    window._btDoPause = function(){
+      if(!_btAudio || !window._bt.playing) return;
+      _btAudio.pause();
+      window._bt.playing = false;
+      window._btUpdateUI();
+      if(_btProgTimer){ clearInterval(_btProgTimer); _btProgTimer = null; }
+    };
+
+    // Alias legacy utilisés dans _btStop / advanceQ
+    window._btPlay = window._btDoPlay;
+    window._btPause = window._btDoPause;
 
   } else if(q.type==='generique'){
     game.style.overflowY='auto';
