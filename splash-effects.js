@@ -43185,13 +43185,13 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ah_s');
     if(!_s){_s=document.createElement('style');_s.id='_ah_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash{background:#04080e!important;padding-bottom:0!important;}#splash-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;}#splash::after{content:"";display:block;position:absolute;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,40px);background:#04080e;z-index:0;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horloge ── */
     const clockR=W*0.36;
     const clockCX=cx;
-    const clockCY=H*0.78;
+    const clockCY=H*0.62;
     const rimW=clockR*0.10;
 
     /* Aiguilles animées — démarrent à 3h07, avancent en temps réel accéléré */
@@ -43431,9 +43431,9 @@
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* Sol / rue sombre sous l'horloge */
-     const streetY=H*0.88;
-     ctx.fillStyle='rgba(4,8,20,0.97)';ctx.fillRect(0,streetY,W,H-streetY);
+     /* Sol / rue sombre — remplit tout le bas jusqu'au bord */
+     const streetY=H*0.92;
+     ctx.fillStyle='#04080e';ctx.fillRect(0,streetY,W,H);
      ctx.strokeStyle='rgba(30,40,70,0.85)';ctx.lineWidth=1.5;
      ctx.beginPath();ctx.moveTo(0,streetY);ctx.lineTo(W,streetY);ctx.stroke();
 
