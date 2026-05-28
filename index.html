@@ -16973,8 +16973,10 @@ if(!_s.onboardingDone){
     });
   }
 
-  var DISMISS_KEY = 'pwaBannerDismissed';
-  var DISMISS_DAYS = 7;
+  var DISMISS_KEY = 'pwaBannerDismissed_v2';
+  var DISMISS_DAYS = 3;
+  // Nettoyer l'ancienne clé si présente
+  try { localStorage.removeItem('pwaBannerDismissed'); } catch(e) {}
   var banner = document.getElementById('pwa-banner');
   var installBtn = document.getElementById('pwa-banner-install');
   var closeBtn = document.getElementById('pwa-banner-close');
@@ -17007,14 +17009,22 @@ if(!_s.onboardingDone){
 
   closeBtn.addEventListener('click', dismiss);
 
+  // ── Déclencheur universel — tous navigateurs non-standalone ──
+  // beforeinstallprompt (Chrome/Edge) peut ne jamais arriver
+  // iOS a son propre chemin ci-dessous
+  // Ce timer garantit que la bannière s'affiche dans tous les cas
+  var _universalTimer = setTimeout(function() {
+    showBanner();
+  }, 2000);
+
   // ── Android / Chrome / Edge : beforeinstallprompt ──
   var _pwaPrompt = null;
 
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     _pwaPrompt = e;
-    // Expose pour le bouton dans les paramètres si besoin
     window._pwaPrompt = e;
+    clearTimeout(_universalTimer); // annule le timer universel, on gère ici
     setTimeout(showBanner, 3500);
   });
 
@@ -17038,7 +17048,7 @@ if(!_s.onboardingDone){
 
   // ── iOS Safari : pas de beforeinstallprompt ──
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  var isStandalone = window.navigator.standalone === true
+  var isStandalone = (window.navigator.standalone === true)
     || window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: fullscreen)').matches;
 
@@ -17051,34 +17061,19 @@ if(!_s.onboardingDone){
 
     // Injecter les étapes iOS
     var stepsEl = document.getElementById('pwa-banner-steps');
+    var svgShare = '<svg width="18" height="18" viewBox="0 0 327 417" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M52.0158 163.477C46.1037 163.477 40.433 165.826 36.2522 170.007C32.0724 174.187 29.7233 179.858 29.7233 185.77V364.11C29.7233 370.022 32.0724 375.693 36.2522 379.873C40.433 384.054 46.1037 386.402 52.0158 386.402H274.941C280.853 386.402 286.524 384.054 290.704 379.873C294.884 375.693 297.233 370.022 297.233 364.11V185.77C297.233 179.858 294.884 174.187 290.704 170.007C286.524 165.826 280.853 163.477 274.941 163.477H237.787C229.578 163.477 222.925 156.824 222.925 148.616C222.925 140.408 229.578 133.754 237.787 133.754H274.941C288.736 133.754 301.967 139.234 311.722 148.989C321.476 158.744 326.957 171.974 326.957 185.77V364.11C326.957 377.905 321.476 391.136 311.722 400.891C301.967 410.645 288.736 416.126 274.941 416.126H52.0158C38.2205 416.126 24.9899 410.645 15.2351 400.891C5.48024 391.136 0 377.905 0 364.11V185.77C0 171.974 5.48024 158.744 15.2351 148.989C24.9899 139.234 38.2205 133.754 52.0158 133.754H89.17C97.3783 133.754 104.032 140.408 104.032 148.616C104.032 156.824 97.3783 163.477 89.17 163.477H52.0158Z" fill="rgba(255,255,255,0.65)"/><path fill-rule="evenodd" clip-rule="evenodd" d="M152.969 4.35289C158.773 -1.45096 168.183 -1.45096 173.987 4.35289L248.295 78.6609C254.099 84.4653 254.099 93.8746 248.295 99.679C242.491 105.482 233.082 105.482 227.277 99.679L163.478 35.8792L99.6788 99.679C93.8744 105.482 84.4651 105.482 78.6607 99.679C72.8572 93.8746 72.8572 84.4653 78.6607 78.6609L152.969 4.35289Z" fill="rgba(255,255,255,0.65)"/><path fill-rule="evenodd" clip-rule="evenodd" d="M163.478 0C171.687 0 178.34 6.65375 178.34 14.8617V268.439C178.34 276.647 171.687 283.3 163.478 283.3C155.27 283.3 148.617 276.647 148.617 268.439V14.8617C148.617 6.65375 155.27 0 163.478 0Z" fill="rgba(255,255,255,0.65)"/></svg>';
+    var svgAdd = '<svg width="18" height="18" viewBox="0 0 416 416" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M416 101.333C416 74.4533 405.333 48.6827 386.325 29.6747C367.317 10.6667 341.547 0 314.667 0H101.333C74.4533 0 48.6827 10.6667 29.6747 29.6747C10.6667 48.6827 0 74.4533 0 101.333V314.667C0 341.547 10.6667 367.317 29.6747 386.325C48.6827 405.333 74.4533 416 101.333 416H314.667C341.547 416 367.317 405.333 386.325 386.325C405.333 367.317 416 341.547 416 314.667V101.333ZM384 101.333V314.667C384 333.056 376.704 350.699 363.691 363.691C350.699 376.704 333.056 384 314.667 384H101.333C82.944 384 65.3013 376.704 52.3093 363.691C39.296 350.699 32 333.056 32 314.667V101.333C32 82.944 39.296 65.3013 52.3093 52.3093C65.3013 39.296 82.944 32 101.333 32H314.667C333.056 32 350.699 39.296 363.691 52.3093C376.704 65.3013 384 82.944 384 101.333Z" fill="rgba(255,255,255,0.65)"/><path fill-rule="evenodd" clip-rule="evenodd" d="M192 192.001V133.334C192 124.502 199.168 117.334 208 117.334C216.832 117.334 224 124.502 224 133.334V192.001H282.667C291.499 192.001 298.667 199.169 298.667 208.001C298.667 216.833 291.499 224.001 282.667 224.001H224V282.667C224 291.499 216.832 298.667 208 298.667C199.168 298.667 192 291.499 192 282.667V224.001H133.333C124.501 224.001 117.333 216.833 117.333 208.001C117.333 199.169 124.501 192.001 133.333 192.001H192Z" fill="rgba(255,255,255,0.65)"/></svg>';
     stepsEl.innerHTML =
-      '<div class="pwa-step">' +
-        '<div class="pwa-step-num">1</div>' +
-        '<div class="pwa-step-text">Appuie sur <b>Partager</b> dans Safari</div>' +
-        '<div class="pwa-step-icon"><svg width="18" height="18" viewBox="0 0 327 417" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M52.0158 163.477C46.1037 163.477 40.433 165.826 36.2522 170.007C32.0724 174.187 29.7233 179.858 29.7233 185.77V364.11C29.7233 370.022 32.0724 375.693 36.2522 379.873C40.433 384.054 46.1037 386.402 52.0158 386.402H274.941C280.853 386.402 286.524 384.054 290.704 379.873C294.884 375.693 297.233 370.022 297.233 364.11V185.77C297.233 179.858 294.884 174.187 290.704 170.007C286.524 165.826 280.853 163.477 274.941 163.477H237.787C229.578 163.477 222.925 156.824 222.925 148.616C222.925 140.408 229.578 133.754 237.787 133.754H274.941C288.736 133.754 301.967 139.234 311.722 148.989C321.476 158.744 326.957 171.974 326.957 185.77V364.11C326.957 377.905 321.476 391.136 311.722 400.891C301.967 410.645 288.736 416.126 274.941 416.126H52.0158C38.2205 416.126 24.9899 410.645 15.2351 400.891C5.48024 391.136 0 377.905 0 364.11V185.77C0 171.974 5.48024 158.744 15.2351 148.989C24.9899 139.234 38.2205 133.754 52.0158 133.754H89.17C97.3783 133.754 104.032 140.408 104.032 148.616C104.032 156.824 97.3783 163.477 89.17 163.477H52.0158Z" fill="rgba(255,255,255,0.65)"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M152.969 4.35289C158.773 -1.45096 168.183 -1.45096 173.987 4.35289L248.295 78.6609C254.099 84.4653 254.099 93.8746 248.295 99.679C242.491 105.482 233.082 105.482 227.277 99.679L163.478 35.8792L99.6788 99.679C93.8744 105.482 84.4651 105.482 78.6607 99.679C72.8572 93.8746 72.8572 84.4653 78.6607 78.6609L152.969 4.35289Z" fill="rgba(255,255,255,0.65)"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M163.478 0C171.687 0 178.34 6.65375 178.34 14.8617V268.439C178.34 276.647 171.687 283.3 163.478 283.3C155.27 283.3 148.617 276.647 148.617 268.439V14.8617C148.617 6.65375 155.27 0 163.478 0Z" fill="rgba(255,255,255,0.65)"/>
-</svg></div>' +
-      '</div>' +
-      '<div class="pwa-step">' +
-        '<div class="pwa-step-num">2</div>' +
-        '<div class="pwa-step-text">Fais défiler et appuie sur <b>Sur l\'écran d\'accueil</b></div>' +
-        '<div class="pwa-step-icon"><svg width="18" height="18" viewBox="0 0 416 416" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M416 101.333C416 74.4533 405.333 48.6827 386.325 29.6747C367.317 10.6667 341.547 0 314.667 0H101.333C74.4533 0 48.6827 10.6667 29.6747 29.6747C10.6667 48.6827 0 74.4533 0 101.333V314.667C0 341.547 10.6667 367.317 29.6747 386.325C48.6827 405.333 74.4533 416 101.333 416H314.667C341.547 416 367.317 405.333 386.325 386.325C405.333 367.317 416 341.547 416 314.667V101.333ZM384 101.333V314.667C384 333.056 376.704 350.699 363.691 363.691C350.699 376.704 333.056 384 314.667 384H101.333C82.944 384 65.3013 376.704 52.3093 363.691C39.296 350.699 32 333.056 32 314.667V101.333C32 82.944 39.296 65.3013 52.3093 52.3093C65.3013 39.296 82.944 32 101.333 32H314.667C333.056 32 350.699 39.296 363.691 52.3093C376.704 65.3013 384 82.944 384 101.333Z" fill="rgba(255,255,255,0.65)"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M192 192.001V133.334C192 124.502 199.168 117.334 208 117.334C216.832 117.334 224 124.502 224 133.334V192.001H282.667C291.499 192.001 298.667 199.169 298.667 208.001C298.667 216.833 291.499 224.001 282.667 224.001H224V282.667C224 291.499 216.832 298.667 208 298.667C199.168 298.667 192 291.499 192 282.667V224.001H133.333C124.501 224.001 117.333 216.833 117.333 208.001C117.333 199.169 124.501 192.001 133.333 192.001H192Z" fill="rgba(255,255,255,0.65)"/>
-</svg></div>' +
-      '</div>' +
-      '<div class="pwa-step">' +
-        '<div class="pwa-step-num">3</div>' +
-        '<div class="pwa-step-text">Confirme en appuyant sur <b>Ajouter</b></div>' +
-        '<div class="pwa-step-icon">✅</div>' +
-      '</div>';
+      '<div class="pwa-step"><div class="pwa-step-num">1</div><div class="pwa-step-text">Appuie sur <b>Partager</b> dans Safari</div><div class="pwa-step-icon">' + svgShare + '</div></div>' +
+      '<div class="pwa-step"><div class="pwa-step-num">2</div><div class="pwa-step-text">Fais défiler et appuie sur <b>Sur l\'écran d\'accueil</b></div><div class="pwa-step-icon">' + svgAdd + '</div></div>' +
+      '<div class="pwa-step"><div class="pwa-step-num">3</div><div class="pwa-step-text">Confirme en appuyant sur <b>Ajouter</b></div><div class="pwa-step-icon">✅</div></div>';
     stepsEl.classList.add('show');
+    clearTimeout(_universalTimer); // iOS gère son propre timing
     setTimeout(showBanner, 4000);
   } else {
-    // Android/desktop : si beforeinstallprompt n'est pas venu après 6s,
-    // afficher quand même la bannière avec instructions génériques
+    // Android/Chrome/Edge/Firefox/Samsung : fallback universel
+    // beforeinstallprompt déclenche showBanner (l. 17018) s'il arrive
+    // Sinon on affiche quand même après délai
     setTimeout(function() {
       if (!_pwaPrompt) showBanner();
     }, 6000);
