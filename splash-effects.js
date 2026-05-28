@@ -15502,6 +15502,12 @@
     let ufoX=W*0.15, ufoY=H*0.22, ufoVx=0.8, ufoVy=0.3;
     let ufoBeam=0;
 
+    /* ── Neuralyseur — flash blanc après 10s ── */
+    let neuralT=0;          /* temps écoulé en frames */
+    let neuralPhase=0;      /* 0=attente 1=clignotement 2=flash 3=fondu */
+    let neuralBlink=0;      /* compteur de clignos */
+    let neuralFlash=0;      /* opacité du flash (0→1→0) */
+
     function drawUFO(ux,uy){
      ctx.save(); ctx.translate(ux,uy);
      /* Halo bas */
@@ -15540,7 +15546,7 @@
      Object.assign(fig.style,{
       position:'absolute',bottom:'8%',left:'50%',
       transform:'translateX(-50%)',
-      zIndex:'6',width:'78%',maxWidth:'304px',
+      zIndex:'6',width:'48%',maxWidth:'188px',
       opacity:'0',transition:'opacity 1.1s ease 0.3s',
       pointerEvents:'none',
       animation:'_mibBob 7s ease-in-out infinite',
@@ -15552,18 +15558,12 @@
       svgEl.querySelectorAll('path').forEach(p=>{
        if(p.getAttribute('fill')==='#050302') p.setAttribute('fill','#1c1e26');
       });
-      svgEl.style.filter='drop-shadow(0 0 22px rgba(60,200,80,.22)) drop-shadow(0 6px 18px rgba(0,0,0,.80))';
+      svgEl.style.filter='drop-shadow(0 6px 18px rgba(0,0,0,.80))';
      }
      cv.parentElement.appendChild(fig);
      requestAnimationFrame(()=>requestAnimationFrame(()=>{fig.style.opacity='1';}));
 
-     /* Halo au sol */
-     if(!document.getElementById('_mib_vig')){
-      const v=document.createElement('div');v.id='_mib_vig';
-      Object.assign(v.style,{position:'absolute',inset:'0',zIndex:'2',pointerEvents:'none',
-       background:'radial-gradient(ellipse 80% 30% at 50% 92%, rgba(40,180,60,.12) 0%, transparent 100%)'});
-      cv.parentElement.appendChild(v);
-     }
+     /* Halo au sol supprimé */
     }
 
     (function(){
@@ -15644,6 +15644,50 @@
      const vg=ctx.createRadialGradient(cx,cy,H*0.04,cx,cy,H*0.90);
      vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(0.45,'rgba(0,0,0,0.10)'); vg.addColorStop(1,'rgba(0,0,0,0.95)');
      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+
+     /* ── Neuralyseur — séquence flash ── */
+     neuralT++;
+     /* Phase 0 → attente 10s (600 frames @60fps) */
+     if(neuralPhase===0 && neuralT>600){
+      neuralPhase=1; neuralBlink=0;
+     }
+     /* Phase 1 → petit cercle rouge clignote 3×  */
+     if(neuralPhase===1){
+      const blinkCycle=Math.floor((neuralT-600)/18);
+      const blinkOn=((neuralT-600)%18)<9;
+      if(blinkOn){
+       ctx.save();
+       ctx.fillStyle=`rgba(255,30,30,${0.85+Math.sin(neuralT*0.8)*0.15})`;
+       ctx.shadowColor='rgba(255,60,60,0.9)';ctx.shadowBlur=12;
+       ctx.beginPath();ctx.arc(ufoX+W*0.095,ufoY+W*0.03,4,0,Math.PI*2);ctx.fill();
+       ctx.restore();
+      }
+      if(blinkCycle>=3){ neuralPhase=2; }
+     }
+     /* Phase 2 → flash blanc total */
+     if(neuralPhase===2){
+      neuralFlash=Math.min(1,neuralFlash+0.12);
+      ctx.save();
+      const flashG=ctx.createRadialGradient(cx,H*0.35,0,cx,H*0.35,H*0.8);
+      flashG.addColorStop(0,`rgba(255,255,255,${neuralFlash})`);
+      flashG.addColorStop(0.4,`rgba(220,240,255,${neuralFlash*0.9})`);
+      flashG.addColorStop(1,`rgba(180,220,255,${neuralFlash*0.5})`);
+      ctx.fillStyle=flashG;ctx.fillRect(0,0,W,H);
+      ctx.restore();
+      if(neuralFlash>=1){ neuralPhase=3; }
+     }
+     /* Phase 3 → fondu retour */
+     if(neuralPhase===3){
+      neuralFlash=Math.max(0,neuralFlash-0.018);
+      ctx.save();
+      const fadeG=ctx.createRadialGradient(cx,H*0.35,0,cx,H*0.35,H*0.8);
+      fadeG.addColorStop(0,`rgba(255,255,255,${neuralFlash})`);
+      fadeG.addColorStop(0.4,`rgba(220,240,255,${neuralFlash*0.9})`);
+      fadeG.addColorStop(1,`rgba(180,220,255,${neuralFlash*0.5})`);
+      ctx.fillStyle=fadeG;ctx.fillRect(0,0,W,H);
+      ctx.restore();
+      if(neuralFlash<=0){ neuralPhase=0; neuralT=0; } /* relance le cycle */
+     }
 
      t+=0.016; requestAnimationFrame(frame);
     }
