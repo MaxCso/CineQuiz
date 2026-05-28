@@ -16973,10 +16973,8 @@ if(!_s.onboardingDone){
     });
   }
 
-  var DISMISS_KEY = 'pwaBannerDismissed_v2';
-  var DISMISS_DAYS = 3;
-  // Nettoyer l'ancienne clé si présente
-  try { localStorage.removeItem('pwaBannerDismissed'); } catch(e) {}
+  var DISMISS_KEY = 'pwaBannerDismissed';
+  var DISMISS_DAYS = 7;
   var banner = document.getElementById('pwa-banner');
   var installBtn = document.getElementById('pwa-banner-install');
   var closeBtn = document.getElementById('pwa-banner-close');
@@ -17009,22 +17007,14 @@ if(!_s.onboardingDone){
 
   closeBtn.addEventListener('click', dismiss);
 
-  // ── Déclencheur universel — tous navigateurs non-standalone ──
-  // beforeinstallprompt (Chrome/Edge) peut ne jamais arriver
-  // iOS a son propre chemin ci-dessous
-  // Ce timer garantit que la bannière s'affiche dans tous les cas
-  var _universalTimer = setTimeout(function() {
-    showBanner();
-  }, 2000);
-
   // ── Android / Chrome / Edge : beforeinstallprompt ──
   var _pwaPrompt = null;
 
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     _pwaPrompt = e;
+    // Expose pour le bouton dans les paramètres si besoin
     window._pwaPrompt = e;
-    clearTimeout(_universalTimer); // annule le timer universel, on gère ici
     setTimeout(showBanner, 3500);
   });
 
@@ -17048,7 +17038,7 @@ if(!_s.onboardingDone){
 
   // ── iOS Safari : pas de beforeinstallprompt ──
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  var isStandalone = (window.navigator.standalone === true)
+  var isStandalone = window.navigator.standalone === true
     || window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: fullscreen)').matches;
 
@@ -17068,12 +17058,10 @@ if(!_s.onboardingDone){
       '<div class="pwa-step"><div class="pwa-step-num">2</div><div class="pwa-step-text">Fais défiler et appuie sur <b>Sur l\'écran d\'accueil</b></div><div class="pwa-step-icon">' + svgAdd + '</div></div>' +
       '<div class="pwa-step"><div class="pwa-step-num">3</div><div class="pwa-step-text">Confirme en appuyant sur <b>Ajouter</b></div><div class="pwa-step-icon">✅</div></div>';
     stepsEl.classList.add('show');
-    clearTimeout(_universalTimer); // iOS gère son propre timing
     setTimeout(showBanner, 4000);
   } else {
-    // Android/Chrome/Edge/Firefox/Samsung : fallback universel
-    // beforeinstallprompt déclenche showBanner (l. 17018) s'il arrive
-    // Sinon on affiche quand même après délai
+    // Android/desktop : si beforeinstallprompt n'est pas venu après 6s,
+    // afficher quand même la bannière avec instructions génériques
     setTimeout(function() {
       if (!_pwaPrompt) showBanner();
     }, 6000);
