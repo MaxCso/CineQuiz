@@ -5037,11 +5037,12 @@
     let _fgStyle=document.getElementById('_fg_splash_style');
     if(!_fgStyle){_fgStyle=document.createElement('style');_fgStyle.id='_fg_splash_style';document.head.appendChild(_fgStyle);}
     _fgStyle.textContent=`
-      
       #splash-bg::before{background:none!important;}
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
+      #splash-quote-text{color:rgba(15,45,90,0.90)!important;text-shadow:0 1px 3px rgba(255,255,255,0.40)!important;}
+      #splash-film-ref,#splash-credit,#splash-ref-bot,.splash-credit{color:rgba(15,45,90,0.70)!important;text-shadow:none!important;}
     `;
     const _fgWatch=setInterval(()=>{if(stop.v){_fgStyle.textContent='';clearInterval(_fgWatch);}},200);
 
@@ -13101,7 +13102,7 @@
     /* ── Fond ciel de Californie — pas d'orbes ── */
     let _s=document.getElementById('_tg_s');
     if(!_s){_s=document.createElement('style');_s.id='_tg_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:53%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:51%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horizon : mer en bas ── */
@@ -18364,8 +18365,9 @@
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
-      
       #splash-bg{background:none!important;}
+      #splash-content-wrap{top:20%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _gbuWatch=setInterval(()=>{if(stop.v){_gbuStyle.textContent='';clearInterval(_gbuWatch);}},200);
 
