@@ -36971,7 +36971,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_vs_s');
     if(!_s){_s=document.createElement('style');_s.id='_vs_s';document.head.appendChild(_s);}
-    _s.textContent=`#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:62%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}`;
+    _s.textContent=`#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline{text-shadow:0 1px 6px rgba(0,0,0,0.55)!important;}#splash-credit,#splash-ref-bot,.splash-credit{text-shadow:0 1px 5px rgba(0,0,0,0.60)!important;}`;
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -37021,7 +37021,7 @@
     function drawTree(){
      /* Arbre fidèle à l'image : tronc droit épais gris, longues branches horizontales,
         petites touffes pendantes le long des branches */
-     const TX=W*0.56, BY=H*1.00;   /* base du tronc — centré-droit de l'écran */
+     const TX=W/2, BY=H*1.00;   /* base du tronc — centré-droit de l'écran */
      const TH=H*0.52;              /* hauteur du tronc avant premières branches */
      const TW=W*0.034;             /* tronc épais */
      ctx.save();
@@ -39219,7 +39219,7 @@
      /* ── SILHOUETTE SVG ── */
      if(silLoaded&&silhouetteImg){
       const iW=W*0.60, iH=iW*(silhouetteImg.naturalHeight/silhouetteImg.naturalWidth||1.6);
-      const ix=cx-iW/2, iy=H*0.43;
+      const ix=cx-iW/2, iy=H*0.40;
       const sway=Math.sin(t*0.20)*W*0.003;
       ctx.save();
       ctx.globalAlpha=0.96;
@@ -46717,9 +46717,9 @@
      ctx.fillStyle=`rgba(255,245,200,${0.72+Math.sin(t*0.3)*0.05})`;
      ctx.beginPath();ctx.arc(sunX,sunY,W*0.048,0,Math.PI*2);ctx.fill();
 
-     /* ── Iron Man armure — opaque, légère pulsation de brillance ── */
+     /* ── Iron Man armure — légèrement réduite, légère pulsation de brillance ── */
      if(ironReady){
-      const ironW=W*0.82;
+      const ironW=W*0.72;
       const ironH=ironW;
       ctx.save();
       ctx.globalAlpha=0.92+Math.sin(t*0.4)*0.05;
@@ -46736,23 +46736,6 @@
       ctx.fillRect(l.x+l.w-W*0.008,l.y-H*0.002,W*0.008,H*0.004);
      }
 
-     /* ── Arc reactor — centre poitrine du ghost IronMan (H*0.50) ── */
-     const arcX=cx, arcY=H*0.50;
-     const arcG=ctx.createRadialGradient(arcX,arcY,0,arcX,arcY,W*0.14);
-     arcG.addColorStop(0,`rgba(180,230,255,${0.45+Math.sin(t*0.55)*0.12})`);
-     arcG.addColorStop(0.25,`rgba(100,190,255,${0.20+Math.sin(t*0.55)*0.06})`);
-     arcG.addColorStop(0.6,'rgba(50,140,230,0.06)');arcG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=arcG;ctx.fillRect(arcX-W*0.14,arcY-W*0.14,W*0.28,W*0.28);
-     for(const r of arcRings){
-      r.ph+=r.spd;const pulse=0.55+0.45*Math.abs(Math.sin(r.ph));
-      ctx.strokeStyle=`rgba(160,220,255,${0.18*pulse})`;ctx.lineWidth=W*0.003;
-      ctx.beginPath();ctx.arc(arcX,arcY,r.r*(0.9+0.1*Math.sin(r.ph)),0,Math.PI*2);ctx.stroke();
-     }
-     ctx.fillStyle=`rgba(200,240,255,${0.70+Math.sin(t*0.55)*0.20})`;
-     ctx.beginPath();ctx.arc(arcX,arcY,W*0.016,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle='rgba(255,255,255,0.90)';
-     ctx.beginPath();ctx.arc(arcX,arcY,W*0.008,0,Math.PI*2);ctx.fill();
-
      /* ── Jets de propulsion depuis les mains ── */
      for(const b of blasts){
       const blen=b.len*(0.7+0.3*Math.abs(Math.sin(t*0.8+b.x)));
@@ -46765,65 +46748,106 @@
      /* ── Explosions : boule de feu + onde de choc + fumée noire + débris ── */
      for(const ex of explosions){
       ex.ph+=ex.spd;
-      const cycle=((ex.ph%(Math.PI*2))/(Math.PI*2)); /* 0→1 par cycle */
+      const cycle=((ex.ph%(Math.PI*2))/(Math.PI*2));
       const rise=Math.pow(Math.max(0,Math.sin(ex.ph*0.5)),0.6);
 
-      /* -- Onde de choc circulaire (début de cycle seulement) -- */
+      /* -- Onde de choc circulaire (début de cycle) -- */
       if(cycle<0.18){
-       const shockR=ex.w*(0.4+cycle*4.0);
-       const shockA=(0.18-cycle*0.18/0.18)*0.80;
-       ctx.strokeStyle=`rgba(255,220,120,${shockA})`;ctx.lineWidth=2.5;
+       const shockR=ex.w*(0.5+cycle*5.5);
+       const shockA=(0.18-cycle)/0.18*0.90;
+       /* Cercle de choc opaque */
+       ctx.strokeStyle=`rgba(255,230,130,${shockA})`;ctx.lineWidth=3.5;
        ctx.beginPath();ctx.arc(ex.x,ex.baseY,shockR,Math.PI,0);ctx.stroke();
+       /* Halo de choc semi-transparent */
+       const shG=ctx.createRadialGradient(ex.x,ex.baseY,shockR*0.7,ex.x,ex.baseY,shockR*1.35);
+       shG.addColorStop(0,`rgba(255,200,80,${shockA*0.35})`);
+       shG.addColorStop(1,'rgba(0,0,0,0)');
+       ctx.fillStyle=shG;ctx.beginPath();ctx.arc(ex.x,ex.baseY,shockR*1.35,0,Math.PI*2);ctx.fill();
       }
 
-      /* -- Boule de feu à la base -- */
-      const fireR=ex.w*(0.55+rise*0.50);
-      const fireA=rise*(0.75+Math.sin(ex.ph*6)*0.10);
-      const fireG=ctx.createRadialGradient(ex.x,ex.baseY-fireR*0.25,fireR*0.05,ex.x,ex.baseY,fireR);
+      /* -- Boule de feu principale -- */
+      const fireR=ex.w*(0.65+rise*0.75);
+      const fireA=rise*(0.85+Math.sin(ex.ph*6)*0.10);
+      /* Cœur blanc-jaune éblouissant */
+      const coreG=ctx.createRadialGradient(ex.x,ex.baseY-fireR*0.15,fireR*0.05,ex.x,ex.baseY,fireR*0.55);
+      coreG.addColorStop(0,`rgba(255,255,230,${fireA*0.95})`);
+      coreG.addColorStop(0.3,`rgba(255,240,120,${fireA*0.80})`);
+      coreG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=coreG;ctx.beginPath();ctx.arc(ex.x,ex.baseY,fireR*0.55,0,Math.PI*2);ctx.fill();
+      /* Boule de feu externe */
+      const fireG=ctx.createRadialGradient(ex.x,ex.baseY-fireR*0.20,fireR*0.08,ex.x,ex.baseY,fireR);
       fireG.addColorStop(0,`rgba(255,255,180,${fireA})`);
-      fireG.addColorStop(0.20,`rgba(${ex.fireR},${ex.fireG},10,${fireA*0.90})`);
-      fireG.addColorStop(0.55,`rgba(180,40,5,${fireA*0.55})`);
+      fireG.addColorStop(0.18,`rgba(${ex.fireR},${ex.fireG},15,${fireA*0.92})`);
+      fireG.addColorStop(0.48,`rgba(200,50,8,${fireA*0.62})`);
+      fireG.addColorStop(0.75,`rgba(100,25,5,${fireA*0.30})`);
       fireG.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=fireG;ctx.beginPath();ctx.arc(ex.x,ex.baseY,fireR,0,Math.PI*2);ctx.fill();
 
-      /* -- Couronne de feu irrégulière (bruit de forme) -- */
-      if(rise>0.1){
-       ctx.fillStyle=`rgba(255,${ex.fireG+60|0},20,${rise*0.35})`;
+      /* -- Couronne irrégulière de feu (langue de flamme) -- */
+      if(rise>0.08){
+       const nPts=16;
        ctx.beginPath();
-       for(let a=0;a<12;a++){
-        const angle=a/12*Math.PI*2;
-        const jitter=1+0.35*Math.sin(ex.ph*4+a*2.3);
-        const r=fireR*(0.7+0.3*jitter);
-        if(a===0)ctx.moveTo(ex.x+Math.cos(angle)*r,ex.baseY+Math.sin(angle)*r*0.4);
-        else ctx.lineTo(ex.x+Math.cos(angle)*r,ex.baseY+Math.sin(angle)*r*0.4);
+       for(let a=0;a<nPts;a++){
+        const angle=a/nPts*Math.PI*2;
+        const jitter=1+0.45*Math.sin(ex.ph*5+a*2.5+ex.x);
+        const r=fireR*(0.75+0.35*jitter);
+        const px=ex.x+Math.cos(angle)*r;
+        const py=ex.baseY+Math.sin(angle)*r*(0.35+rise*0.15);
+        a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
        }
-       ctx.closePath();ctx.fill();
+       ctx.closePath();
+       ctx.fillStyle=`rgba(255,${ex.fireG+40|0},25,${rise*0.40})`;ctx.fill();
+       /* Langue haute — colonne de feu */
+       ctx.beginPath();
+       for(let a=0;a<8;a++){
+        const angle=-Math.PI*0.5+(a/7-0.5)*0.9;
+        const r=fireR*(0.6+rise*0.80+0.3*Math.sin(ex.ph*4+a));
+        const px=ex.x+Math.cos(angle)*r*0.45;
+        const py=ex.baseY+Math.sin(angle)*r;
+        a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+       }
+       ctx.closePath();
+       ctx.fillStyle=`rgba(255,${ex.fireG+20|0},10,${rise*0.32})`;ctx.fill();
       }
 
-      /* -- Colonne de fumée noire qui monte -- */
-      for(let layer=0;layer<7;layer++){
-       const lf=layer/6;
-       const ly=ex.baseY-rise*ex.maxH*lf - fireR*0.3;
-       const lw=ex.w*(0.25+rise*0.55*(0.4+lf*0.9));
-       /* Fumée noire dense en bas, grise en haut */
-       const smokeR=20+lf*80|0, smokeG=15+lf*65|0, smokeB=10+lf*55|0;
-       const la=rise*(0.52-layer*0.060)*(0.6+0.4*Math.sin(ex.ph*0.8+layer));
+      /* -- Fumée noire volumineuse qui monte -- */
+      for(let layer=0;layer<9;layer++){
+       const lf=layer/8;
+       const ly=ex.baseY-rise*ex.maxH*lf - fireR*0.2;
+       const lw=ex.w*(0.30+rise*0.70*(0.45+lf*1.0));
+       const smokeR=18+lf*90|0, smokeG=14+lf*70|0, smokeB=10+lf*58|0;
+       const la=rise*(0.58-layer*0.055)*(0.6+0.4*Math.sin(ex.ph*0.9+layer));
        if(la<=0)continue;
-       const sg=ctx.createRadialGradient(ex.x,ly,0,ex.x,ly,lw);
+       /* Légère turbulence latérale */
+       const wobble=Math.sin(ex.ph*1.2+layer*1.8)*lw*0.18;
+       const sg=ctx.createRadialGradient(ex.x+wobble,ly,0,ex.x+wobble,ly,lw);
        sg.addColorStop(0,`rgba(${smokeR},${smokeG},${smokeB},${la})`);
-       sg.addColorStop(0.55,`rgba(${smokeR},${smokeG},${smokeB},${la*0.45})`);
+       sg.addColorStop(0.50,`rgba(${smokeR},${smokeG},${smokeB},${la*0.42})`);
        sg.addColorStop(1,'rgba(0,0,0,0)');
        ctx.fillStyle=sg;
-       ctx.beginPath();ctx.ellipse(ex.x,ly,lw,lw*0.60,0,0,Math.PI*2);ctx.fill();
+       ctx.beginPath();ctx.ellipse(ex.x+wobble,ly,lw,lw*0.65,0,0,Math.PI*2);ctx.fill();
       }
 
       /* -- Lueur orange au sol autour de l'impact -- */
-      const glowA=rise*(0.20+Math.sin(ex.ph*3)*0.06);
-      const glowG=ctx.createRadialGradient(ex.x,ex.baseY,0,ex.x,ex.baseY,ex.w*0.85);
-      glowG.addColorStop(0,`rgba(255,160,20,${glowA})`);
-      glowG.addColorStop(0.5,`rgba(200,80,10,${glowA*0.40})`);
+      const glowA=rise*(0.28+Math.sin(ex.ph*3)*0.07);
+      const glowG=ctx.createRadialGradient(ex.x,ex.baseY,0,ex.x,ex.baseY,ex.w*1.1);
+      glowG.addColorStop(0,`rgba(255,170,25,${glowA})`);
+      glowG.addColorStop(0.4,`rgba(220,90,15,${glowA*0.50})`);
       glowG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=glowG;ctx.fillRect(ex.x-ex.w,ex.baseY-ex.w*0.4,ex.w*2,ex.w*0.4);
+      ctx.fillStyle=glowG;ctx.fillRect(ex.x-ex.w*1.1,ex.baseY-ex.w*0.5,ex.w*2.2,ex.w*0.5);
+
+      /* -- Étincelles radiales depuis l'impact -- */
+      if(cycle<0.25&&rise>0.05){
+       const nSparks=10;
+       for(let s=0;s<nSparks;s++){
+        const sa=s/nSparks*Math.PI;
+        const sr=ex.w*(0.4+cycle*3.0+Math.sin(s*2.1)*0.2);
+        const sx=ex.x+Math.cos(sa)*sr;
+        const sy=ex.baseY-Math.sin(sa)*sr*0.55;
+        ctx.fillStyle=`rgba(255,220,80,${(0.25-cycle)/0.25*0.80})`;
+        ctx.beginPath();ctx.arc(sx,sy,W*0.004,0,Math.PI*2);ctx.fill();
+       }
+      }
      }
 
      /* ── Débris volants ── */
