@@ -17012,7 +17012,7 @@
     let t=0;
     const cx=W/2;
     let _es=document.getElementById('_es_s');if(!_es){_es=document.createElement('style');_es.id='_es_s';document.head.appendChild(_es);}
-    _es.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:70%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _es.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _esW=setInterval(()=>{if(stop.v){_es.textContent='';clearInterval(_esW);}},200);
 
     /* ── Flocons légers ── */
@@ -23051,7 +23051,7 @@
     /* ── Fond override : beurre chaud parisien ── */
     let _rs=document.getElementById('_rata_s');
     if(!_rs){_rs=document.createElement('style');_rs.id='_rata_s';document.head.appendChild(_rs);}
-    _rs.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:27%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _rs.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _rw=setInterval(()=>{if(stop.v){_rs.textContent='';clearInterval(_rw);}},200);
 
     /* ── Étoiles parisiennes ── */
