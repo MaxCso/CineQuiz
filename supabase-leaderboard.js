@@ -364,11 +364,80 @@
     }
   }
 
+  /* ── 10. Fetch classement par mode (table mode_scores) ── */
+
+  async function sbFetchModeScores(mode, limit) {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/mode_scores` +
+        `?mode=eq.${encodeURIComponent(mode)}` +
+        `&order=best_score.desc` +
+        `&limit=${limit || 10}`,
+        { headers: sbHeaders() }
+      );
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /* Expose pour openModeInfo dans index.html */
+  window._sbFetchMode = sbFetchModeScores;
+
+  /* ── 11. Soumission meilleur score par mode ── */
+
+  async function sbSubmitModeScore(mode, score, correct, total) {
+    const s = ls();
+    const pseudo = s && s.pseudo;
+    if (!pseudo || !mode || mode === 'training') return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/mode_scores`, {
+        method: 'POST',
+        headers: {
+          ...sbHeaders(),
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          pseudo,
+          mode,
+          best_score: score,
+          correct: correct || 0,
+          total: total || 10,
+          updated_at: new Date().toISOString(),
+        }),
+      });
+    } catch (e) {
+      console.warn('[CQ Leaderboard] Erreur soumission score mode :', e);
+    }
+  }
+
+  /* ── 12. Patch endGame pour soumettre le score après chaque partie ── */
+
+  function patchEndGame() {
+    if (typeof window.endGame !== 'function') { setTimeout(patchEndGame, 300); return; }
+    const _origEnd = window.endGame;
+    window.endGame = function () {
+      /* Capture les variables de jeu AVANT d'appeler l'original */
+      const _score   = typeof score   !== 'undefined' ? score   : 0;
+      const _okCnt   = typeof okCnt   !== 'undefined' ? okCnt   : 0;
+      const _TOTAL   = typeof TOTAL   !== 'undefined' ? TOTAL   : 10;
+      const _selMode = typeof selMode !== 'undefined' ? selMode : null;
+      _origEnd.apply(this, arguments);
+      /* Ne soumettre que si c'est un vrai score (pas training, pas 0) */
+      if (_selMode && _selMode !== 'training' && _score > 0) {
+        sbSubmitModeScore(_selMode, _score, _okCnt, _TOTAL);
+      }
+    };
+    console.info('[CQ Leaderboard] ✅ endGame patché pour soumission scores modes.');
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { patchLeaderboard(); patchOpenDaily(); });
+    document.addEventListener('DOMContentLoaded', () => { patchLeaderboard(); patchOpenDaily(); patchEndGame(); });
   } else {
     patchLeaderboard();
     patchOpenDaily();
+    patchEndGame();
   }
 
 })();

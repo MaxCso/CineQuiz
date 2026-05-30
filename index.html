@@ -6448,16 +6448,33 @@ function openModeInfo(m,el){
     } else {
       // _sbFetchMode pas encore chargé — réessayer dans 500ms
       setTimeout(function(){
-        if(typeof window._sbFetchMode==='function'){
-          window.openModeInfo&&window.openModeInfo(m,null);
+        var fn=window._sbFetchMode;
+        if(typeof fn==='function'){
+          fn(m,5).then(function(board){
+            lbWrap.style.display='block';
+            if(!board||!board.length){
+              lbInner.innerHTML='<div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">🏆 Classement mondial</div><div style="font-size:12px;color:rgba(255,255,255,.28);text-align:center;padding:8px 0;">Sois le premier !</div>';
+              return;
+            }
+            var pseudo=(ls()&&ls().pseudo)||null;
+            var myRank=pseudo?board.findIndex(function(e){return e.pseudo===pseudo;})+1:0;
+            var rows=board.slice(0,5).map(function(e,i){
+              var isMe=pseudo&&e.pseudo===pseudo;
+              var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+              var rc=i===0?'#f5c842':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,.25)';
+              return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;'+(i<Math.min(board.length-1,4)?'border-bottom:1px solid rgba(255,255,255,.05);':'')+(isMe?'background:rgba(245,200,66,.04);border-radius:8px;padding:6px 4px;margin:0 -4px;':'')+'"><span style="font-family:\'Bebas Neue\',sans-serif;font-size:15px;color:'+rc+';width:20px;text-align:center;flex-shrink:0;">'+(medal||(i+1))+'</span><span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+(isMe?'font-weight:700;color:rgba(255,255,255,.9);':'color:rgba(255,255,255,.5);')+'">'+e.pseudo+(isMe?' ◀':'')+'</span><span style="font-family:\'Bebas Neue\',sans-serif;font-size:17px;'+(isMe?'color:'+info.color+';':'color:rgba(255,255,255,.45);')+'">'+e.best_score+'</span></div>';
+            }).join('');
+            lbInner.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><span style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;">🏆 Classement mondial</span>'+(myRank?'<span style="font-size:9px;color:rgba(245,200,66,.7);font-weight:700;">Tu es '+myRank+(myRank===1?'er':'ème')+'</span>':'')+'</div>'+rows;
+          }).catch(function(){
+            lbInner.innerHTML='<div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">🏆 Classement mondial</div><div style="font-size:12px;color:rgba(255,255,255,.25);text-align:center;padding:8px 0;">Indisponible</div>';
+          });
         } else {
           lbInner.innerHTML='<div style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">🏆 Classement mondial</div><div style="font-size:12px;color:rgba(255,255,255,.25);text-align:center;padding:8px 0;">Joue pour être le premier !</div>';
         }
       },500);
     }
   }
-}
-function setDiff(d,el){
+}function setDiff(d,el){
   selDiff=d==='all'?null:d;
   document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('diff-active'));
   if(el)el.classList.add('diff-active');
