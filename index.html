@@ -5494,7 +5494,8 @@ function buildPenduQuestions(count){
     type:'pendu',
     word:p.word.toUpperCase(),
     hint:p.hint,
-    category:p.category==='film'?'🎬 Film':'🎭 Acteur',
+    // Détecter acteur : category==='acteur' OU hint contient des noms de films séparés par · sans année seule
+    category:(p.category==='acteur'||p.category==='Acteur')?'🎭 Acteur':'🎬 Film',
     difficulty:'medium',
   }));
 }
@@ -5509,8 +5510,27 @@ const VF_CRITERIA=[
   {key:'runtime',label:'Durée',emoji:'⏱️',unit:'min',format:v=>v?v+'min':'N/A'},
 ];
 const VF_POOL=[550,680,155,13,27205,157336,11,603,120,122,496243,438631,313369,76341,361743,299536,299534,24428,1726,284054,49026,118340,283995,284053,557,558,559,324857,105,218,280,348,8587,671,862,10193,12,10681,807,597,274,238,9806,354912,566525,330459,181808,299537,372058,245891,458156,497698,466272,68718,475557,762504,240,129,637,
-  // Films ajoutés
-  567,213,239,872,15,996,599,284,705,223,829,1051,9040,9552,7340,1091,8077,861,1573,1637,1701,9802,754,954,949,318846,314365,60308,453,168672,45317,102899,37165,162,2668,118,128,8392,149,9323,46738,1359,1078605,1233413,840705,475557,1072269,451657,670292,1110358,615777,580175,577922,19908,504949,419704,586863,512263,500664,339692,339403,263115,290250,312221,273481
+  // Films ajoutés (batch 1)
+  567,213,239,872,15,996,599,284,705,223,829,1051,9040,9552,7340,1091,8077,861,1573,1637,1701,9802,754,954,949,318846,314365,60308,453,168672,45317,102899,37165,162,2668,118,128,8392,149,9323,46738,1359,1078605,1233413,840705,1072269,451657,670292,1110358,615777,580175,577922,19908,504949,419704,586863,512263,500664,339692,339403,263115,290250,312221,273481,
+  // Films ajoutés (batch 2) — sagas, français, classiques, récents
+  // Action / Thriller
+  562,9737,1578,9799,106,9593,36955,9739,
+  // Science-Fiction
+  185,601,19995,62,1894,1895,1896,
+  // Animation supplémentaire
+  585,14160,2062,808,12477,425,227306,140607,
+  // Films français
+  194,406,77338,176,25074,72105,19715,17654,68822,
+  // Drames / Classiques
+  278,389,424,497,510,607,629,770,857,
+  // Comédies populaires
+  771,88,137,2280,401,
+  // Récents (2020-2024)
+  634649,718821,872585,1011985,385128,447365,804095,
+  // Horreur / Suspense populaire
+  616,4232,539,745,
+  // Aventure / Fantasy
+  411,22,85
 ];
 
 async function fetchVersusQuestions(count){
@@ -5976,9 +5996,20 @@ async function fetchRealisateurQuestions(count){
 /* TRIVIA_FR → data.js */
 
 async function fetchTrivia(){
-  // Mode Découverte : banque curatée grand public uniquement
-  if(selDecouverte&&typeof TRIVIA_DECOUVERTE!=='undefined'&&TRIVIA_DECOUVERTE.length>=TOTAL){
-    const pool=pickWithoutRepeat(TRIVIA_DECOUVERTE,'trivia_decouverte',TOTAL);
+  // Mode Découverte : banque curatée grand public (TRIVIA_DECOUVERTE en priorité)
+  if(selDecouverte){
+    // Priorité 1 : banque dédiée TRIVIA_DECOUVERTE (data.js)
+    if(typeof TRIVIA_DECOUVERTE!=='undefined'&&TRIVIA_DECOUVERTE.length>=TOTAL){
+      const pool=pickWithoutRepeat(TRIVIA_DECOUVERTE,'trivia_decouverte',TOTAL);
+      return pool.map(q=>{
+        const ans=shuffle([q.correct,...q.wrong]);
+        return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:'easy',category:q.category||'Cinéma'};
+      });
+    }
+    // Priorité 2 : fallback sur TRIVIA_FR filtré difficulty=easy uniquement
+    const easyPool=TRIVIA_FR.filter(q=>q.difficulty==='easy');
+    const src=easyPool.length>=TOTAL?easyPool:TRIVIA_FR;
+    const pool=pickWithoutRepeat(src,'trivia_decouverte_fallback',TOTAL);
     return pool.map(q=>{
       const ans=shuffle([q.correct,...q.wrong]);
       return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:'easy',category:q.category};
@@ -5988,7 +6019,7 @@ async function fetchTrivia(){
   if(TRIVIA_FR.length>=TOTAL){
     const filtered=selDiff?TRIVIA_FR.filter(q=>q.difficulty===selDiff):TRIVIA_FR;
     const src=filtered.length>=TOTAL?filtered:TRIVIA_FR;
-    const poolKey='trivia'+(selDiff||'')+(selDecouverte?'_deco':'');
+    const poolKey='trivia'+(selDiff||'');
     const pool=pickWithoutRepeat(src,poolKey,TOTAL);
     return pool.map(q=>{
       const ans=shuffle([q.correct,...q.wrong]);
@@ -6572,6 +6603,8 @@ function closeModeInfo(){
   document.getElementById('mode-info-modal').classList.remove('on');
 }
 function launchFromInfo(){
+  // Remappage final : decouverte joue comme un quiz avec selDecouverte=true
+  if(selMode==='decouverte'){selMode='quiz';selDecouverte=true;}
   closeModeInfo();
   // Si jukebox actif, juste arrêter l'interval de progression (pas l'audio)
   if(window._jkAudio) _stopProgInterval();
@@ -14519,9 +14552,9 @@ function setupSwipeRight(el,onClose){
 
 // Init swipes après le DOM
 setTimeout(()=>{
-  // Profil : swipe droite → Modes de Jeu (pas accueil)
-  const profileEl=document.getElementById('profile');
-  if(profileEl)setupSwipeRight(profileEl,()=>cqGoTab('modes'));
+  // Profil : swipe droite → géré exclusivement par le système NAV (attachSwipe)
+  // qui vérifie el.classList.contains('on') avant d'agir — pas de setupSwipeRight ici
+  // pour éviter le double listener qui se déclenche même depuis d'autres écrans
   // Badge modal : swipe bas → fermer
   const bmodSh=document.querySelector('#bmod .msh');
   if(bmodSh)setupSwipeDown(bmodSh,()=>document.getElementById('bmod').classList.remove('on'));
