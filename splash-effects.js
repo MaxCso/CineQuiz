@@ -17432,7 +17432,7 @@
     /* ── CSS override : remonter citation + logo (~25%), descendre bus géré via BY ── */
     let _itwStyle=document.getElementById('_itw_splash_style');
     if(!_itwStyle){_itwStyle=document.createElement('style');_itwStyle.id='_itw_splash_style';document.head.appendChild(_itwStyle);}
-    _itwStyle.textContent='#splash-content-wrap{top:48%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _itwStyle.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _itwWatch=setInterval(()=>{if(stop.v){_itwStyle.textContent='';clearInterval(_itwWatch);}},200);
 
     /* Étoiles — nuit Alaska */
@@ -33914,7 +33914,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_rm_s');
     if(!_s){_s=document.createElement('style');_s.id='_rm_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horizon — géographie ── */
@@ -33931,19 +33931,19 @@
      {x:W*0.58,y:H*0.25,rx:W*0.16,ry:H*0.045,col:'rgba(170,55,20,0.58)'},
     ];
 
-    /* ── Cartes qui voltigent ── */
+    /* ── Cartes qui voltigent — plus grandes, mieux éparpillées ── */
     const SUITS=['♥','♦','♣','♠'];
-    const VALS=['3','4','6','7','K','A'];
-    const cards=Array.from({length:8},(_,i)=>({
-     x:W*(0.55+Math.random()*0.35),
-     y:H*(0.35+Math.random()*0.18),
-     vx:W*(0.0012+Math.random()*0.0010),
-     vy:-(H*(0.0004+Math.random()*0.0006)),
-     rot:Math.random()*Math.PI*0.5-0.2,
-     rotSpd:(Math.random()-0.5)*0.012,
-     w:W*0.055, h:W*0.075,
+    const VALS=['3','4','6','7','K','A','8','J'];
+    const cards=Array.from({length:12},(_,i)=>({
+     x:W*(0.30+Math.random()*0.65),
+     y:H*(0.28+Math.random()*0.25),
+     vx:W*(0.0010+Math.random()*0.0014)*(Math.random()<0.3?-1:1),
+     vy:-(H*(0.0003+Math.random()*0.0007)),
+     rot:Math.random()*Math.PI*0.8-0.4,
+     rotSpd:(Math.random()-0.5)*0.016,
+     w:W*0.075, h:W*0.105,
      suit:SUITS[i%4],
-     val:VALS[i%6],
+     val:VALS[i%8],
      red:i%4<2,
     }));
 
@@ -33953,81 +33953,149 @@
     const carY=H*0.66;
 
     function drawSun(){
-     /* Grand disque soleil blanc-crème */
-     const sg=ctx.createRadialGradient(cx,sunY,0,cx,sunY,W*0.20);
-     sg.addColorStop(0,'rgba(255,248,220,1.0)');
-     sg.addColorStop(0.30,'rgba(255,230,160,0.97)');
-     sg.addColorStop(0.60,'rgba(255,190,80,0.70)');
-     sg.addColorStop(1,'rgba(220,100,20,0)');
-     ctx.fillStyle=sg;ctx.fillRect(cx-W*0.20,sunY-W*0.20,W*0.40,W*0.40);
-     /* Disque dur */
-     const sd=ctx.createRadialGradient(cx,sunY,0,cx,sunY,W*0.115);
-     sd.addColorStop(0,'rgba(255,255,235,1)');
-     sd.addColorStop(0.55,'rgba(255,240,200,0.98)');
-     sd.addColorStop(1,'rgba(255,200,100,0.85)');
-     ctx.fillStyle=sd;ctx.beginPath();ctx.arc(cx,sunY,W*0.115,0,Math.PI*2);ctx.fill();
+     /* Soleil bas sur l'horizon — atmosphérique */
+     /* Halo atmosphérique géant */
+     const sa=ctx.createRadialGradient(cx,sunY,0,cx,sunY,W*0.55);
+     sa.addColorStop(0,`rgba(255,230,120,${0.30+Math.sin(t*0.18)*0.04})`);
+     sa.addColorStop(0.22,'rgba(255,170,60,0.14)');
+     sa.addColorStop(0.55,'rgba(220,100,20,0.05)');
+     sa.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sa;ctx.fillRect(0,0,W,horizY+H*0.10);
+     /* Colonne de lumière vers le sol */
+     const col=ctx.createLinearGradient(cx,sunY,cx,H);
+     col.addColorStop(0,`rgba(255,220,100,${0.12+Math.sin(t*0.22)*0.03})`);
+     col.addColorStop(0.4,'rgba(255,180,60,0.05)');
+     col.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=col;
+     ctx.beginPath();ctx.moveTo(cx-W*0.15,sunY);ctx.lineTo(cx+W*0.15,sunY);
+     ctx.lineTo(cx+W*0.42,H);ctx.lineTo(cx-W*0.42,H);ctx.closePath();ctx.fill();
+     /* Couronne diffuse */
+     const sc2=ctx.createRadialGradient(cx,sunY,W*0.09,cx,sunY,W*0.22);
+     sc2.addColorStop(0,`rgba(255,210,80,${0.80+Math.sin(t*0.15)*0.08})`);
+     sc2.addColorStop(0.40,'rgba(255,160,40,0.30)');
+     sc2.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sc2;ctx.beginPath();ctx.arc(cx,sunY,W*0.22,0,Math.PI*2);ctx.fill();
+     /* Disque solaire dur */
+     const sd=ctx.createRadialGradient(cx-W*0.02,sunY-W*0.02,0,cx,sunY,W*0.090);
+     sd.addColorStop(0,'rgba(255,255,220,1)');
+     sd.addColorStop(0.30,'rgba(255,248,190,1)');
+     sd.addColorStop(0.65,'rgba(255,220,120,0.96)');
+     sd.addColorStop(1,'rgba(255,180,60,0.80)');
+     ctx.fillStyle=sd;ctx.beginPath();ctx.arc(cx,sunY,W*0.090,0,Math.PI*2);ctx.fill();
     }
 
     function drawRoad(){
-     /* Route perspective sinueuse vers l'horizon */
-     /* Macadam */
-     const roadG=ctx.createLinearGradient(0,horizY,0,H);
-     roadG.addColorStop(0,'#2a3850');
-     roadG.addColorStop(0.30,'#243248');
-     roadG.addColorStop(1,'#1c2840');
+     const rStart=horizY+H*0.002;
+     /* ── Asphalte principal — gris bleuté avec reflet soleil ── */
+     const roadG=ctx.createLinearGradient(0,rStart,0,H);
+     roadG.addColorStop(0,'#2e3d52');
+     roadG.addColorStop(0.18,'#283548');
+     roadG.addColorStop(0.55,'#222e40');
+     roadG.addColorStop(1,'#1a2535');
      ctx.fillStyle=roadG;
-     /* Forme trapézoïdale — perspective */
      ctx.beginPath();
-     ctx.moveTo(cx-W*0.055,horizY+H*0.005);
-     ctx.lineTo(cx+W*0.055,horizY+H*0.005);
-     ctx.lineTo(cx+W*0.52,H);
-     ctx.lineTo(cx-W*0.52,H);
+     ctx.moveTo(cx-W*0.048,rStart);ctx.lineTo(cx+W*0.048,rStart);
+     ctx.lineTo(cx+W*0.54,H);ctx.lineTo(cx-W*0.54,H);
      ctx.closePath();ctx.fill();
 
-     /* Lignes blanches latérales */
-     ctx.strokeStyle='rgba(255,248,220,0.75)';ctx.lineWidth=W*0.006;
-     /* Gauche */
+     /* Reflet du soleil sur la route — colonne centrale brillante */
+     const reflG=ctx.createLinearGradient(0,rStart,0,H*0.72);
+     reflG.addColorStop(0,`rgba(255,220,100,${0.18+Math.sin(t*0.22)*0.05})`);
+     reflG.addColorStop(0.35,'rgba(255,200,80,0.06)');
+     reflG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=reflG;
      ctx.beginPath();
-     ctx.moveTo(cx-W*0.055,horizY+H*0.005);
-     ctx.lineTo(cx-W*0.50,H);ctx.stroke();
-     /* Droite */
-     ctx.beginPath();
-     ctx.moveTo(cx+W*0.055,horizY+H*0.005);
-     ctx.lineTo(cx+W*0.50,H);ctx.stroke();
+     ctx.moveTo(cx-W*0.030,rStart);ctx.lineTo(cx+W*0.030,rStart);
+     ctx.lineTo(cx+W*0.20,H*0.72);ctx.lineTo(cx-W*0.20,H*0.72);
+     ctx.closePath();ctx.fill();
 
-     /* Ligne centrale jaune pointillée */
-     ctx.strokeStyle='rgba(220,180,60,0.80)';ctx.lineWidth=W*0.004;
-     const dashCount=10;
-     for(let di=0;di<dashCount;di++){
-      const prog0=di/dashCount, prog1=(di+0.45)/dashCount;
-      const x0=cx, y0=horizY+H*0.005+(H-horizY-H*0.005)*prog0;
-      const x1=cx, y1=horizY+H*0.005+(H-horizY-H*0.005)*prog1;
-      const wid0=W*0.11*prog0, wid1=W*0.11*prog1;
+     /* Lignes blanches latérales — perspective + légère brillance */
+     const lw=ctx.createLinearGradient(0,rStart,0,H);
+     lw.addColorStop(0,'rgba(255,248,215,0.90)');
+     lw.addColorStop(1,'rgba(220,210,180,0.55)');
+     ctx.strokeStyle=lw;ctx.lineWidth=W*0.007;ctx.lineCap='butt';
+     ctx.beginPath();ctx.moveTo(cx-W*0.048,rStart);ctx.lineTo(cx-W*0.52,H);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(cx+W*0.048,rStart);ctx.lineTo(cx+W*0.52,H);ctx.stroke();
+
+     /* Bandes latérales herbeuses (accotement) */
+     for(const side of [-1,1]){
+      const sg2=ctx.createLinearGradient(0,rStart,0,H);
+      sg2.addColorStop(0,'rgba(180,130,50,0.20)');
+      sg2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg2;
       ctx.beginPath();
-      ctx.moveTo(x0-wid0*0.5,y0);ctx.lineTo(x0+wid0*0.5,y0);
-      ctx.lineTo(x1+wid1*0.5,y1);ctx.lineTo(x1-wid1*0.5,y1);
-      ctx.closePath();ctx.stroke();
+      if(side===-1){ctx.moveTo(cx-W*0.048,rStart);ctx.lineTo(cx-W*0.52,H);ctx.lineTo(0,H);ctx.lineTo(0,rStart);}
+      else{ctx.moveTo(cx+W*0.048,rStart);ctx.lineTo(cx+W*0.52,H);ctx.lineTo(W,H);ctx.lineTo(W,rStart);}
+      ctx.closePath();ctx.fill();
+     }
+
+     /* Ligne centrale jaune — tirets avec animation de défilement */
+     const dashAnim=(t*18)%1;
+     const dashTotal=10;
+     for(let di=0;di<dashTotal;di++){
+      const p0=(di+dashAnim)/dashTotal, p1=(di+dashAnim+0.42)/dashTotal;
+      if(p0>1||p1<0)continue;
+      const cp0=Math.min(1,Math.max(0,p0)), cp1=Math.min(1,Math.max(0,p1));
+      const y0=rStart+(H-rStart)*cp0, y1=rStart+(H-rStart)*cp1;
+      const w0=W*0.094*cp0, w1=W*0.094*cp1;
+      const yg=ctx.createLinearGradient(0,y0,0,y1);
+      yg.addColorStop(0,'rgba(240,200,60,0.90)');
+      yg.addColorStop(1,'rgba(210,170,40,0.70)');
+      ctx.fillStyle=yg;
+      ctx.beginPath();
+      ctx.moveTo(cx-w0/2,y0);ctx.lineTo(cx+w0/2,y0);
+      ctx.lineTo(cx+w1/2,y1);ctx.lineTo(cx-w1/2,y1);
+      ctx.closePath();ctx.fill();
      }
     }
 
     function drawDesert(){
-     /* Sol désertique — deux bandes de chaque côté de la route */
+     const rStart=horizY+H*0.002;
+     /* ── Terrain désertique Nevada — teintes chaudes ── */
      /* Gauche */
-     ctx.fillStyle='#8b5a2b';
-     ctx.beginPath();
-     ctx.moveTo(0,horizY);ctx.lineTo(cx-W*0.055,horizY+H*0.005);
-     ctx.lineTo(cx-W*0.50,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+     const dgl=ctx.createLinearGradient(0,rStart,0,H);
+     dgl.addColorStop(0,'rgba(165,95,30,0.98)');
+     dgl.addColorStop(0.30,'rgba(175,105,28,0.97)');
+     dgl.addColorStop(0.65,'rgba(160,90,20,0.97)');
+     dgl.addColorStop(1,'rgba(140,78,15,0.96)');
+     ctx.fillStyle=dgl;
+     ctx.beginPath();ctx.moveTo(0,rStart);ctx.lineTo(cx-W*0.048,rStart);
+     ctx.lineTo(cx-W*0.52,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
      /* Droite */
-     ctx.beginPath();
-     ctx.moveTo(W,horizY);ctx.lineTo(cx+W*0.055,horizY+H*0.005);
-     ctx.lineTo(cx+W*0.50,H);ctx.lineTo(W,H);ctx.closePath();ctx.fill();
-     /* Dégradé de couleur */
-     const dg=ctx.createLinearGradient(0,horizY,0,H);
-     dg.addColorStop(0,'rgba(160,80,25,0.55)');
-     dg.addColorStop(0.5,'rgba(140,70,20,0.30)');
-     dg.addColorStop(1,'rgba(100,50,10,0.15)');
-     ctx.fillStyle=dg;
-     ctx.beginPath();ctx.rect(0,horizY,W,H-horizY);ctx.fill();
+     ctx.fillStyle=dgl;
+     ctx.beginPath();ctx.moveTo(W,rStart);ctx.lineTo(cx+W*0.048,rStart);
+     ctx.lineTo(cx+W*0.52,H);ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+
+     /* Lueur chaude au sol depuis le soleil */
+     const sunGlow=ctx.createRadialGradient(cx,rStart,0,cx,rStart,W*0.55);
+     sunGlow.addColorStop(0,`rgba(255,200,80,${0.20+Math.sin(t*0.18)*0.04})`);
+     sunGlow.addColorStop(0.35,'rgba(230,140,40,0.08)');
+     sunGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunGlow;ctx.fillRect(0,rStart,W,H-rStart);
+
+     /* Herbes sèches — touffes stylisées sur les côtés */
+     ctx.strokeStyle='rgba(100,65,10,0.55)';ctx.lineWidth=W*0.003;ctx.lineCap='round';
+     const grassPositions=[
+      {x:W*0.06,y:H*0.68},{x:W*0.12,y:H*0.75},{x:W*0.04,y:H*0.82},
+      {x:W*0.88,y:H*0.70},{x:W*0.94,y:H*0.77},{x:W*0.84,y:H*0.85},
+      {x:W*0.18,y:H*0.88},{x:W*0.80,y:H*0.90},
+     ];
+     for(const g of grassPositions){
+      const gh=H*(0.018+Math.sin(g.x)*0.008);
+      for(let b=0;b<4;b++){
+       const ba=(b-1.5)*0.22+Math.sin(t*0.8+g.x)*0.04;
+       ctx.beginPath();ctx.moveTo(g.x,g.y);ctx.lineTo(g.x+Math.sin(ba)*gh,g.y-gh*Math.cos(ba*0.4));ctx.stroke();
+      }
+     }
+
+     /* Grain sableux subtil */
+     for(let i=0;i<30;i++){
+      const gx=Math.random()*W, gy=rStart+Math.random()*(H-rStart);
+      const inRoad=gx>cx-W*0.54*(gy-rStart)/(H-rStart) && gx<cx+W*0.54*(gy-rStart)/(H-rStart);
+      if(inRoad)continue;
+      ctx.fillStyle=`rgba(200,140,50,${Math.random()*0.08})`;
+      ctx.beginPath();ctx.arc(gx,gy,Math.random()*2+0.5,0,Math.PI*2);ctx.fill();
+     }
     }
 
     function drawCar(sc){
@@ -34202,27 +34270,95 @@
      ctx.moveTo(carX-cw*0.18,cY-ch*0.62);
      ctx.quadraticCurveTo(carX,cY-ch*0.64,carX+cw*0.18,cY-ch*0.62);
      ctx.stroke();
+
+     /* ── Silhouettes passagers ── */
+     ctx.save();
+     ctx.globalAlpha=sc*0.82;
+     /* Charlie — conducteur à gauche, tête penchée légèrement vers la route */
+     ctx.fillStyle='rgba(12,8,4,0.88)';
+     /* Tête Charlie */
+     ctx.beginPath();ctx.ellipse(carX-cw*0.14,cY-ch*0.44,cw*0.055,cw*0.065,-0.12,0,Math.PI*2);ctx.fill();
+     /* Épaule/torse Charlie */
+     ctx.beginPath();
+     ctx.moveTo(carX-cw*0.22,cY-ch*0.22);
+     ctx.bezierCurveTo(carX-cw*0.22,cY-ch*0.38,carX-cw*0.04,cY-ch*0.38,carX-cw*0.04,cY-ch*0.22);
+     ctx.closePath();ctx.fill();
+     /* Raymond — passager à droite, posture rigide caractéristique */
+     ctx.fillStyle='rgba(8,5,2,0.88)';
+     /* Tête Raymond — droite, rigide */
+     ctx.beginPath();ctx.ellipse(carX+cw*0.14,cY-ch*0.46,cw*0.052,cw*0.063,0.05,0,Math.PI*2);ctx.fill();
+     /* Casquette */
+     ctx.beginPath();ctx.ellipse(carX+cw*0.14,cY-ch*0.52,cw*0.065,cw*0.018,0,0,Math.PI*2);ctx.fill();
+     /* Torse Raymond */
+     ctx.beginPath();
+     ctx.moveTo(carX+cw*0.04,cY-ch*0.22);
+     ctx.bezierCurveTo(carX+cw*0.04,cY-ch*0.40,carX+cw*0.24,cY-ch*0.40,carX+cw*0.24,cY-ch*0.22);
+     ctx.closePath();ctx.fill();
+     ctx.restore();
+    }
+
+    /* ── Panneau routier Highway ── */
+    function drawSign(){
+     const sx=W*0.82,sy=H*0.66;
+     const pw=W*0.12,ph=H*0.080;
+     /* Poteau */
+     ctx.fillStyle='rgba(140,120,80,0.70)';
+     ctx.fillRect(sx-W*0.005,sy,W*0.010,H*0.12);
+     /* Panneau vert */
+     ctx.fillStyle='rgba(15,75,30,0.88)';
+     ctx.beginPath();ctx.roundRect(sx-pw/2,sy-ph,pw,ph,W*0.008);ctx.fill();
+     /* Bordure blanche */
+     ctx.strokeStyle='rgba(240,235,220,0.70)';ctx.lineWidth=W*0.005;
+     ctx.beginPath();ctx.roundRect(sx-pw/2+W*0.006,sy-ph+H*0.008,pw-W*0.012,ph-H*0.016,W*0.005);ctx.stroke();
+     /* Texte */
+     ctx.fillStyle='rgba(240,235,220,0.88)';
+     ctx.font=`bold ${W*0.022}px sans-serif`;ctx.textAlign='center';
+     ctx.fillText('LAS VEGAS',sx,sy-ph*0.52);
+     ctx.font=`${W*0.016}px sans-serif`;
+     ctx.fillText('246 miles',sx,sy-ph*0.18);
     }
 
     function frame(){
      if(stop.v)return;
 
-     /* ── Ciel coucher de soleil — violet-orange ── */
+     /* ── Ciel golden hour Nevada — cinématographique ── */
      const sky=ctx.createLinearGradient(0,0,0,horizY);
-     sky.addColorStop(0,`hsl(260,${55+Math.sin(t*0.08)*4|0}%,${18+Math.sin(t*0.06)*2|0}%)`);
-     sky.addColorStop(0.22,'hsl(255,52%,22%)');
-     sky.addColorStop(0.48,`hsl(${28+Math.sin(t*0.10)*4|0},65%,30%)`);
-     sky.addColorStop(0.72,`hsl(${22+Math.sin(t*0.08)*3|0},72%,38%)`);
-     sky.addColorStop(0.88,'hsl(18,75%,42%)');
-     sky.addColorStop(1,'hsl(15,70%,40%)');
+     sky.addColorStop(0.00,`hsl(220,${42+Math.sin(t*0.08)*3|0}%,${18+Math.sin(t*0.06)*2|0}%)`);
+     sky.addColorStop(0.18,`hsl(210,38%,22%)`);
+     sky.addColorStop(0.38,`hsl(${28+Math.sin(t*0.10)*4|0},60%,28%)`);
+     sky.addColorStop(0.60,`hsl(${20+Math.sin(t*0.09)*4|0},78%,38%)`);
+     sky.addColorStop(0.80,`hsl(${16+Math.sin(t*0.08)*3|0},85%,48%)`);
+     sky.addColorStop(1.00,'hsl(14,80%,52%)');
      ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
 
-     /* ── Nuages ── */
+     /* Bandes lumineuses style affiche vintage */
+     for(let b=0;b<4;b++){
+      const by=horizY*(0.25+b*0.18);
+      const bop=0.03+Math.sin(t*0.05+b)*0.015;
+      const bg=ctx.createLinearGradient(0,by-H*0.04,0,by+H*0.04);
+      bg.addColorStop(0,'rgba(0,0,0,0)');
+      bg.addColorStop(0.5,`rgba(255,200,80,${bop})`);
+      bg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=bg;ctx.fillRect(0,by-H*0.04,W,H*0.08);
+     }
+
+     /* Nuages — style affiche peinte, formes douces ── */
      for(const cl of clouds){
-      ctx.fillStyle=cl.col;
+      /* Corps principal */
+      const cg=ctx.createRadialGradient(cl.x,cl.y,0,cl.x,cl.y,cl.rx*0.9);
+      cg.addColorStop(0,cl.col.replace('0.','0.85,').replace(/,[^,]+\)$/,',0.85)').replace(/rgba\((\d+),(\d+),(\d+),[\d.]+\)/,
+       (_,r,g,b)=>`rgba(${Math.min(255,+r+30)},${Math.min(255,+g+18)},${Math.min(255,+b+10)},0.88)`));
+      cg.addColorStop(0.55,cl.col);
+      cg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=cg;
       ctx.beginPath();ctx.ellipse(cl.x,cl.y,cl.rx,cl.ry,0,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.ellipse(cl.x-cl.rx*0.35,cl.y+cl.ry*0.2,cl.rx*0.55,cl.ry*0.72,0,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.ellipse(cl.x+cl.rx*0.38,cl.y+cl.ry*0.15,cl.rx*0.50,cl.ry*0.68,0,0,Math.PI*2);ctx.fill();
+      /* Sous-masses */
+      ctx.fillStyle=cl.col.replace(/[\d.]+\)$/,'0.55)');
+      ctx.beginPath();ctx.ellipse(cl.x-cl.rx*0.32,cl.y+cl.ry*0.22,cl.rx*0.52,cl.ry*0.68,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(cl.x+cl.rx*0.35,cl.y+cl.ry*0.18,cl.rx*0.48,cl.ry*0.65,0,0,Math.PI*2);ctx.fill();
+      /* Bord lumineux (contre-jour) */
+      ctx.strokeStyle=`rgba(255,200,100,0.12)`;ctx.lineWidth=cl.ry*0.15;
+      ctx.beginPath();ctx.ellipse(cl.x,cl.y-cl.ry*0.10,cl.rx*0.85,cl.ry*0.70,0,Math.PI,Math.PI*2);ctx.stroke();
      }
 
      /* ── Soleil ── */
@@ -34233,6 +34369,7 @@
 
      /* ── Route ── */
      drawRoad();
+     drawSign();
 
      /* ── Cartes qui voltigent ── */
      for(const cd of cards){
@@ -38571,47 +38708,79 @@
 
      for(const fr of fronds){
       const angle = fr.a + totalLean * 0.4;
-      /* Point de contrôle de la courbure */
-      const midX = topX + Math.cos(angle) * fr.l * 0.55;
-      const midY = topY + Math.sin(angle) * fr.l * 0.55 + fr.l * fr.droop * 0.4;
+      const midX = topX + Math.cos(angle) * fr.l * 0.52;
+      const midY = topY + Math.sin(angle) * fr.l * 0.52 + fr.l * fr.droop * 0.38;
       const endX = topX + Math.cos(angle) * fr.l;
       const endY = topY + Math.sin(angle) * fr.l + fr.l * fr.droop;
 
-      /* Tige de la palme */
-      ctx.strokeStyle = 'rgba(30,20,5,0.90)';
-      ctx.lineWidth = height * 0.008;
+      /* ── Feuilles remplies — ellipses lancéolées vertes ── */
+      const steps = 12;
+      for(let s = 1; s <= steps; s++){
+       const sf = s / steps;
+       /* Position sur la courbe de Bézier */
+       const bx = (1-sf)*(1-sf)*topX + 2*(1-sf)*sf*midX + sf*sf*endX;
+       const by = (1-sf)*(1-sf)*topY + 2*(1-sf)*sf*midY + sf*sf*endY;
+       /* Tangente pour orienter les feuilles */
+       const tdx = 2*(1-sf)*(midX-topX) + 2*sf*(endX-midX);
+       const tdy = 2*(1-sf)*(midY-topY) + 2*sf*(endY-midY);
+       const tlen = Math.sqrt(tdx*tdx+tdy*tdy)||1;
+       /* Normale perpendiculaire à la tige */
+       const nx = -tdy/tlen, ny = tdx/tlen;
+       /* Taille de feuille — grande à mi-palme, s'effite aux extrémités */
+       const leafL = height * (0.055 + sf * 0.040) * Math.sin(sf * Math.PI) * 1.1;
+       const leafW = leafL * 0.22;
+
+       /* Feuille gauche */
+       const lx = bx + nx * leafL;
+       const ly = by + ny * leafL - tdx/tlen * leafL * 0.30;
+       ctx.save();
+       ctx.translate(bx, by);
+       ctx.rotate(Math.atan2(ny, nx) + Math.PI * 0.5);
+       /* Gradient vert tropical — clair dessus, plus sombre dessous */
+       const lg = ctx.createLinearGradient(0, 0, leafL, 0);
+       lg.addColorStop(0, `rgba(${30+sf*20|0},${90+sf*30|0},${15+sf*10|0},0.95)`);
+       lg.addColorStop(0.45, `rgba(${50+sf*25|0},${120+sf*35|0},${20+sf*12|0},0.90)`);
+       lg.addColorStop(1, `rgba(${20+sf*15|0},${65+sf*20|0},${8+sf*6|0},0.70)`);
+       ctx.fillStyle = lg;
+       ctx.beginPath();
+       ctx.moveTo(0, 0);
+       ctx.bezierCurveTo(leafL*0.3, -leafW, leafL*0.7, -leafW*0.8, leafL, 0);
+       ctx.bezierCurveTo(leafL*0.7,  leafW*0.5, leafL*0.3, leafW*0.5, 0, 0);
+       ctx.closePath(); ctx.fill();
+       /* Nervure centrale */
+       ctx.strokeStyle = `rgba(${20+sf*12|0},${70+sf*20|0},${8|0},0.60)`;
+       ctx.lineWidth = leafW * 0.18; ctx.lineCap = 'round';
+       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(leafL,0); ctx.stroke();
+       ctx.restore();
+
+       /* Feuille droite — symétrique */
+       ctx.save();
+       ctx.translate(bx, by);
+       ctx.rotate(Math.atan2(-ny, -nx) + Math.PI * 0.5);
+       const lg2 = ctx.createLinearGradient(0, 0, leafL, 0);
+       lg2.addColorStop(0, `rgba(${30+sf*20|0},${90+sf*30|0},${15+sf*10|0},0.95)`);
+       lg2.addColorStop(0.45, `rgba(${45+sf*22|0},${110+sf*30|0},${18+sf*10|0},0.90)`);
+       lg2.addColorStop(1, `rgba(${20+sf*15|0},${65+sf*20|0},${8+sf*6|0},0.70)`);
+       ctx.fillStyle = lg2;
+       ctx.beginPath();
+       ctx.moveTo(0, 0);
+       ctx.bezierCurveTo(leafL*0.3, -leafW, leafL*0.7, -leafW*0.8, leafL, 0);
+       ctx.bezierCurveTo(leafL*0.7,  leafW*0.5, leafL*0.3, leafW*0.5, 0, 0);
+       ctx.closePath(); ctx.fill();
+       ctx.strokeStyle = `rgba(${20+sf*12|0},${70+sf*20|0},${8|0},0.60)`;
+       ctx.lineWidth = leafW * 0.18; ctx.lineCap = 'round';
+       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(leafL,0); ctx.stroke();
+       ctx.restore();
+      }
+
+      /* Tige centrale — fine, verte-marron */
+      ctx.strokeStyle = 'rgba(35,55,8,0.82)';
+      ctx.lineWidth = height * 0.007;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(topX, topY);
       ctx.quadraticCurveTo(midX, midY, endX, endY);
       ctx.stroke();
-
-      /* Folioles de chaque côté de la tige */
-      const steps = 10;
-      for(let s = 2; s <= steps; s++){
-       const sf = s / steps;
-       /* Point sur la courbe bézier */
-       const bx = (1-sf)*(1-sf)*topX + 2*(1-sf)*sf*midX + sf*sf*endX;
-       const by = (1-sf)*(1-sf)*topY + 2*(1-sf)*sf*midY + sf*sf*endY;
-       /* Tangente */
-       const tx2 = 2*(1-sf)*(midX-topX) + 2*sf*(endX-midX);
-       const ty2 = 2*(1-sf)*(midY-topY) + 2*sf*(endY-midY);
-       const tlen = Math.sqrt(tx2*tx2+ty2*ty2)||1;
-       const nx = -ty2/tlen, ny = tx2/tlen; /* normale */
-       const leafL = height * (0.040 + sf * 0.028) * (1 - sf * 0.5);
-       /* Foliole gauche */
-       ctx.strokeStyle = `rgba(15,12,2,${0.78 + sf * 0.12})`;
-       ctx.lineWidth = height * 0.004;
-       ctx.beginPath();
-       ctx.moveTo(bx, by);
-       ctx.lineTo(bx + nx * leafL - tx2/tlen * leafL * 0.35, by + ny * leafL - ty2/tlen * leafL * 0.35);
-       ctx.stroke();
-       /* Foliole droite */
-       ctx.beginPath();
-       ctx.moveTo(bx, by);
-       ctx.lineTo(bx - nx * leafL - tx2/tlen * leafL * 0.35, by - ny * leafL - ty2/tlen * leafL * 0.35);
-       ctx.stroke();
-      }
      }
 
      /* Noix de coco (2-3 sous les palmes) */
@@ -40554,196 +40723,34 @@
       }
     }
 
-    /* ══ T-REX VUE DE PROFIL — côté gauche, comme l'affiche ══ */
+    /* ══ T-REX SVG — Dino.svg ══ */
+    let _dinoImg=null, _dinoReady=false;
+    (function(){
+      const img=new Image();
+      img.onload=()=>{_dinoImg=img;_dinoReady=true;};
+      img.onerror=()=>{_dinoReady=false;};
+      img.src='images/Dino.svg';
+    })();
+
     function drawTRex(){
-      /* Ancré au sol, côté gauche comme l'affiche */
-      const ox=W*0.22, oy=floorY;
-      const sc=H*0.001; /* facteur d'échelle */
-      /* T-Rex occupe environ 45% de la hauteur, vu de profil gauche */
-      const BH=H*0.50;
-
-      ctx.lineCap='round'; ctx.lineJoin='round';
-
       /* Ombre au sol */
-      ctx.fillStyle='rgba(30,15,4,0.45)';
-      ctx.beginPath();ctx.ellipse(ox+BH*0.08,oy,BH*0.32,BH*0.035,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(30,15,4,0.40)';
+      ctx.beginPath();ctx.ellipse(W*0.42,floorY,W*0.38,H*0.018,0,0,Math.PI*2);ctx.fill();
 
-      /* ── QUEUE ── (part de la droite vers la gauche en bas) */
-      ctx.strokeStyle=BONE_DIM(0.60);ctx.lineWidth=BH*0.028;
-      ctx.beginPath();
-      ctx.moveTo(ox+BH*0.32,oy-BH*0.22);
-      ctx.bezierCurveTo(ox+BH*0.52,oy-BH*0.18,ox+BH*0.70,oy-BH*0.10,ox+BH*0.82,oy-BH*0.04);
-      ctx.stroke();
-      /* Vertèbres queue */
-      ctx.lineWidth=BH*0.010;
-      for(let qi=0;qi<8;qi++){
-        const qf=qi/8;
-        const qx=ox+BH*(0.33+qf*0.48),qy=oy-BH*(0.22-qf*0.18);
-        ctx.strokeStyle=BONE_DIM(0.40-qf*0.12);
-        ctx.beginPath();ctx.moveTo(qx,qy-BH*0.018);ctx.lineTo(qx,qy+BH*0.018);ctx.stroke();
-      }
-
-      /* ── PATTES ARRIÈRE ── */
-      ctx.lineWidth=BH*0.032;ctx.strokeStyle=BONE();
-      /* Cuisse gauche (visible) */
-      const hipX=ox+BH*0.18,hipY=oy-BH*0.30;
-      const kneeX=ox+BH*0.06,kneeY=oy-BH*0.13;
-      ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(kneeX,kneeY);ctx.stroke();
-      /* Tibia gauche */
-      ctx.lineWidth=BH*0.022;
-      const ankX=ox+BH*0.10,ankY=oy-BH*0.02;
-      ctx.beginPath();ctx.moveTo(kneeX,kneeY);ctx.lineTo(ankX,ankY);ctx.stroke();
-      /* Pied */
-      ctx.lineWidth=BH*0.016;ctx.strokeStyle=BONE(0.78);
-      ctx.beginPath();ctx.moveTo(ankX,ankY);ctx.lineTo(ankX-BH*0.10,ankY+BH*0.02);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(ankX,ankY);ctx.lineTo(ankX-BH*0.05,ankY+BH*0.032);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(ankX,ankY);ctx.lineTo(ankX+BH*0.025,ankY+BH*0.028);ctx.stroke();
-      /* Patte arrière droite (plus en retrait) */
-      ctx.lineWidth=BH*0.018;ctx.strokeStyle=BONE_DIM(0.45);
-      ctx.beginPath();ctx.moveTo(hipX+BH*0.06,hipY);ctx.lineTo(kneeX+BH*0.08,kneeY+BH*0.04);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(kneeX+BH*0.08,kneeY+BH*0.04);ctx.lineTo(ankX+BH*0.10,ankY);ctx.stroke();
-      /* Rotules */
-      ctx.fillStyle=BONE(0.75);
-      ctx.beginPath();ctx.arc(kneeX,kneeY,BH*0.018,0,Math.PI*2);ctx.fill();
-
-      /* ── BASSIN ── */
-      ctx.strokeStyle=BONE();ctx.lineWidth=BH*0.028;
-      ctx.beginPath();
-      ctx.moveTo(ox+BH*0.10,oy-BH*0.28);
-      ctx.quadraticCurveTo(ox+BH*0.22,oy-BH*0.35,ox+BH*0.32,oy-BH*0.30);
-      ctx.stroke();
-      /* Ilium */
-      ctx.lineWidth=BH*0.018;ctx.strokeStyle=BONE_DIM(0.65);
-      ctx.beginPath();
-      ctx.moveTo(ox+BH*0.15,oy-BH*0.32);
-      ctx.quadraticCurveTo(ox+BH*0.18,oy-BH*0.38,ox+BH*0.26,oy-BH*0.36);
-      ctx.stroke();
-
-      /* ── COLONNE + THORAX ── */
-      /* Dos — ligne principale */
-      ctx.strokeStyle=BONE();ctx.lineWidth=BH*0.025;
-      ctx.beginPath();
-      ctx.moveTo(ox+BH*0.30,oy-BH*0.30);
-      ctx.bezierCurveTo(ox+BH*0.22,oy-BH*0.44,ox+BH*0.12,oy-BH*0.52,ox+BH*0.08,oy-BH*0.58);
-      ctx.stroke();
-      /* Ventre */
-      ctx.lineWidth=BH*0.020;ctx.strokeStyle=BONE_DIM(0.60);
-      ctx.beginPath();
-      ctx.moveTo(ox+BH*0.24,oy-BH*0.28);
-      ctx.bezierCurveTo(ox+BH*0.18,oy-BH*0.36,ox+BH*0.10,oy-BH*0.42,ox+BH*0.06,oy-BH*0.50);
-      ctx.stroke();
-      /* Côtes — 6 paires */
-      ctx.lineWidth=BH*0.013;
-      for(let ri=0;ri<6;ri++){
-        const rf=ri/6;
-        const rx=ox+BH*(0.26-rf*0.14);
-        const ry=oy-BH*(0.30+rf*0.22);
-        const costalLen=BH*(0.14-rf*0.022);
-        ctx.strokeStyle=BONE_DIM(0.55+rf*0.05);
-        ctx.beginPath();
-        ctx.moveTo(rx,ry);
-        ctx.quadraticCurveTo(rx-costalLen*0.5,ry+BH*0.025,rx-costalLen,ry-BH*0.010);
-        ctx.stroke();
-      }
-      /* Apophyses épineuses */
-      ctx.lineWidth=BH*0.009;ctx.strokeStyle=BONE_DIM(0.42);
-      for(let si=0;si<7;si++){
-        const sf=si/7;
-        const sx=ox+BH*(0.30-sf*0.22),sy=oy-BH*(0.30+sf*0.28);
-        ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+BH*0.022,sy-BH*0.030);ctx.stroke();
-      }
-
-      /* ── ÉPAULE + PETIT BRAS ── */
-      ctx.strokeStyle=BONE();ctx.lineWidth=BH*0.020;
-      const shouldX=ox+BH*0.10,shouldY=oy-BH*0.56;
-      ctx.beginPath();ctx.moveTo(shouldX,shouldY);ctx.lineTo(shouldX-BH*0.08,shouldY+BH*0.04);ctx.stroke();
-      ctx.lineWidth=BH*0.014;
-      ctx.beginPath();ctx.moveTo(shouldX-BH*0.08,shouldY+BH*0.04);ctx.lineTo(shouldX-BH*0.12,shouldY+BH*0.09);ctx.stroke();
-      /* Griffes du petit bras */
-      ctx.lineWidth=BH*0.009;ctx.strokeStyle=BONE(0.65);
-      ctx.beginPath();ctx.moveTo(shouldX-BH*0.12,shouldY+BH*0.09);ctx.lineTo(shouldX-BH*0.16,shouldY+BH*0.11);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(shouldX-BH*0.12,shouldY+BH*0.09);ctx.lineTo(shouldX-BH*0.14,shouldY+BH*0.13);ctx.stroke();
-
-      /* ── COU (long, courbé vers l'avant) ── */
-      ctx.strokeStyle=BONE();ctx.lineWidth=BH*0.028;
-      const neckBaseX=ox+BH*0.08,neckBaseY=oy-BH*0.58;
-      const neckTipX=ox-BH*0.14,neckTipY=oy-BH*0.80;
-      ctx.beginPath();
-      ctx.moveTo(neckBaseX,neckBaseY);
-      ctx.bezierCurveTo(neckBaseX-BH*0.06,neckBaseY-BH*0.10,neckTipX+BH*0.08,neckTipY+BH*0.06,neckTipX,neckTipY);
-      ctx.stroke();
-      /* Cervicales */
-      ctx.lineWidth=BH*0.010;ctx.strokeStyle=BONE_DIM(0.42);
-      for(let ni=0;ni<5;ni++){
-        const nf=ni/5;
-        const nx=neckBaseX+( neckTipX-neckBaseX)*nf,ny=neckBaseY+(neckTipY-neckBaseY)*nf;
-        const tang={x:neckTipX-neckBaseX,y:neckTipY-neckBaseY};
-        const len=Math.hypot(tang.x,tang.y);
-        const perp={x:-tang.y/len*BH*0.022,y:tang.x/len*BH*0.022};
-        ctx.beginPath();ctx.moveTo(nx+perp.x,ny+perp.y);ctx.lineTo(nx-perp.x,ny-perp.y);ctx.stroke();
-      }
-
-      /* ── CRÂNE + MÂCHOIRES ── */
-      const skullX=neckTipX-BH*0.12,skullY=neckTipY-BH*0.04;
-      /* Crâne — allongé horizontalement */
-      ctx.strokeStyle=BONE();ctx.lineWidth=BH*0.022;
-      ctx.beginPath();ctx.ellipse(skullX,skullY,BH*0.14,BH*0.05,0.10,0,Math.PI*2);ctx.stroke();
-      /* Mâchoire sup */
-      ctx.lineWidth=BH*0.018;
-      ctx.beginPath();
-      ctx.moveTo(skullX-BH*0.12,skullY+BH*0.018);
-      ctx.lineTo(skullX-BH*0.24,skullY+BH*0.015);
-      ctx.stroke();
-      /* Mâchoire inf (ouverte) */
-      ctx.beginPath();
-      ctx.moveTo(skullX-BH*0.08,skullY+BH*0.030);
-      ctx.quadraticCurveTo(skullX-BH*0.18,skullY+BH*0.055,skullX-BH*0.22,skullY+BH*0.035);
-      ctx.stroke();
-      /* Dents */
-      ctx.lineWidth=BH*0.009;ctx.strokeStyle=BONE(0.80);
-      for(let di=0;di<7;di++){
-        const dx=skullX-BH*(0.10+di*0.018),dy=skullY+BH*0.018;
-        ctx.beginPath();ctx.moveTo(dx,dy);ctx.lineTo(dx-BH*0.006,dy+BH*0.020);ctx.stroke();
-      }
-      /* Orbite */
-      ctx.strokeStyle=BONE();ctx.lineWidth=BH*0.014;
-      const orbX=skullX,orbY=skullY-BH*0.010;
-      ctx.beginPath();ctx.ellipse(orbX-BH*0.02,orbY,BH*0.035,BH*0.032,0,0,Math.PI*2);ctx.stroke();
-      const orbG=ctx.createRadialGradient(orbX-BH*0.02,orbY,0,orbX-BH*0.02,orbY,BH*0.030);
-      orbG.addColorStop(0,`rgba(255,210,70,${0.30+Math.sin(t*0.8)*0.12})`);
-      orbG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=orbG;ctx.beginPath();ctx.ellipse(orbX-BH*0.02,orbY,BH*0.035,BH*0.032,0,0,Math.PI*2);ctx.fill();
-      /* Narine */
-      ctx.strokeStyle=BONE_DIM(0.55);ctx.lineWidth=BH*0.009;
-      ctx.beginPath();ctx.ellipse(skullX+BH*0.08,skullY-BH*0.005,BH*0.014,BH*0.012,0,0,Math.PI*2);ctx.stroke();
-
-      /* Halo squelette global */
-      const boneGlow=ctx.createRadialGradient(ox+BH*0.12,oy-BH*0.40,0,ox+BH*0.12,oy-BH*0.40,W*0.28);
-      boneGlow.addColorStop(0,`rgba(210,180,90,${0.06+Math.sin(t*0.30)*0.02})`);
-      boneGlow.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=boneGlow;ctx.fillRect(0,0,W,H);
-    }
-
-    function drawGlyphs(){
-      ctx.font=`${W*0.036}px serif`;ctx.textAlign='center';
-      for(const g of glyphs){
-        g.ph+=g.spd;g.life=(g.life+1)%g.maxLife;
-        const prog=g.life/g.maxLife;
-        g.alpha=prog<0.15?prog/0.15*g.maxAlpha:prog>0.80?(1-prog)/0.20*g.maxAlpha:g.maxAlpha;
-        ctx.fillStyle=`rgba(200,162,80,${g.alpha*(0.8+0.2*Math.sin(g.ph))})`;
-        ctx.fillText(g.ch,g.x,g.y);
-      }
-      ctx.textAlign='left';
-    }
-
-    function drawDust(){
-      for(const d of dust){
-        d.ph+=d.spd;d.x+=d.vx+Math.sin(d.ph*0.5)*0.05;d.y+=d.vy;
-        if(d.y<0){d.y=H;d.x=Math.random()*W;}
-        const nearTorch=TORCHES.some(tr=>Math.hypot(d.x-tr.x,d.y-tr.y)<W*0.22);
-        const a=Math.min(0.28,d.op*(nearTorch?2.5:0.6)*(0.5+0.5*Math.abs(Math.sin(d.ph))));
-        ctx.fillStyle=`rgba(230,200,140,${a})`;
-        ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
+      if(_dinoReady&&_dinoImg){
+        /* SVG 1480×960 — on l'affiche en respectant le ratio
+           On le place côté gauche-centre, pied à floorY */
+        const dinoW=W*0.92;
+        const dinoH=dinoW*(960/1480);
+        const dinoX=cx-dinoW*0.42;
+        const dinoY=floorY-dinoH*0.92;
+        /* Légère oscillation de tête */
+        const sway=Math.sin(t*0.55)*H*0.004;
+        ctx.save();
+        ctx.globalAlpha=0.92;
+        ctx.translate(dinoX+dinoW/2, dinoY+dinoH/2+sway);
+        ctx.drawImage(_dinoImg,-dinoW/2,-dinoH/2,dinoW,dinoH);
+        ctx.restore();
       }
     }
 
@@ -42517,7 +42524,7 @@
      
      #splash-bg::before,#splash-bg::after,
      #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap{top:50%!important;bottom:auto!important;transform:none!important;}
      #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(180,220,255,0.88)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,20,60,0.90)!important;font-family:monospace!important;}
      #splash-film-logo{max-width:62%!important;filter:drop-shadow(0 0 8px rgba(60,140,255,0.4))!important;}
