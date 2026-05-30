@@ -6111,15 +6111,15 @@ function pickWithoutRepeat(pool,poolKey,count){
   const seen=new Set(rots[poolKey]||[]);
   const allIdx=pool.map((_,i)=>i);
   let unseen=allIdx.filter(i=>!seen.has(i));
-  // Plus assez d'inédits → on garde un "black-out" des 20% les plus récents
+  // Plus assez d'inédits → blackout des 30% les plus récents puis on repart
   if(unseen.length<count){
-    const recentBlock=new Set((rots[poolKey]||[]).slice(-Math.max(1,Math.floor(pool.length*0.2))));
+    const recentBlock=new Set((rots[poolKey]||[]).slice(-Math.max(1,Math.floor(pool.length*0.30))));
     unseen=shuffle(allIdx.filter(i=>!recentBlock.has(i)));
     rots[poolKey]=[];
   }
   const picked=shuffle(unseen).slice(0,count);
-  // File glissante : on garde max 75 % du pool pour ne pas saturer le localStorage
-  rots[poolKey]=([...(rots[poolKey]||[]),...picked]).slice(-Math.floor(pool.length*0.75));
+  // File glissante : on garde max 40% du pool → 60% toujours disponibles
+  rots[poolKey]=([...(rots[poolKey]||[]),...picked]).slice(-Math.floor(pool.length*0.40));
   _cqSaveRotations(rots);
   return picked.map(i=>pool[i]);
 }
@@ -6398,8 +6398,14 @@ function openModeInfo(m,el){
   if(qcWrap)qcWrap.style.display=(m==='versus'||m==='survie'||m==='training'?'none':'block');
   // Difficulté : gérée uniquement par le Mode Découverte
   selDiff=null;
-  // Mode Découverte : retiré des modales, disponible uniquement comme mode dédié
-  selDecouverte=false;
+  // Mode Découverte : active selDecouverte=true et joue en quiz filtré grand public
+  // Les autres modes remettent selDecouverte à false pour ne pas polluer leurs questions
+  if(m==='decouverte'){
+    selDecouverte=true;
+    selMode='quiz'; // fetchTrivia() lit selDecouverte pour charger TRIVIA_DECOUVERTE
+  } else {
+    selDecouverte=false;
+  }
   const decWrap=document.getElementById('decouverte-wrap');
   if(decWrap){ decWrap.style.display='none'; }
 
@@ -12979,13 +12985,13 @@ function _obBuildSlider(){
     if(step.extra==='welcome'){
       extraHtml=`<div class="ob-stats-row">
         <div class="ob-stat"><span class="ob-stat-n">22</span><span class="ob-stat-l">Modes de jeu</span></div>
-        <div class="ob-stat"><span class="ob-stat-n">316+</span><span class="ob-stat-l">Questions</span></div>
+        <div class="ob-stat"><span class="ob-stat-n">800+</span><span class="ob-stat-l">Questions</span></div>
         <div class="ob-stat"><span class="ob-stat-n">120+</span><span class="ob-stat-l">Badges</span></div>
         <div class="ob-stat"><span class="ob-stat-n">40+</span><span class="ob-stat-l">Easter eggs</span></div>
       </div>`;
     } else if(step.extra==='features'){
       extraHtml=`<div class="ob-features">
-        <div class="ob-feature"><span class="ob-feat-icon">🎵</span><div><div class="ob-feat-title">Jukebox</div><div class="ob-feat-desc">40+ titres iconiques pour jouer en musique.</div></div></div>
+        <div class="ob-feature"><span class="ob-feat-icon">🎵</span><div><div class="ob-feat-title">Jukebox</div><div class="ob-feat-desc"><90+ titres iconiques pour jouer en musique.</div></div></div>
         <div class="ob-feature"><span class="ob-feat-icon">🎴</span><div><div class="ob-feat-title">Hidden Movies</div><div class="ob-feat-desc">Gratte des cartes mystères pour révéler des films cachés.</div></div></div>
         <div class="ob-feature"><span class="ob-feat-icon">🔐</span><div><div class="ob-feat-title">3 Zones secrètes</div><div class="ob-feat-desc">Des salles cachées attendent d'être découvertes.</div></div></div>
       </div>`;
@@ -14612,7 +14618,13 @@ function buildResultChart(){
 // ==============================
 // DÉFI QUOTIDIEN
 // ==============================
-function dailySeed(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
+function dailySeed(){
+  const d=new Date();
+  // Seed unique par jour + décalage annuel pour éviter les répétitions inter-années
+  // On inclut le numéro de jour dans l'année pour maximiser la dispersion
+  const dayOfYear=Math.floor((d-new Date(d.getFullYear(),0,0))/(1000*60*60*24));
+  return d.getFullYear()*100000+dayOfYear*137+42; // 137 = nombre premier pour bonne dispersion
+}
 function seededRandom(seed){let s=seed;return()=>{s=Math.sin(s)*10000;return s-Math.floor(s);};}
 function shuffleSeeded(arr,rng){const b=[...arr];for(let i=b.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 function getDailyKey(){const d=new Date();return`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
@@ -14623,7 +14635,12 @@ let isDailyMode=false;
 
 function buildDailyQuestions(){
   const rng=seededRandom(dailySeed());
-  const pool=shuffleSeeded([...TRIVIA_FR],rng).slice(0,TOTAL);
+  // Shuffle tout le pool avec le seed du jour, puis pioche au milieu pour
+  // éviter que les mêmes questions sortent systématiquement en tête
+  const shuffled=shuffleSeeded([...TRIVIA_FR],rng);
+  // Offset déterministe basé sur le seed : on commence à une position variable
+  const offset=Math.floor(rng()*Math.max(1,shuffled.length-TOTAL*3));
+  const pool=shuffled.slice(offset,offset+TOTAL);
   return pool.map(q=>{
     const ans=shuffleSeeded([q.correct,...q.wrong],rng);
     return{type:'trivia',text:q.text,answers:ans,correct:ans.indexOf(q.correct),difficulty:q.difficulty,category:'🎬 Défi du Jour'};
