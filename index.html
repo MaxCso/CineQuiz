@@ -6077,8 +6077,10 @@ const go=id=>{
     }
     // Musique
     // Blind Test gère son propre audio (fichiers MP3 locaux) — pas de musique de fond
-    if(id==='game'&&selMode!=='blindtest'){switchMusic(selMode,0.22);}
-    else if(id==='game'&&selMode==='blindtest'){stopMus();}
+    // Idem pour le mode entraînement avec sous-mode blindtest
+    const _isBlindTestAudio=selMode==='blindtest'||(selMode==='training'&&_trainingSubMode==='blindtest');
+    if(id==='game'&&!_isBlindTestAudio){switchMusic(selMode,0.22);}
+    else if(id==='game'&&_isBlindTestAudio){stopMus();}
     else if(id==='home'){switchMusic('home',0.3);}
     else if(id==='arcade-menu'){if(musOn)switchMusic('arcade',0.25);}
     else if(['result','lvlup'].includes(id)){fadeMus(0.15,600);}
@@ -14511,9 +14513,9 @@ function setupSwipeRight(el,onClose){
 
 // Init swipes après le DOM
 setTimeout(()=>{
-  // Profil : swipe droite → retour
+  // Profil : swipe droite → Modes de Jeu (pas accueil)
   const profileEl=document.getElementById('profile');
-  if(profileEl)setupSwipeRight(profileEl,()=>go('home'));
+  if(profileEl)setupSwipeRight(profileEl,()=>cqGoTab('modes'));
   // Badge modal : swipe bas → fermer
   const bmodSh=document.querySelector('#bmod .msh');
   if(bmodSh)setupSwipeDown(bmodSh,()=>document.getElementById('bmod').classList.remove('on'));
