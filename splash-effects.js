@@ -146,7 +146,7 @@
 
     /* ── HAL 9000 — pré-calcul position ── */
     const halR=W*0.085;
-    const halX=W/2, halY=H*0.33;
+    const halX=W/2, halY=H*0.31;
     let halPulse=0;
 
     function frame(){
@@ -14149,7 +14149,7 @@
     const DOOR_H = H * 0.42;
     const DOOR_W = DOOR_H * (58/58); /* SVG est carré mais la porte est dedans */
     const DOOR_X = cx - DOOR_W/2;
-    const DOOR_Y = cy - DOOR_H*0.52; /* légèrement au-dessus du centre */
+    const DOOR_Y = H*0.40; /* légèrement au-dessus du centre */
 
     let revealed = 0;
 
@@ -25616,7 +25616,7 @@
       #splash-bg-anim::after{background:none!important;}
       
       #splash-bg{background:none!important;}
-      #splash-content-wrap{top:24%!important;transform:translateY(0)!important;}
+      #splash-content-wrap{top:26%!important;transform:translateY(0)!important;}
       #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _lnWatch=setInterval(()=>{if(stop.v){_lnStyle.textContent='';clearInterval(_lnWatch);}},200);
@@ -25627,7 +25627,7 @@
     /* ── Positionnement citation + logo juste sous Cinéquiz ── */
     let _lnPos=document.getElementById('_ln_pos');
     if(!_lnPos){_lnPos=document.createElement('style');_lnPos.id='_ln_pos';document.head.appendChild(_lnPos);}
-    _lnPos.textContent='#splash-content-wrap{top:calc(17% + 2px)!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _lnPos.textContent='#splash-content-wrap{top:calc(19% + 2px)!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _lnPosW=setInterval(()=>{if(stop.v){_lnPos.textContent='';clearInterval(_lnPosW);}},200);
 
     /* ── Particules ── */
@@ -48366,8 +48366,8 @@
      ctx.fillStyle='rgba(255,120,0,0.92)';
      ctx.fillRect(ax-aw*0.50,amboY+ah*0.28,aw,ah*0.14);
 
-     /* Croix rouge */
-     const crX=ax-aw*0.22,crY=amboY+ah*0.12;
+     /* Croix rouge — décalée à droite pour laisser place au texte */
+     const crX=ax+aw*0.08,crY=amboY+ah*0.12;
      ctx.fillStyle=`rgba(220,15,15,${0.85+strobeRed*0.12})`;
      ctx.fillRect(crX-W*0.018,crY,W*0.036,H*0.052);
      ctx.fillRect(crX-W*0.036,crY+H*0.016,W*0.072,H*0.020);
@@ -48383,21 +48383,22 @@
      ctx.fillText('AMBULANCE',ax,amboY+ah*0.22);
      ctx.restore();
 
-     /* Gyrophares */
+     /* Gyrophares — centrés sur le toit de la cabine */
+     const roofCx=ax+aw*0.26; /* centre du toit cabine */
      ctx.fillStyle='rgba(30,30,30,0.95)';
-     ctx.beginPath();ctx.roundRect(ax-aw*0.20,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
-     ctx.beginPath();ctx.roundRect(ax+aw*0.05,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
+     ctx.beginPath();ctx.roundRect(roofCx-W*0.052,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
+     ctx.beginPath();ctx.roundRect(roofCx+W*0.008,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
      if(strobeRed>0.15){
       ctx.fillStyle=`rgba(255,30,0,${strobeRed*0.95})`;
-      ctx.beginPath();ctx.roundRect(ax-aw*0.20,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
-      const rg=ctx.createRadialGradient(ax-aw*0.18,amboY-ah*0.56,0,ax-aw*0.18,amboY-ah*0.56,W*0.22);
+      ctx.beginPath();ctx.roundRect(roofCx-W*0.052,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
+      const rg=ctx.createRadialGradient(roofCx-W*0.030,amboY-ah*0.56,0,roofCx-W*0.030,amboY-ah*0.56,W*0.22);
       rg.addColorStop(0,`rgba(255,15,0,${strobeRed*0.38})`);rg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
      }
      if(strobeBlue>0.15){
       ctx.fillStyle=`rgba(30,80,255,${strobeBlue*0.95})`;
-      ctx.beginPath();ctx.roundRect(ax+aw*0.05,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
-      const bg2=ctx.createRadialGradient(ax+aw*0.08,amboY-ah*0.56,0,ax+aw*0.08,amboY-ah*0.56,W*0.22);
+      ctx.beginPath();ctx.roundRect(roofCx+W*0.008,amboY-ah*0.58,W*0.045,H*0.022,W*0.003);ctx.fill();
+      const bg2=ctx.createRadialGradient(roofCx+W*0.030,amboY-ah*0.56,0,roofCx+W*0.030,amboY-ah*0.56,W*0.22);
       bg2.addColorStop(0,`rgba(0,60,255,${strobeBlue*0.38})`);bg2.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=bg2;ctx.fillRect(0,0,W,H);
      }
