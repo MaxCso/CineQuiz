@@ -5598,6 +5598,28 @@ function _btStop(){
   window._btToggle=window._btDoPlay=window._btDoPause=window._btPlay=window._btPause=window._btUpdateUI=window._btUnlockAnswers=noop;
 }
 
+function _btNextBtn(){
+  /* Bouton Suivant affiché après la révélation de l'affiche */
+  const btn=document.createElement('button');
+  btn.id='bt-next-btn';
+  btn.textContent='Suivant →';
+  btn.style.cssText=`
+    margin-top:14px;padding:10px 28px;
+    background:rgba(167,139,250,.18);border:1.5px solid rgba(167,139,250,.5);
+    border-radius:14px;color:#c4b5fd;font-family:'Bebas Neue',sans-serif;
+    font-size:18px;letter-spacing:1.5px;cursor:pointer;
+    transition:background .18s,transform .12s;
+    -webkit-tap-highlight-color:transparent;`;
+  btn.ontouchstart=()=>{btn.style.background='rgba(167,139,250,.32)';btn.style.transform='scale(.96)';};
+  btn.ontouchend=()=>{btn.style.background='rgba(167,139,250,.18)';btn.style.transform='scale(1)';};
+  btn.onclick=()=>{
+    if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+    hideToast();
+    advanceQ();
+  };
+  return btn;
+}
+
 function _btRevealPoster(q){
   const player=document.getElementById('bt-player');
   if(!player)return;
@@ -5608,13 +5630,14 @@ function _btRevealPoster(q){
       .then(d=>{
         if(d.poster_path){
           player.innerHTML=`
-            <div class="bt-reveal-fullposter">
+            <div class="bt-reveal-fullposter" style="display:flex;flex-direction:column;align-items:center;width:100%;">
               <img class="bt-reveal-fullimg" src="${TI+d.poster_path}" alt="${q.title}" crossorigin="anonymous">
               <div class="bt-reveal-overlay">
                 <div class="bt-reveal-title">${q.title}</div>
                 <div class="bt-reveal-year">${q.year}</div>
               </div>
             </div>`;
+          player.appendChild(_btNextBtn());
         } else { _btRevealText(player,q); }
       }).catch(()=>_btRevealText(player,q));
   } else { _btRevealText(player,q); }
@@ -5622,10 +5645,11 @@ function _btRevealPoster(q){
 
 function _btRevealText(player,q){
   player.innerHTML=`
-    <div style="text-align:center;width:100%;">
+    <div style="text-align:center;width:100%;margin-bottom:4px;">
       <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:4px;">${q.title} (${q.year})</div>
-      <div style="font-size:11px;color:rgba(167,139,250,.7);">🎼 ${q.composer}</div>
+      <div style="font-size:11px;color:rgba(167,139,250,.7);">🎼 ${q.composer||''}</div>
     </div>`;
+  player.appendChild(_btNextBtn());
 }
 
 /* VRAI_FAUX → data.js */
@@ -12133,7 +12157,12 @@ function handleAnswer(idx){
       missedArr.push({q:qText,a:correctAnsText});
     }
     sndNo();
-    if(q.type==='blindtest')setTimeout(_btStop,800);
+    if(q.type==='blindtest'){
+      setTimeout(_btStop,800);
+      // Blind Test mauvaise réponse : ne pas afficher le wrong-sheet
+      // L'affiche révèle déjà le titre correct, le bouton Suivant gère la progression
+      return;
+    }
     // Mode survie : perdre une vie
     if(selMode==='survie'){
       _survieLives=Math.max(0,_survieLives-1);
@@ -12217,7 +12246,10 @@ function showToast(ok,pts,m,ans){
     if(selMode!=='vraifaux'){
       const textLen=msg.length+(ans||'').length;
       const delay=Math.min(2800,1400+Math.floor(textLen/20)*200);
-      nextQTimer=setTimeout(()=>{_notifDismiss('score');advanceQ();},delay);
+      // Blind Test : pas de timer automatique, le bouton Suivant gère la progression
+      if(q&&q.type!=='blindtest'){
+        nextQTimer=setTimeout(()=>{_notifDismiss('score');advanceQ();},delay);
+      }
     }
   } else {
     const q=qs[curQ];
