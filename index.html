@@ -19486,78 +19486,68 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-/* ── Swipe horizontal pour naviguer entre les onglets ── */
+/* ── Swipe sur les bords des écrans pour naviguer entre onglets ── */
 (function(){
-  var TAB_ORDER = ['home', 'modes', 'profil'];
+  /*
+   * Principe : on attache les listeners sur chaque écran principal.
+   * Le swipe doit partir du bord gauche ou droit (EDGE_ZONE px)
+   * pour ne pas interférer avec le scroll vertical ni les cartes.
+   */
+  var EDGE_ZONE   = 40;   /* px depuis le bord pour démarrer */
+  var MIN_DX      = 60;   /* déplacement horizontal minimum */
+  var MAX_DY_RATIO = 0.5; /* abs(dy)/abs(dx) max — geste bien horizontal */
+  var MAX_TIME    = 500;  /* ms */
 
-  function currentTab() {
-    if (document.getElementById('home') && document.getElementById('home').classList.contains('on')) return 'home';
-    if (document.getElementById('modes-screen') && document.getElementById('modes-screen').classList.contains('on')) return 'modes';
-    if (document.getElementById('profile') && document.getElementById('profile').classList.contains('on')) return 'profil';
-    return null;
+  /* Mapping écran → [prev, next] */
+  var NAV = {
+    'home':         [null,    'modes'],
+    'modes-screen': ['home',  'profil'],
+    'profile':      ['modes', null],
+  };
+
+  function attachSwipe(screenId) {
+    var el = document.getElementById(screenId);
+    if (!el) return;
+    var x0 = 0, y0 = 0, t0 = 0, valid = false;
+
+    el.addEventListener('touchstart', function(e) {
+      var touch = e.changedTouches[0];
+      var fromEdge = touch.clientX <= EDGE_ZONE || touch.clientX >= window.innerWidth - EDGE_ZONE;
+      if (!fromEdge) { valid = false; return; }
+      x0 = touch.clientX;
+      y0 = touch.clientY;
+      t0 = Date.now();
+      valid = true;
+    }, { passive: true });
+
+    el.addEventListener('touchend', function(e) {
+      if (!valid) return;
+      valid = false;
+      /* Ne swiper que si cet écran est actif */
+      if (!el.classList.contains('on')) return;
+      /* Splash encore visible ? */
+      var splash = document.getElementById('splash');
+      if (splash && !splash.classList.contains('out') && splash.style.display !== 'none') return;
+
+      var touch = e.changedTouches[0];
+      var dx = touch.clientX - x0;
+      var dy = touch.clientY - y0;
+      var dt = Date.now() - t0;
+
+      if (dt > MAX_TIME) return;
+      if (Math.abs(dx) < MIN_DX) return;
+      if (Math.abs(dy) / Math.abs(dx) > MAX_DY_RATIO) return;
+
+      var dir = NAV[screenId];
+      if (!dir) return;
+      if (dx < 0 && dir[1]) cqGoTab(dir[1]); /* swipe gauche → suivant */
+      if (dx > 0 && dir[0]) cqGoTab(dir[0]); /* swipe droite → précédent */
+    }, { passive: true });
   }
 
-  /* Cibles à ignorer : boutons, inputs, cartes cliquables, canvas, modals */
-  function isInteractive(el) {
-    while (el && el !== document.body) {
-      var tag = el.tagName;
-      if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'A') return true;
-      var role = el.getAttribute('role');
-      if (role === 'button' || role === 'dialog') return true;
-      /* Cartes de mode de jeu, éléments avec onclick explicite sauf les écrans principaux */
-      var oc = el.getAttribute('onclick');
-      if (oc && el.id !== 'home' && el.id !== 'modes-screen' && el.id !== 'profile') return true;
-      /* Modals ouverts */
-      if (el.classList && (el.classList.contains('mover') || el.classList.contains('mode-info-over'))) return true;
-      el = el.parentElement;
-    }
-    return false;
-  }
-
-  var touchStartX = 0, touchStartY = 0, touchStartTime = 0;
-  var SWIPE_THRESHOLD = 55;   /* px minimum horizontal */
-  var ANGLE_MAX = 38;          /* degrés max d'écart vertical */
-  var TIME_MAX = 420;          /* ms max */
-
-  document.addEventListener('touchstart', function(e) {
-    /* Ignorer si un modal est ouvert */
-    var openModal = document.querySelector('.mover.on, .mode-info-over.on, [id$="-modal"][style*="flex"], [id$="-modal"][style*="block"]');
-    if (openModal) return;
-    var t = e.changedTouches[0];
-    touchStartX = t.clientX;
-    touchStartY = t.clientY;
-    touchStartTime = Date.now();
-  }, { passive: true });
-
-  document.addEventListener('touchend', function(e) {
-    var splash = document.getElementById('splash');
-    /* Ne swiper que si le splash est parti */
-    if (splash && !splash.classList.contains('out') && splash.style.display !== 'none') return;
-
-    var t = e.changedTouches[0];
-    var dx = t.clientX - touchStartX;
-    var dy = t.clientY - touchStartY;
-    var dt = Date.now() - touchStartTime;
-
-    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
-    if (dt > TIME_MAX) return;
-    var angle = Math.abs(Math.atan2(dy, dx) * 180 / Math.PI);
-    if (angle > ANGLE_MAX && angle < 180 - ANGLE_MAX) return;
-    if (isInteractive(e.target)) return;
-
-    var tab = currentTab();
-    if (!tab) return;
-    var idx = TAB_ORDER.indexOf(tab);
-    if (idx === -1) return;
-
-    if (dx < 0 && idx < TAB_ORDER.length - 1) {
-      /* Swipe gauche → onglet suivant */
-      cqGoTab(TAB_ORDER[idx + 1]);
-    } else if (dx > 0 && idx > 0) {
-      /* Swipe droite → onglet précédent */
-      cqGoTab(TAB_ORDER[idx - 1]);
-    }
-  }, { passive: true });
+  document.addEventListener('DOMContentLoaded', function() {
+    ['home', 'modes-screen', 'profile'].forEach(attachSwipe);
+  });
 })();
 </script>
 </body></html>
