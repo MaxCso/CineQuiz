@@ -14114,7 +14114,7 @@
     cv.style.opacity='1.0'; let t=0; const cx=W/2, cy=H/2;
     let _s=document.getElementById('_jm_s');
     if(!_s){_s=document.createElement('style');_s.id='_jm_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Orbes violettes ── */
@@ -14149,7 +14149,7 @@
     const DOOR_H = H * 0.42;
     const DOOR_W = DOOR_H * (58/58); /* SVG est carré mais la porte est dedans */
     const DOOR_X = cx - DOOR_W/2;
-    const DOOR_Y = H*0.40; /* légèrement au-dessus du centre */
+    const DOOR_Y = H*0.43; /* légèrement en dessous du centre */
 
     let revealed = 0;
 
