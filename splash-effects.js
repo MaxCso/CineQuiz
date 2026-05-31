@@ -33377,7 +33377,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_fmj_s');
     if(!_s){_s=document.createElement('style');_s.id='_fmj_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-logo-wrap .splash-logo,#splash-logo-wrap .splash-tagline{color:#1a1a1a!important;-webkit-text-fill-color:#1a1a1a!important;background:none!important;}#splash-content-wrap{top:52%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:#1a1a1a!important;text-shadow:none!important;}.splash-tagline{background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;-webkit-text-fill-color:#1a1a1a!important;color:#1a1a1a!important;filter:none!important;opacity:0.55!important;animation:none!important;}.splash-tagline::before,.splash-tagline::after{background:rgba(0,0,0,0.25)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-logo-wrap .splash-logo,#splash-logo-wrap .splash-tagline{color:#1a1a1a!important;-webkit-text-fill-color:#1a1a1a!important;background:none!important;}#splash-content-wrap{top:52%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:#1a1a1a!important;text-shadow:none!important;}.splash-tagline{background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;-webkit-text-fill-color:#1a1a1a!important;color:#1a1a1a!important;filter:none!important;opacity:0.55!important;}.splash-tagline::before,.splash-tagline::after{background:rgba(0,0,0,0.25)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
     const _helmetImg=new Image();
     let _helmetReady=false;
@@ -33412,7 +33412,7 @@
       if(_helmetReady){
         const tgtW=W*0.779;
         const tgtH=tgtW*(SVG_H/SVG_W);
-        ctx.drawImage(_helmetImg,cx-tgtW/2,H*0.18,tgtW,tgtH);
+        ctx.drawImage(_helmetImg,cx-tgtW/2,H*0.20,tgtW,tgtH);
       }
       drawFMJ();
       for(const d of dust){
