@@ -317,9 +317,9 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div style="width:100%;" id="qcount-wrapper">
           <div class="qcount-label">Nombre de questions</div>
           <div id="qcount-selector">
-            <button onclick="setQCount(10,this)" class="qcount-btn qcount-active">10</button>
+            <button onclick="setQCount(5,this)" class="qcount-btn qcount-active">5</button>
+            <button onclick="setQCount(10,this)" class="qcount-btn">10</button>
             <button onclick="setQCount(15,this)" class="qcount-btn">15</button>
-            <button onclick="setQCount(20,this)" class="qcount-btn">20</button>
           </div>
         </div>
         <div style="display:flex;gap:10px;width:100%;">
@@ -6451,6 +6451,16 @@ function openModeInfo(m,el){
   document.getElementById('mode-info-play').style.color=(['#f5c842','#34d399','#fbbf24','#a8d8f0'].includes(info.color)?'#000':'#fff');
   const qcWrap=document.getElementById('qcount-wrapper');
   if(qcWrap)qcWrap.style.display=(m==='versus'||m==='survie'||m==='training'?'none':'block');
+  // Pendu : valeur par défaut = 5 questions, resync le bouton actif
+  if(m==='pendu'){
+    TOTAL=5;
+    document.querySelectorAll('.qcount-btn').forEach(b=>{
+      b.classList.toggle('qcount-active', b.textContent.trim()==='5');
+    });
+  } else if(m!=='versus'&&m!=='survie'&&m!=='training'){
+    // Autres modes : remettre 10 par défaut si on venait du pendu
+    if(TOTAL===5){ TOTAL=10; document.querySelectorAll('.qcount-btn').forEach(b=>b.classList.toggle('qcount-active', b.textContent.trim()==='10')); }
+  }
   // Difficulté : gérée uniquement par le Mode Découverte
   selDiff=null;
   // Mode Découverte : active selDecouverte=true et joue en quiz filtré grand public
@@ -10891,7 +10901,6 @@ async function startGame(){
       if(qs.length<2)throw new Error('Not enough');
       setStep(0,'don');setStep(1,'act');await new Promise(r=>setTimeout(r,200));setStep(1,'don');
     } else if(selMode==='pendu'){
-      TOTAL=5;
       sltxt('Préparation du pendu…');
       initSteps([{icon:'💀',label:'Sélection des mots'},{icon:'🎬',label:'Préparation'}]);
       setStep(0,'act');qs=buildPenduQuestions(TOTAL);
