@@ -11726,20 +11726,26 @@ function loadQ(){
     }
 
     function renderPenduWord(){
-      const slots=word.split('').map(ch=>{
-        if(ch===' ')return`<div class="pendu-letter-slot" style="width:14px;"></div>`;
-        if(ch==='-'||ch.charCodeAt(0)===39)return`<div class="pendu-letter-slot" style="width:12px;">
-          <div class="pendu-letter-char shown">${ch}</div>
-          <div class="pendu-letter-bar"></div>
-        </div>`;
-        const shown=penduGuessed.has(ch);
-        return`<div class="pendu-letter-slot">
-          <div class="pendu-letter-char${shown?' shown':''}">${shown?ch:''}</div>
-          <div class="pendu-letter-bar${shown?' active':''}"></div>
-        </div>`;
+      // Regrouper par mots pour éviter qu'un mot se coupe en deux lignes
+      // Un "mot" = séquence de caractères séparés par des espaces
+      const segments=word.split(' ');
+      const groups=segments.map((seg,si)=>{
+        if(!seg)return''; // espaces multiples
+        const letters=seg.split('').map(ch=>{
+          if(ch==='-'||ch.charCodeAt(0)===39)return`<div class="pendu-letter-slot" style="min-width:10px;">
+            <div class="pendu-letter-char shown">${ch}</div>
+            <div class="pendu-letter-bar"></div>
+          </div>`;
+          const shown=penduGuessed.has(ch);
+          return`<div class="pendu-letter-slot">
+            <div class="pendu-letter-char${shown?' shown':''}">${shown?ch:''}</div>
+            <div class="pendu-letter-bar${shown?' active':''}"></div>
+          </div>`;
+        }).join('');
+        return`<div class="pendu-word-group">${letters}</div>`;
       }).join('');
       const el=document.getElementById('pendu-word');
-      if(el)el.innerHTML=slots;
+      if(el)el.innerHTML=groups;
     }
 
     function renderPenduErrors(){
