@@ -47636,7 +47636,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_nc_s');
     if(!_s){_s=document.createElement('style');_s.id='_nc_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* SVGs — viewBox: Night 115×269, Palmier1 467×820, Palmier2 676×875 */
@@ -47694,7 +47694,7 @@
       const ot=oc.getContext('2d');
       ot.drawImage(nightImg,0,0,nW,nH);
       ot.globalCompositeOperation='source-in';
-      ot.fillStyle='rgba(5,4,18,0.98)';ot.fillRect(0,0,nW,nH);
+      ot.fillStyle='rgba(255,255,255,0.95)';ot.fillRect(0,0,nW,nH);
       ctx.drawImage(oc,nX,nY+Math.sin(t*0.3)*H*0.002);
      }
      /* Palmier1 — gauche */
