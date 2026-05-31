@@ -30,7 +30,11 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 /* ── Desktop / tablette portrait (≥ 500px) ── */
 @media(min-width:500px){
   body{
-    background:radial-gradient(ellipse 80% 60% at 50% 30%, rgba(245,200,66,.03) 0%, transparent 70%), #060609;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 20%, rgba(245,200,66,.055) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 75% 70%, rgba(168,85,247,.04) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 60% 15%, rgba(96,165,250,.03) 0%, transparent 50%),
+      #060609;
     align-items:center;
     justify-content:center;
   }
@@ -67,20 +71,33 @@ body{background:#060609;color:var(--tx);font-family:'DM Sans',sans-serif;display
 .arc-bg::before{content:'';position:absolute;inset:0;}
 .arc-bg::after{content:'';position:absolute;inset:0;}
 #arcade-menu .arc-bg{position:fixed;inset:0;}
-#arcade-menu .arc-bg::before{background:
-  /* Or vieilli — haut gauche, projecteur */
-  radial-gradient(ellipse 50% 55% at 18% 10%, rgba(220,160,20,.30) 0%, transparent 58%),
-  /* Rouge sombre — haut droit */
-  radial-gradient(ellipse 42% 38% at 82% 8%,  rgba(160,20,20,.28) 0%, transparent 56%),
-  /* Bordeaux profond — centre gauche */
-  radial-gradient(ellipse 36% 48% at 8% 55%,  rgba(120,15,30,.22) 0%, transparent 58%),
-  /* Ambre chaleureux — bas droit */
-  radial-gradient(ellipse 50% 36% at 85% 78%, rgba(180,90,10,.20) 0%, transparent 58%),
-  /* Violet secret — bas centre */
-  radial-gradient(ellipse 44% 30% at 45% 92%, rgba(80,10,100,.18) 0%, transparent 56%);
+#arcade-menu .arc-bg::before{
+  background:
+    radial-gradient(ellipse 50% 55% at 18% 10%, rgba(220,160,20,.30) 0%, transparent 58%),
+    radial-gradient(ellipse 42% 38% at 82% 8%,  rgba(160,20,20,.28) 0%, transparent 56%),
+    radial-gradient(ellipse 36% 48% at 8% 55%,  rgba(120,15,30,.22) 0%, transparent 58%),
+    radial-gradient(ellipse 50% 36% at 85% 78%, rgba(180,90,10,.20) 0%, transparent 58%),
+    radial-gradient(ellipse 44% 30% at 45% 92%, rgba(80,10,100,.18) 0%, transparent 56%);
+  animation: arcOrbeFloat1 12s ease-in-out infinite;
 }
-#arcade-menu .arc-bg::after{background:
-  radial-gradient(ellipse 80% 70% at 50% 50%, transparent 25%, rgba(0,0,0,.82) 100%);
+#arcade-menu .arc-bg::after{
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 25%, rgba(0,0,0,.82) 100%);
+  animation: arcOrbeFloat2 16s ease-in-out infinite;
+}
+
+@keyframes arcOrbeFloat1 {
+  0%,100% { transform: translate(0, 0)    scale(1);    opacity: 1; }
+  20%     { transform: translate(3%, 5%)  scale(1.06); opacity: .92; }
+  40%     { transform: translate(-4%, 2%) scale(.97);  opacity: .88; }
+  60%     { transform: translate(5%,-3%)  scale(1.04); opacity: .94; }
+  80%     { transform: translate(-2%, 4%) scale(.98);  opacity: .90; }
+}
+@keyframes arcOrbeFloat2 {
+  0%,100% { transform: translate(0, 0)    scale(1); }
+  25%     { transform: translate(-3%,-4%) scale(1.03); }
+  50%     { transform: translate(4%, 3%)  scale(.98); }
+  75%     { transform: translate(-2%, 5%) scale(1.02); }
 }
 #arc-snake .arc-bg::before{background:radial-gradient(ellipse 52% 42% at 35% 30%,rgba(20,150,50,.50) 0%,transparent 58%),radial-gradient(ellipse 44% 38% at 70% 65%,rgba(10,100,30,.28) 0%,transparent 56%);}
 #arc-snake .arc-bg::after{background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 28%,rgba(0,0,0,.90) 100%);}
@@ -7388,6 +7405,18 @@ body.nav-visible .hm-help-over{padding-bottom:var(--nav-h);}
   height: 54px;
   z-index: 1000;
 }
+/* Desktop : nav alignée sur le .wrap centré */
+@media (min-width:500px) {
+  .cq-bottom-nav {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    border-radius: 0 0 50px 50px;
+    border-left: 1.5px solid rgba(255,255,255,.08);
+    border-right: 1.5px solid rgba(255,255,255,.08);
+    overflow: hidden;
+  }
+}
 .cq-nav-item {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 3px;
@@ -7703,3 +7732,66 @@ body.nav-visible #onboarding.on .ob-card {
 .arc-bg::before, .arc-bg::after {
   animation: none !important;
 }
+
+/* ══ OPTIMISATIONS NAVIGATEUR DESKTOP ══ */
+/* Hover states sur tous les éléments interactifs */
+@media (hover:hover) and (pointer:fine) {
+  /* Boutons de réponse */
+  .ans-btn:not(.correct):not(.wrong):hover {
+    background: rgba(255,255,255,.09) !important;
+    border-color: rgba(255,255,255,.28) !important;
+    transform: translateY(-1px);
+    transition: background .15s, border-color .15s, transform .15s;
+  }
+  /* Boutons clavier Pendu */
+  .pendu-key:not(.used-ok):not(.used-ko):hover {
+    background: rgba(255,255,255,.14) !important;
+    border-color: rgba(255,255,255,.35) !important;
+    transform: scale(1.08);
+    transition: background .12s, transform .12s;
+  }
+  /* Cartes de mode */
+  .mc:not(.mc-locked):hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    transition: transform .18s, box-shadow .18s;
+  }
+  /* Boutons génériques */
+  .ibtn:hover, .qcount-btn:hover, .mode-info-play:hover {
+    filter: brightness(1.12);
+    transition: filter .15s;
+  }
+  /* Nav tabs */
+  .cq-nav-item:hover {
+    background: rgba(255,255,255,.05);
+    border-radius: 12px;
+    transition: background .15s;
+  }
+  /* Boutons modale */
+  .mode-info-close:hover {
+    background: rgba(255,255,255,.1) !important;
+    transition: background .15s;
+  }
+}
+
+/* cursor:pointer sur tous les éléments cliquables */
+.mc, .ans-btn, .pendu-key, .ibtn, .qcount-btn, .mode-info-play,
+.mode-info-close, .cq-nav-item, [onclick], button {
+  cursor: pointer;
+}
+
+/* Scrollbar desktop discrète dans .wrap */
+@media (min-width:500px) {
+  .wrap ::-webkit-scrollbar { width: 4px; }
+  .wrap ::-webkit-scrollbar-track { background: transparent; }
+  .wrap ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+  .wrap ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); }
+}
+
+/* ── Animations orbes pour les mini-jeux sans règles CSS dédiées ── */
+#arc-p4        .arc-bg { animation: arcOrbeFloat1 13s ease-in-out infinite; }
+#arc-speedquiz .arc-bg { animation: arcOrbeFloat2 10s ease-in-out infinite; }
+#arc-invaders  .arc-bg { animation: arcOrbeFloat1 17s ease-in-out infinite reverse; }
+#arc-pong      .arc-bg { animation: arcOrbeFloat2 12s ease-in-out infinite reverse; }
+#arc-bobine    .arc-bg { animation: arcOrbeFloat1 15s ease-in-out infinite; }
+#arc-doodle    .arc-bg { animation: arcOrbeFloat2 11s ease-in-out infinite; }

@@ -11021,6 +11021,8 @@ function loadQ(){
   if(selMode==='survie'&&_survieGameOver)return;
   window._eeQStart = Date.now(); // tracker ee_speed
   ansed=false;lastTick=-1;
+  // Nettoyer le listener clavier pendu si on change de mode
+  if(selMode!=='pendu'&&window._penduKeyHandler){ document.removeEventListener('keydown',window._penduKeyHandler); window._penduKeyHandler=null; }
   if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
   cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;clearInterval(revInt);hideToast();if(_typewriterInt){clearInterval(_typewriterInt);_typewriterInt=null;}
   // Restore mbadge visibility (may have been hidden for boxoffice/versusfilms)
@@ -11848,13 +11850,24 @@ function loadQ(){
     const kb=document.getElementById('pendu-kb');
     ALPHABET.forEach(ch=>{
       const btn=document.createElement('div');
-      btn.className='pendu-key';btn.textContent=ch;
+      btn.className='pendu-key';btn.textContent=ch;btn.dataset.letter=ch;
       btn.onclick=()=>penduGuess(ch,btn);
       kb.appendChild(btn);
     });
     // Pas de timer pour le pendu
     const tf=document.getElementById('tfil');if(tf)tf.style.width='100%';
     const tv=document.getElementById('tv');if(tv)tv.style.opacity='0';
+    // ── Clavier physique pour desktop ──
+    if(window._penduKeyHandler) document.removeEventListener('keydown', window._penduKeyHandler);
+    window._penduKeyHandler = function(e){
+      if(ansed||selMode!=='pendu') return;
+      const ch=e.key.toUpperCase();
+      if(!/^[A-Z]$/.test(ch)) return;
+      e.preventDefault();
+      const btn=document.querySelector('.pendu-key[data-letter="'+ch+'"]');
+      if(btn && !btn.classList.contains('used-ok') && !btn.classList.contains('used-ko')) btn.click();
+    };
+    document.addEventListener('keydown', window._penduKeyHandler);
 
   } else {
     game.style.overflowY='hidden';
@@ -19667,6 +19680,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.addEventListener('DOMContentLoaded', function() {
     ['home', 'modes-screen', 'profile'].forEach(attachSwipe);
+  });
+})();
+
+// ── RACCOURCIS CLAVIER GLOBAUX (desktop) ──
+(function(){
+  document.addEventListener('keydown', function(e){
+    // Ignorer si dans un input
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+    // Ignorer si pendu actif (son propre handler gère les lettres)
+    if(selMode==='pendu' && window._penduKeyHandler) return;
+
+    const key = e.key;
+
+    // 1-4 : sélectionner une réponse QCM
+    if(['1','2','3','4'].includes(key)){
+      const idx = parseInt(key) - 1;
+      const btns = document.querySelectorAll('#ans-grid .ans-btn:not([disabled]):not(.correct):not(.wrong)');
+      if(btns[idx]){ e.preventDefault(); btns[idx].click(); }
+      return;
+    }
+
+    // Espace ou Entrée : bouton Suivant dans Blind Test, ou fermer le wrong-sheet
+    if(key === ' ' || key === 'Enter'){
+      const nextBtn = document.getElementById('bt-next-btn');
+      if(nextBtn){ e.preventDefault(); nextBtn.click(); return; }
+      const ws = document.getElementById('wrong-sheet');
+      if(ws && ws.classList.contains('on')){ e.preventDefault(); closeWrongSheet(); return; }
+    }
+
+    // Échap : fermer modales ouvertes
+    if(key === 'Escape'){
+      const modeModal = document.getElementById('mode-info-modal');
+      if(modeModal && modeModal.classList.contains('on')){ closeModeInfo(); return; }
+    }
   });
 })();
 </script>
