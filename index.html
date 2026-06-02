@@ -182,6 +182,21 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(56,189,248,.35)" stroke-width="2.2" style="flex-shrink:0;position:relative;z-index:1;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
+      <!-- CINÉPÉDIA -->
+      <div id="cinepedia-home-card" onclick="openCinepediaInfo()" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(10,8,20,.96),rgba(7,5,16,.94));border:1px solid rgba(251,191,36,.13);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 5% 0%,rgba(251,191,36,.09) 0%,transparent 65%);pointer-events:none;"></div>
+        <div style="width:54px;height:54px;border-radius:16px;background:rgba(251,191,36,.08);border:1.5px solid rgba(251,191,36,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;position:relative;z-index:1;animation:xpIconFloat 4s ease-in-out infinite;animation-delay:2.5s;">🎓</div>
+        <div style="flex:1;min-width:0;position:relative;z-index:1;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fbbf24;line-height:1;margin-bottom:4px;">CINÉPÉDIA</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;">Tes anecdotes ciné débloquées</div>
+          <div id="cinepedia-card-stat" style="font-size:10px;color:rgba(251,191,36,.5);margin-top:4px;"></div>
+        </div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:6px;">
+          <span id="cinepedia-new-dot" style="display:none;width:8px;height:8px;border-radius:50%;background:#ff4d6d;border:1.5px solid var(--bg);box-shadow:0 0 6px rgba(255,77,109,.6);flex-shrink:0;"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(251,191,36,.35)" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
       <!-- ENTRAÎNEMENT -->
       <div onclick="openModeInfo('training',this)" style="position:relative;border-radius:18px;padding:16px 16px 16px 18px;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,rgba(20,16,6,.96),rgba(14,11,4,.94));border:1px solid rgba(245,200,66,.14);display:flex;align-items:center;gap:14px;transition:transform .16s,border-color .2s;" ontouchstart="this.style.transform='scale(.98)'" ontouchend="this.style.transform='scale(1)'">
         <div style="position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 5% 0%,rgba(245,200,66,.12) 0%,transparent 65%);pointer-events:none;"></div>
@@ -228,6 +243,31 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
       <div class="mode-info-btns">
         <button class="mode-info-play" onclick="closeSalleInfoModal();openCinematheque();" style="background:#38bdf8;color:#0a0a0f;">🎞️ OUVRIR</button>
         <button class="mode-info-close" onclick="closeSalleInfoModal()">✕ Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CINÉPÉDIA — INFO MODAL (bottom sheet) -->
+  <div class="mode-info-over" id="cinepedia-info-modal" onclick="if(event.target===this)closeCinepediaInfo()">
+    <div class="mode-info-sh" id="cinepedia-info-sh" style="--mi-color:#fbbf24;--mi-bg:rgba(251,191,36,.10);">
+      <div class="mode-info-accent" style="background:linear-gradient(90deg,transparent,#fbbf24,transparent);"></div>
+      <div class="mode-info-hdl"></div>
+      <div class="mode-info-head">
+        <div class="mode-info-icon" style="background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.4);font-size:28px;">🎓</div>
+        <div>
+          <div class="mode-info-title" style="color:#fbbf24;">CINÉPÉDIA</div>
+          <div class="mode-info-sub" id="cp-info-sub">Ta bibliothèque d'anecdotes</div>
+        </div>
+      </div>
+      <div class="mode-info-desc" id="cp-info-desc">Chaque jour, 3 nouvelles anecdotes ciné se débloquent automatiquement. Réalisateurs, acteurs, tournages, musiques… construis ta culture du 7ème art au fil des jours.</div>
+      <div class="mode-info-tips">
+        <div class="mode-info-tip"><span class="mode-info-tip-icon">📅</span><span>3 nouvelles anecdotes débloquées chaque jour</span></div>
+        <div class="mode-info-tip"><span class="mode-info-tip-icon">🗂️</span><span>Filtre par catégorie : Tournage, Acteur, Musique…</span></div>
+        <div class="mode-info-tip"><span class="mode-info-tip-icon">📖</span><span id="cp-info-total-tip">Plus de 1600 anecdotes à découvrir</span></div>
+      </div>
+      <div class="mode-info-btns">
+        <button class="mode-info-play" onclick="closeCinepediaInfo();openCinepedia();" style="--mi-color:#fbbf24;">🎓 OUVRIR</button>
+        <button class="mode-info-close" onclick="closeCinepediaInfo()">✕ Fermer</button>
       </div>
     </div>
   </div>
@@ -9853,6 +9893,7 @@ function refHome(){
   renderNextBadge(s);
   renderDailyAnecdote();
   renderDailyMsg();
+  initCinepedia();
   renderModeSuggestion(s);
   refreshModeLocks();
   updateJkDot();
@@ -10191,6 +10232,226 @@ function renderDailyAnecdote(){
   function _resetAnecTimer(){ /* défilement automatique désactivé */ }
 
   render(0);
+}
+
+// ══════════════════════════════════════════════
+// CINÉPÉDIA — Bibliothèque d'anecdotes débloquées
+// ══════════════════════════════════════════════
+
+// Même RNG déterministe que renderDailyAnecdote
+function _cpSeededRng(s){
+  return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+}
+function _cpSeededShuffle(arr,rng){
+  const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
+}
+
+// Calcule le seed d'un jour (YYYYMMDD)
+function _cpDaySeed(dateObj){
+  return dateObj.getFullYear()*10000+(dateObj.getMonth()+1)*100+dateObj.getDate();
+}
+
+// Retourne les 3 indices d'anecdotes pour un seed donné
+function _cpAnecsForSeed(seed){
+  const rng=_cpSeededRng(seed);
+  const shuffled=_cpSeededShuffle(ANECDOTES,rng);
+  return [shuffled[0],shuffled[1],shuffled[2]];
+}
+
+// Clé localStorage pour les jours visités
+const CP_KEY='cq_cinepedia_days';
+
+// Charger/sauvegarder les seeds de jours visités (tableau de nombres YYYYMMDD)
+function cpGetSeeds(){try{return JSON.parse(localStorage.getItem(CP_KEY)||'[]');}catch{return[];}}
+function cpSaveSeeds(arr){try{localStorage.setItem(CP_KEY,JSON.stringify(arr));}catch{}}
+
+// Enregistrer le jour actuel comme visité (appelé à l'init)
+function cpRecordToday(){
+  const today=_cpDaySeed(new Date());
+  const seeds=cpGetSeeds();
+  if(!seeds.includes(today)){seeds.push(today);cpSaveSeeds(seeds);}
+}
+
+// Retourne toutes les anecdotes débloquées avec leur date de découverte, triées du plus récent au plus ancien
+function cpGetAllUnlocked(){
+  const seeds=cpGetSeeds();
+  if(!seeds.length)return[];
+  const result=[];
+  const seenTexts=new Set();
+  // Du plus récent au plus ancien
+  const sorted=[...seeds].sort((a,b)=>b-a);
+  sorted.forEach(seed=>{
+    const dateObj=new Date(
+      Math.floor(seed/10000),
+      Math.floor((seed%10000)/100)-1,
+      seed%100
+    );
+    const anecs=_cpAnecsForSeed(seed);
+    anecs.forEach(a=>{
+      if(!seenTexts.has(a.text)){
+        seenTexts.add(a.text);
+        result.push({...a,_seed:seed,_date:dateObj});
+      }
+    });
+  });
+  return result;
+}
+
+// Vérifie si les anecdotes d'aujourd'hui sont nouvelles (pas encore vues)
+function cpHasNew(){
+  const today=_cpDaySeed(new Date());
+  const seeds=cpGetSeeds();
+  // Si aujourd'hui n'est pas encore dans les seeds sauvegardés, il y a du nouveau
+  // (On compare avec l'avant-enregistrement — le dot s'efface quand on ouvre)
+  const lastSeen=parseInt(localStorage.getItem('cq_cinepedia_last_seen')||'0',10);
+  return today>lastSeen;
+}
+
+// Met à jour le compteur et le dot rouge sur la card d'accueil
+function updateCinepediaCardStat(){
+  const unlocked=cpGetAllUnlocked();
+  const count=unlocked.length;
+  const stat=document.getElementById('cinepedia-card-stat');
+  if(stat){
+    if(count===0){
+      stat.textContent='Ouvre l\'app chaque jour pour débloquer';
+    }else{
+      const total=ANECDOTES.length;
+      const pct=Math.round(count/total*100);
+      stat.innerHTML=count+' <span style="color:rgba(255,255,255,.25);">/</span> '+total+' anecdotes débloquées'
+        +'<span style="display:inline-block;margin-left:8px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:1px 6px;font-size:9px;color:rgba(251,191,36,.8);letter-spacing:.5px;">'+pct+'%</span>';
+    }
+  }
+  const dot=document.getElementById('cinepedia-new-dot');
+  if(dot) dot.style.display=cpHasNew()?'block':'none';
+}
+
+// Palette de tags (identique à renderDailyAnecdote)
+const CP_TAG_PALETTE={
+  "Tournage":   {emoji:"🎬",color:"#f5a623",bg:"rgba(245,166,35,.12)",border:"rgba(245,166,35,.25)"},
+  "Box-office": {emoji:"💰",color:"#4ade80",bg:"rgba(74,222,128,.10)",border:"rgba(74,222,128,.22)"},
+  "Casting":    {emoji:"🎭",color:"#c084fc",bg:"rgba(192,132,252,.10)",border:"rgba(192,132,252,.22)"},
+  "Studios":    {emoji:"🏛️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)"},
+  "Anecdote":   {emoji:"💡",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)"},
+  "Son":        {emoji:"🔊",color:"#34d399",bg:"rgba(52,211,153,.10)",border:"rgba(52,211,153,.22)"},
+  "Réalisateur":{emoji:"🎥",color:"#f87171",bg:"rgba(248,113,113,.10)",border:"rgba(248,113,113,.22)"},
+  "Acteur":     {emoji:"🌟",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)"},
+  "Oscars":     {emoji:"🏆",color:"#f5c842",bg:"rgba(245,200,66,.12)",border:"rgba(245,200,66,.28)"},
+  "Musique":    {emoji:"🎼",color:"#a78bfa",bg:"rgba(167,139,250,.10)",border:"rgba(167,139,250,.22)"},
+  "Costumes":   {emoji:"👗",color:"#f472b6",bg:"rgba(244,114,182,.10)",border:"rgba(244,114,182,.22)"},
+  "Technique":  {emoji:"⚙️",color:"#60a5fa",bg:"rgba(96,165,250,.10)",border:"rgba(96,165,250,.22)"},
+  "Histoire":   {emoji:"📖",color:"#fb923c",bg:"rgba(251,146,60,.10)",border:"rgba(251,146,60,.22)"},
+  "Effets":     {emoji:"✨",color:"#e879f9",bg:"rgba(232,121,249,.10)",border:"rgba(232,121,249,.22)"},
+  "Script":     {emoji:"📝",color:"#94a3b8",bg:"rgba(148,163,184,.10)",border:"rgba(148,163,184,.22)"},
+  "Décors":     {emoji:"🎪",color:"#fb923c",bg:"rgba(251,146,60,.10)",border:"rgba(251,146,60,.22)"},
+};
+const CP_DEFAULT_P={emoji:"🎬",color:"#fbbf24",bg:"rgba(251,191,36,.10)",border:"rgba(251,191,36,.22)"};
+
+let _cpActiveFilter='all';
+
+function openCinepedia(){
+  const modal=document.getElementById('cinepedia-modal');
+  if(!modal)return;
+  modal.style.display='flex';
+  document.body.style.overflow='hidden';
+  // Marquer comme vu → effacer le dot rouge
+  try{localStorage.setItem('cq_cinepedia_last_seen',String(_cpDaySeed(new Date())));}catch{}
+  const dot=document.getElementById('cinepedia-new-dot');
+  if(dot)dot.style.display='none';
+  _cpActiveFilter='all';
+  _cpRenderModal();
+  if(typeof stopMus==='function') stopMus();
+}
+
+function closeCinepedia(){
+  const modal=document.getElementById('cinepedia-modal');
+  if(modal)modal.style.display='none';
+  document.body.style.overflow='';
+  if(typeof resumeMus==='function') resumeMus();
+}
+
+function _cpRenderModal(){
+  const unlocked=cpGetAllUnlocked();
+  const todaySeed=_cpDaySeed(new Date());
+
+  // Header count
+  const hc=document.getElementById('cp-header-count');
+  if(hc) hc.textContent=unlocked.length+' anecdote'+(unlocked.length>1?'s':'')+' débloquée'+(unlocked.length>1?'s':'');
+
+  // Filtres
+  const filtersEl=document.getElementById('cp-filters');
+  if(filtersEl){
+    // Collecter les tags présents
+    const tagsUsed=new Set(unlocked.map(a=>a.tag));
+    const allTags=['all',...Array.from(tagsUsed).sort()];
+    filtersEl.innerHTML=allTags.map(tag=>{
+      const p=tag==='all'?{emoji:'✦',color:'#fbbf24'}:(CP_TAG_PALETTE[tag]||CP_DEFAULT_P);
+      const isActive=_cpActiveFilter===tag;
+      return `<button onclick="_cpSetFilter('${tag}')" style="
+        flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:10px;font-weight:700;
+        letter-spacing:.8px;text-transform:uppercase;cursor:pointer;white-space:nowrap;
+        transition:all .18s;
+        background:${isActive?'rgba(251,191,36,.18)':'rgba(255,255,255,.04)'};
+        border:1px solid ${isActive?'rgba(251,191,36,.5)':'rgba(255,255,255,.08)'};
+        color:${isActive?'#fbbf24':'rgba(255,255,255,.4)'};
+      ">${tag==='all'?'✦ Tout':((CP_TAG_PALETTE[tag]||CP_DEFAULT_P).emoji+' '+tag)}</button>`;
+    }).join('');
+  }
+
+  // Liste
+  const listEl=document.getElementById('cp-list');
+  if(!listEl)return;
+
+  const filtered=_cpActiveFilter==='all'?unlocked:unlocked.filter(a=>a.tag===_cpActiveFilter);
+
+  if(filtered.length===0){
+    listEl.innerHTML=`<div style="text-align:center;padding:48px 24px;color:rgba(255,255,255,.25);font-size:13px;line-height:1.7;">
+      <div style="font-size:32px;margin-bottom:12px;">🎓</div>
+      ${unlocked.length===0
+        ? 'Reviens chaque jour pour débloquer<br>3 nouvelles anecdotes ciné !'
+        : 'Aucune anecdote dans cette catégorie.'}
+    </div>`;
+    return;
+  }
+
+  listEl.innerHTML=filtered.map((a,idx)=>{
+    const p=CP_TAG_PALETTE[a.tag]||CP_DEFAULT_P;
+    const isToday=a._seed===todaySeed;
+    const dateStr=a._date.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    return `<div class="cp-anec-item" style="
+      position:relative;border-radius:16px;overflow:hidden;
+      background:linear-gradient(135deg,rgba(18,14,28,.95),rgba(10,8,18,.95));
+      border:1px solid ${p.border};
+      padding:14px 16px 12px;
+      animation:cpItemIn .3s cubic-bezier(.22,.68,0,1.2) ${idx*0.04}s both;
+    ">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 0% 0%,${p.bg} 0%,transparent 70%);pointer-events:none;"></div>
+      <div style="position:absolute;top:0;left:10%;right:10%;height:2px;border-radius:0 0 3px 3px;background:linear-gradient(to right,transparent,${p.color},transparent);opacity:.6;"></div>
+      <div style="position:relative;z-index:1;">
+        <!-- En-tête : tag + date + badge nouveau -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${p.color};background:${p.bg};border:1px solid ${p.border};border-radius:6px;padding:2px 8px;">${p.emoji} ${a.tag}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${isToday?'<span style="font-size:8px;font-weight:800;letter-spacing:1.5px;color:#ff4d6d;background:rgba(255,77,109,.15);border:1px solid rgba(255,77,109,.3);border-radius:6px;padding:2px 7px;">NOUVEAU</span>':''}
+            <span style="font-size:9px;color:rgba(255,255,255,.25);">${dateStr}</span>
+          </div>
+        </div>
+        <!-- Texte -->
+        <p style="font-size:13.5px;color:rgba(255,255,255,.82);line-height:1.65;font-weight:400;margin:0;">${a.text}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _cpSetFilter(tag){
+  _cpActiveFilter=tag;
+  _cpRenderModal();
+}
+
+// ── Init Cinépédia au démarrage ──
+function initCinepedia(){
+  cpRecordToday();
+  updateCinepediaCardStat();
 }
 
 function setupSwipeHoriz(el,onLeft,onRight){
@@ -10645,6 +10906,20 @@ function openSalleInfoModal(){
   if(modal){modal.classList.add('on');setupSwipeDown(document.getElementById('salle-info-sh'),closeSalleInfoModal);}
 }
 function closeSalleInfoModal(){document.getElementById('salle-info-modal').classList.remove('on');}
+
+function openCinepediaInfo(){
+  const modal=document.getElementById('cinepedia-info-modal');
+  if(!modal)return;
+  // Mettre à jour le sous-titre avec le compteur débloqué
+  const unlocked=cpGetAllUnlocked();
+  const sub=document.getElementById('cp-info-sub');
+  if(sub) sub.textContent=unlocked.length>0
+    ? unlocked.length+' anecdote'+(unlocked.length>1?'s':'')+' débloquée'+(unlocked.length>1?'s':'')
+    : 'Ta bibliothèque d\u2019anecdotes';
+  modal.classList.add('on');
+  setupSwipeDown(document.getElementById('cinepedia-info-sh'),closeCinepediaInfo);
+}
+function closeCinepediaInfo(){document.getElementById('cinepedia-info-modal').classList.remove('on');}
 
 function openBadge(id){
   const b=BADGES.find(x=>x.id===id);if(!b)return;
@@ -18638,6 +18913,37 @@ function hmReopenTuto() {
   });
 })();
 </script>
+
+<!-- ── CINÉPÉDIA — PLEIN ÉCRAN ── -->
+<div id="cinepedia-modal" style="display:none;position:fixed;inset:0;z-index:99990;flex-direction:column;background:#07050f;">
+  <!-- Fond orbes -->
+  <div style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
+    <div style="position:absolute;inset:0;
+      background:
+        radial-gradient(ellipse 55% 45% at 20% 15%,rgba(251,191,36,.10) 0%,transparent 58%),
+        radial-gradient(ellipse 42% 36% at 80% 10%,rgba(251,191,36,.07) 0%,transparent 56%),
+        radial-gradient(ellipse 38% 46% at 10% 65%,rgba(251,191,36,.06) 0%,transparent 58%),
+        radial-gradient(ellipse 48% 32% at 85% 80%,rgba(251,146,60,.08) 0%,transparent 56%);
+    "></div>
+  </div>
+  <!-- Header -->
+  <div style="position:relative;z-index:2;flex-shrink:0;padding:max(54px,env(safe-area-inset-top)) 20px 0;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <div class="bsc-back-btn" onclick="closeCinepedia()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div style="flex:1;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#fbbf24;line-height:1;">CINÉPÉDIA</div>
+        <div id="cp-header-count" style="font-size:10px;color:rgba(255,255,255,.30);font-family:'DM Sans',sans-serif;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;"></div>
+      </div>
+      <div style="width:42px;flex-shrink:0;"></div>
+    </div>
+  </div>
+  <!-- Filtres par tag -->
+  <div id="cp-filters" style="position:relative;z-index:2;display:flex;gap:6px;padding:10px 18px 12px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,.06);"></div>
+  <!-- Liste des anecdotes -->
+  <div id="cp-list" style="position:relative;z-index:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 18px max(40px,calc(env(safe-area-inset-bottom)+20px));display:flex;flex-direction:column;gap:10px;scrollbar-width:none;"></div>
+</div>
 
 <!-- ── SPLASH PREVIEW MODAL ── -->
 <div id="cinematheque-modal" style="display:none;position:fixed;inset:0;z-index:99990;flex-direction:column;background:#07050f;">
