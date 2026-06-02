@@ -26819,246 +26819,192 @@
   /* ══ THERE WILL BE BLOOD ══ */
   {
    name:'There Will Be Blood',
-   color:'160,80,20',
+   color:'200,70,10',
    ref:'There Will Be Blood \u2014 Paul Thomas Anderson, 2007',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2;
-    let _s=document.getElementById('_twb_s');if(!_s){_s=document.createElement('style');_s.id='_twb_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
-    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+    cv.style.opacity='1';
+    let t=0;
+    const cx=W/2;
 
-    /* ── Horizon désert ── */
-    const horizY=H*0.62;
+    /* ── Style UI ── */
+    let _twbS=document.getElementById('_twb_s');
+    if(!_twbS){_twbS=document.createElement('style');_twbS.id='_twb_s';document.head.appendChild(_twbS);}
+    _twbS.textContent=`
+     #splash-bg::before,#splash-bg::after,
+     #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
+     #splash-content-wrap{top:74%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}
+     #splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}
+     #splash-film-logo{max-width:115px!important;}
+     #splash-quote-text{color:rgba(255,180,80,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.95)!important;}
+    `;
+    const _twbW=setInterval(()=>{if(stop.v){_twbS.textContent='';clearInterval(_twbW);}},200);
 
-    /* ── Derrick principal — centre ── */
-    function drawDerrick(dx,baseY,h,scl){
-     const tw=W*0.048*scl; /* largeur base */
-     ctx.save();
-     ctx.fillStyle='rgba(6,3,1,0.98)';
-     /* Jambes */
-     ctx.beginPath();
-     ctx.moveTo(dx-tw,baseY);ctx.lineTo(dx-tw*0.12,baseY-h);
-     ctx.lineTo(dx+tw*0.12,baseY-h);ctx.lineTo(dx+tw,baseY);
-     ctx.closePath();ctx.fill();
-     /* Entretoises horizontales */
-     const steps=5;
-     for(let i=1;i<steps;i++){
-      const fy=baseY-h*(i/steps);
-      const fw=tw*(1-i/steps*0.78);
-      ctx.fillRect(dx-fw,fy-W*0.005*scl,fw*2,W*0.004*scl);
-     }
-     /* Poulie au sommet */
-     ctx.fillStyle='rgba(8,4,1,0.98)';
-     ctx.beginPath();ctx.arc(dx,baseY-h,tw*0.32,0,Math.PI*2);ctx.fill();
-     ctx.restore();
+    /* ── Chargement SVG TWBB (derrick + sol noir) ── */
+    let _svgImg=null, _svgReady=false;
+    (function(){
+      const img=new Image();
+      img.onload=()=>{_svgImg=img;_svgReady=true;};
+      img.onerror=()=>{_svgReady=false;};
+      img.src='images/TWBB.svg';
+    })();
+
+    /* ── Particules de cendres orangées ── */
+    const embers=Array.from({length:55},(_,i)=>({
+      x:W*(0.25+Math.random()*0.50),
+      y:H*(0.55+Math.random()*0.30),
+      vx:(Math.random()-0.5)*0.22,
+      vy:-(0.08+Math.random()*0.28),
+      r:i<15?(1.2+Math.random()*2.0):(0.3+Math.random()*0.9),
+      op:i<15?(0.10+Math.random()*0.16):(0.05+Math.random()*0.10),
+      phase:Math.random()*Math.PI*2,
+      spd:0.014+Math.random()*0.022,
+    }));
+
+    /* ── Fumée noire montante ── */
+    const smoke=Array.from({length:18},(_,i)=>({
+      x:W*(0.42+Math.random()*0.16),
+      y:H*(0.30+Math.random()*0.20),
+      vx:(Math.random()-0.5)*0.18,
+      vy:-(0.10+Math.random()*0.18),
+      r:W*(0.05+Math.random()*0.08),
+      life:Math.random(),
+      maxLife:1.4+Math.random()*1.8,
+      phase:Math.random()*Math.PI*2,
+    }));
+
+    /* ── Derricks secondaires fantômes ── */
+    const ghostDerricks=[
+      {x:W*0.12, opacity:0.045, h:0.18},
+      {x:W*0.22, opacity:0.060, h:0.14},
+      {x:W*0.80, opacity:0.050, h:0.16},
+      {x:W*0.90, opacity:0.035, h:0.12},
+    ];
+
+    function drawGhostDerrick(dx, baseY, h, op){
+      ctx.save();
+      ctx.globalAlpha=op;
+      ctx.fillStyle='rgba(60,20,5,1)';
+      const tw=W*0.022;
+      ctx.beginPath();
+      ctx.moveTo(dx-tw,baseY);ctx.lineTo(dx-tw*0.15,baseY-h);
+      ctx.lineTo(dx+tw*0.15,baseY-h);ctx.lineTo(dx+tw,baseY);
+      ctx.closePath();ctx.fill();
+      /* Bras de pompe — angle fixe */
+      ctx.strokeStyle='rgba(50,18,4,1)';ctx.lineWidth=tw*0.55;ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(dx-tw*1.2,baseY-h*0.75);
+      ctx.lineTo(dx+tw*1.2,baseY-h*0.88);
+      ctx.stroke();
+      ctx.restore();
     }
 
-    /* ── Particules de feu ── */
-    const fireParticles=Array.from({length:120},(_,i)=>({
-     x:cx+(Math.random()-0.5)*W*0.10,
-     y:horizY-H*0.32-Math.random()*H*0.35,
-     vx:(Math.random()-0.5)*0.9,
-     vy:-(0.4+Math.random()*1.8),
-     life:Math.random(),
-     maxLife:0.6+Math.random()*0.8,
-     size:Math.random()*W*0.028+W*0.008,
-     phase:Math.random()*Math.PI*2,
-    }));
+    function drawBg(){
+      /* Ciel orange brûlant — palette exacte de l'affiche */
+      const skyG=ctx.createLinearGradient(0,0,0,H*0.68);
+      skyG.addColorStop(0.00,`rgb(${200+Math.sin(t*0.22)*8|0},${55+Math.sin(t*0.18)*6|0},0)`);
+      skyG.addColorStop(0.25,`rgb(${220+Math.sin(t*0.28)*6|0},${70+Math.sin(t*0.22)*5|0},0)`);
+      skyG.addColorStop(0.55,`rgb(${235+Math.sin(t*0.20)*5|0},${85+Math.sin(t*0.25)*6|0},5)`);
+      skyG.addColorStop(0.82,`rgb(${215+Math.sin(t*0.30)*6|0},${65+Math.sin(t*0.19)*5|0},0)`);
+      skyG.addColorStop(1.00,`rgb(${180+Math.sin(t*0.24)*8|0},${45+Math.sin(t*0.21)*4|0},0)`);
+      ctx.fillStyle=skyG;
+      ctx.fillRect(0,0,W,H*0.68);
 
-    /* ── Particules de fumée ── */
-    const smokeParticles=Array.from({length:55},(_,i)=>({
-     x:cx+(Math.random()-0.5)*W*0.18,
-     y:horizY-H*0.55-Math.random()*H*0.40,
-     vx:(Math.random()-0.5)*0.55,
-     vy:-(0.18+Math.random()*0.55),
-     life:Math.random(),
-     maxLife:1.2+Math.random()*1.4,
-     size:W*(0.06+Math.random()*0.12),
-    }));
+      /* Lueur chaude centrale — halo diffus bas */
+      const haloG=ctx.createRadialGradient(cx,H*0.62,0,cx,H*0.62,W*0.75);
+      haloG.addColorStop(0,`rgba(255,${100+Math.sin(t*0.35)*12|0},10,${0.22+Math.sin(t*0.28)*0.04})`);
+      haloG.addColorStop(0.45,`rgba(240,${70+Math.sin(t*0.22)*8|0},0,${0.08+Math.sin(t*0.40)*0.02})`);
+      haloG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=haloG;
+      ctx.fillRect(0,0,W,H*0.72);
+    }
 
-    /* ── Débris / étincelles ── */
-    const sparks=Array.from({length:35},()=>({
-     x:cx+(Math.random()-0.5)*W*0.08,
-     y:horizY-H*0.30,
-     vx:(Math.random()-0.5)*3.2,
-     vy:-(1.5+Math.random()*3.5),
-     life:0,maxLife:0.4+Math.random()*0.5,
-     size:Math.random()*W*0.006+W*0.002,
-    }));
+    function drawSmoke(){
+      for(const s of smoke){
+        s.life+=0.005;s.x+=s.vx+Math.sin(t*0.4+s.phase)*0.12;s.y+=s.vy;
+        if(s.life>=s.maxLife){
+          s.life=0;
+          s.x=W*(0.43+Math.random()*0.14);
+          s.y=H*(0.36+Math.random()*0.10);
+          s.vx=(Math.random()-0.5)*0.18;
+        }
+        const prog=s.life/s.maxLife;
+        const fade=(prog<0.15?prog/0.15:prog>0.80?(1-prog)/0.20:1)*0.28;
+        const sz=s.r*(0.4+prog*1.2);
+        /* Gris foncé → noir opaque en montant */
+        const lum=Math.round(18*(1-prog));
+        ctx.fillStyle=`rgba(${lum},${lum*0.7|0},${lum*0.4|0},${fade})`;
+        ctx.beginPath();ctx.arc(s.x,s.y,sz,0,Math.PI*2);ctx.fill();
+      }
+    }
 
-    /* ── Relief désert — dunes et crêtes ── */
-    function drawDesert(){
-     /* Sol principal */
-     const grd=ctx.createLinearGradient(0,horizY,0,H);
-     grd.addColorStop(0,'#3a2008');
-     grd.addColorStop(0.25,'#2a1604');
-     grd.addColorStop(0.65,'#1a0e02');
-     grd.addColorStop(1,'#0e0801');
-     ctx.fillStyle=grd;ctx.fillRect(0,horizY,W,H-horizY);
+    function drawEmbers(){
+      for(const e of embers){
+        e.x+=e.vx+Math.sin(t*0.5+e.phase)*0.06;
+        e.y+=e.vy;
+        e.phase+=e.spd;
+        if(e.y<H*0.18||e.x<-5||e.x>W+5){
+          e.x=W*(0.25+Math.random()*0.50);
+          e.y=H*(0.60+Math.random()*0.22);
+          e.vy=-(0.08+Math.random()*0.28);
+        }
+        const op=e.op*(0.55+0.45*Math.abs(Math.sin(e.phase)));
+        const warm=`rgba(${240+Math.random()*15|0},${50+Math.random()*40|0},0,${op})`;
+        ctx.fillStyle=warm;
+        ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+      }
+    }
 
-     /* Dunes en silhouette */
-     ctx.fillStyle='rgba(42,22,6,0.92)';
-     ctx.beginPath();
-     ctx.moveTo(0,horizY);
-     ctx.bezierCurveTo(W*0.10,horizY-H*0.032,W*0.20,horizY-H*0.018,W*0.32,horizY-H*0.028);
-     ctx.bezierCurveTo(W*0.44,horizY-H*0.038,W*0.52,horizY-H*0.012,W*0.65,horizY-H*0.025);
-     ctx.bezierCurveTo(W*0.78,horizY-H*0.036,W*0.88,horizY-H*0.018,W,horizY-H*0.022);
-     ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+    function drawSVG(){
+      if(!_svgReady||!_svgImg) return;
+      /* Le SVG couvre tout le bas — on le place en pleine largeur, ancré au bas */
+      const svgW=W;
+      const svgH=svgW*(1.15); /* ratio approx portrait */
+      const svgX=0;
+      const svgY=H-svgH*0.80; /* ancré en bas, laisse dépasser vers le bas */
+      ctx.save();
+      ctx.globalAlpha=0.97;
+      ctx.drawImage(_svgImg, svgX, svgY, svgW, svgH);
+      ctx.restore();
+    }
 
-     /* Craquelures sol — lignes de sécheresse */
-     ctx.strokeStyle='rgba(8,4,1,0.35)';ctx.lineWidth=0.6;
-     for(let i=0;i<12;i++){
-      const sx=((i*137+53)%100)/100*W;
-      const sy=horizY+((i*79+31)%100)/100*(H-horizY)*0.6;
-      ctx.beginPath();ctx.moveTo(sx,sy);
-      ctx.lineTo(sx+(Math.random()-0.5)*W*0.06,sy+H*0.04);ctx.stroke();
-     }
-
-     /* Nappe de pétrole au pied du derrick */
-     const oilG=ctx.createRadialGradient(cx,horizY+H*0.04,0,cx,horizY+H*0.04,W*0.28);
-     oilG.addColorStop(0,'rgba(6,3,0,0.95)');
-     oilG.addColorStop(0.5,'rgba(12,6,1,0.70)');
-     oilG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=oilG;ctx.fillRect(0,horizY,W,H*0.12);
-
-     /* Reflet irisé de la nappe */
-     const irisG=ctx.createLinearGradient(cx-W*0.15,horizY+H*0.01,cx+W*0.15,horizY+H*0.03);
-     irisG.addColorStop(0,'rgba(80,40,0,0)');
-     irisG.addColorStop(0.3,'rgba(140,70,10,0.12)');
-     irisG.addColorStop(0.6,'rgba(180,90,20,0.08)');
-     irisG.addColorStop(1,'rgba(80,40,0,0)');
-     ctx.fillStyle=irisG;
-     ctx.beginPath();ctx.ellipse(cx,horizY+H*0.025,W*0.22,H*0.018,0,0,Math.PI*2);ctx.fill();
+    function drawVignette(){
+      const vg=ctx.createRadialGradient(cx,H*0.42,H*0.05,cx,H*0.42,H*0.92);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(0.40,`rgba(0,0,0,${0.05+Math.sin(t*0.20)*0.015})`);
+      vg.addColorStop(0.72,'rgba(0,0,0,0.35)');
+      vg.addColorStop(1,'rgba(0,0,0,0.92)');
+      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+      /* Grain film */
+      for(let i=0;i<28;i++){
+        const gv=6+Math.random()*10|0;
+        ctx.fillStyle=`rgba(${gv+4},${gv+2},${gv},${Math.random()*0.016})`;
+        ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);
+      }
     }
 
     function frame(){
-     if(stop.v)return;
-
-     /* ── CIEL crépusculaire — rouge sang / noir ── */
-     const sky=ctx.createLinearGradient(0,0,0,horizY);
-     sky.addColorStop(0.00,'#0a0200');
-     sky.addColorStop(0.20,'#1a0600');
-     sky.addColorStop(0.45,'#3d1202');
-     sky.addColorStop(0.68,'#6b2204');
-     sky.addColorStop(0.85,'#8c3206');
-     sky.addColorStop(1.00,'#a04008');
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
-
-     /* ── Halo de l'incendie sur le ciel ── */
-     const fireGlow=ctx.createRadialGradient(cx,horizY,0,cx,horizY,W*0.65);
-     fireGlow.addColorStop(0,`rgba(220,90,10,${0.38+Math.sin(t*2.1)*0.08})`);
-     fireGlow.addColorStop(0.35,`rgba(160,50,5,${0.18+Math.sin(t*1.7)*0.05})`);
-     fireGlow.addColorStop(0.70,'rgba(80,20,2,0.06)');
-     fireGlow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=fireGlow;ctx.fillRect(0,0,W,horizY);
-
-     /* ── Derricks secondaires (lointains, petits) ── */
-     drawDerrick(cx-W*0.34,horizY,H*0.22,0.45);
-     drawDerrick(cx+W*0.30,horizY,H*0.18,0.38);
-     drawDerrick(cx-W*0.56,horizY,H*0.14,0.28);
-     drawDerrick(cx+W*0.52,horizY,H*0.16,0.32);
-
-     /* ── FUMÉE — derrière le feu ── */
-     for(const p of smokeParticles){
-      p.life+=0.006;p.x+=p.vx;p.y+=p.vy;
-      if(p.life>=p.maxLife){
-       p.life=0;p.x=cx+(Math.random()-0.5)*W*0.14;
-       p.y=horizY-H*0.28-Math.random()*H*0.08;
+      if(stop.v){
+        ctx.clearRect(0,0,W,H);
+        cv.style.opacity='0';
+        return;
       }
-      const prog=p.life/p.maxLife;
-      const alpha=(prog<0.2?prog/0.2:1-prog)*0.32;
-      const sz=p.size*(0.5+prog*0.8);
-      /* fumée vire du brun-rouille au noir */
-      const r=Math.round(28*(1-prog)+6*prog);
-      const g=Math.round(14*(1-prog)+3*prog);
-      const b=Math.round(4*(1-prog)+1*prog);
-      ctx.fillStyle=`rgba(${r},${g},${b},${alpha})`;
-      ctx.beginPath();ctx.arc(p.x+Math.sin(t*0.5+p.phase||0)*p.size*0.2,p.y,sz,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── DESERT + NAPPE PÉTROLE ── */
-     drawDesert();
-
-     /* ── Derrick principal — en flammes ── */
-     drawDerrick(cx,horizY,H*0.40,1.0);
-
-     /* ── Base du feu — colonne incandescente ── */
-     const baseFireH=H*0.38;
-     const baseFireG=ctx.createLinearGradient(cx,horizY-baseFireH*0.15,cx,horizY);
-     baseFireG.addColorStop(0,'rgba(255,160,20,0)');
-     baseFireG.addColorStop(0.5,`rgba(255,100,10,${0.55+Math.sin(t*3.1)*0.12})`);
-     baseFireG.addColorStop(0.85,`rgba(240,60,5,${0.70+Math.sin(t*2.5)*0.10})`);
-     baseFireG.addColorStop(1,`rgba(180,30,2,0.85)`);
-     ctx.fillStyle=baseFireG;
-     ctx.beginPath();
-     const fw=W*0.055;
-     ctx.moveTo(cx-fw*0.6,horizY);
-     ctx.bezierCurveTo(cx-fw*(0.8+Math.sin(t*2.2)*0.1),horizY-baseFireH*0.5,
-                       cx+fw*(0.6+Math.sin(t*1.8)*0.12),horizY-baseFireH*0.75,
-                       cx+(Math.sin(t*2.8)*fw*0.3),horizY-baseFireH);
-     ctx.bezierCurveTo(cx-(Math.sin(t*2.3)*fw*0.3),horizY-baseFireH,
-                       cx+fw*(0.8+Math.sin(t*1.9)*0.12),horizY-baseFireH*0.5,
-                       cx+fw*0.6,horizY);
-     ctx.closePath();ctx.fill();
-
-     /* ── PARTICULES DE FEU ── */
-     for(const p of fireParticles){
-      p.life+=0.014+Math.sin(p.phase)*0.003;p.x+=p.vx;p.y+=p.vy;p.phase+=0.08;
-      if(p.life>=p.maxLife){
-       p.life=0;
-       p.x=cx+(Math.random()-0.5)*W*0.08;
-       p.y=horizY-H*0.04;
-       p.vx=(Math.random()-0.5)*0.9;
-       p.vy=-(0.4+Math.random()*1.8);
+      drawBg();
+      /* Derricks fantômes dans la brume */
+      const horizY=H*0.62;
+      ctx.save();ctx.globalAlpha=0.55;
+      for(const d of ghostDerricks){
+        drawGhostDerrick(d.x, horizY, H*d.h, d.opacity/0.55);
       }
-      const prog=p.life/p.maxLife;
-      /* couleur : blanc → jaune → orange → rouge → transparent */
-      let r,g,b,a;
-      if(prog<0.15){r=255;g=255;b=200;a=prog/0.15*0.85;}
-      else if(prog<0.40){const f=(prog-0.15)/0.25;r=255;g=Math.round(255-f*155);b=Math.round(200-f*200);a=0.85;}
-      else if(prog<0.70){const f=(prog-0.40)/0.30;r=255;g=Math.round(100-f*70);b=0;a=0.85-f*0.35;}
-      else{const f=(prog-0.70)/0.30;r=Math.round(255-f*140);g=Math.round(30-f*30);b=0;a=0.50-f*0.50;}
-      const sz=p.size*(1-prog*0.6);
-      ctx.fillStyle=`rgba(${r},${g},${b},${a})`;
-      ctx.beginPath();ctx.arc(p.x,p.y,sz,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── ÉTINCELLES ── */
-     for(const s of sparks){
-      s.life+=0.022;s.x+=s.vx;s.y+=s.vy;s.vy+=0.08;/* gravité */
-      if(s.life>=s.maxLife){
-       s.life=0;s.x=cx+(Math.random()-0.5)*W*0.06;
-       s.y=horizY-H*0.18;
-       s.vx=(Math.random()-0.5)*3.2;s.vy=-(1.5+Math.random()*3.5);
-      }
-      const prog=s.life/s.maxLife;
-      const a=1-prog;
-      ctx.fillStyle=`rgba(255,${Math.round(200-prog*180)},0,${a*0.9})`;
-      ctx.beginPath();ctx.arc(s.x,s.y,s.size*(1-prog*0.5),0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── Vignette ── */
-     const vg=ctx.createRadialGradient(cx,H*0.5,H*0.08,cx,H*0.5,H*0.75);
-     vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.5,'rgba(0,0,0,0.10)');
-     vg.addColorStop(1,'rgba(0,0,0,0.88)');
-     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-
-     /* Fondu bas */
-     const fd=ctx.createLinearGradient(0,H*0.78,0,H);
-     fd.addColorStop(0,'rgba(0,0,0,0)');fd.addColorStop(1,'rgba(0,0,0,0.92)');
-     ctx.fillStyle=fd;ctx.fillRect(0,H*0.78,W,H*0.22);
-
-     t+=0.016;requestAnimationFrame(frame);
+      ctx.restore();
+      drawSmoke();
+      drawEmbers();
+      drawSVG();
+      drawVignette();
+      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
   },
-
-
-
-
-
   /* ══ LE CINQUIÈME ÉLÉMENT ══ */
   {
    name:'Le Cinqui\u00e8me \u00c9l\u00e9ment',
@@ -40381,15 +40327,7 @@
     /* ── Style ── */
     let _nmS=document.getElementById('_nm_s');
     if(!_nmS){_nmS=document.createElement('style');_nmS.id='_nm_s';document.head.appendChild(_nmS);}
-    _nmS.textContent=`
-     
-     #splash-bg::before,#splash-bg::after,
-     #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
-     #splash-content-wrap.reveal{transform:none!important;}
-     #splash-quote-text{color:rgba(255,220,140,0.92)!important;font-size:14px!important;text-shadow:0 1px 12px rgba(60,30,0,0.90)!important;}
-     #splash-film-logo{max-width:62%!important;}
-    `;
+    _nmS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:70%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,220,140,0.92)!important;text-shadow:0 1px 12px rgba(60,30,0,0.90)!important;}#splash-film-logo{max-width:62%!important;}';
     const _nmW=setInterval(()=>{if(stop.v){_nmS.textContent='';clearInterval(_nmW);}},200);
 
     const floorY=H*0.82;
