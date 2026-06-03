@@ -14825,17 +14825,17 @@ function runSplash(){
       }
 
       if(!aud.paused){
-        // Déjà amorcé silencieusement — rembobiner et démarrer le fade-in
-        // quand le rideau est bien ouvert (~1800ms dans l'animation de 4.2s)
+        // Cas rare — déjà en lecture (ne devrait plus arriver)
+        aud.pause();
         aud.currentTime = 0;
-        setTimeout(doFadeIn, 1800);
+        aud.volume = 0;
       } else {
         aud.currentTime = 0;
         aud.volume = 0;
-        aud.play().then(function(){ setTimeout(doFadeIn, 1800); }).catch(function(){
-          setTimeout(closeSplash, Math.max(closeDelay, 8000));
-        });
       }
+      aud.play().then(function(){ setTimeout(doFadeIn, 1800); }).catch(function(){
+        setTimeout(closeSplash, Math.max(closeDelay, 8000));
+      });
     })();
 
     // Masquer "Appuie pour commencer" et "Réalisé par Max"
@@ -14974,9 +14974,7 @@ function runSplash(){
       if(filmFile && !window._splashAudio){
         window._splashAudio = new Audio(filmFile);
         window._splashAudio.volume = 0;
-        // On lance silencieusement pour primer iOS, mais le volume reste à 0
-        // startSequence fera le fade-in après la disparition du ticket
-        window._splashAudio.play().catch(function(){});
+        window._splashAudio.load(); // pré-charge sans démarrer — play() dans startSequence
       }
     }
     musicStarted = true;
@@ -15045,7 +15043,7 @@ function runSplash(){
       if(filmFile){
         window._splashAudio = new Audio(filmFile);
         window._splashAudio.volume = 0;
-        window._splashAudio.play().catch(function(){});
+        window._splashAudio.load(); // pré-charge sans démarrer
       }
     }
     e.preventDefault();
@@ -15057,7 +15055,7 @@ function runSplash(){
     const dx = cx - dragStartX;
     const pull = Math.abs(dx);
 
-    if(pull > 8) tearDirection = dx > 0 ? 1 : -1;
+    if(pull > 6) tearDirection = dx > 0 ? 1 : -1;
 
     const resistance = 1 - Math.min(0.35, pull / 450);
 
@@ -15075,9 +15073,11 @@ function runSplash(){
       ticketR.style.transform = '';
     }
 
-    ticketPerf.style.opacity = String(Math.max(0, 1 - pull / 130));
+    ticketPerf.style.opacity = String(Math.max(0, 1 - pull / 100));
 
-    if(pull >= 130) _triggerTear();
+    /* Seuil plus bas pour le talon (petit) que pour le corps (large) */
+    const threshold = dragSide === 'left' ? 80 : 130;
+    if(pull >= threshold) _triggerTear();
   }
 
   function _onTearEnd(){
@@ -15105,10 +15105,6 @@ function runSplash(){
   ticketR.addEventListener('mousedown',  _onTearStartRight);
   ticketPerf.addEventListener('touchstart', _onTearStartRight, {passive:false});
   ticketPerf.addEventListener('mousedown',  _onTearStartRight);
-  window.addEventListener('touchmove',  _onTearMove,  {passive:true});
-  window.addEventListener('mousemove',  _onTearMove);
-  window.addEventListener('touchend',   _onTearEnd);
-  window.addEventListener('mouseup',    _onTearEnd);
   window.addEventListener('touchmove',  _onTearMove,  {passive:true});
   window.addEventListener('mousemove',  _onTearMove);
   window.addEventListener('touchend',   _onTearEnd);
