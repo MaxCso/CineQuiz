@@ -18027,12 +18027,13 @@
 
     function drawCharacters(){
       if(!_charReady || !_charImg) return;
-      /* Personnages+sol : pleine largeur, ancrés en bas */
-      /* ratio SVG 874/515 ≈ 1.697 (paysage) */
-      const charW = W;
-      const charH = W / (874/515);  // hauteur proportionnelle
-      const charX = 0;
-      const charY = H - charH;      // ancré au bas de l'écran
+      /* Django.svg ratio paysage 874/515 ≈ 1.697
+         On scale par la hauteur (35% de H) pour que les silhouettes
+         soient bien visibles, et on centre horizontalement */
+      const charH = H * 0.35;
+      const charW = charH * (874/515);
+      const charX = (W - charW) / 2;   /* centré, peut déborder sur les côtés */
+      const charY = H - charH * 0.96;  /* ancré au bas, légère marge */
       ctx.save();
       ctx.globalAlpha=0.97;
       ctx.drawImage(_charImg, charX, charY, charW, charH);
