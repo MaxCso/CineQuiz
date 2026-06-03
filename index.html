@@ -394,12 +394,8 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
   <div class="mover" id="mode-stats-modal" onclick="if(event.target===this)closeModeStatsDetail()">
     <div class="msh" id="mode-stats-sh">
       <div class="mode-info-hdl"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);" id="mode-stats-title">PARTIES PAR MODE</div>
-        <div style="display:flex;gap:6px;">
-          <button id="mode-stats-btn-games" onclick="openModeStatsDetail('games')" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(245,200,66,.4);background:rgba(245,200,66,.15);color:var(--gold);cursor:pointer;">PARTIES</button>
-          <button id="mode-stats-btn-scores" onclick="openModeStatsDetail('scores')" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;">RECORDS</button>
-        </div>
+      <div style="margin-bottom:14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);" id="mode-stats-title">STATS PAR MODE</div>
       </div>
       <div id="mode-stats-content" style="overflow-y:auto;max-height:65vh;"></div>
     </div>
@@ -4079,85 +4075,69 @@ function renderModeStats(s){
 function openModeStatsDetail(type){
   const s=ls();
   const modal=document.getElementById('mode-stats-modal');
-  const title=document.getElementById('mode-stats-title');
   const content=document.getElementById('mode-stats-content');
   if(!modal||!content)return;
 
-  /* Mettre à jour l'état actif des boutons toggle */
-  const btnG=document.getElementById('mode-stats-btn-games');
-  const btnS=document.getElementById('mode-stats-btn-scores');
-  if(btnG&&btnS){
-    if(type==='games'){
-      btnG.style.cssText='font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(245,200,66,.4);background:rgba(245,200,66,.15);color:var(--gold);cursor:pointer;';
-      btnS.style.cssText='font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;';
-    } else {
-      btnS.style.cssText='font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(245,200,66,.4);background:rgba(245,200,66,.15);color:var(--gold);cursor:pointer;';
-      btnG.style.cssText='font-family:\'DM Sans\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;';
-    }
-  }
+  const modes=[
+    {k:'quizGames',l:'⚡',n:'Trivia Ciné',        mk:'quiz'},
+    {k:'photoGames',l:'🎬',n:'Affiche Mystère',    mk:'photo'},
+    {k:'yearGames',l:'📅',n:'Quelle Année ?',      mk:'year'},
+    {k:'boGames',l:'💡',n:'Indices Mystère',       mk:'bo'},
+    {k:'boxofficeGames',l:'💰',n:'Box-office',      mk:'boxoffice'},
+    {k:'acteurGames',l:'👤',n:'Acteur Mystère',     mk:'acteur'},
+    {k:'compositeurGames',l:'🎼',n:'Compositeur',   mk:'compositeur'},
+    {k:'filmographieGames',l:'🎭',n:'Filmographie', mk:'filmographie'},
+    {k:'realisateurGames',l:'🎥',n:'Réalisateur',   mk:'realisateur'},
+    {k:'castingGames',l:'🧩',n:'Le Casting',        mk:'casting'},
+    {k:'generiqueGames',l:'📜',n:'Le Générique',    mk:'generique'},
+    {k:'locationGames',l:'🌍',n:'Lieu de tournage', mk:'location'},
+    {k:'trainingGames',l:'📚',n:'Entraînement',     mk:'training'},
+    {k:'vraifauxGames',l:'🎯',n:'Vrai ou Faux',     mk:'vraifaux'},
+    {k:'decennieGames',l:'🗓️',n:'Décennie',         mk:'decennie'},
+    {k:'blindtestGames',l:'🎵',n:'Blind Test',      mk:'blindtest'},
+    {k:'versusGames',l:'⚔️',n:'Multijoueur',        mk:'versus'},
+    {k:'pitchGames',l:'📝',n:'Le Pitch',            mk:'pitch'},
+    {k:'versusfilmsGames',l:'📊',n:'Versus Films',  mk:'versusfilms'},
+    {k:'survieGames',l:'❤️',n:'Survie',             mk:'survie'},
+    {k:'rebusGames',l:'🎭',n:'Rébus',               mk:'rebus'},
+    {k:'penduGames',l:'💀',n:'Le Pendu',            mk:'pendu'},
+  ];
 
-  if(type==='games'){
-    title.textContent='PARTIES PAR MODE';
-    const modes=[
-      {k:'quizGames',l:'⚡',n:'Trivia Ciné'},{k:'photoGames',l:'🎬',n:'Affiche Mystère'},
-      {k:'yearGames',l:'📅',n:'Quelle Année ?'},{k:'boGames',l:'💡',n:'Indices Mystère'},
-      {k:'boxofficeGames',l:'💰',n:'Box-office'},{k:'repliqueGames',l:'💬',n:'La Réplique'},
-      {k:'acteurGames',l:'👤',n:'Acteur Mystère'},{k:'compositeurGames',l:'🎼',n:'Compositeur'},
-      {k:'filmographieGames',l:'🎭',n:'Filmographie'},{k:'realisateurGames',l:'🎥',n:'Réalisateur'},
-      {k:'castingGames',l:'🧩',n:'Le Casting'},{k:'generiqueGames',l:'📜',n:'Le Générique'},
-      {k:'locationGames',l:'🌍',n:'Lieu de tournage'},{k:'trainingGames',l:'📚',n:'Entraînement'},
-      {k:'vraifauxGames',l:'🎯',n:'Vrai ou Faux'},{k:'decennieGames',l:'📅',n:'Décennie'},
-      {k:'blindtestGames',l:'🎵',n:'Blind Test'},{k:'versusGames',l:'⚔️',n:'Multijoueur'},
-      {k:'pitchGames',l:'📝',n:'Le Pitch'},{k:'versusfilmsGames',l:'📊',n:'Versus Films'},
-      {k:'survieGames',l:'❤️',n:'Survie'},
-    ];
-    const played=modes.filter(m=>(s[m.k]||0)>0).sort((a,b)=>(s[b.k]||0)-(s[a.k]||0));
-    const max=played.length?Math.max(...played.map(m=>s[m.k])):1;
-    content.innerHTML=played.length
-      ? '<div class="mode-bars">'+played.map(m=>{
-          const v=s[m.k]||0,pct=Math.round((v/max)*100);
-          return`<div class="mode-bar-row">
-            <div class="mode-bar-icon">${m.l}</div>
-            <div class="mode-bar-name">${m.n}</div>
-            <div class="mode-bar-track"><div class="mode-bar-fill" style="width:${pct}%"></div></div>
-            <div class="mode-bar-count">${v}</div>
-          </div>`;
-        }).join('')+'</div>'
-      : '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Aucune partie jouée</div>';
+  // Construire index des meilleurs scores depuis l'historique
+  const hist=s.history||[];
+  const bests={};
+  hist.forEach(h=>{
+    if(!h.mode||!h.score)return;
+    if(!bests[h.mode]||h.score>bests[h.mode].score)
+      bests[h.mode]={score:h.score,correct:h.correct||0,total:h.total||10};
+  });
 
-  } else {
-    title.textContent='MEILLEURS SCORES PAR MODE';
-    const hist=s.history||[];
-    const bests={};
-    hist.forEach(h=>{if(!h.mode||!h.score)return;if(!bests[h.mode]||h.score>bests[h.mode].score)bests[h.mode]={score:h.score,correct:h.correct||0,total:h.total||10,date:h.date||''};});
-    const modeIcons={quiz:'⚡',photo:'🎬',year:'📅',bo:'💡',boxoffice:'💰',replique:'💬',acteur:'👤',compositeur:'🎼',filmographie:'🎭',realisateur:'🎥',casting:'🧩',generique:'📜',location:'🌍',training:'📚',vraifaux:'🎯',decennie:'🗓️',blindtest:'🎵',versus:'⚔️',pitch:'📝',versusfilms:'📊',survie:'❤️',rebus:'🎭',pendu:'💀'};
-    const modeLabels={quiz:'Trivia Ciné',photo:'Affiche Mystère',year:'Quelle Année ?',bo:'Indices Mystère',boxoffice:'Box-office',replique:'La Réplique',acteur:'Acteur Mystère',compositeur:'Compositeur',filmographie:'Filmographie',realisateur:'Réalisateur',casting:'Le Casting',generique:'Le Générique',location:'Lieu de tournage',training:'Entraînement',vraifaux:'Vrai ou Faux',decennie:'Décennie',blindtest:'Blind Test',versus:'Multijoueur',pitch:'Le Pitch',versusfilms:'Versus Films',survie:'Survie',rebus:'Rébus',pendu:'Le Pendu'};
-    const entries=Object.entries(bests).sort((a,b)=>b[1].score-a[1].score);
-    const maxScore=entries[0]?.[1].score||1;
-    const rankColors=['#f5c842','#c0c0c0','#cd7f32'];
-    content.innerHTML=entries.length
-      ? entries.map(([mode,d],i)=>{
-          const pct=Math.round((d.score/maxScore)*100);
-          const icon=modeIcons[mode]||'🎬';
-          const label=modeLabels[mode]||mode;
-          const rankColor=rankColors[i]||'rgba(255,255,255,.25)';
-          const isTop=i===0;
-          return`<div class="hitem${isTop?' hitem-top':''}">
-            <div class="hi" style="width:28px;height:28px;border-radius:8px;background:${isTop?'rgba(245,200,66,.12)':'rgba(255,255,255,.05)'};border:1px solid ${isTop?'rgba(245,200,66,.25)':'rgba(255,255,255,.08)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${icon}</div>
-            <div class="hinfo" style="flex:1;min-width:0;">
-              <div class="hs" style="font-size:13px;color:${isTop?'var(--gold)':'rgba(255,255,255,.7)'};">${label}</div>
-              <div style="height:3px;border-radius:2px;background:rgba(255,255,255,.06);margin-top:5px;overflow:hidden;">
-                <div style="height:100%;width:${pct}%;border-radius:2px;background:${isTop?'linear-gradient(90deg,var(--gold2),var(--gold))':'rgba(255,255,255,.18)'};transition:width .8s ease;"></div>
+  const played=modes.filter(m=>(s[m.k]||0)>0).sort((a,b)=>(s[b.k]||0)-(s[a.k]||0));
+  const maxGames=played.length?Math.max(...played.map(m=>s[m.k])):1;
+
+  content.innerHTML=played.length
+    ? '<div class="mode-bars">'+played.map((m,i)=>{
+        const games=s[m.k]||0;
+        const pct=Math.round((games/maxGames)*100);
+        const best=bests[m.mk];
+        const isTop=i===0;
+        return`<div class="mode-bar-row" style="align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px;">
+          <div style="font-size:16px;width:22px;text-align:center;flex-shrink:0;">${m.l}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px;">
+              <div style="font-size:12px;font-weight:600;color:${isTop?'var(--gold)':'rgba(255,255,255,.75)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${m.n}</div>
+              <div style="display:flex;align-items:baseline;gap:5px;flex-shrink:0;">
+                <div style="font-size:11px;color:rgba(255,255,255,.35);">${games} partie${games>1?'s':''}</div>
+                ${best?`<div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${isTop?'var(--gold)':'rgba(255,255,255,.55)'};letter-spacing:.5px;">${best.score}<span style="font-family:'DM Sans',sans-serif;font-size:8px;color:rgba(255,255,255,.25);font-weight:400;letter-spacing:0;margin-left:2px;">pts</span></div>`:''}
               </div>
             </div>
-            <div style="text-align:right;flex-shrink:0;">
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${rankColor};letter-spacing:.5px;">${d.score}</div>
-              <div style="font-size:9px;color:rgba(255,255,255,.28);">${d.correct}/${d.total}</div>
+            <div style="height:3px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;">
+              <div style="height:100%;width:${pct}%;border-radius:2px;background:${isTop?'linear-gradient(90deg,var(--gold2),var(--gold))':'rgba(255,255,255,.18)'};transition:width .8s ease;"></div>
             </div>
-          </div>`;
-        }).join('')
-      : '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Aucune partie jouée</div>';
-  }
+          </div>
+        </div>`;
+      }).join('')+'</div>'
+    : '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Aucune partie jouée</div>';
 
   modal.classList.add('on');
   const sh=document.getElementById('mode-stats-sh');
@@ -4275,8 +4255,11 @@ function sndSwipe(){
 function sndTear(){
   if(!sndOn)return;
   try{
-    const a=new Audio('ticket.mp3');
-    a.volume=0.85;
+    // Utiliser l'instance primée dans _onTearStart (iOS safe)
+    var a = window._ticketAudioPrimed || new Audio('ticket.mp3');
+    window._ticketAudioPrimed = null;
+    a.currentTime = 0;
+    a.volume = 0.85;
     a.play().catch(function(){});
   }catch(e){}
 }
@@ -14828,12 +14811,14 @@ function runSplash(){
       }
 
       if(!aud.paused){
+        // Déjà amorcé silencieusement — rembobiner et démarrer le fade-in
+        // avec un délai pour que la musique commence quand le rideau s'ouvre
         aud.currentTime = 0;
-        doFadeIn();
+        setTimeout(doFadeIn, 500);
       } else {
         aud.currentTime = 0;
         aud.volume = 0;
-        aud.play().then(function(){ doFadeIn(); }).catch(function(){
+        aud.play().then(function(){ setTimeout(doFadeIn, 500); }).catch(function(){
           setTimeout(closeSplash, Math.max(closeDelay, 8000));
         });
       }
@@ -14983,9 +14968,17 @@ function runSplash(){
     if(tearTriggered) return;
     dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
     dragStarted = true;
-    // Primer audio au premier toucher
+    // Primer audio au premier toucher (iOS exige play() dans le contexte du geste)
     _initAC();
     if(_ac && _ac.state === 'suspended') _ac.resume();
+    // Primer ticket.mp3 silencieusement dès le touchstart
+    if(!window._ticketAudioPrimed && sndOn){
+      try{
+        window._ticketAudioPrimed = new Audio('ticket.mp3');
+        window._ticketAudioPrimed.volume = 0;
+        window._ticketAudioPrimed.play().catch(function(){});
+      }catch(ex){}
+    }
     if(!window._splashAudio && !window._splashPreviewMode){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
