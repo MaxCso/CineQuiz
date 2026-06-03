@@ -14738,8 +14738,9 @@ function runSplash(){
       function _stopAudio(cb){
         if(_audioStopped){ cb(); return; }
         _audioStopped = true;
-        if(_splashAudioPlaying && !_splashAudioPlaying.ended){
-          var a = _splashAudioPlaying;
+        // Lire depuis window en priorité — l'audio est créé dans le scope du ticket
+        var a = window._splashAudioPlaying || _splashAudioPlaying || window._splashAudioPrimed || _splashAudioPrimed;
+        if(a && !a.ended && !a.paused || (a && a.currentTime > 0)){
           var v = a.volume || 1, st = 0, tot = 24;
           var fo = setInterval(function(){
             st++;
@@ -14747,12 +14748,15 @@ function runSplash(){
             if(st >= tot){
               clearInterval(fo);
               try{ a.pause(); a.currentTime = 0; }catch(e){}
-              _splashAudioPlaying = null;
+              window._splashAudioPlaying = null; _splashAudioPlaying = null;
+              window._splashAudioPrimed  = null; _splashAudioPrimed  = null;
               cb();
             }
           }, 600 / tot);
         } else {
-          if(_splashAudioPlaying){ try{ _splashAudioPlaying.pause(); _splashAudioPlaying.currentTime=0; }catch(e){} _splashAudioPlaying=null; }
+          if(a){ try{ a.pause(); a.currentTime=0; }catch(e){} }
+          window._splashAudioPlaying = null; _splashAudioPlaying = null;
+          window._splashAudioPrimed  = null; _splashAudioPrimed  = null;
           cb();
         }
       }
@@ -14778,9 +14782,11 @@ function runSplash(){
         splash.querySelectorAll('*').forEach(el=>{ el.style.animation='none'; });
         if(window._stopNeuroSplash)window._stopNeuroSplash();
         if(window._stopSplashEffect)window._stopSplashEffect();
-        // S'assurer que l'audio splash est bien arrêté avant de lancer la musique appli
-        if(_splashAudioPlaying){ try{ _splashAudioPlaying.pause(); _splashAudioPlaying.currentTime=0; }catch(e){} _splashAudioPlaying=null; }
-        if(_splashAudioPrimed && !_splashAudioPrimed.paused){ try{ _splashAudioPrimed.pause(); _splashAudioPrimed.currentTime=0; }catch(e){} _splashAudioPrimed=null; }
+        // Filet de sécurité — couper tout audio splash résiduel
+        var _ra = window._splashAudioPlaying || _splashAudioPlaying || window._splashAudioPrimed || _splashAudioPrimed;
+        if(_ra){ try{ _ra.pause(); _ra.currentTime=0; }catch(e){} }
+        window._splashAudioPlaying=null; _splashAudioPlaying=null;
+        window._splashAudioPrimed=null;  _splashAudioPrimed=null;
         if(musOn) playMus();
       }, 700);
     }
@@ -14936,10 +14942,12 @@ function runSplash(){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
       if(filmFile){
-        _splashAudioPrimed = new Audio(filmFile);
-        _splashAudioPrimed.volume = 0;
-        _splashAudioPrimed.play().catch(function(){});
-        _splashAudioPlaying = _splashAudioPrimed;
+        window._splashAudioPrimed = new Audio(filmFile);
+        window._splashAudioPrimed.volume = 0;
+        window._splashAudioPrimed.play().catch(function(){});
+        window._splashAudioPlaying = window._splashAudioPrimed;
+        _splashAudioPrimed  = window._splashAudioPrimed;
+        _splashAudioPlaying = window._splashAudioPlaying;
       }
     }
     musicStarted = true;
@@ -14977,14 +14985,16 @@ function runSplash(){
     // Primer audio au premier toucher
     _initAC();
     if(_ac && _ac.state === 'suspended') _ac.resume();
-    if(!_splashAudioPrimed && !window._splashPreviewMode){
+    if(!window._splashAudioPrimed && !_splashAudioPrimed && !window._splashPreviewMode){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
       if(filmFile){
-        _splashAudioPrimed = new Audio(filmFile);
-        _splashAudioPrimed.volume = 0;
-        _splashAudioPrimed.play().catch(function(){});
-        _splashAudioPlaying = _splashAudioPrimed;
+        window._splashAudioPrimed = new Audio(filmFile);
+        window._splashAudioPrimed.volume = 0;
+        window._splashAudioPrimed.play().catch(function(){});
+        window._splashAudioPlaying = window._splashAudioPrimed;
+        _splashAudioPrimed  = window._splashAudioPrimed;
+        _splashAudioPlaying = window._splashAudioPlaying;
       }
     }
     e.preventDefault();
