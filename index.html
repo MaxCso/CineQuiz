@@ -10706,20 +10706,29 @@ function openCinepedia(){
   if(!modal)return;
   modal.style.display='flex';
   document.body.style.overflow='hidden';
-  // Marquer comme vu → effacer le dot rouge
   try{localStorage.setItem('cq_cinepedia_last_seen',String(_cpDaySeed(new Date())));}catch{}
   const dot=document.getElementById('cinepedia-new-dot');
   if(dot)dot.style.display='none';
   _cpActiveFilter='all';
   _cpRenderModal();
   if(typeof stopMus==='function') stopMus();
+  // Swipe depuis le bord gauche → fermer (sur l'overlay qui n'est pas bloqué par le scroll)
+  const cpEdge=document.getElementById('cp-swipe-edge');
+  if(cpEdge) setupSwipeRight(cpEdge,closeCinepedia);
 }
 
 function closeCinepedia(){
   const modal=document.getElementById('cinepedia-modal');
-  if(modal)modal.style.display='none';
-  document.body.style.overflow='';
-  if(musOn) playMus();
+  if(!modal)return;
+  modal.style.transition='opacity .18s ease';
+  modal.style.opacity='0';
+  setTimeout(function(){
+    modal.style.display='none';
+    modal.style.opacity='';
+    modal.style.transition='';
+    document.body.style.overflow='';
+    if(musOn) playMus();
+  },160);
 }
 
 function _cpRenderModal(){
@@ -15305,25 +15314,6 @@ setTimeout(()=>{
   const badgesEl=document.getElementById('badges-screen');
   if(badgesEl)setupSwipeRight(badgesEl,closeBadgesScreen);
 
-  // Utilitaire : animation de sortie droite pour les modales display:none
-  function _swipeRightClose(el, closeFn){
-    el.style.transition='transform .28s cubic-bezier(.4,0,.6,1), opacity .22s ease';
-    el.style.transform='translateX(100%)';
-    el.style.opacity='0';
-    setTimeout(function(){
-      el.style.transition='';
-      el.style.transform='';
-      el.style.opacity='';
-      closeFn();
-    }, 280);
-  }
-
-  // Cinépédia (full-screen) : swipe droite → fermer avec animation
-  const cinepediaEl=document.getElementById('cinepedia-modal');
-  if(cinepediaEl)setupSwipeRight(cinepediaEl,function(){_swipeRightClose(cinepediaEl,closeCinepedia);});
-  // Salle de Projection (full-screen) : swipe droite → fermer avec animation
-  const cinemathequeEl=document.getElementById('cinematheque-modal');
-  if(cinemathequeEl)setupSwipeRight(cinemathequeEl,function(){_swipeRightClose(cinemathequeEl,function(){if(typeof window.closeCinematheque==='function')window.closeCinematheque();});});
 },400);
 function animateQTransition(cb){
   const qa=document.getElementById('qa');
@@ -15820,6 +15810,16 @@ const EE_TEASERS = [
   "Ton meilleur score mérite une attention particulière.",
   "Les stats Hidden Movies recèlent un secret pour les patients.",
   "Qui a tout vu, tout trouvé, tout vécu — mérite d'être reconnu.",
+  "Les intros de films cachent une zone que peu ont pensé à toucher.",
+  "Le titre de la Cinépédia en sait plus qu'il n'en dit.",
+  "Un badge débloqué aime parfois être célébré plusieurs fois.",
+  "L'onglet Modes résiste à qui ne sait pas insister.",
+  "Le défi accompli mérite un peu plus d'attention.",
+  "Certains collectionneurs grattent sans jamais s'arrêter.",
+  "Chaque film a une généalogie. Elle se trouve tout en bas.",
+  "Ton niveau XP recèle un secret pour les plus curieux.",
+  "La chance se provoque. Surtout avec ce bouton-là.",
+  "L'aide connaît des réponses que tu n'as pas encore posées.",
 ];
 
 function eeIsFound(id){ const s=ls(); return (s.ee||[]).includes(id); }
@@ -19475,6 +19475,8 @@ function hmReopenTuto() {
 
 <!-- ── CINÉPÉDIA — PLEIN ÉCRAN ── -->
 <div id="cinepedia-modal" style="display:none;position:fixed;inset:0;z-index:99990;flex-direction:column;background:#07050f;">
+  <!-- Zone de swipe bord gauche — capte le geste avant le scroll -->
+  <div id="cp-swipe-edge" style="position:absolute;left:0;top:0;bottom:0;width:36px;z-index:10;pointer-events:auto;"></div>
   <!-- Fond orbes -->
   <div style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
     <div style="position:absolute;inset:0;
@@ -19506,6 +19508,8 @@ function hmReopenTuto() {
 
 <!-- ── SPLASH PREVIEW MODAL ── -->
 <div id="cinematheque-modal" style="display:none;position:fixed;inset:0;z-index:99990;flex-direction:column;background:#07050f;">
+  <!-- Zone de swipe bord gauche -->
+  <div id="cine-swipe-edge" style="position:absolute;left:0;top:0;bottom:0;width:36px;z-index:10;pointer-events:auto;"></div>
   <!-- Fond statique — orbes style accueil -->
   <div style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
     <div style="position:absolute;inset:0;
@@ -19823,6 +19827,9 @@ function hmReopenTuto() {
     modal.style.display='flex';
     document.body.style.overflow='hidden';
     if(typeof stopMus==='function') stopMus();
+    // Swipe depuis le bord gauche → fermer
+    var cineEdge=document.getElementById('cine-swipe-edge');
+    if(cineEdge) setupSwipeRight(cineEdge,window.closeCinematheque);
     var grid=document.getElementById('cine-grid');
     var searchInput=document.getElementById('cine-search');
     if(searchInput) searchInput.value='';
@@ -20021,9 +20028,17 @@ function hmReopenTuto() {
   }
 
   window.closeCinematheque=function(){
-    document.getElementById('cinematheque-modal').style.display='none';
-    document.body.style.overflow='';
-    if(typeof musOn!=='undefined' && musOn && typeof playMus==='function') playMus();
+    var modal=document.getElementById('cinematheque-modal');
+    if(!modal)return;
+    modal.style.transition='opacity .18s ease';
+    modal.style.opacity='0';
+    setTimeout(function(){
+      modal.style.display='none';
+      modal.style.opacity='';
+      modal.style.transition='';
+      document.body.style.overflow='';
+      if(typeof musOn!=='undefined'&&musOn&&typeof playMus==='function') playMus();
+    },160);
   };
 
   window.cineFilter=function(val){
