@@ -146,7 +146,7 @@
 
     /* ── HAL 9000 — pré-calcul position ── */
     const halR=W*0.085;
-    const halX=W/2, halY=H*0.31;
+    const halX=W/2, halY=H*0.29;
     let halPulse=0;
 
     function frame(){
