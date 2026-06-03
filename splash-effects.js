@@ -46661,148 +46661,117 @@
     _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* ── Explosions — 3 puits de pétrole bien distincts ── */
-    const EXPL_POSITIONS=[
-     {x:W*0.18, baseY:H*0.78, scale:1.20},  /* gauche — grand */
-     {x:W*0.58, baseY:H*0.80, scale:0.75},  /* centre-droit — moyen */
-     {x:W*0.84, baseY:H*0.77, scale:0.55},  /* droite — petit (lointain) */
-    ];
-    const explosions=EXPL_POSITIONS.map((pos,i)=>({
-     ...pos,
-     ph: i * (Math.PI*2/3),  /* phases bien écartées — jamais en même temps */
-     spd: 0.018+i*0.004,
-     maxH: H*(0.28+i*0.02)*pos.scale,
-     w: W*(0.10+i*0.005)*pos.scale,
-     fireR: i===0?255:220,
-     fireG: i===0?110:80,
-    }));
-
-    /* Débris volants — éjectés à chaque explosion */
-    const debris=Array.from({length:36},(_,i)=>{
-     const src=EXPL_POSITIONS[i%EXPL_POSITIONS.length];
-     return{
-      x:src.x+(Math.random()-0.5)*W*0.06,
-      y:src.baseY,
-      vx:(Math.random()-0.5)*3.8,
-      vy:-(Math.random()*4.5+1.5),
-      r:W*(0.004+Math.random()*0.006),
-      life:Math.random(),
-      decay:0.008+Math.random()*0.010,
-      col:Math.random()<0.6?'255,180,40':'140,100,60',
-     };
-    });
-
-    /* ── SVG Stark silhouette ── */
-    const starkImg=new Image();let starkReady=false;
-    starkImg.onload=()=>{starkReady=true;};
-    starkImg.src='images/Stark.svg';
+    /* ── JPG Tony Stark — fond plein canvas ── */
+    const tonyImg=new Image();let tonyReady=false;
+    tonyImg.onload=()=>{tonyReady=true;};
+    tonyImg.src='images/Tony.jpg';
 
     /* ── PNG Iron Man armure ── */
     const ironImg=new Image();let ironReady=false;
     ironImg.onload=()=>{ironReady=true;};
     ironImg.src='images/IronMan.png';
 
-    /* ── Particules énergétiques — débris tech ── */
-    const particles=Array.from({length:55},()=>{
-     return{
-      x:Math.random()*W, y:Math.random()*H,
-      vx:(Math.random()-0.5)*0.28, vy:(Math.random()-0.5)*0.22,
-      r:Math.random()*1.8+0.3,
-      col:Math.random()<0.5?'255,200,80':Math.random()<0.7?'255,120,30':'200,230,255',
-      op:0.12+Math.random()*0.28, ph:Math.random()*Math.PI*2,
-      spd:0.012+Math.random()*0.018,
-     };
-    });
+    /* ── Particules énergétiques flottantes ── */
+    /* Deux types : étincelles orange/or qui montent, et particules arc reactor cyan */
+    const sparks=Array.from({length:60},()=>({
+     x:W*(0.1+Math.random()*0.8),
+     y:H*(0.5+Math.random()*0.5),
+     vx:(Math.random()-0.5)*0.55,
+     vy:-(0.35+Math.random()*0.85),
+     r:Math.random()*1.6+0.4,
+     life:Math.random(),
+     decay:0.003+Math.random()*0.007,
+     col:Math.random()<0.65?'255,190,60':Math.random()<0.5?'255,120,20':'200,235,255',
+     ph:Math.random()*Math.PI*2,
+    }));
 
-    /* ── Arc reactor pulses — cercles concentriques ── */
-    const arcRings=Array.from({length:4},(_,i)=>{
-     return{r:W*(0.030+i*0.025), ph:i*Math.PI*0.55, spd:0.028-i*0.004};
-    });
+    /* ── Éclairs arc reactor — cercles concentriques depuis la poitrine d'Iron Man ── */
+    /* Centre arc reactor = centre horizontal, ~55% hauteur (milieu du PNG Iron Man) */
+    const arcX=cx, arcY=H*0.55;
+    const arcRings=Array.from({length:5},(_,i)=>({
+     maxR:W*(0.08+i*0.06),
+     ph:i*(Math.PI*2/5),
+     spd:0.022+i*0.003,
+    }));
 
-    /* ── Lignes tech HUD en arrière-plan ── */
-    const hudLines=Array.from({length:8},(_,i)=>{
-     return{
-      y:H*(0.18+i*0.09), op:0.05+((i*37)%20)/100*0.06,
-      w:W*(0.25+((i*41)%50)/100*0.50), x:W*((i*23)%40)/100,
-     };
-    });
-
-    /* ── Éclairs d'énergie depuis les mains ── */
-    const blasts=[
-     {x:W*0.08, y:H*0.78, angle:-0.3, len:W*0.18},
-     {x:W*0.92, y:H*0.78, angle:Math.PI+0.3, len:W*0.18},
+    /* ── Repulseurs des mains de Tony (bas de l'image) ── */
+    /* Tony bras écartés → mains ~20% et ~80% largeur, ~88% hauteur */
+    const repulsors=[
+     {x:W*0.20, y:H*0.875},
+     {x:W*0.80, y:H*0.875},
     ];
+
+    /* ── Lignes HUD tech subtiles ── */
+    const hudLines=Array.from({length:6},(_,i)=>({
+     y:H*(0.22+i*0.07),
+     w:W*(0.15+((i*41)%50)/100*0.35),
+     x:W*((i*23)%55)/100,
+     op:0.04+((i*17)%12)/100*0.05,
+    }));
+
+    /* ── Étincelles burst depuis les repulseurs (pool recyclé) ── */
+    const repBursts=Array.from({length:24},(_,i)=>{
+     const src=repulsors[i%2];
+     return{
+      x:src.x, y:src.y,
+      vx:(Math.random()-0.5)*2.8,
+      vy:-(Math.random()*3.2+0.5),
+      r:W*(0.003+Math.random()*0.004),
+      life:Math.random(),
+      decay:0.012+Math.random()*0.016,
+      srcIdx:i%2,
+     };
+    });
 
     function frame(){
      if(stop.v)return;
 
-     /* ── FOND désert afghan ── */
-     /* Ciel : bleu-gris voilé → ocre poussiéreux à l'horizon */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0.00,'#5a6e82');   /* bleu-gris haut */
-     bg.addColorStop(0.25,'#7a8a8e');   /* gris chaud */
-     bg.addColorStop(0.50,'#b09070');   /* ocre voilé */
-     bg.addColorStop(0.68,'#c8a870');   /* sable chaud horizon */
-     bg.addColorStop(0.78,'#8a6840');   /* terre sombre */
-     bg.addColorStop(1.00,'#3a2810');   /* ombre profonde */
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+     /* ── FOND : Tony.jpg — cover plein canvas ── */
+     ctx.fillStyle='#4a5a6a';ctx.fillRect(0,0,W,H);
+     if(tonyReady){
+      const iW=tonyImg.naturalWidth||675, iH=tonyImg.naturalHeight||1200;
+      const scale=Math.max(W/iW, H/iH);
+      const dw=iW*scale, dh=iH*scale;
+      const dx=(W-dw)/2, dy=(H-dh)/2;
+      ctx.drawImage(tonyImg,dx,dy,dw,dh);
+     }
+     /* Voile sombre en haut — lisibilité citation */
+     const topFade=ctx.createLinearGradient(0,0,0,H*0.45);
+     topFade.addColorStop(0,'rgba(0,0,0,0.50)');
+     topFade.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=topFade;ctx.fillRect(0,0,W,H*0.45);
 
-     /* Poussière de chaleur — halo à l'horizon */
-     const dustHaze=ctx.createRadialGradient(cx,H*0.68,0,cx,H*0.68,W*0.85);
-     dustHaze.addColorStop(0,`rgba(210,180,120,${0.28+Math.sin(t*0.18)*0.04})`);
-     dustHaze.addColorStop(0.5,'rgba(180,140,80,0.10)');
-     dustHaze.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=dustHaze;ctx.fillRect(0,0,W,H);
+     /* ── Lueur ambiante des repulseurs sur le sol/le corps de Tony ── */
+     for(const rp of repulsors){
+      const rpulse=0.18+Math.sin(t*2.8+rp.x)*0.10;
+      const rg=ctx.createRadialGradient(rp.x,rp.y,0,rp.x,rp.y,W*0.22);
+      rg.addColorStop(0,`rgba(160,220,255,${rpulse})`);
+      rg.addColorStop(0.35,`rgba(80,160,255,${rpulse*0.4})`);
+      rg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+      /* Point lumineux central */
+      ctx.beginPath();ctx.arc(rp.x,rp.y,W*0.016,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,240,255,${0.55+Math.sin(t*3.2+rp.x)*0.30})`;
+      ctx.fill();
+     }
 
-     /* ── Montagne désertique — 3 couches avec relief rocheux ── */
-     /* Couche 3 — collines lointaines, bleutées dans la brume */
-     ctx.fillStyle='rgba(55,42,28,0.60)';
-     ctx.beginPath();
-     ctx.moveTo(-10,H);ctx.lineTo(-10,H*0.72);
-     ctx.bezierCurveTo(W*0.05,H*0.68, W*0.14,H*0.64, W*0.22,H*0.67);
-     ctx.bezierCurveTo(W*0.30,H*0.70, W*0.36,H*0.63, W*0.44,H*0.60);
-     ctx.bezierCurveTo(W*0.52,H*0.57, W*0.58,H*0.62, W*0.65,H*0.65);
-     ctx.bezierCurveTo(W*0.72,H*0.68, W*0.80,H*0.64, W*0.88,H*0.67);
-     ctx.bezierCurveTo(W*0.93,H*0.69, W+10,H*0.71, W+10,H*0.73);
-     ctx.lineTo(W+10,H);ctx.closePath();ctx.fill();
+     /* ── Étincelles burst repulseurs ── */
+     for(const b of repBursts){
+      b.x+=b.vx;b.y+=b.vy;b.vy+=0.08;b.life-=b.decay;
+      if(b.life<=0){
+       const src=repulsors[b.srcIdx];
+       b.x=src.x+(Math.random()-0.5)*W*0.04;
+       b.y=src.y;
+       b.vx=(Math.random()-0.5)*2.8;
+       b.vy=-(Math.random()*3.2+0.5);
+       b.life=0.6+Math.random()*0.4;
+      }
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(180,225,255,${b.life*0.75})`;
+      ctx.fill();
+     }
 
-     /* Couche 2 — relief médian avec crêtes */
-     ctx.fillStyle='rgba(40,27,10,0.82)';
-     ctx.beginPath();
-     ctx.moveTo(-10,H);ctx.lineTo(-10,H*0.78);
-     ctx.bezierCurveTo(W*0.04,H*0.76, W*0.10,H*0.70, W*0.18,H*0.68);
-     ctx.bezierCurveTo(W*0.26,H*0.66, W*0.32,H*0.74, W*0.40,H*0.72);
-     ctx.bezierCurveTo(W*0.46,H*0.70, W*0.50,H*0.65, W*0.56,H*0.63);
-     ctx.bezierCurveTo(W*0.62,H*0.61, W*0.67,H*0.67, W*0.74,H*0.70);
-     ctx.bezierCurveTo(W*0.80,H*0.73, W*0.88,H*0.69, W*0.94,H*0.72);
-     ctx.bezierCurveTo(W*0.97,H*0.73, W+10,H*0.74, W+10,H*0.76);
-     ctx.lineTo(W+10,H);ctx.closePath();ctx.fill();
-
-     /* Couche 1 — premier plan, très sombre, terrain irrégulier */
-     ctx.fillStyle='rgba(22,14,5,0.97)';
-     ctx.beginPath();
-     ctx.moveTo(-10,H);ctx.lineTo(-10,H*0.84);
-     ctx.bezierCurveTo(W*0.03,H*0.83, W*0.08,H*0.80, W*0.14,H*0.78);
-     ctx.bezierCurveTo(W*0.20,H*0.76, W*0.25,H*0.80, W*0.32,H*0.79);
-     ctx.bezierCurveTo(W*0.38,H*0.78, W*0.43,H*0.75, W*0.50,H*0.77);
-     ctx.bezierCurveTo(W*0.57,H*0.79, W*0.62,H*0.76, W*0.68,H*0.77);
-     ctx.bezierCurveTo(W*0.74,H*0.78, W*0.80,H*0.80, W*0.86,H*0.78);
-     ctx.bezierCurveTo(W*0.91,H*0.76, W*0.96,H*0.79, W+10,H*0.81);
-     ctx.lineTo(W+10,H);ctx.closePath();ctx.fill();
-
-     /* Soleil voilé — haut gauche, blanc-jaune pâle */
-     const sunX=W*0.20, sunY=H*0.12;
-     const sunG=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,W*0.22);
-     sunG.addColorStop(0,`rgba(255,248,220,${0.60+Math.sin(t*0.25)*0.05})`);
-     sunG.addColorStop(0.18,'rgba(240,220,160,0.25)');
-     sunG.addColorStop(0.5,'rgba(200,180,100,0.08)');
-     sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H);
-     /* Disque solaire pâle — voilé par la poussière */
-     ctx.fillStyle=`rgba(255,245,200,${0.72+Math.sin(t*0.3)*0.05})`;
-     ctx.beginPath();ctx.arc(sunX,sunY,W*0.048,0,Math.PI*2);ctx.fill();
-
-     /* ── Iron Man armure — sous la citation et le logo ── */
+     /* ── Iron Man armure ── */
      if(ironReady){
       const ratio=ironImg.naturalWidth&&ironImg.naturalHeight
         ? ironImg.naturalWidth/ironImg.naturalHeight : 0.78;
@@ -46810,168 +46779,65 @@
       const ironH=ironW/ratio;
       ctx.save();
       ctx.globalAlpha=0.93+Math.sin(t*0.4)*0.04;
-      /* Centré horizontalement, positionné sous le logo (~38% du haut) */
       ctx.drawImage(ironImg,cx-ironW/2,H*0.38,ironW,ironH);
       ctx.restore();
+     }
+
+     /* ── Arc reactor — halo pulsant sur la poitrine d'Iron Man ── */
+     const arcPulse=0.22+Math.sin(t*2.2)*0.10;
+     const arcGlow=ctx.createRadialGradient(arcX,arcY,0,arcX,arcY,W*0.12);
+     arcGlow.addColorStop(0,`rgba(120,210,255,${arcPulse*1.4})`);
+     arcGlow.addColorStop(0.4,`rgba(60,150,230,${arcPulse*0.7})`);
+     arcGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=arcGlow;ctx.fillRect(0,0,W,H);
+     /* Point brillant central */
+     ctx.beginPath();ctx.arc(arcX,arcY,W*0.018,0,Math.PI*2);
+     ctx.fillStyle=`rgba(200,240,255,${0.60+Math.sin(t*2.2)*0.25})`;
+     ctx.fill();
+
+     /* ── Ondes concentriques arc reactor ── */
+     for(const ring of arcRings){
+      ring.ph+=ring.spd;
+      const prog=(ring.ph%1);
+      const r=ring.maxR*prog;
+      const alpha=(1-prog)*0.28;
+      ctx.beginPath();ctx.arc(arcX,arcY,r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(100,200,255,${alpha})`;
+      ctx.lineWidth=1.2;
+      ctx.stroke();
      }
 
      /* ── Lignes HUD tech ── */
      ctx.lineCap='square';
      for(const l of hudLines){
-      ctx.strokeStyle=`rgba(255,180,60,${l.op})`;ctx.lineWidth=0.8;
+      ctx.strokeStyle=`rgba(255,180,60,${l.op})`;ctx.lineWidth=0.7;
       ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(l.x+l.w,l.y);ctx.stroke();
-      ctx.fillStyle=`rgba(255,180,60,${l.op*1.5})`;
-      ctx.fillRect(l.x+l.w-W*0.008,l.y-H*0.002,W*0.008,H*0.004);
+      ctx.fillStyle=`rgba(255,180,60,${l.op*2})`;
+      ctx.fillRect(l.x+l.w-W*0.006,l.y-H*0.0015,W*0.006,H*0.003);
      }
 
-     /* ── Jets de propulsion depuis les mains ── */
-     for(const b of blasts){
-      const blen=b.len*(0.7+0.3*Math.abs(Math.sin(t*0.8+b.x)));
-      const bg2=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,blen);
-      bg2.addColorStop(0,`rgba(200,240,255,${0.35+Math.sin(t*0.8)*0.10})`);
-      bg2.addColorStop(0.3,'rgba(100,180,255,0.15)');bg2.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(b.x,b.y,blen,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── Explosions : boule de feu + onde de choc + fumée noire + débris ── */
-     for(const ex of explosions){
-      ex.ph+=ex.spd;
-      const cycle=((ex.ph%(Math.PI*2))/(Math.PI*2));
-      const rise=Math.pow(Math.max(0,Math.sin(ex.ph*0.5)),0.6);
-
-      /* -- Onde de choc circulaire (début de cycle) -- */
-      if(cycle<0.18){
-       const shockR=ex.w*(0.5+cycle*5.5);
-       const shockA=(0.18-cycle)/0.18*0.90;
-       /* Cercle de choc opaque */
-       ctx.strokeStyle=`rgba(255,230,130,${shockA})`;ctx.lineWidth=3.5;
-       ctx.beginPath();ctx.arc(ex.x,ex.baseY,shockR,Math.PI,0);ctx.stroke();
-       /* Halo de choc semi-transparent */
-       const shG=ctx.createRadialGradient(ex.x,ex.baseY,shockR*0.7,ex.x,ex.baseY,shockR*1.35);
-       shG.addColorStop(0,`rgba(255,200,80,${shockA*0.35})`);
-       shG.addColorStop(1,'rgba(0,0,0,0)');
-       ctx.fillStyle=shG;ctx.beginPath();ctx.arc(ex.x,ex.baseY,shockR*1.35,0,Math.PI*2);ctx.fill();
+     /* ── Particules flottantes (étincelles + poussière) ── */
+     for(const p of sparks){
+      p.x+=p.vx;p.y+=p.vy;p.ph+=0.04;p.life-=p.decay;
+      if(p.life<=0){
+       p.x=W*(0.05+Math.random()*0.90);
+       p.y=H*(0.55+Math.random()*0.40);
+       p.vx=(Math.random()-0.5)*0.55;
+       p.vy=-(0.35+Math.random()*0.85);
+       p.life=0.5+Math.random()*0.5;
       }
-
-      /* -- Boule de feu principale -- */
-      const fireR=ex.w*(0.65+rise*0.75);
-      const fireA=rise*(0.85+Math.sin(ex.ph*6)*0.10);
-      /* Cœur blanc-jaune éblouissant */
-      const coreG=ctx.createRadialGradient(ex.x,ex.baseY-fireR*0.15,fireR*0.05,ex.x,ex.baseY,fireR*0.55);
-      coreG.addColorStop(0,`rgba(255,255,230,${fireA*0.95})`);
-      coreG.addColorStop(0.3,`rgba(255,240,120,${fireA*0.80})`);
-      coreG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=coreG;ctx.beginPath();ctx.arc(ex.x,ex.baseY,fireR*0.55,0,Math.PI*2);ctx.fill();
-      /* Boule de feu externe */
-      const fireG=ctx.createRadialGradient(ex.x,ex.baseY-fireR*0.20,fireR*0.08,ex.x,ex.baseY,fireR);
-      fireG.addColorStop(0,`rgba(255,255,180,${fireA})`);
-      fireG.addColorStop(0.18,`rgba(${ex.fireR},${ex.fireG},15,${fireA*0.92})`);
-      fireG.addColorStop(0.48,`rgba(200,50,8,${fireA*0.62})`);
-      fireG.addColorStop(0.75,`rgba(100,25,5,${fireA*0.30})`);
-      fireG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=fireG;ctx.beginPath();ctx.arc(ex.x,ex.baseY,fireR,0,Math.PI*2);ctx.fill();
-
-      /* -- Couronne irrégulière de feu (langue de flamme) -- */
-      if(rise>0.08){
-       const nPts=16;
-       ctx.beginPath();
-       for(let a=0;a<nPts;a++){
-        const angle=a/nPts*Math.PI*2;
-        const jitter=1+0.45*Math.sin(ex.ph*5+a*2.5+ex.x);
-        const r=fireR*(0.75+0.35*jitter);
-        const px=ex.x+Math.cos(angle)*r;
-        const py=ex.baseY+Math.sin(angle)*r*(0.35+rise*0.15);
-        a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-       }
-       ctx.closePath();
-       ctx.fillStyle=`rgba(255,${ex.fireG+40|0},25,${rise*0.40})`;ctx.fill();
-       /* Langue haute — colonne de feu */
-       ctx.beginPath();
-       for(let a=0;a<8;a++){
-        const angle=-Math.PI*0.5+(a/7-0.5)*0.9;
-        const r=fireR*(0.6+rise*0.80+0.3*Math.sin(ex.ph*4+a));
-        const px=ex.x+Math.cos(angle)*r*0.45;
-        const py=ex.baseY+Math.sin(angle)*r;
-        a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-       }
-       ctx.closePath();
-       ctx.fillStyle=`rgba(255,${ex.fireG+20|0},10,${rise*0.32})`;ctx.fill();
-      }
-
-      /* -- Fumée noire volumineuse qui monte -- */
-      for(let layer=0;layer<9;layer++){
-       const lf=layer/8;
-       const ly=ex.baseY-rise*ex.maxH*lf - fireR*0.2;
-       const lw=ex.w*(0.30+rise*0.70*(0.45+lf*1.0));
-       const smokeR=18+lf*90|0, smokeG=14+lf*70|0, smokeB=10+lf*58|0;
-       const la=rise*(0.58-layer*0.055)*(0.6+0.4*Math.sin(ex.ph*0.9+layer));
-       if(la<=0)continue;
-       /* Légère turbulence latérale */
-       const wobble=Math.sin(ex.ph*1.2+layer*1.8)*lw*0.18;
-       const sg=ctx.createRadialGradient(ex.x+wobble,ly,0,ex.x+wobble,ly,lw);
-       sg.addColorStop(0,`rgba(${smokeR},${smokeG},${smokeB},${la})`);
-       sg.addColorStop(0.50,`rgba(${smokeR},${smokeG},${smokeB},${la*0.42})`);
-       sg.addColorStop(1,'rgba(0,0,0,0)');
-       ctx.fillStyle=sg;
-       ctx.beginPath();ctx.ellipse(ex.x+wobble,ly,lw,lw*0.65,0,0,Math.PI*2);ctx.fill();
-      }
-
-      /* -- Lueur orange au sol autour de l'impact -- */
-      const glowA=rise*(0.28+Math.sin(ex.ph*3)*0.07);
-      const glowG=ctx.createRadialGradient(ex.x,ex.baseY,0,ex.x,ex.baseY,ex.w*1.1);
-      glowG.addColorStop(0,`rgba(255,170,25,${glowA})`);
-      glowG.addColorStop(0.4,`rgba(220,90,15,${glowA*0.50})`);
-      glowG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=glowG;ctx.fillRect(ex.x-ex.w*1.1,ex.baseY-ex.w*0.5,ex.w*2.2,ex.w*0.5);
-
-      /* -- Étincelles radiales depuis l'impact -- */
-      if(cycle<0.25&&rise>0.05){
-       const nSparks=10;
-       for(let s=0;s<nSparks;s++){
-        const sa=s/nSparks*Math.PI;
-        const sr=ex.w*(0.4+cycle*3.0+Math.sin(s*2.1)*0.2);
-        const sx=ex.x+Math.cos(sa)*sr;
-        const sy=ex.baseY-Math.sin(sa)*sr*0.55;
-        ctx.fillStyle=`rgba(255,220,80,${(0.25-cycle)/0.25*0.80})`;
-        ctx.beginPath();ctx.arc(sx,sy,W*0.004,0,Math.PI*2);ctx.fill();
-       }
-      }
-     }
-
-     /* ── Débris volants ── */
-     for(const d of debris){
-      d.x+=d.vx;d.y+=d.vy;d.vy+=0.12;d.life-=d.decay;
-      if(d.life<=0){
-       const src=EXPL_POSITIONS[Math.random()*EXPL_POSITIONS.length|0];
-       d.x=src.x+(Math.random()-0.5)*W*0.06;d.y=src.baseY;
-       d.vx=(Math.random()-0.5)*3.8;d.vy=-(Math.random()*4.5+1.5);d.life=1;
-      }
-      ctx.fillStyle=`rgba(${d.col},${d.life*0.80})`;
-      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
-     }
-
-     /* ── SVG Stark — collé en bas, -2% taille ── */
-     if(starkReady){
-      const svgW=W*1.03;                /* -2% par rapport à W*1.05 */
-      const svgH=svgW*(368/634);
-      const svgX=cx-svgW/2;
-      const svgY=H-svgH;               /* collé exactement en bas */
-      ctx.drawImage(starkImg,svgX,svgY,svgW,svgH);
-     }
-
-     /* ── Particules tech ── */
-     for(const p of particles){
-      p.x+=p.vx;p.y+=p.vy;p.ph+=p.spd;
-      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
-      const pa=p.op*(0.35+0.65*Math.abs(Math.sin(p.ph)));
+      const pa=(0.3+0.7*Math.abs(Math.sin(p.ph)))*p.life;
       ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${p.col},${pa})`;ctx.fill();
+      ctx.fillStyle=`rgba(${p.col},${pa})`;
+      ctx.fill();
      }
 
      /* ── Vignette ── */
      const vg=ctx.createRadialGradient(cx,H*0.48,H*0.06,cx,H*0.48,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.42,'rgba(0,0,0,0.06)');
-     vg.addColorStop(0.72,'rgba(0,0,0,0.32)');vg.addColorStop(1,'rgba(0,0,0,0.85)');
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.42,'rgba(0,0,0,0.06)');
+     vg.addColorStop(0.72,'rgba(0,0,0,0.32)');
+     vg.addColorStop(1,'rgba(0,0,0,0.85)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
