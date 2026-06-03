@@ -17924,178 +17924,174 @@
     const cx=W/2;
 
     /* ── Style UI ── */
-    let _djPos=document.getElementById('_dj_pos_s');
-    if(!_djPos){_djPos=document.createElement('style');_djPos.id='_dj_pos_s';document.head.appendChild(_djPos);}
-    _djPos.textContent=`
-     #splash-bg::before,#splash-bg::after,
-     #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-     #splash-content-wrap{top:72%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}
-     #splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}
-     #splash-film-logo{max-width:110px!important;}
-     #splash-quote-text{color:rgba(255,210,180,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.9)!important;}
-    `;
-    const _djPosW=setInterval(()=>{if(stop.v){_djPos.textContent='';clearInterval(_djPosW);}},200);
+    let _djS=document.getElementById('_dj_s');
+    if(!_djS){_djS=document.createElement('style');_djS.id='_dj_s';document.head.appendChild(_djS);}
+    _djS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:72%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:110px!important;}#splash-quote-text{color:rgba(255,210,180,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.9)!important;}';
+    const _djW=setInterval(()=>{if(stop.v){_djS.textContent='';clearInterval(_djW);}},200);
 
-    /* ── Chargement SVG Django (silhouettes + sol) ── */
-    let _svgImg=null, _svgReady=false;
+    /* ── Chargement SVG Chaîne (214×1192) ── */
+    let _chainImg=null, _chainReady=false;
     (function(){
       const img=new Image();
-      img.onload=()=>{_svgImg=img;_svgReady=true;};
-      img.onerror=()=>{_svgReady=false;};
+      img.onload=()=>{_chainImg=img;_chainReady=true;};
+      img.onerror=()=>{_chainReady=false;};
+      img.src='images/Chaine.svg';
+    })();
+
+    /* ── Chargement SVG Personnages+Sol (874×515) ── */
+    let _charImg=null, _charReady=false;
+    (function(){
+      const img=new Image();
+      img.onload=()=>{_charImg=img;_charReady=true;};
+      img.onerror=()=>{_charReady=false;};
       img.src='images/Django.svg';
     })();
 
-    /* ── Particules de poussière rougeoyantes ── */
-    const dust=Array.from({length:70},(_,i)=>({
-      x:Math.random()*W,
-      y:H*(0.72+Math.random()*0.26),
-      vx:(Math.random()-0.5)*0.28+(i<20?0.35:0.08),
-      vy:-(0.05+Math.random()*0.18),
-      r:i<20?(1.4+Math.random()*2.2):(0.3+Math.random()*0.9),
-      op:i<20?(0.06+Math.random()*0.10):(0.03+Math.random()*0.07),
-      phase:Math.random()*Math.PI*2,
-      spd:0.012+Math.random()*0.018,
+    /* ── Chaîne : entrée depuis le haut + oscillation ── */
+    let chainY = -0.30;           // part de hors-écran (ratio H)
+    const CHAIN_TARGET = 0.0;     // position finale
+    const CHAIN_SPEED  = 0.006;
+    // Chaîne : ratio SVG 214/1192 ≈ 0.1795
+    // On veut qu'elle occupe ~52% de la largeur
+    const CHAIN_W_RATIO = 0.52;
+
+    /* ── Particules de cendres ── */
+    const embers = Array.from({length:55},(_,k)=>({
+      x: Math.random()*W,
+      y: H*(0.60+Math.random()*0.35),
+      vx:(Math.random()-0.5)*0.22,
+      vy:-(0.06+Math.random()*0.26),
+      r: k<18?(1.4+Math.random()*2.0):(0.3+Math.random()*0.9),
+      op:k<18?(0.08+Math.random()*0.12):(0.03+Math.random()*0.07),
+      ph:Math.random()*Math.PI*2,
+      spd:0.013+Math.random()*0.020,
     }));
 
-    /* ── Micro-étincelles rouges — cendres ── */
-    const embers=Array.from({length:40},()=>({
-      x:Math.random()*W,
-      y:H*(0.60+Math.random()*0.35),
-      vx:(Math.random()-0.5)*0.20,
-      vy:-(0.12+Math.random()*0.30),
-      r:0.4+Math.random()*1.0,
-      life:Math.random(),
-      decay:0.004+Math.random()*0.008,
-      hue:0+Math.random()*25,
+    /* ── Poussière au sol ── */
+    const dust = Array.from({length:35},()=>({
+      x: Math.random()*W,
+      y: H*(0.78+Math.random()*0.18),
+      vx:(Math.random()-0.5)*0.30+0.12,
+      vy:-(0.02+Math.random()*0.06),
+      r: 1.0+Math.random()*2.5,
+      op:0.04+Math.random()*0.08,
+      ph:Math.random()*Math.PI*2,
+      spd:0.010+Math.random()*0.016,
     }));
 
-    /* ── Balancement pendulaire de la chaîne ── */
-    let chainAngle=0;       /* angle oscillation horizontale */
-    let chainFallY=-0.12;   /* -1.0 → 0.0 : entrée depuis le haut */
-    const CHAIN_FALL_SPD=0.007;
-
-    /* ── Vignette pulsante ── */
     function drawBg(){
-      /* Fond rouge écarlate — identique à l'affiche */
-      const bgG=ctx.createLinearGradient(0,0,0,H);
-      bgG.addColorStop(0,'rgb(155,15,10)');
-      bgG.addColorStop(0.35,'rgb(190,22,12)');
-      bgG.addColorStop(0.65,'rgb(200,28,14)');
-      bgG.addColorStop(1,'rgb(140,12,8)');
-      ctx.fillStyle=bgG;
-      ctx.fillRect(0,0,W,H);
-
-      /* Léger halo central chaud — comme l'éclat de l'affiche */
-      const cg=ctx.createRadialGradient(cx,H*0.38,0,cx,H*0.38,W*0.65);
-      cg.addColorStop(0,`rgba(255,80,40,${0.08+Math.sin(t*0.35)*0.02})`);
-      cg.addColorStop(0.5,'rgba(220,35,15,0.04)');
-      cg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=cg;
-      ctx.fillRect(0,0,W,H);
+      const g=ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0.00,`rgb(${148+Math.sin(t*0.22)*5|0},12,8)`);
+      g.addColorStop(0.28,`rgb(${182+Math.sin(t*0.18)*6|0},20,10)`);
+      g.addColorStop(0.55,`rgb(${200+Math.sin(t*0.20)*5|0},26,12)`);
+      g.addColorStop(0.78,`rgb(${188+Math.sin(t*0.25)*6|0},18,10)`);
+      g.addColorStop(1.00,`rgb(${155+Math.sin(t*0.23)*5|0},10,6)`);
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      /* Halo chaud central */
+      const hg=ctx.createRadialGradient(cx,H*0.42,0,cx,H*0.42,W*0.60);
+      hg.addColorStop(0,`rgba(255,70,30,${0.07+Math.sin(t*0.32)*0.02})`);
+      hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.fillRect(0,0,W,H);
     }
 
     function drawChain(){
-      /* Chargement progressif depuis le haut */
-      if(chainFallY<0) chainFallY=Math.min(0, chainFallY+CHAIN_FALL_SPD);
-      /* Oscillation pendulaire douce */
-      chainAngle=Math.sin(t*0.45)*0.022+Math.sin(t*0.17)*0.008;
+      /* Chute progressive */
+      if(chainY < CHAIN_TARGET) chainY = Math.min(CHAIN_TARGET, chainY + CHAIN_SPEED);
 
-      const chainW=W*0.52;
-      const chainH=chainW*(1000/600); /* ratio SVG approx */
-      const chainX=cx-chainW/2;
-      /* Position Y : 0 = en haut de l'écran, sort depuis hors-cadre */
-      const chainY=H*(chainFallY - 0.02);
+      /* Oscillation pendulaire — deux fréquences pour naturel */
+      const angle = Math.sin(t*0.48)*0.026 + Math.sin(t*0.19)*0.009;
+
+      const cW = W * CHAIN_W_RATIO;
+      const cH = cW * (1192/214);   // ratio SVG exact
+      /* La chaîne sort du haut — pivot au centre haut */
+      const cX = cx - cW/2;
+      const cY = H * chainY - cH * 0.08; /* légèrement hors cadre en haut */
 
       ctx.save();
-      /* Pivot du balancement = haut centre */
-      ctx.translate(cx, chainY);
-      ctx.rotate(chainAngle);
-      ctx.translate(-cx, -chainY);
+      /* Pivot : haut-centre de la chaîne */
+      ctx.translate(cx, H*chainY);
+      ctx.rotate(angle);
+      ctx.translate(-cx, -H*chainY);
 
-      /* Ombre portée de la chaîne */
-      ctx.shadowColor='rgba(80,0,0,0.55)';
-      ctx.shadowBlur=W*0.025;
-      ctx.shadowOffsetX=W*0.008;
-      ctx.shadowOffsetY=H*0.006;
-
-      /* Dessin du SVG Django (toute la composition : chaîne + silhouettes + sol) */
-      if(_svgReady&&_svgImg){
-        ctx.globalAlpha=0.97;
-        ctx.drawImage(_svgImg, chainX, chainY, chainW, chainH);
+      if(_chainReady && _chainImg){
+        ctx.shadowColor='rgba(60,0,0,0.50)';
+        ctx.shadowBlur=W*0.020;
+        ctx.shadowOffsetX=W*0.006;
+        ctx.shadowOffsetY=H*0.005;
+        ctx.globalAlpha=0.96;
+        ctx.drawImage(_chainImg, cX, cY, cW, cH);
+        ctx.shadowColor='transparent';ctx.shadowBlur=0;
       }
-
-      ctx.shadowColor='transparent';
-      ctx.shadowBlur=0;
       ctx.restore();
     }
 
-    function drawDust(){
-      ctx.globalAlpha=1;
-      for(const d of dust){
-        d.x+=d.vx; d.y+=d.vy+Math.sin(t*0.5+d.phase)*0.04;
-        d.phase+=d.spd;
-        if(d.y<H*0.55||d.x<-5||d.x>W+5){
-          d.x=Math.random()*W; d.y=H*(0.82+Math.random()*0.16);
-          d.vy=-(0.05+Math.random()*0.18);
+    function drawCharacters(){
+      if(!_charReady || !_charImg) return;
+      /* Personnages+sol : pleine largeur, ancrés en bas */
+      /* ratio SVG 874/515 ≈ 1.697 (paysage) */
+      const charW = W;
+      const charH = W / (874/515);  // hauteur proportionnelle
+      const charX = 0;
+      const charY = H - charH;      // ancré au bas de l'écran
+      ctx.save();
+      ctx.globalAlpha=0.97;
+      ctx.drawImage(_charImg, charX, charY, charW, charH);
+      ctx.restore();
+    }
+
+    function drawParticles(){
+      /* Cendres */
+      for(const e of embers){
+        e.x+=e.vx+Math.sin(t*0.45+e.ph)*0.07;
+        e.y+=e.vy; e.ph+=e.spd;
+        if(e.y<H*0.12||e.x<-4||e.x>W+4){
+          e.x=Math.random()*W; e.y=H*(0.62+Math.random()*0.28);
+          e.vy=-(0.06+Math.random()*0.26);
         }
-        const op=d.op*(0.5+0.5*Math.abs(Math.sin(d.phase)));
-        ctx.fillStyle=`rgba(220,60,30,${op})`;
+        const op=e.op*(0.5+0.5*Math.abs(Math.sin(e.ph)));
+        ctx.fillStyle=`rgba(${220+Math.random()*20|0},${40+Math.random()*35|0},0,${op})`;
+        ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+      }
+      /* Poussière sol */
+      for(const d of dust){
+        d.x+=d.vx; d.y+=d.vy+Math.sin(t*0.4+d.ph)*0.03; d.ph+=d.spd;
+        if(d.x>W+4)d.x=-4; if(d.y<H*0.70){d.y=H*(0.80+Math.random()*0.16);d.x=Math.random()*W;}
+        const op=d.op*(0.5+0.5*Math.abs(Math.sin(d.ph)));
+        ctx.fillStyle=`rgba(200,50,20,${op})`;
         ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
       }
     }
 
-    function drawEmbers(){
-      for(const e of embers){
-        e.x+=e.vx; e.y+=e.vy;
-        e.vy+=0.004;
-        e.life+=e.decay;
-        if(e.life>=1||e.y<H*0.50){
-          e.x=Math.random()*W; e.y=H*(0.68+Math.random()*0.25);
-          e.vx=(Math.random()-0.5)*0.20;
-          e.vy=-(0.12+Math.random()*0.30);
-          e.life=Math.random()*0.4;
-        }
-        const fade=Math.sin(e.life*Math.PI);
-        ctx.globalAlpha=fade*0.75;
-        ctx.fillStyle=`rgba(255,${40+e.hue*2|0},10,1)`;
-        ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
-      }
-      ctx.globalAlpha=1;
-    }
-
     function drawVignette(){
-      /* Vignette radiale — assombrit les coins */
-      const vg=ctx.createRadialGradient(cx,H*0.46,H*0.06,cx,H*0.46,H*0.90);
+      const vg=ctx.createRadialGradient(cx,H*0.44,H*0.06,cx,H*0.44,H*0.90);
       vg.addColorStop(0,'rgba(0,0,0,0)');
-      vg.addColorStop(0.45,`rgba(0,0,0,${0.08+Math.sin(t*0.28)*0.02})`);
-      vg.addColorStop(0.72,'rgba(0,0,0,0.40)');
-      vg.addColorStop(1,'rgba(0,0,0,0.88)');
+      vg.addColorStop(0.42,`rgba(0,0,0,${0.06+Math.sin(t*0.26)*0.015})`);
+      vg.addColorStop(0.72,'rgba(0,0,0,0.38)');
+      vg.addColorStop(1,'rgba(0,0,0,0.90)');
       ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-      /* Grain film subtil */
-      for(let i=0;i<30;i++){
-        const gv=8+Math.random()*12|0;
-        ctx.fillStyle=`rgba(${gv},${gv-4},${gv-4},${Math.random()*0.016})`;
-        ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.4,1);
+      for(let i=0;i<28;i++){
+        const gv=7+Math.random()*11|0;
+        ctx.fillStyle=`rgba(${gv+4},${gv},${gv},${Math.random()*0.015})`;
+        ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.4+0.3,1);
       }
     }
 
     function frame(){
-      if(stop.v){
-        ctx.clearRect(0,0,W,H);
-        cv.style.opacity='0';
-        return;
-      }
+      if(stop.v){ctx.clearRect(0,0,W,H);cv.style.opacity='0';return;}
       drawBg();
-      drawDust();
-      drawEmbers();
+      drawParticles();
       drawChain();
+      drawCharacters();   /* personnages par-dessus la poussière, sous la vignette */
       drawVignette();
       t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
-
   },
+
+
+
+
   /* ══ LA LIGNE VERTE ══ */
   {
    name:'La Ligne Verte',
@@ -27225,15 +27221,10 @@
    color:'220,80,20',
    ref:'Jarhead \u2014 Sam Mendes, 2005',
    run(cv,ctx,W,H,stop){
-    /* ── Images soldats ── */
+    /* ── Soldat premier plan (Jarhead.svg — 206×389) ── */
     const soldierImg=new Image();let soldierReady=false;
     soldierImg.onload=()=>{soldierReady=true;};
-    soldierImg.src='images/sprite_27.svg';
-
-    /* Groupe de soldats au loin (format paysage) */
-    const troopImg=new Image();let troopReady=false;
-    troopImg.onload=()=>{troopReady=true;};
-    troopImg.src='images/sprite_28.svg';
+    soldierImg.src='images/Jarhead.svg';
 
     cv.style.opacity='1.0';
 
@@ -27342,7 +27333,7 @@
     /* Override position citation/logo */
     let _jhPos=document.getElementById('_jh_pos_s');
     if(!_jhPos){_jhPos=document.createElement('style');_jhPos.id='_jh_pos_s';document.head.appendChild(_jhPos);}
-    _jhPos.textContent=`#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}`;
+    _jhPos.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:74%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:110px!important;}#splash-quote-text{color:rgba(255,200,120,0.90)!important;text-shadow:0 1px 8px rgba(0,0,0,0.95)!important;}';
     const _jhPosWatch=setInterval(()=>{if(stop.v){_jhPos.textContent='';clearInterval(_jhPosWatch);}},200);
 
     /* Cache silhouettes */
@@ -27464,21 +27455,15 @@
     }
 
     function drawSoldiers(){
-     /* Troupe au fond — bien posee sur le sol, centree */
-     if(troopReady){
-      const TW=W*0.80,TH=TW*(640/1280);
-      drawSilhouette('troop',troopImg,W*0.10,groundY-TH*0.92,TW,TH,0.45);
-     }
-     /* Soldat gauche — taille moyenne, en retrait */
-     if(soldierReady){
-      const SH2=H*0.28,SW2=SH2*(1264/1280);
-      drawSilhouette('s_left',soldierImg,W*0.08-SW2*0.5,groundY-SH2,SW2,SH2,0.72);
-     }
-     /* Soldat droit — plus grand, premier plan */
-     if(soldierReady){
-      const SH=H*0.40,SW=SH*(1264/1280);
-      drawSilhouette('s_right',soldierImg,W*0.82-SW*0.5,groundY-SH,SW,SH,0.92);
-     }
+     if(!soldierReady) return;
+     /* Jarhead SVG ratio : 206/389 ≈ 0.530 */
+     const SH = H * 0.68;
+     const SW = SH * (206/389);
+     /* Positionné à droite, bord droit du soldat à ~94% de W */
+     const SX = W * 0.94 - SW;
+     const SY = groundY - SH;
+     /* Silhouette pure noir — composite source-in */
+     drawSilhouette('jarhead_soldier', soldierImg, SX, SY, SW, SH, 0.96);
     }
 
     function frame(){
@@ -46581,10 +46566,10 @@
     starkImg.onload=()=>{starkReady=true;};
     starkImg.src='images/Stark.svg';
 
-    /* ── SVG Iron Man armure fantôme ── */
+    /* ── PNG Iron Man armure ── */
     const ironImg=new Image();let ironReady=false;
     ironImg.onload=()=>{ironReady=true;};
-    ironImg.src='images/IronMan.svg';
+    ironImg.src='images/IronMan.png';
 
     /* ── Particules énergétiques — débris tech ── */
     const particles=Array.from({length:55},()=>{
