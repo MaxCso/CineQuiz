@@ -24592,7 +24592,7 @@
      /* ── MCMURPHY — balancement subtil, taille réduite ── */
      ctx.save();
      ctx.translate(W*0.25, H*0.82);
-     ctx.scale(0.78, 0.78);
+     ctx.scale(0.58, 0.58);
      ctx.translate(-W*0.25, -H*0.82);
      drawMcMurphy(W*0.25, H*0.82, mcSway);
      ctx.restore();
@@ -24600,7 +24600,7 @@
      /* ── RATCHED — immobile, glaciale, taille réduite ── */
      ctx.save();
      ctx.translate(W*0.72, H*0.82);
-     ctx.scale(0.78, 0.78);
+     ctx.scale(0.58, 0.58);
      ctx.translate(-W*0.72, -H*0.82);
      drawRatched(W*0.72, H*0.82);
      ctx.restore();
@@ -30543,29 +30543,30 @@
     const SW=SH*(381/661);
 
     /* ── Particules de poussière légères ── */
-    const dust=Array.from({length:55},()=>({
+    const dust=Array.from({length:160},()=>({
      x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.08, vy:-(Math.random()*0.04+0.01),
-     r:Math.random()*1.0+0.3, op:Math.random()*0.06+0.02,
+     vx:(Math.random()-0.5)*0.10, vy:-(Math.random()*0.05+0.01),
+     r:Math.random()*1.2+0.2, op:Math.random()*0.08+0.02,
      ph:Math.random()*Math.PI*2,
     }));
 
-    /* ── Confettis bordeaux — discrets, peu nombreux ── */
-    const confetti=Array.from({length:55},()=>({
+    /* ── Confettis bordeaux — plus nombreux et variés ── */
+    const confetti=Array.from({length:180},()=>({
      x:Math.random()*W,
      y:Math.random()*H-H*0.3,
-     vx:(Math.random()-0.5)*0.55,
-     vy:Math.random()*0.70+0.20,
+     vx:(Math.random()-0.5)*0.70,
+     vy:Math.random()*0.85+0.15,
      rot:Math.random()*Math.PI*2,
-     rotSpd:(Math.random()-0.5)*0.06,
-     r:Math.random()*2.5+1.2,
-     hue:345+Math.random()*15,   /* rouge bordeaux */
-     sat:55+Math.random()*20,
-     lit:28+Math.random()*12,
+     rotSpd:(Math.random()-0.5)*0.08,
+     r:Math.random()*3.0+0.8,
+     hue:335+Math.random()*25,   /* rouge bordeaux à cramoisi */
+     sat:55+Math.random()*25,
+     lit:22+Math.random()*18,
+     shape:Math.random()<0.35?'circle':'rect', /* mix formes */
     }));
 
     /* Particules dans le faisceau — montent lentement vers le haut */
-    const beamDust=Array.from({length:50},()=>({
+    const beamDust=Array.from({length:120},()=>({
      prog:Math.random(),  /* 0=haut du faisceau, 1=bas */
      xOff:(Math.random()-0.5)*0.8,  /* offset horizontal normalisé */
      vy:-(Math.random()*0.35+0.10),
@@ -30702,11 +30703,15 @@
      /* ── CONFETTIS bordeaux ── */
      for(const c of confetti){
       c.x+=c.vx; c.y+=c.vy; c.rot+=c.rotSpd;
-      if(c.y>H+10){c.y=-10; c.x=Math.random()*W; c.vx=(Math.random()-0.5)*0.55;}
+      if(c.y>H+10){c.y=-10; c.x=Math.random()*W; c.vx=(Math.random()-0.5)*0.70;}
       ctx.save();
       ctx.translate(c.x,c.y); ctx.rotate(c.rot);
-      ctx.fillStyle=`hsla(${c.hue},${c.sat}%,${c.lit}%,0.65)`;
-      ctx.fillRect(-c.r,-c.r*0.42,c.r*2,c.r*0.84);
+      ctx.fillStyle=`hsla(${c.hue},${c.sat}%,${c.lit}%,0.70)`;
+      if(c.shape==='circle'){
+       ctx.beginPath();ctx.arc(0,0,c.r*0.65,0,Math.PI*2);ctx.fill();
+      } else {
+       ctx.fillRect(-c.r,-c.r*0.40,c.r*2,c.r*0.80);
+      }
       ctx.restore();
      }
 
@@ -44860,7 +44865,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_laur_s');
     if(!_s){_s=document.createElement('style');_s.id='_laur_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref{color:rgba(0,0,0,0.75)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Zones ── */
@@ -44892,15 +44897,37 @@
     ];
     const wavePhases=WAVE_LAYERS.map(()=>Math.random()*Math.PI*2);
 
-    /* ── Bulles qui montent ── */
-    const bubbles=Array.from({length:22},()=>({
-     x: W*(0.10+Math.random()*0.80),
-     y: POOL_TOP+H*0.30+Math.random()*(H*0.65),
-     vy:-(0.28+Math.random()*0.35),
-     r: W*(0.003+Math.random()*0.005),
-     op: 0.20+Math.random()*0.28,
+    /* ── Bulles qui montent — plus nombreuses, plus variées ── */
+    const bubbles=Array.from({length:65},()=>({
+     x: W*(0.05+Math.random()*0.90),
+     y: POOL_TOP+H*0.20+Math.random()*(H*0.78),
+     vy:-(0.18+Math.random()*0.55),
+     r: W*(0.002+Math.random()*0.007),
+     op: 0.15+Math.random()*0.35,
      ph: Math.random()*Math.PI*2,
-     wx: (Math.random()-0.5)*0.18,
+     wx: (Math.random()-0.5)*0.22,
+    }));
+
+    /* ── Particules de lumière solaire dans l'eau ── */
+    const sunMotes=Array.from({length:50},()=>({
+     x: Math.random()*W,
+     y: POOL_TOP+Math.random()*(H-POOL_TOP),
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(0.02+Math.random()*0.06),
+     r: W*(0.001+Math.random()*0.003),
+     op: 0.08+Math.random()*0.18,
+     ph: Math.random()*Math.PI*2,
+     spd: 0.012+Math.random()*0.020,
+    }));
+
+    /* ── Scintillements de surface ── */
+    const sparkles=Array.from({length:30},()=>({
+     x: Math.random()*W,
+     y: POOL_TOP+Math.random()*H*0.12,
+     ph: Math.random()*Math.PI*2,
+     spd: 0.04+Math.random()*0.08,
+     r: W*(0.003+Math.random()*0.006),
+     op: 0.4+Math.random()*0.5,
     }));
 
     /* ── Matelas pneumatique — forme et couleur années 60 ── */
@@ -45092,6 +45119,30 @@
 
      drawPool();
      drawTile();
+
+     /* ── Particules de lumière solaire flottant dans l'eau ── */
+     for(const m of sunMotes){
+      m.ph+=m.spd; m.x+=m.vx; m.y+=m.vy;
+      if(m.y<POOL_TOP){m.y=H*0.85+Math.random()*H*0.12;m.x=Math.random()*W;}
+      if(m.x<0)m.x=W; if(m.x>W)m.x=0;
+      const pulse=0.35+0.65*Math.abs(Math.sin(m.ph));
+      ctx.fillStyle=`rgba(255,245,180,${m.op*pulse})`;
+      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Scintillements de surface — petits éclats blancs ── */
+     for(const sp of sparkles){
+      sp.ph+=sp.spd;
+      const pk=Math.pow(Math.max(0,Math.sin(sp.ph)),5);
+      if(pk>0.1){
+       ctx.save();ctx.globalAlpha=pk*sp.op;
+       ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=0.8;
+       ctx.beginPath();ctx.moveTo(sp.x-sp.r*2,sp.y);ctx.lineTo(sp.x+sp.r*2,sp.y);ctx.stroke();
+       ctx.beginPath();ctx.moveTo(sp.x,sp.y-sp.r*2);ctx.lineTo(sp.x,sp.y+sp.r*2);ctx.stroke();
+       ctx.restore();
+      }
+     }
+
      drawRaft();
      drawMrsRobinson();
 
@@ -45729,31 +45780,45 @@
     /* ── Gouttes de sang qui tombent ── */
     function mkDrop(){
       return {
-        x: cx + (Math.random()-0.5)*W*0.22,
-        y: H*(0.28+Math.random()*0.15),
-        vy: 0.8+Math.random()*1.8,
-        r: W*(0.005+Math.random()*0.008),
+        x: cx + (Math.random()-0.5)*W*0.30,
+        y: -(Math.random()*H*0.15),
+        vy: 0.6+Math.random()*2.2,
+        r: W*(0.004+Math.random()*0.010),
         trail: [],
         splat: false,
         splatT: 0,
         op: 0.55+Math.random()*0.40,
       };
     }
-    const drops=Array.from({length:6}, mkDrop);
+    /* Gouttes supplémentaires qui tombent depuis le haut absolu */
+    function mkTopDrop(){
+      return {
+        x: Math.random()*W*0.80 + W*0.10,
+        y: -(Math.random()*H*0.08),
+        vy: 1.0+Math.random()*3.0,
+        r: W*(0.003+Math.random()*0.007),
+        trail: [],
+        splat: false,
+        splatT: 0,
+        op: 0.35+Math.random()*0.45,
+      };
+    }
+    const drops=Array.from({length:22}, mkDrop);
+    const topDrops=Array.from({length:18}, mkTopDrop);
 
     /* ── Taches de sang sur le sol — persistent ── */
     const stains=[];
 
     /* ── Particules rouges flottantes — tension ── */
-    const motes=Array.from({length:18},(_,i)=>({
-      x: cx+(Math.random()-0.5)*W*0.55,
-      y: H*(0.25+Math.random()*0.60),
-      r: W*(0.0015+Math.random()*0.003),
-      op: 0.06+Math.random()*0.16,
+    const motes=Array.from({length:80},(_,i)=>({
+      x: cx+(Math.random()-0.5)*W*0.80,
+      y: H*(0.10+Math.random()*0.80),
+      r: W*(0.001+Math.random()*0.004),
+      op: 0.05+Math.random()*0.18,
       ph: Math.random()*Math.PI*2,
-      spd: 0.006+Math.random()*0.012,
-      vx: (Math.random()-0.5)*0.06,
-      vy: -(0.04+Math.random()*0.08),
+      spd: 0.004+Math.random()*0.014,
+      vx: (Math.random()-0.5)*0.08,
+      vy: -(0.03+Math.random()*0.10),
     }));
 
     function drawBackground(){
@@ -45793,52 +45858,49 @@
     }
 
     function drawDrops(){
-      for(let i=0;i<drops.length;i++){
-        const d=drops[i];
-        if(d.splat){
-          d.splatT+=0.016;
-          /* Étaler la tache */
-          if(d.splatT<0.8){
-            const sr=d.r*(1+d.splatT*4);
-            ctx.fillStyle=`rgba(150,5,5,${d.op*(1-d.splatT*0.8)})`;
-            ctx.beginPath();ctx.ellipse(d.x,d.y,sr,sr*0.35,0,0,Math.PI*2);ctx.fill();
-          } else {
-            /* Persiste comme tache */
-            stains.push({x:d.x,y:d.y,rx:d.r*3.5,ry:d.r*1.2,op:d.op*0.45});
-            drops[i]=mkDrop();
+      /* ── Fonction commune pour dessiner un tableau de gouttes ── */
+      function processDrops(arr, respawnFn){
+        for(let i=0;i<arr.length;i++){
+          const d=arr[i];
+          if(d.splat){
+            d.splatT+=0.016;
+            if(d.splatT<0.8){
+              const sr=d.r*(1+d.splatT*4);
+              ctx.fillStyle=`rgba(150,5,5,${d.op*(1-d.splatT*0.8)})`;
+              ctx.beginPath();ctx.ellipse(d.x,d.y,sr,sr*0.35,0,0,Math.PI*2);ctx.fill();
+            } else {
+              stains.push({x:d.x,y:d.y,rx:d.r*3.5,ry:d.r*1.2,op:d.op*0.45});
+              arr[i]=respawnFn();
+            }
+            continue;
           }
-          continue;
-        }
-
-        /* Traînée */
-        d.trail.push({x:d.x,y:d.y});
-        if(d.trail.length>8) d.trail.shift();
-        for(let ti=0;ti<d.trail.length-1;ti++){
-          const tf=ti/(d.trail.length-1);
-          ctx.strokeStyle=`rgba(160,8,8,${d.op*tf*0.6})`;
-          ctx.lineWidth=d.r*2*(0.3+tf*0.7);
-          ctx.lineCap='round';
+          /* Traînée */
+          d.trail.push({x:d.x,y:d.y});
+          if(d.trail.length>8) d.trail.shift();
+          for(let ti=0;ti<d.trail.length-1;ti++){
+            const tf=ti/(d.trail.length-1);
+            ctx.strokeStyle=`rgba(160,8,8,${d.op*tf*0.6})`;
+            ctx.lineWidth=d.r*2*(0.3+tf*0.7);
+            ctx.lineCap='round';
+            ctx.beginPath();
+            ctx.moveTo(d.trail[ti].x,d.trail[ti].y);
+            ctx.lineTo(d.trail[ti+1].x,d.trail[ti+1].y);
+            ctx.stroke();
+          }
+          /* Goutte */
+          ctx.fillStyle=`rgba(168,8,8,${d.op})`;
+          ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
           ctx.beginPath();
-          ctx.moveTo(d.trail[ti].x,d.trail[ti].y);
-          ctx.lineTo(d.trail[ti+1].x,d.trail[ti+1].y);
-          ctx.stroke();
+          ctx.moveTo(d.x-d.r*0.5,d.y+d.r*0.3);
+          ctx.quadraticCurveTo(d.x,d.y+d.r*2.2,d.x+d.r*0.5,d.y+d.r*0.3);
+          ctx.fillStyle=`rgba(168,8,8,${d.op*0.8})`;ctx.fill();
+          d.y+=d.vy;
+          if(d.y>H*0.88){ d.splat=true; d.splatT=0; }
         }
-
-        /* Goutte */
-        ctx.fillStyle=`rgba(168,8,8,${d.op})`;
-        ctx.beginPath();
-        ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-        ctx.fill();
-        /* Pointe de la goutte */
-        ctx.beginPath();
-        ctx.moveTo(d.x-d.r*0.5,d.y+d.r*0.3);
-        ctx.quadraticCurveTo(d.x,d.y+d.r*2.2,d.x+d.r*0.5,d.y+d.r*0.3);
-        ctx.fillStyle=`rgba(168,8,8,${d.op*0.8})`;
-        ctx.fill();
-
-        d.y+=d.vy;
-        if(d.y>H*0.88){ d.splat=true; d.splatT=0; }
       }
+
+      processDrops(drops, mkDrop);
+      processDrops(topDrops, mkTopDrop);
 
       /* Taches persistantes */
       for(const s of stains){
@@ -46672,7 +46734,7 @@
     }
 
     function drawBoat(){
-     const bx=cx, by=lakeY+H*0.085;
+     const bx=cx, by=lakeY+H*0.110;
      /* Reflet de la barque */
      ctx.save();ctx.globalAlpha=0.18;
      ctx.fillStyle='rgba(8,4,1,0.85)';
@@ -46731,18 +46793,63 @@
      sky.addColorStop(1,`hsl(${20+Math.sin(t*0.07)*2|0},65%,38%)`);
      ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
 
-     /* ── Silhouette forêt à l'horizon ── */
-     ctx.fillStyle='rgba(18,8,4,0.97)';
-     ctx.beginPath();ctx.moveTo(0,horizY);
-     /* Arbres irréguliers */
-     const treeSeeds=[0.3,0.5,0.2,0.4,0.35,0.45,0.25,0.38,0.42,0.28,0.48,0.32,0.40,0.22,0.44,0.36,0.26,0.46,0.30,0.34];
-     for(let xi=0;xi<=W;xi+=W*0.05){
-      const idx=Math.floor(xi/(W*0.05))%treeSeeds.length;
-      const th=H*(0.020+treeSeeds[idx]*0.032);
-      ctx.lineTo(xi,horizY-th);
-      ctx.lineTo(xi+W*0.025,horizY-th*0.4);
+     /* ── Silhouette forêt à l'horizon — cyprès à longs troncs ── */
+     /* Fond de forêt : masse sombre au-dessus de l'horizon */
+     ctx.fillStyle='rgba(14,6,3,0.96)';
+     ctx.fillRect(0,horizY-H*0.032,W,H*0.034);
+
+     /* Troncs longs et fins — cyprès du bayou, comme dans le film */
+     const trunkData=[
+      /* [xRatio, hauteurRatio, largeurRatio, inclinaison] */
+      [0.02, 0.38, 0.009,  0.002],[0.06, 0.32, 0.008, -0.001],[0.10, 0.42, 0.010,  0.001],
+      [0.14, 0.28, 0.007,  0.003],[0.18, 0.45, 0.011, -0.002],[0.22, 0.35, 0.008,  0.001],
+      [0.26, 0.40, 0.009, -0.003],[0.30, 0.30, 0.007,  0.002],[0.34, 0.48, 0.012, -0.001],
+      [0.38, 0.26, 0.006,  0.002],[0.42, 0.43, 0.010,  0.001],[0.46, 0.33, 0.008, -0.002],
+      [0.50, 0.50, 0.011,  0.003],[0.54, 0.29, 0.007, -0.001],[0.58, 0.44, 0.010,  0.002],
+      [0.62, 0.36, 0.009, -0.002],[0.66, 0.46, 0.011,  0.001],[0.70, 0.27, 0.006,  0.003],
+      [0.74, 0.41, 0.009, -0.001],[0.78, 0.34, 0.008,  0.002],[0.82, 0.47, 0.010, -0.003],
+      [0.86, 0.31, 0.007,  0.001],[0.90, 0.39, 0.009, -0.002],[0.94, 0.44, 0.010,  0.001],
+      [0.97, 0.29, 0.007,  0.002],[0.99, 0.36, 0.008, -0.001],
+     ];
+     for(const [xr,hr,wr,tilt] of trunkData){
+      const tx=xr*W;
+      const th=H*hr;
+      const tw=W*wr;
+      const topX=tx+tilt*th; /* légère inclinaison */
+      /* Tronc — gradient léger pour donner du relief */
+      const tg=ctx.createLinearGradient(tx-tw*0.5,0,tx+tw*0.5,0);
+      tg.addColorStop(0,'rgba(10,5,2,0.95)');
+      tg.addColorStop(0.40,'rgba(22,11,5,0.90)');
+      tg.addColorStop(0.60,'rgba(14,7,3,0.95)');
+      tg.addColorStop(1,'rgba(8,4,1,0.97)');
+      ctx.fillStyle=tg;
+      ctx.beginPath();
+      ctx.moveTo(tx-tw*0.5, horizY);
+      ctx.lineTo(topX-tw*0.35, horizY-th);
+      ctx.lineTo(topX+tw*0.35, horizY-th);
+      ctx.lineTo(tx+tw*0.5, horizY);
+      ctx.closePath();ctx.fill();
+      /* Petite touffe de feuillage au sommet du cyprès */
+      const foliageH=H*0.028;
+      ctx.fillStyle='rgba(12,6,2,0.94)';
+      ctx.beginPath();
+      ctx.moveTo(topX-tw*1.4, horizY-th+foliageH);
+      ctx.bezierCurveTo(topX-tw*0.8,horizY-th-foliageH*0.8, topX+tw*0.8,horizY-th-foliageH*0.8, topX+tw*1.4,horizY-th+foliageH);
+      ctx.closePath();ctx.fill();
      }
-     ctx.lineTo(W,horizY);ctx.closePath();ctx.fill();
+     /* Deuxième rang d'arbres — plus petits, plus recul, pour profondeur */
+     for(let i=0;i<16;i++){
+      const tx2=(0.03+i*0.062)*W;
+      const th2=H*(0.18+((i*17)%12)/100*0.14);
+      const tw2=W*0.005;
+      ctx.fillStyle='rgba(10,5,2,0.70)';
+      ctx.beginPath();
+      ctx.moveTo(tx2-tw2,horizY-H*0.010);
+      ctx.lineTo(tx2-tw2*0.5,horizY-th2);
+      ctx.lineTo(tx2+tw2*0.5,horizY-th2);
+      ctx.lineTo(tx2+tw2,horizY-H*0.010);
+      ctx.closePath();ctx.fill();
+     }
 
      /* ── Soleil — grand disque orange ── */
      const sunX=cx*0.88, sunY=horizY-H*0.06;
@@ -47823,7 +47930,7 @@
      if(jwReady){
       const svgSize=W*1.0;
       const svgX=cx-svgSize/2;
-      const svgY=H*0.42;
+      const svgY=H*0.40;
       /* Légère lueur derrière la silhouette */
       const silGlow=ctx.createRadialGradient(cx,svgY+svgSize*0.45,0,cx,svgY+svgSize*0.45,svgSize*0.38);
       silGlow.addColorStop(0,'rgba(30,120,170,0.22)');
