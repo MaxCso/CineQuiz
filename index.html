@@ -14925,15 +14925,18 @@ function runSplash(){
       if(perf) perf.style.opacity=String(Math.max(0.25,1-p*0.65));
     }
     function tick(){
+      // Stopper pendant le drag et après le déchirement
+      if(tearTriggered || dragStarted){ return; }
       var p=0;
       if(phase==='wait'){timer++;if(timer>=WAIT){phase='lift';timer=0;}}
       else if(phase==='lift'){timer++;p=ease(Math.min(1,timer/LIFT));if(timer>=LIFT){phase='hold';timer=0;}}
       else if(phase==='hold'){p=1;timer++;if(timer>=HOLD){phase='drop';timer=0;}}
       else if(phase==='drop'){timer++;p=ease(Math.max(0,1-timer/DROP));if(timer>=DROP){p=0;phase='wait';timer=0;}}
       setLift(phase==='wait'&&p===0?0:p);
-      if(!tearTriggered) requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
+    window._restartInviteAnim = function(){ phase='wait'; timer=0; requestAnimationFrame(tick); };
   })();
 
   window._swipeTriggered = false;
@@ -15084,7 +15087,6 @@ function runSplash(){
   function _onTearEnd(){
     if(tearTriggered || !dragStarted) return;
     dragStarted = false;
-    // Snap back élastique
     ticketL.style.transition = 'transform .45s cubic-bezier(.34,1.4,.64,1)';
     ticketR.style.transition = 'transform .45s cubic-bezier(.34,1.4,.64,1)';
     ticketPerf.style.transition = 'opacity .35s ease';
@@ -15094,11 +15096,23 @@ function runSplash(){
     setTimeout(function(){
       ticketL.style.transition = '';
       ticketR.style.transition = '';
+      if(typeof window._restartInviteAnim==='function') window._restartInviteAnim();
     }, 450);
   }
 
-  ticket.addEventListener('touchstart', _onTearStart, {passive:false});
-  ticket.addEventListener('mousedown',  _onTearStart);
+  function _onTearStartLeft(e){  dragSide='left';  _onTearStart(e); }
+  function _onTearStartRight(e){ dragSide='right'; _onTearStart(e); }
+
+  ticketL.addEventListener('touchstart', _onTearStartLeft,  {passive:false});
+  ticketL.addEventListener('mousedown',  _onTearStartLeft);
+  ticketR.addEventListener('touchstart', _onTearStartRight, {passive:false});
+  ticketR.addEventListener('mousedown',  _onTearStartRight);
+  ticketPerf.addEventListener('touchstart', _onTearStartRight, {passive:false});
+  ticketPerf.addEventListener('mousedown',  _onTearStartRight);
+  window.addEventListener('touchmove',  _onTearMove,  {passive:true});
+  window.addEventListener('mousemove',  _onTearMove);
+  window.addEventListener('touchend',   _onTearEnd);
+  window.addEventListener('mouseup',    _onTearEnd);
   window.addEventListener('touchmove',  _onTearMove,  {passive:true});
   window.addEventListener('mousemove',  _onTearMove);
   window.addEventListener('touchend',   _onTearEnd);
