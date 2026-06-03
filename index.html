@@ -22,6 +22,91 @@
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+/* ── Ticket de cinéma ── */
+.splash-ticket-wrap{
+  display:flex;align-items:center;justify-content:center;
+  margin-top:200px;padding:0 24px;
+  user-select:none;-webkit-user-select:none;
+  transition:opacity .4s ease, transform .4s ease;
+}
+.splash-ticket{
+  display:flex;align-items:stretch;
+  width:100%;max-width:340px;height:72px;
+  border-radius:10px;
+  box-shadow:0 4px 32px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);
+  overflow:visible;position:relative;
+  cursor:grab;
+}
+.splash-ticket:active{ cursor:grabbing; }
+.splash-ticket-left{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:72px;padding:0 10px;
+  background:rgba(251,191,36,.13);
+  border:1px solid rgba(251,191,36,.28);
+  border-right:none;
+  border-radius:10px 0 0 10px;
+  gap:4px;flex-shrink:0;
+}
+.splash-ticket-stub-label{
+  font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2px;
+  color:rgba(251,191,36,.7);
+}
+.splash-ticket-stub-num{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;
+  color:rgba(251,191,36,.5);
+}
+.splash-ticket-perf{
+  width:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:transparent;position:relative;z-index:1;
+}
+.splash-ticket-perf-line{
+  width:1px;height:100%;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,.35) 0px,
+    rgba(255,255,255,.35) 5px,
+    transparent 5px,
+    transparent 9px
+  );
+}
+.splash-ticket-right{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:0 14px;gap:2px;
+  background:rgba(20,16,32,.88);
+  border:1px solid rgba(251,191,36,.22);
+  border-left:none;
+  border-radius:0 10px 10px 0;
+  backdrop-filter:blur(8px);
+}
+.splash-ticket-title{
+  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:3px;
+  color:#fbbf24;line-height:1;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+}
+.splash-ticket-sub{
+  font-size:7px;letter-spacing:2.5px;color:rgba(255,255,255,.35);
+  font-weight:600;text-align:center;
+}
+.splash-ticket-cta{
+  display:flex;align-items:center;gap:6px;margin-top:4px;
+}
+.splash-ticket-cta-text{
+  font-size:10px;letter-spacing:2.5px;font-weight:700;
+  color:rgba(255,255,255,.55);
+  animation:ticket-pulse 2s ease-in-out infinite;
+}
+.splash-ticket-arrow{
+  font-size:11px;color:rgba(251,191,36,.6);
+  animation:ticket-pulse 2s ease-in-out infinite;
+}
+.splash-ticket-date{
+  font-size:7px;letter-spacing:1.5px;color:rgba(255,255,255,.2);margin-top:1px;
+}
+@keyframes ticket-pulse{
+  0%,100%{opacity:.5;} 50%{opacity:1;}
+}
+</style>
 </head>
 <body>
 <script src="data.js"></script>
@@ -836,12 +921,27 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         <div class="splash-logo" style="-webkit-tap-highlight-color:transparent;user-select:none;">CinéQuiz</div>
       </div>
       <div class="splash-tagline">Le quiz du 7ème art</div>
-      <div class="splash-swipe-wrap" id="splash-tap">
-        <div class="splash-swipe-track" id="splash-swipe-track">
-          <div class="splash-swipe-thumb" id="splash-swipe-thumb">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <!-- Ticket de cinéma à déchirer -->
+      <div class="splash-ticket-wrap" id="splash-tap">
+        <div class="splash-ticket" id="splash-ticket">
+          <!-- Moitié gauche -->
+          <div class="splash-ticket-left" id="splash-ticket-left">
+            <div class="splash-ticket-stub-label">ENTRÉE</div>
+            <div class="splash-ticket-stub-num">N° <span id="splash-ticket-num">001</span></div>
           </div>
-          <span class="splash-swipe-label" id="splash-swipe-label">SWIPE TO ENTER</span>
+          <!-- Perforation centrale -->
+          <div class="splash-ticket-perf" id="splash-ticket-perf">
+            <div class="splash-ticket-perf-line"></div>
+          </div>
+          <!-- Moitié droite — principal -->
+          <div class="splash-ticket-right" id="splash-ticket-right">
+            <div class="splash-ticket-cta">
+              <span class="splash-ticket-arrow">←</span>
+              <span class="splash-ticket-cta-text">DÉCHIRE POUR ENTRER</span>
+              <span class="splash-ticket-arrow">→</span>
+            </div>
+            <div class="splash-ticket-date" id="splash-ticket-date"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -14720,69 +14820,157 @@ function runSplash(){
   // Effet film en fond
   if(window._runSplashEffect) window._runSplashEffect();
 
-  // ── Swipe to unlock ──
-  const thumb = document.getElementById('splash-swipe-thumb');
-  const track = document.getElementById('splash-swipe-track');
-  const label = document.getElementById('splash-swipe-label');
-  if(!thumb || !track) return;
+  // ── Ticket de cinéma à déchirer ──
+  const ticket     = document.getElementById('splash-ticket');
+  const ticketL    = document.getElementById('splash-ticket-left');
+  const ticketR    = document.getElementById('splash-ticket-right');
+  const ticketPerf = document.getElementById('splash-ticket-perf');
+  const ticketWrap = document.getElementById('splash-tap');
+  if(!ticket || !ticketL || !ticketR) return;
 
-  const THUMB_W = 40;
-  const PADDING = 4;
-  let dragging = false;
-  let startX = 0;
-  let currentX = 0;
-  window._swipeTriggered = false;
-  let triggered = false;
-
-  // Exposer une fonction de reset pour les aperçus
-  window._resetSwipe = function(){
-    triggered = false;
-    window._swipeTriggered = false;
-    dragging = false;
-    startX = 0;
-    currentX = 0;
-    if(thumb){ thumb.style.transition=''; thumb.style.transform=''; thumb.style.animation=''; }
-    if(track){ track.style.setProperty('--swipe-fill','0px'); }
-    if(label){ label.style.opacity=''; }
-  };
-
-  function getTrackWidth(){ return track.getBoundingClientRect().width; }
-
-  function setThumbPos(x){
-    const maxX = getTrackWidth() - THUMB_W - PADDING * 2;
-    x = Math.max(0, Math.min(x, maxX));
-    currentX = x;
-    thumb.style.transform = 'translateX(' + x + 'px)';
-    track.style.setProperty('--swipe-fill', (x + THUMB_W + PADDING) + 'px');
-    // Fade label when thumb advances
-    const pct = x / maxX;
-    if(label) label.style.opacity = Math.max(0, 1 - pct * 2.5);
-    // Trigger at 85%
-    if(pct >= 0.85 && !triggered){
-      triggered = true;
-      window._swipeTriggered = true;
-      sndSwipe();
-      musicStarted = true;
-      // Snap to end
-      thumb.style.transition = 'transform .15s ease';
-      thumb.style.transform = 'translateX(' + maxX + 'px)';
-      track.style.setProperty('--swipe-fill', (maxX + THUMB_W + PADDING) + 'px');
-      // play() sera lancé dans onPointerUp (event actif iOS)
-      setTimeout(function(){
-        thumb.style.transition = '';
-        if(typeof window._splashSwipeCallback === 'function'){
-          window._splashSwipeCallback();
-        } else {
-          startSequence(2000);
-        }
-      }, 150);
+  // Numéro de ticket aléatoire + date
+  const ticketNum = document.getElementById('splash-ticket-num');
+  const ticketDate = document.getElementById('splash-ticket-date');
+  if(ticketNum){
+    try{
+      const visits=(parseInt(localStorage.getItem('cq_visit_count')||'0',10)||0)+1;
+      localStorage.setItem('cq_visit_count',String(visits));
+      ticketNum.textContent = String(visits).padStart(3,'0');
+    }catch(e){
+      ticketNum.textContent = '001';
     }
   }
+  if(ticketDate) ticketDate.textContent = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+
+  window._swipeTriggered = false;
+  let tearTriggered = false;
+  let dragStartX = 0, dragStarted = false;
+  let leftDx = 0, rightDx = 0;
+
+  // Exposer reset pour les aperçus
+  window._resetSwipe = function(){
+    tearTriggered = false;
+    window._swipeTriggered = false;
+    dragStarted = false;
+    leftDx = 0; rightDx = 0;
+    ticketL.style.cssText = '';
+    ticketR.style.cssText = '';
+    ticketPerf.style.cssText = '';
+    ticket.style.cssText = '';
+    ticketWrap.style.opacity = '';
+  };
+
+  function _triggerTear(){
+    if(tearTriggered) return;
+    tearTriggered = true;
+    window._swipeTriggered = true;
+
+    // Amorcer l'audio dès le toucher
+    _initAC();
+    if(_ac && _ac.state === 'suspended') _ac.resume();
+    if(!window._splashPreviewMode){
+      var filmName = window._splashEffectName || '';
+      var filmFile = SPLASH_MUSIC[filmName];
+      if(filmFile){
+        _splashAudioPrimed = new Audio(filmFile);
+        _splashAudioPrimed.volume = 0;
+        _splashAudioPrimed.play().catch(function(){});
+        _splashAudioPlaying = _splashAudioPrimed;
+      }
+    }
+    musicStarted = true;
+    sndSwipe();
+
+    // Animation déchirement : les deux moitiés s'écartent + légère rotation
+    ticketL.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1), opacity .28s ease';
+    ticketR.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1), opacity .28s ease';
+    ticketPerf.style.transition = 'opacity .18s ease';
+    ticketL.style.transform = 'translateX(-110%) rotate(-6deg)';
+    ticketR.style.transform = 'translateX(110%) rotate(6deg)';
+    ticketL.style.opacity = '0';
+    ticketR.style.opacity = '0';
+    ticketPerf.style.opacity = '0';
+
+    // Fade out du wrapper, puis ouvrir le rideau
+    setTimeout(function(){
+      ticketWrap.style.transition = 'opacity .18s ease';
+      ticketWrap.style.opacity = '0';
+    }, 300);
+
+    setTimeout(function(){
+      if(typeof window._splashSwipeCallback === 'function'){
+        window._splashSwipeCallback();
+      } else {
+        startSequence(2000);
+      }
+    }, 420);
+  }
+
+  function _onTearStart(e){
+    if(tearTriggered) return;
+    dragStartX = e.touches ? e.touches[0].clientX : e.clientX;
+    dragStarted = true;
+    // Primer audio au premier toucher
+    _initAC();
+    if(_ac && _ac.state === 'suspended') _ac.resume();
+    if(!_splashAudioPrimed && !window._splashPreviewMode){
+      var filmName = window._splashEffectName || '';
+      var filmFile = SPLASH_MUSIC[filmName];
+      if(filmFile){
+        _splashAudioPrimed = new Audio(filmFile);
+        _splashAudioPrimed.volume = 0;
+        _splashAudioPrimed.play().catch(function(){});
+        _splashAudioPlaying = _splashAudioPrimed;
+      }
+    }
+    e.preventDefault();
+  }
+
+  function _onTearMove(e){
+    if(!dragStarted || tearTriggered) return;
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const dx = cx - dragStartX;
+    // Déplacement visuel : moitiés s'écartent proportionnellement
+    const pull = Math.max(0, Math.abs(dx));
+    leftDx  = -pull * 0.55;
+    rightDx =  pull * 0.55;
+    const rot = pull * 0.04;
+    ticketL.style.transform = `translateX(${leftDx}px) rotate(${-rot}deg)`;
+    ticketR.style.transform = `translateX(${rightDx}px) rotate(${rot}deg)`;
+    // Opacité de la perforation qui s'estompe avec l'étirement
+    const stretch = Math.min(1, pull / 60);
+    ticketPerf.style.opacity = String(1 - stretch * 0.7);
+    // Déclencher à 70px d'écartement dans n'importe quelle direction
+    if(pull >= 70) _triggerTear();
+  }
+
+  function _onTearEnd(){
+    if(tearTriggered || !dragStarted) return;
+    dragStarted = false;
+    // Snap back si pas assez déchiré
+    ticketL.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1)';
+    ticketR.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1)';
+    ticketPerf.style.transition = 'opacity .2s ease';
+    ticketL.style.transform = '';
+    ticketR.style.transform = '';
+    ticketPerf.style.opacity = '';
+    setTimeout(function(){
+      ticketL.style.transition = '';
+      ticketR.style.transition = '';
+    }, 300);
+  }
+
+  ticket.addEventListener('touchstart', _onTearStart, {passive:false});
+  ticket.addEventListener('mousedown',  _onTearStart);
+  window.addEventListener('touchmove',  _onTearMove,  {passive:true});
+  window.addEventListener('mousemove',  _onTearMove);
+  window.addEventListener('touchend',   _onTearEnd);
+  window.addEventListener('mouseup',    _onTearEnd);
 
   var musicStarted = false;
-  var _introAudioPrimed = null;
+  var _splashAudioPrimed = null;
+  var _splashAudioPlaying = null;
 
-  // ── Map effet → fichier MP3 film ──
   var SPLASH_MUSIC = {
     'Matrix':          'Matrix.mp3',
     '2001':            '2001.mp3',
@@ -19696,7 +19884,7 @@ function hmReopenTuto() {
 
       // Remettre swipe dans état initial
       var tapEl=document.getElementById('splash-tap');
-      if(tapEl){tapEl.className='splash-swipe-wrap';tapEl.style.cssText='';}
+      if(tapEl){tapEl.className='splash-ticket-wrap';tapEl.style.cssText='';}
 
       // Logo initial
       var logoEl=document.getElementById('splash-logo');
@@ -19947,7 +20135,7 @@ function hmReopenTuto() {
 
       // Swipe : état initial (pas de hidden, pas de style inline)
       var tapEl=document.getElementById('splash-tap');
-      if(tapEl){tapEl.className='splash-swipe-wrap';tapEl.style.cssText='';}
+      if(tapEl){tapEl.className='splash-ticket-wrap';tapEl.style.cssText='';}
       var thumbEl=document.getElementById('splash-swipe-thumb');
       if(thumbEl){thumbEl.style.cssText='';}
       var trackEl=document.getElementById('splash-swipe-track');
