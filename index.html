@@ -14724,8 +14724,27 @@ function runSplash(){
       logo.classList.add('logo-film-mode');
     }, 2000);
 
-    // ── Musique du film — fade-in au rideau ──
+    // ── Musique du film ──
     var _splashClosed = false;
+
+    function _splashKillAudio(){
+      var a = window._splashAudio;
+      if(!a) return;
+      window._splashAudio = null;
+      try{ a.pause(); a.currentTime = 0; a.src = ''; }catch(e){}
+    }
+
+    function _splashFadeOut(cb){
+      var a = window._splashAudio;
+      if(!a || a.paused || a.ended){ _splashKillAudio(); if(cb) cb(); return; }
+      var v = a.volume || 1, st = 0, tot = 20;
+      var fo = setInterval(function(){
+        st++;
+        a.volume = Math.max(0, v * (1 - st / tot));
+        if(st >= tot){ clearInterval(fo); _splashKillAudio(); if(cb) cb(); }
+      }, 500 / tot);
+    }
+
     function closeSplash(){
       if(_splashClosed) return;
       _splashClosed = true;
@@ -14733,42 +14752,10 @@ function runSplash(){
       var skipEl = document.getElementById('splash-skip');
       if(skipEl) skipEl.classList.remove('visible');
 
-      // Fade-out audio immédiat — 600ms, se termine AVANT que l'accueil soit visible
-      var _audioStopped = false;
-      function _stopAudio(cb){
-        if(_audioStopped){ cb(); return; }
-        _audioStopped = true;
-        // Lire depuis window en priorité — l'audio est créé dans le scope du ticket
-        var a = window._splashAudioPlaying || _splashAudioPlaying || window._splashAudioPrimed || _splashAudioPrimed;
-        if(a && !a.ended && !a.paused || (a && a.currentTime > 0)){
-          var v = a.volume || 1, st = 0, tot = 24;
-          var fo = setInterval(function(){
-            st++;
-            a.volume = Math.max(0, v * (1 - st / tot));
-            if(st >= tot){
-              clearInterval(fo);
-              try{ a.pause(); a.currentTime = 0; }catch(e){}
-              window._splashAudioPlaying = null; _splashAudioPlaying = null;
-              window._splashAudioPrimed  = null; _splashAudioPrimed  = null;
-              cb();
-            }
-          }, 600 / tot);
-        } else {
-          if(a){ try{ a.pause(); a.currentTime=0; }catch(e){} }
-          window._splashAudioPlaying = null; _splashAudioPlaying = null;
-          window._splashAudioPrimed  = null; _splashAudioPrimed  = null;
-          cb();
-        }
-      }
-
-      // Démarrer le fade-out audio MAINTENANT, puis déclencher la transition visuelle
-      _stopAudio(function(){
-        // Audio coupé — on peut lancer la musique de l'appli sans chevauchement
-      });
+      _splashFadeOut();
 
       splash.classList.add('out');
-      // Afficher la nav immédiatement, sans attendre le MutationObserver
-      if(typeof cqUpdateNav === 'function') {
+      if(typeof cqUpdateNav === 'function'){
         var _activeScreen = null;
         ['home','modes-screen','profile'].forEach(function(id){
           var el = document.getElementById(id);
@@ -14776,33 +14763,32 @@ function runSplash(){
         });
         if(_activeScreen) cqUpdateNav(_activeScreen);
       }
-      setTimeout(()=>{
-        splash.style.display='none';
-        splash.style.animation='none';
-        splash.querySelectorAll('*').forEach(el=>{ el.style.animation='none'; });
-        if(window._stopNeuroSplash)window._stopNeuroSplash();
-        if(window._stopSplashEffect)window._stopSplashEffect();
-        // Filet de sécurité — couper tout audio splash résiduel
-        var _ra = window._splashAudioPlaying || _splashAudioPlaying || window._splashAudioPrimed || _splashAudioPrimed;
-        if(_ra){ try{ _ra.pause(); _ra.currentTime=0; }catch(e){} }
-        window._splashAudioPlaying=null; _splashAudioPlaying=null;
-        window._splashAudioPrimed=null;  _splashAudioPrimed=null;
+      setTimeout(function(){
+        splash.style.display = 'none';
+        splash.style.animation = 'none';
+        splash.querySelectorAll('*').forEach(function(el){ el.style.animation = 'none'; });
+        if(window._stopNeuroSplash) window._stopNeuroSplash();
+        if(window._stopSplashEffect) window._stopSplashEffect();
+        _splashKillAudio();
         if(musOn) playMus();
       }, 700);
     }
 
     (function(){
-      // Récupérer l'audio déjà lancé depuis le handler swipe (iOS PWA)
-      var aud = _splashAudioPlaying || _splashAudioPrimed;
+      // Récupérer l'audio déjà créé par _triggerTear, ou en créer un
+      var aud = window._splashAudio;
       if(!aud){
         var filmName = window._splashEffectName || '';
         var filmFile = SPLASH_MUSIC[filmName];
-        if(filmFile){ aud = new Audio(filmFile); }
+        if(filmFile){
+          aud = new Audio(filmFile);
+          aud.volume = 0;
+          window._splashAudio = aud;
+        }
       }
       if(!aud){ setTimeout(closeSplash, Math.max(closeDelay, 8000)); return; }
 
-      _splashAudioPlaying = aud;
-      // Durée minimum par film (ms) — évite que le splash ferme trop tôt
+      window._splashAudio = aud;
       var MIN_DURATIONS = {
         'Mission Impossible': 42000,
         'Back to the Future': 15000,
@@ -14826,14 +14812,12 @@ function runSplash(){
       }
 
       if(!aud.paused){
-        // Déjà en lecture — rembobiner et fade-in
         aud.currentTime = 0;
         doFadeIn();
       } else {
         aud.currentTime = 0;
         aud.volume = 0;
         aud.play().then(function(){ doFadeIn(); }).catch(function(){
-          clearTimeout(_fallback);
           setTimeout(closeSplash, Math.max(closeDelay, 8000));
         });
       }
@@ -14941,13 +14925,10 @@ function runSplash(){
     if(!window._splashPreviewMode){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
-      if(filmFile){
-        window._splashAudioPrimed = new Audio(filmFile);
-        window._splashAudioPrimed.volume = 0;
-        window._splashAudioPrimed.play().catch(function(){});
-        window._splashAudioPlaying = window._splashAudioPrimed;
-        _splashAudioPrimed  = window._splashAudioPrimed;
-        _splashAudioPlaying = window._splashAudioPlaying;
+      if(filmFile && !window._splashAudio){
+        window._splashAudio = new Audio(filmFile);
+        window._splashAudio.volume = 0;
+        window._splashAudio.play().catch(function(){});
       }
     }
     musicStarted = true;
@@ -14985,16 +14966,13 @@ function runSplash(){
     // Primer audio au premier toucher
     _initAC();
     if(_ac && _ac.state === 'suspended') _ac.resume();
-    if(!window._splashAudioPrimed && !_splashAudioPrimed && !window._splashPreviewMode){
+    if(!window._splashAudio && !window._splashPreviewMode){
       var filmName = window._splashEffectName || '';
       var filmFile = SPLASH_MUSIC[filmName];
       if(filmFile){
-        window._splashAudioPrimed = new Audio(filmFile);
-        window._splashAudioPrimed.volume = 0;
-        window._splashAudioPrimed.play().catch(function(){});
-        window._splashAudioPlaying = window._splashAudioPrimed;
-        _splashAudioPrimed  = window._splashAudioPrimed;
-        _splashAudioPlaying = window._splashAudioPlaying;
+        window._splashAudio = new Audio(filmFile);
+        window._splashAudio.volume = 0;
+        window._splashAudio.play().catch(function(){});
       }
     }
     e.preventDefault();
@@ -15771,13 +15749,13 @@ const EE_DEFS = [
   { id:'ee_splash_tap',    icon:'🎞️', name:'Projectionniste',      hint:'5 taps sur le canvas animé du splash intro d\'un film' },
   { id:'ee_cp_logo',       icon:'📖', name:'L\'Encyclopédiste',     hint:'Appui long 3s sur le titre CINÉPÉDIA dans la modale' },
   { id:'ee_badge_tap',     icon:'🏅', name:'Le Collectionneur',     hint:'7 taps rapides sur un badge débloqué' },
-  { id:'ee_modes_long',    icon:'🗂️', name:'Le Programmateuр',      hint:'Appui long 3s sur le titre d\'onglet MODES' },
+  { id:'ee_modes_long',    icon:'🗂️', name:'Le Programmateur',      hint:'5 taps rapides sur l\'onglet MODES dans la navigation' },
   { id:'ee_daily_done',    icon:'📅', name:'Le Poinçonneur',        hint:'5 taps sur le badge FAIT après avoir complété le défi du jour' },
   { id:'ee_hm_scratch',    icon:'🪄', name:'Le Gratteur fou',       hint:'Gratte 3 films Hidden Movies d\'affilée sans fermer la modale' },
   { id:'ee_ref_footer',    icon:'🎬', name:'Le Généalogiste',       hint:'Appui long 3s sur la référence film tout en bas du splash intro' },
   { id:'ee_xp_widget',     icon:'💡', name:'L\'Alchimiste',         hint:'Triple tap sur le niveau affiché dans le widget XP' },
   { id:'ee_random_btn',    icon:'🎲', name:'Le Hasardeux',          hint:'5 taps rapides sur le bouton PARTIE RAPIDE sans lancer de partie' },
-  { id:'ee_settings_long', icon:'⚙️', name:'Le Technicien',         hint:'Appui long 3s sur l\'icône ⚙️ des paramètres' },
+  { id:'ee_settings_long', icon:'⚙️', name:'Le Technicien',         hint:'5 taps rapides sur l\'icône ❓ Comment jouer' },
 ];
 const EE_TOTAL = EE_DEFS.length;
 
@@ -16324,12 +16302,18 @@ function eeRenderProfile(){
       });
     })();
 
-    // 52. Onglet MODES — appui long 3s sur le tab
+    // 52. Onglet MODES — 5 taps rapides
     (function(){
-      let _t=null;
-      document.addEventListener('mousedown',e=>{const el=e.target.closest('.cq-nav-item[onclick*="modes"],.cq-nav-btn[onclick*="modes"]');if(!el)return;if(eeIsFound('ee_modes_long'))return;_t=setTimeout(()=>eeTrigger('ee_modes_long'),3000);});
-      document.addEventListener('touchstart',e=>{const el=e.target.closest('.cq-nav-item[onclick*="modes"],.cq-nav-btn[onclick*="modes"]');if(!el)return;if(eeIsFound('ee_modes_long'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_modes_long'),3000);},{passive:false});
-      document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
+      document.addEventListener('click',function(e){
+        const el=e.target.closest('.cq-nav-item[onclick*="modes"],.cq-nav-btn[onclick*="modes"]');
+        if(!el)return;
+        if(eeIsFound('ee_modes_long'))return;
+        if(!el._n)el._n=0;
+        const now=Date.now();
+        if(!el._t||now-el._t>2000)el._n=0;
+        el._t=now;el._n++;
+        if(el._n>=5){eeTrigger('ee_modes_long');el._n=0;}
+      });
     })();
 
     // 53. Daily badge FAIT — 5 taps après complétion
@@ -16397,12 +16381,18 @@ function eeRenderProfile(){
       },true);
     })();
 
-    // 58. Icône paramètres/aide — appui long 3s
+    // 58. Icône Comment jouer — 5 taps rapides
     (function(){
-      let _t=null;
-      document.addEventListener('mousedown',e=>{const el=e.target.closest('#btn-help,.ibtn[onclick*="help"],.ibtn[title*="aramt"]');if(!el)return;if(eeIsFound('ee_settings_long'))return;_t=setTimeout(()=>eeTrigger('ee_settings_long'),3000);});
-      document.addEventListener('touchstart',e=>{const el=e.target.closest('#btn-help,.ibtn[onclick*="help"],.ibtn[title*="aramt"]');if(!el)return;if(eeIsFound('ee_settings_long'))return;e.preventDefault();_t=setTimeout(()=>eeTrigger('ee_settings_long'),3000);},{passive:false});
-      document.addEventListener('mouseup',()=>clearTimeout(_t));document.addEventListener('touchend',()=>clearTimeout(_t));document.addEventListener('touchcancel',()=>clearTimeout(_t));
+      document.addEventListener('click',function(e){
+        const el=e.target.closest('#btn-help,.ibtn[onclick*="help"],.ibtn-help');
+        if(!el)return;
+        if(eeIsFound('ee_settings_long'))return;
+        if(!el._n)el._n=0;
+        const now=Date.now();
+        if(!el._t||now-el._t>2000)el._n=0;
+        el._t=now;el._n++;
+        if(el._n>=5){eeTrigger('ee_settings_long');el._n=0;}
+      });
     })();
 
   }
