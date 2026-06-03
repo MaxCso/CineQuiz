@@ -5598,13 +5598,17 @@ const BADGES=[
   {id:'pyear',   icon:'📅',name:'L\'Horloger',      desc:'Joue une partie Année Mystère',       cond:s=>s.yearGames>=1},
   {id:'pduo',    icon:'🎵',name:'Première BO',        desc:'Joue une partie Devine la BO',         cond:s=>s.boMusicGames>=1||s.duoGames>=1},
   {id:'pbo',     icon:'💰',name:'Producteur',        desc:'Joue une partie Box-office',          cond:s=>s.boGames>=1},
-  {id:'preplique',icon:'🗣️',name:'Le Mot Juste',      desc:'Joue une partie Réplique Culte',       cond:s=>s.repliqueGames>=1},
+  {id:'pgenerique', icon:'📜',name:'Au générique',       desc:'Joue une partie Le Générique',                cond:s=>(s.generiqueGames||0)>=1},
+  {id:'gen10',      icon:'🎬',name:'Chef de casting',    desc:'10 bonnes réponses en Le Générique',          cond:s=>(s.generiqueOk||0)>=10},
+  {id:'gen5perf',   icon:'🏆',name:'Cinéphile absolu',   desc:'5 parties Le Générique parfaites',             cond:s=>(s.generiquePerfects||0)>=5},
+  {id:'pversus',    icon:'⚔️',name:'Le Duel',            desc:'Joue une partie Multijoueur',                 cond:s=>(s.versusGames||0)>=1},
+
   {id:'pacteur',  icon:'🎭',name:'Casting Director',  desc:'Joue une partie Qui est-ce ?',         cond:s=>s.acteurGames>=1},
   {id:'pcomp',    icon:'🎼',name:'Maestro',             desc:'Joue une partie Compositeur',          cond:s=>s.compositeurGames>=1},
   {id:'pfilmo',   icon:'🎭',name:'Biographe',            desc:'Joue une partie Filmographie',         cond:s=>s.filmographieGames>=1},
   
-  {id:'rq10',    icon:'🗣️',name:'Scénariste',        desc:'10 bonnes réponses Réplique Culte',    cond:s=>s.repliqueOk>=10},
-  {id:'rq5perf', icon:'🎤',name:'Dialoguiste',        desc:'5 parties Réplique Culte parfaites',  cond:s=>s.repliquePerfects>=5},
+  {id:'bt10',       icon:'🎵',name:'Oreille fine',        desc:'10 bonnes réponses en Blind Test',            cond:s=>(s.blindtestOk||0)>=10},
+  {id:'bt5perf',    icon:'🎧',name:'Mélomane parfait',    desc:'5 parties Blind Test parfaites',              cond:s=>(s.blindtestPerfects||0)>=5},
   {id:'str3',    icon:'🔥',name:'En feu',            desc:'3 jours consécutifs',                 cond:s=>s.streak>=3},
   {id:'str7',    icon:'🌟',name:'Hebdo',             desc:'7 jours consécutifs',                 cond:s=>s.streak>=7},
   {id:'str30',   icon:'🌙',name:'Mois cinéma',       desc:'30 jours consécutifs',                cond:s=>s.streak>=30},
@@ -5635,7 +5639,7 @@ const BADGES=[
   {id:'xp10k',   icon:'🌟',name:'Icône du cinéma',      desc:'Atteins 10 000 XP',                    cond:s=>s.xp>=10000},
   {id:'g200',    icon:'🏛️',name:'Vétéran absolu',       desc:'200 parties jouées',                   cond:s=>s.games>=200},
 
-  {id:'allModes',icon:'🎭',name:'Explorateur',           desc:'Joue tous les modes au moins une fois',cond:s=>s.photoGames>=1&&s.yearGames>=1&&s.boGames>=1&&s.repliqueGames>=1&&s.acteurGames>=1&&s.baGames>=1&&s.boMusicGames>=1},
+
 
   {id:'pdecennie',  icon:'📅',name:'Historien',             desc:'Joue une partie Décennie',              cond:s=>s.decennieGames>=1},
   {id:'pquiadit',   icon:'🎭',name:'Comédien',              desc:'Joue une partie Qui a dit ça ?',        cond:s=>s.quiaditGames>=1},
@@ -5769,9 +5773,8 @@ const BADGES=[
   {id:'jk_5h',         icon:'🎸',name:'Mélomane absolu',        desc:'5h d\'écoute dans le Jukebox',                       cond:s=>(s.jkplaytime||0)>=18000},
 
   // ── Progression Quiz & Répliques ──
-  {id:'rq50',          icon:'🎤',name:'Auteur de dialogues',    desc:'50 bonnes réponses en Réplique Culte',               cond:s=>(s.repliqueOk||0)>=50},
-  {id:'bo_ok20',       icon:'💹',name:'Analyste box-office',    desc:'20 bonnes réponses en Box-office',                   cond:s=>(s.boOk||0)>=20},
-  {id:'year_ok20',     icon:'🗓️',name:'Chronologiste',          desc:'20 bonnes réponses en Année Mystère',                cond:s=>(s.yearOk||0)>=20},
+  {id:'gen50',      icon:'📽️',name:'Mémoire de cinéma',  desc:'50 bonnes réponses en Le Générique',          cond:s=>(s.generiqueOk||0)>=50},
+
 
   // ── Polyvalence & maîtrise ──
   {id:'allstar2',      icon:'🎖️',name:'Hall of Fame',           desc:'Débloquer 100 badges',                               cond:s=>(s.unlocked||[]).length>=100},
@@ -5783,7 +5786,7 @@ const BADGES=[
   {id:'cp_streak7',    icon:'📰',name:'Lecteur assidu',          desc:'7 jours consécutifs d\'anecdotes Cinépédia',         cond:s=>(s.cpStreak||0)>=7},
   {id:'hm_genre5',     icon:'🎭',name:'Éclectique',              desc:'Gratte des films Hidden Movies de 5 genres différents', cond:s=>{try{const r=JSON.parse(localStorage.getItem('hm_revealed')||'[]');return new Set(r.map(f=>f.g)).size>=5;}catch{return false;}}},
   {id:'daily_100',     icon:'🏆',name:'Centenaire quotidien',    desc:'Complète 100 défis quotidiens',                      cond:s=>(s.dailyDone||0)>=100},
-  {id:'rq_perf10',     icon:'🎙️',name:'Répliqueur de génie',    desc:'10 parties Réplique Culte parfaites',                cond:s=>(s.repliquePerfects||0)>=10},
+  {id:'versus10',   icon:'🏅',name:'Champion du duel',    desc:'10 parties Multijoueur jouées',                cond:s=>(s.versusGames||0)>=10},
   {id:'xp30k',         icon:'🌠',name:'Mythe vivant',            desc:'Atteins 30 000 XP',                                  cond:s=>(s.xp||0)>=30000},
   {id:'g750',          icon:'🎪',name:'Marathonien',             desc:'750 parties jouées',                                 cond:s=>(s.games||0)>=750},
 ];
