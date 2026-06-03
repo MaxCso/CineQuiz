@@ -17953,7 +17953,7 @@
     const CHAIN_SPEED  = 0.006;
     // Chaîne : ratio SVG 214/1192 ≈ 0.1795
     // On veut qu'elle occupe ~52% de la largeur
-    const CHAIN_W_RATIO = 0.34;
+    const CHAIN_W_RATIO = 0.24;
 
     /* ── Particules de cendres ── */
     const embers = Array.from({length:55},(_,k)=>({
@@ -40336,12 +40336,29 @@
     /* ── Style ── */
     let _nmS=document.getElementById('_nm_s');
     if(!_nmS){_nmS=document.createElement('style');_nmS.id='_nm_s';document.head.appendChild(_nmS);}
-    _nmS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:70%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,220,140,0.92)!important;text-shadow:0 1px 12px rgba(60,30,0,0.90)!important;}#splash-film-logo{max-width:62%!important;}';
+    _nmS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 12px rgba(0,0,0,0.98)!important;}#splash-film-logo{max-width:62%!important;}';
     const _nmW=setInterval(()=>{if(stop.v){_nmS.textContent='';clearInterval(_nmW);}},200);
 
     const floorY=H*0.82;
     const BONE=(a=0.90)=>`rgba(235,215,155,${a})`;
     const BONE_DIM=(a=0.55)=>`rgba(195,170,110,${a})`;
+
+    /* ── Chauves-souris — traversées furtives ── */
+    const bats=Array.from({length:3},(_,i)=>({
+      x:-W*0.15-i*W*0.35,
+      y:H*(0.08+i*0.09),
+      spd:W*(0.0025+i*0.0008),
+      size:W*(0.018+i*0.006),
+      wingPh:Math.random()*Math.PI*2,
+      active:i===0,
+      timer:i*320+Math.random()*200,
+    }));
+
+    /* ── Yeux qui brillent dans l'obscurité (gauche/droite) ── */
+    const eyes=[
+      {x:W*0.04, y:H*0.60, ph:0.00, spd:0.008, col:'255,120,20'},
+      {x:W*0.96, y:H*0.55, ph:Math.PI, spd:0.011, col:'255,80,10'},
+    ];
 
     /* ── Poussière ── */
     const dust=Array.from({length:40},()=>({
@@ -40528,6 +40545,46 @@
       }
     }
 
+    function drawBats(){
+      for(const b of bats){
+        if(!b.active){b.timer--;if(b.timer<=0){b.active=true;b.x=-W*0.12;b.y=H*(0.05+Math.random()*0.20);}continue;}
+        b.x+=b.spd;b.wingPh+=0.22;
+        /* Ailes — deux arcs animés */
+        const wx=b.x, wy=b.y;
+        const flap=Math.sin(b.wingPh)*b.size*1.6;
+        ctx.save();ctx.globalAlpha=0.55;ctx.fillStyle='rgba(12,6,2,0.80)';
+        /* Corps */
+        ctx.beginPath();ctx.ellipse(wx,wy,b.size*0.55,b.size*0.35,0,0,Math.PI*2);ctx.fill();
+        /* Aile gauche */
+        ctx.beginPath();ctx.moveTo(wx,wy);
+        ctx.quadraticCurveTo(wx-b.size*1.8,wy+flap,wx-b.size*2.2,wy+b.size*0.5);
+        ctx.quadraticCurveTo(wx-b.size*1.2,wy+b.size*0.2,wx,wy);ctx.fill();
+        /* Aile droite */
+        ctx.beginPath();ctx.moveTo(wx,wy);
+        ctx.quadraticCurveTo(wx+b.size*1.8,wy+flap,wx+b.size*2.2,wy+b.size*0.5);
+        ctx.quadraticCurveTo(wx+b.size*1.2,wy+b.size*0.2,wx,wy);ctx.fill();
+        ctx.restore();
+        if(b.x>W*1.12){b.active=false;b.timer=280+Math.random()*400;}
+      }
+    }
+
+    function drawEyes(){
+      for(const e of eyes){
+        e.ph+=e.spd;
+        /* Clignote lentement — visible seulement par intermittence */
+        const blink=Math.pow(Math.max(0,Math.sin(e.ph)),8);
+        if(blink<0.02) continue;
+        const glow=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,W*0.025);
+        glow.addColorStop(0,`rgba(${e.col},${blink*0.90})`);
+        glow.addColorStop(0.4,`rgba(${e.col},${blink*0.25})`);
+        glow.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=glow;ctx.beginPath();ctx.arc(e.x,e.y,W*0.025,0,Math.PI*2);ctx.fill();
+        /* Pupille */
+        ctx.fillStyle=`rgba(255,255,200,${blink*0.95})`;
+        ctx.beginPath();ctx.arc(e.x,e.y,W*0.004,0,Math.PI*2);ctx.fill();
+      }
+    }
+
     function drawGlyphs(){
       ctx.font=`bold ${W*0.032|0}px serif`;
       ctx.textAlign='center';
@@ -40566,6 +40623,8 @@
       drawHall();
       drawTorches();
       drawTRex();
+      drawBats();
+      drawEyes();
       drawGlyphs();
       drawDust();
 
