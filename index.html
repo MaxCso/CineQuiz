@@ -15240,63 +15240,8 @@ function runSplash(){
     '\u00c0 tombeau ouvert':     'A tombeau ouvert.mp3'
   };
 
-  var _splashAudioPrimed = null;
-  var _splashAudioPlaying = null;
   // Exposer SPLASH_MUSIC pour la preview
   window.SPLASH_MUSIC = SPLASH_MUSIC;
-  function onPointerDown(e){
-    if(triggered || window._swipeTriggered) return;
-    _initAC();
-    if(_ac && _ac.state === 'suspended') _ac.resume();
-    // Lancer le primer silencieusement et le LAISSER JOUER — ne jamais pause()
-    // Au swipe on monte juste le volume — aucun second play() nécessaire
-    if(!_splashAudioPrimed && !window._splashPreviewMode){
-      var filmName = window._splashEffectName || '';
-      var filmFile = SPLASH_MUSIC[filmName];
-      if(filmFile){
-        _splashAudioPrimed = new Audio(filmFile);
-        _splashAudioPrimed.volume = 0;
-        _splashAudioPrimed.play().catch(function(){});
-        // Marquer comme playing dès maintenant — sera réutilisé dans startSequence
-        _splashAudioPlaying = _splashAudioPrimed;
-      }
-    }
-    dragging = true;
-    startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
-    thumb.style.animation = 'none';
-    e.preventDefault();
-  }
-  function onPointerMove(e){
-    if(!dragging) return;
-    const cx = (e.touches ? e.touches[0].clientX : e.clientX);
-    setThumbPos(cx - startX);
-  }
-  function onPointerUp(){
-    if(!dragging) return;
-    dragging = false;
-    if(triggered){
-      // L'audio joue déjà depuis onPointerDown à volume=0
-      // Juste rembobiner au début — startSequence fera le fade-in
-      if(_splashAudioPlaying){
-        _splashAudioPlaying.currentTime = 0;
-      }
-      return;
-    }
-    if(!triggered){
-      // Snap back
-      thumb.style.transition = 'transform .35s cubic-bezier(.34,1.56,.64,1)';
-      setTimeout(()=>{ thumb.style.transition=''; },350);
-      setThumbPos(0);
-      if(label) label.style.opacity = '';
-    }
-  }
-
-  thumb.addEventListener('touchstart', onPointerDown, {passive:false});
-  thumb.addEventListener('mousedown',  onPointerDown);
-  window.addEventListener('touchmove', onPointerMove, {passive:true});
-  window.addEventListener('mousemove', onPointerMove);
-  window.addEventListener('touchend',  onPointerUp);
-  window.addEventListener('mouseup',   onPointerUp);
 }
 
 // ── SWIPE GESTURES ──
