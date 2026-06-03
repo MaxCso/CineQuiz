@@ -319,68 +319,106 @@
     const skyC=document.createElement('canvas');
     skyC.width=W; skyC.height=H;
     const sx=skyC.getContext('2d');
-    const horizY=H*0.72;
+    const horizY=H*0.78; /* sol plus bas — laisse plus de place aux bâtiments */
 
-    /* bâtiments en silhouette */
-    const bldgs=[
-     {x:0,      w:W*0.12, h:H*0.48, floors:8},
-     {x:W*0.10, w:W*0.08, h:H*0.62, floors:11},
-     {x:W*0.17, w:W*0.14, h:H*0.38, floors:6},
-     {x:W*0.29, w:W*0.10, h:H*0.68, floors:13},
-     {x:W*0.38, w:W*0.16, h:H*0.52, floors:9},
-     {x:W*0.52, w:W*0.09, h:H*0.72, floors:14},
-     {x:W*0.59, w:W*0.13, h:H*0.44, floors:7},
-     {x:W*0.70, w:W*0.11, h:H*0.66, floors:12},
-     {x:W*0.79, w:W*0.10, h:H*0.50, floors:8},
-     {x:W*0.87, w:W*0.14, h:H*0.58, floors:10},
-    ];
     /* couleurs fenêtres — dominante ambre/orange, quelques bleus froids */
     const winColors=[
-     'rgba(255,160,40,',  /* ambre chaud — majoritaire */
+     'rgba(255,160,40,',
      'rgba(255,160,40,',
      'rgba(255,140,20,',
      'rgba(220,120,20,',
-     'rgba(80,130,200,',  /* bleu froid — rare */
+     'rgba(80,130,200,',
      'rgba(60,110,180,',
+     'rgba(255,200,80,',
+     'rgba(180,80,20,',
     ];
 
-    for(const b of bldgs){
+    /* ── Plan arrière-plan : gratte-ciels très hauts (dépassent le haut du canvas) ── */
+    const bldgsBG=[
+     {x:-W*0.02, w:W*0.09, h:H*1.05, floors:22},
+     {x:W*0.06,  w:W*0.06, h:H*0.92, floors:18},
+     {x:W*0.11,  w:W*0.10, h:H*1.10, floors:24},
+     {x:W*0.20,  w:W*0.07, h:H*0.88, floors:16},
+     {x:W*0.26,  w:W*0.11, h:H*1.02, floors:21},
+     {x:W*0.36,  w:W*0.08, h:H*0.95, floors:19},
+     {x:W*0.43,  w:W*0.13, h:H*1.08, floors:23},
+     {x:W*0.54,  w:W*0.07, h:H*0.90, floors:17},
+     {x:W*0.60,  w:W*0.10, h:H*1.00, floors:20},
+     {x:W*0.69,  w:W*0.08, h:H*0.86, floors:15},
+     {x:W*0.76,  w:W*0.12, h:H*1.06, floors:22},
+     {x:W*0.87,  w:W*0.08, h:H*0.94, floors:18},
+     {x:W*0.93,  w:W*0.10, h:H*1.02, floors:21},
+    ];
+
+    /* ── Plan avant : bâtiments plus larges et variés ── */
+    const bldgsFG=[
+     {x:-W*0.01, w:W*0.14, h:H*0.72, floors:12},
+     {x:W*0.12,  w:W*0.09, h:H*0.82, floors:15},
+     {x:W*0.20,  w:W*0.16, h:H*0.62, floors:10},
+     {x:W*0.34,  w:W*0.11, h:H*0.88, floors:16},
+     {x:W*0.44,  w:W*0.18, h:H*0.70, floors:12},
+     {x:W*0.60,  w:W*0.10, h:H*0.92, floors:17},
+     {x:W*0.69,  w:W*0.14, h:H*0.65, floors:11},
+     {x:W*0.81,  w:W*0.12, h:H*0.78, floors:14},
+     {x:W*0.91,  w:W*0.12, h:H*0.68, floors:11},
+    ];
+
+    function drawBldg(b,alpha,isBack){
      const by=horizY-b.h;
-     const bg=sx.createLinearGradient(b.x,by,b.x+b.w,horizY);
-     bg.addColorStop(0,'rgba(8,6,12,0.97)');
-     bg.addColorStop(1,'rgba(5,4,8,0.99)');
+     /* silhouette très sombre avec légère variation gauche/droite */
+     const darkL=isBack?'rgba(4,3,7,0.98)':'rgba(6,4,10,0.98)';
+     const darkR=isBack?'rgba(3,2,5,0.99)':'rgba(4,3,8,0.99)';
+     const bg=sx.createLinearGradient(b.x,0,b.x+b.w,0);
+     bg.addColorStop(0,darkL); bg.addColorStop(0.5,'rgba(10,8,16,0.97)'); bg.addColorStop(1,darkR);
      sx.fillStyle=bg;
      sx.fillRect(b.x,by,b.w,b.h+2);
-     /* antenne */
-     sx.strokeStyle='rgba(12,10,18,0.98)';sx.lineWidth=2;
-     sx.beginPath();sx.moveTo(b.x+b.w*0.5,by);sx.lineTo(b.x+b.w*0.5,by-H*0.04);sx.stroke();
-     sx.fillStyle='rgba(255,60,60,0.6)';
-     sx.beginPath();sx.arc(b.x+b.w*0.5,by-H*0.04,2.5,0,Math.PI*2);sx.fill();
-     /* fenêtres — petites, peu lumineuses, sans halo */
-     const fW=b.w/(b.floors*0.6+2)*0.55;
-     const fH=fW*0.7;
-     const cols=Math.floor(b.w/(fW*2.2));
-     const rows=Math.floor(b.h/(fH*2.5));
-     for(let r=0;r<rows;r++){
-      for(let c=0;c<cols;c++){
-       if(Math.random()<0.45){
-        const wx=b.x+(b.w-cols*fW*2.2)/2+c*fW*2.2;
-        const wy=by+(b.h-rows*fH*2.5)/2+r*fH*2.5;
+
+     /* ── Structure architecturale : panneaux verticaux ── */
+     const panelW=b.w/(Math.floor(b.w/(W*0.022))||1);
+     for(let px=b.x+panelW;px<b.x+b.w-1;px+=panelW){
+      sx.strokeStyle='rgba(20,15,30,0.6)';sx.lineWidth=0.5;
+      sx.beginPath();sx.moveTo(px,by);sx.lineTo(px,horizY);sx.stroke();
+     }
+
+     /* antenne + lumière rouge clignotante (statique ici) */
+     if(!isBack||Math.random()<0.6){
+      sx.strokeStyle='rgba(15,12,22,0.9)';sx.lineWidth=1.5;
+      sx.beginPath();sx.moveTo(b.x+b.w*0.5,by);sx.lineTo(b.x+b.w*0.5,by-H*0.03);sx.stroke();
+      sx.fillStyle='rgba(255,50,50,0.65)';
+      sx.beginPath();sx.arc(b.x+b.w*0.5,by-H*0.03,2,0,Math.PI*2);sx.fill();
+     }
+
+     /* fenêtres */
+     const fW=Math.max(2,b.w/(b.floors*0.55+2)*0.5);
+     const fH=fW*0.75;
+     const fCols=Math.floor(b.w/(fW*2.0));
+     const fRows=Math.floor(b.h/(fH*2.2));
+     for(let r=0;r<fRows;r++){
+      for(let c=0;c<fCols;c++){
+       const chance=isBack?0.38:0.42;
+       if(Math.random()<chance){
+        const wx=b.x+(b.w-fCols*fW*2.0)/2+c*fW*2.0;
+        const wy=by+(b.h-fRows*fH*2.2)/2+r*fH*2.2;
+        if(wy<0)continue; /* ne pas dessiner au-dessus du canvas */
         const wc=winColors[Math.floor(Math.random()*winColors.length)];
-        /* fenêtre sombre — opacité faible */
-        sx.fillStyle=wc+'0.35)';
+        const op=isBack?0.25:0.40;
+        sx.fillStyle=wc+op+')';
         sx.fillRect(wx,wy,fW,fH);
        }
       }
      }
     }
 
+    /* Dessiner arrière-plan d'abord (plus sombre), puis avant-plan */
+    for(const b of bldgsBG) drawBldg(b,0.7,true);
+    for(const b of bldgsFG) drawBldg(b,1.0,false);
+
     /* enseignes néon sur les bâtiments */
     const signs=[
-     {x:W*0.12,y:horizY-H*0.14,w:55,color:[220,40,40],  label:'HOTEL'},
-     {x:W*0.42,y:horizY-H*0.10,w:48,color:[40,100,220],  label:'BAR'},
-     {x:W*0.65,y:horizY-H*0.16,w:62,color:[200,30,120],  label:'TYRELL'},
-     {x:W*0.82,y:horizY-H*0.08,w:44,color:[255,160,20],  label:'OFF-WORLD'},
+     {x:W*0.10,y:horizY-H*0.22,w:55,color:[220,40,40],  label:'HOTEL'},
+     {x:W*0.40,y:horizY-H*0.16,w:48,color:[40,100,220],  label:'BAR'},
+     {x:W*0.64,y:horizY-H*0.24,w:62,color:[200,30,120],  label:'TYRELL'},
+     {x:W*0.82,y:horizY-H*0.12,w:44,color:[255,160,20],  label:'OFF-WORLD'},
     ];
 
     /* ── Pluie ── */
@@ -438,16 +476,27 @@
      if(stop.v)return;
      ctx.fillStyle='rgba(3,2,6,0.20)';ctx.fillRect(0,0,W,H);
 
-     /* ciel de smog orangé/violet */
-     const sky=ctx.createLinearGradient(0,0,0,horizY);
-     sky.addColorStop(0,`rgba(${8+Math.sin(t*0.1)*3|0},4,${15+Math.sin(t*0.08)*4|0},0.65)`);
-     sky.addColorStop(0.4,`rgba(${35+Math.sin(t*0.15)*6|0},12,${28+Math.sin(t*0.12)*5|0},0.55)`);
-     sky.addColorStop(0.75,`rgba(${65+Math.sin(t*0.2)*8|0},${22+Math.sin(t*0.18)*4|0},8,0.50)`);
-     sky.addColorStop(1,`rgba(${90+Math.sin(t*0.22)*10|0},${30+Math.sin(t*0.2)*5|0},5,0.45)`);
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY+2);
+     /* smog — couvre tout le canvas de haut en bas */
+     const sky=ctx.createLinearGradient(0,0,0,H);
+     sky.addColorStop(0,`rgba(${6+Math.sin(t*0.1)*2|0},3,${12+Math.sin(t*0.08)*3|0},0.70)`);
+     sky.addColorStop(0.18,`rgba(${20+Math.sin(t*0.12)*4|0},8,${22+Math.sin(t*0.10)*4|0},0.60)`);
+     sky.addColorStop(0.40,`rgba(${42+Math.sin(t*0.15)*6|0},14,${30+Math.sin(t*0.12)*5|0},0.55)`);
+     sky.addColorStop(0.65,`rgba(${70+Math.sin(t*0.20)*8|0},${24+Math.sin(t*0.18)*4|0},8,0.50)`);
+     sky.addColorStop(0.85,`rgba(${95+Math.sin(t*0.22)*10|0},${32+Math.sin(t*0.20)*5|0},5,0.45)`);
+     sky.addColorStop(1,`rgba(${60+Math.sin(t*0.18)*8|0},${18+Math.sin(t*0.15)*3|0},4,0.55)`);
+     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
      /* skyline statique */
      ctx.drawImage(skyC,0,0);
+
+     /* brume atmosphérique entre les plans — couche de smog orange au milieu des buildings */
+     const hazeY=H*0.25;
+     const haze=ctx.createLinearGradient(0,hazeY,0,hazeY+H*0.30);
+     haze.addColorStop(0,`rgba(${60+Math.sin(t*0.14)*8|0},${18+Math.sin(t*0.10)*4|0},4,0)`);
+     haze.addColorStop(0.3,`rgba(${75+Math.sin(t*0.16)*10|0},${22+Math.sin(t*0.12)*4|0},5,${0.08+Math.sin(t*0.3)*0.03})`);
+     haze.addColorStop(0.6,`rgba(${55+Math.sin(t*0.18)*8|0},${16+Math.sin(t*0.14)*3|0},4,${0.06+Math.sin(t*0.25)*0.02})`);
+     haze.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=haze;ctx.fillRect(0,hazeY,W,H*0.30);
 
      /* enseignes néon animées */
      for(const s of signs){
@@ -46609,7 +46658,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_im_s');
     if(!_s){_s=document.createElement('style');_s.id='_im_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:10%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Explosions — 3 puits de pétrole bien distincts ── */
@@ -46753,17 +46802,16 @@
      ctx.fillStyle=`rgba(255,245,200,${0.72+Math.sin(t*0.3)*0.05})`;
      ctx.beginPath();ctx.arc(sunX,sunY,W*0.048,0,Math.PI*2);ctx.fill();
 
-     /* ── Iron Man armure — légèrement réduite, légère pulsation de brillance ── */
+     /* ── Iron Man armure — sous la citation et le logo ── */
      if(ironReady){
-      /* Ratio réel du PNG — on utilise naturalWidth/naturalHeight si dispo */
       const ratio=ironImg.naturalWidth&&ironImg.naturalHeight
         ? ironImg.naturalWidth/ironImg.naturalHeight : 0.78;
-      const ironW=W*0.60;
+      const ironW=W*0.72;
       const ironH=ironW/ratio;
       ctx.save();
       ctx.globalAlpha=0.93+Math.sin(t*0.4)*0.04;
-      /* Centré horizontalement, positionné dans le tiers supérieur-centre */
-      ctx.drawImage(ironImg,cx-ironW/2,H*0.28-ironH*0.12,ironW,ironH);
+      /* Centré horizontalement, positionné sous le logo (~38% du haut) */
+      ctx.drawImage(ironImg,cx-ironW/2,H*0.38,ironW,ironH);
       ctx.restore();
      }
 
