@@ -14935,7 +14935,8 @@ function runSplash(){
     tearTriggered = true;
     window._swipeTriggered = true;
 
-    // Amorcer l'audio dès le toucher
+    // Amorcer l'audio dès le toucher pour contourner la restriction iOS
+    // mais on démarre le vrai fade-in seulement après que le ticket a disparu
     _initAC();
     if(_ac && _ac.state === 'suspended') _ac.resume();
     if(!window._splashPreviewMode){
@@ -14944,6 +14945,8 @@ function runSplash(){
       if(filmFile && !window._splashAudio){
         window._splashAudio = new Audio(filmFile);
         window._splashAudio.volume = 0;
+        // On lance silencieusement pour primer iOS, mais le volume reste à 0
+        // startSequence fera le fade-in après la disparition du ticket
         window._splashAudio.play().catch(function(){});
       }
     }
@@ -14960,19 +14963,20 @@ function runSplash(){
     ticketR.style.opacity = '0';
     ticketPerf.style.opacity = '0';
 
-    // Fade out du wrapper, puis ouvrir le rideau
+    // Fade out du wrapper
     setTimeout(function(){
       ticketWrap.style.transition = 'opacity .18s ease';
       ticketWrap.style.opacity = '0';
     }, 300);
 
+    // Ticket complètement disparu à ~480ms → lancer le rideau + musique
     setTimeout(function(){
       if(typeof window._splashSwipeCallback === 'function'){
         window._splashSwipeCallback();
       } else {
         startSequence(2000);
       }
-    }, 420);
+    }, 480);
   }
 
   function _onTearStart(e){
