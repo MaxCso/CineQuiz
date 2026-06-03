@@ -37992,8 +37992,27 @@
      }
     }
 
-    /* Injecter Edward immédiatement avec le fond */
-    _edInject();
+    /* Injecter Edward uniquement après curtain-open */
+    (function(){
+     const _splash=document.getElementById('splash');
+     if(!_splash) return;
+     if(_splash.classList.contains('curtain-open')){
+      _edInject();
+     } else {
+      const _edObs=new MutationObserver(function(mutations){
+       for(const m of mutations){
+        if(m.type==='attributes'&&m.attributeName==='class'){
+         if(_splash.classList.contains('curtain-open')){
+          _edObs.disconnect();
+          _edInject();
+         }
+        }
+       }
+      });
+      _edObs.observe(_splash,{attributes:true,attributeFilter:['class']});
+      const _edStopCheck=setInterval(()=>{if(stop.v){_edObs.disconnect();clearInterval(_edStopCheck);}},200);
+     }
+    })();
 
     function frame(){
      if(stop.v)return;
@@ -43628,8 +43647,24 @@
      }
     }
 
-    /* Injecter le chapeau immédiatement avec le reste */
-    _mskInject();
+    /* Injecter le chapeau uniquement après curtain-open */
+    (function(){
+     const _splash=document.getElementById('splash');
+     if(!_splash) return;
+     if(_splash.classList.contains('curtain-open')){
+      _mskInject();
+     } else {
+      const _obs=new MutationObserver(function(mutations){
+       for(const m of mutations){
+        if(m.type==='attributes'&&m.attributeName==='class'){
+         if(_splash.classList.contains('curtain-open')){_obs.disconnect();_mskInject();}
+        }
+       }
+      });
+      _obs.observe(_splash,{attributes:true,attributeFilter:['class']});
+      const _chk=setInterval(()=>{if(stop.v){_obs.disconnect();clearInterval(_chk);}},200);
+     }
+    })();
 
     function frame(){
      if(stop.v)return;
