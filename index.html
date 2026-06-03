@@ -14917,7 +14917,7 @@ function runSplash(){
     var perf = document.getElementById('splash-ticket-perf');
     if(!body) return;
     var phase='wait', timer=0;
-    var WAIT=240, LIFT=45, HOLD=35, DROP=40;
+    var WAIT=90, LIFT=45, HOLD=35, DROP=40;
     function ease(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
     function setLift(p){
       body.style.transition='none';
@@ -14925,22 +14925,15 @@ function runSplash(){
       if(perf) perf.style.opacity=String(Math.max(0.25,1-p*0.65));
     }
     function tick(){
-      // Stopper dès qu'un drag est en cours ou que le ticket est déchiré
-      if(tearTriggered || dragStarted) return;
       var p=0;
       if(phase==='wait'){timer++;if(timer>=WAIT){phase='lift';timer=0;}}
       else if(phase==='lift'){timer++;p=ease(Math.min(1,timer/LIFT));if(timer>=LIFT){phase='hold';timer=0;}}
       else if(phase==='hold'){p=1;timer++;if(timer>=HOLD){phase='drop';timer=0;}}
       else if(phase==='drop'){timer++;p=ease(Math.max(0,1-timer/DROP));if(timer>=DROP){p=0;phase='wait';timer=0;}}
       setLift(phase==='wait'&&p===0?0:p);
-      requestAnimationFrame(tick);
+      if(!tearTriggered) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
-    // Relancer l'animation après un snap-back (drag annulé)
-    window._restartInviteAnim = function(){
-      phase='wait'; timer=0;
-      requestAnimationFrame(tick);
-    };
   })();
 
   window._swipeTriggered = false;
@@ -15101,8 +15094,6 @@ function runSplash(){
     setTimeout(function(){
       ticketL.style.transition = '';
       ticketR.style.transition = '';
-      // Relancer l'animation d'invitation
-      if(typeof window._restartInviteAnim === 'function') window._restartInviteAnim();
     }, 450);
   }
 
