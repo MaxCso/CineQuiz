@@ -17926,7 +17926,7 @@
     /* ── Style UI ── */
     let _djS=document.getElementById('_dj_s');
     if(!_djS){_djS=document.createElement('style');_djS.id='_dj_s';document.head.appendChild(_djS);}
-    _djS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:72%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:110px!important;}#splash-quote-text{color:rgba(255,210,180,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.9)!important;}';
+    _djS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:160px!important;}#splash-quote-text{color:rgba(255,210,180,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.9)!important;}';
     const _djW=setInterval(()=>{if(stop.v){_djS.textContent='';clearInterval(_djW);}},200);
 
     /* ── Chargement SVG Chaîne (214×1192) ── */
@@ -17953,7 +17953,7 @@
     const CHAIN_SPEED  = 0.006;
     // Chaîne : ratio SVG 214/1192 ≈ 0.1795
     // On veut qu'elle occupe ~52% de la largeur
-    const CHAIN_W_RATIO = 0.52;
+    const CHAIN_W_RATIO = 0.34;
 
     /* ── Particules de cendres ── */
     const embers = Array.from({length:55},(_,k)=>({
@@ -26826,14 +26826,7 @@
     /* ── Style UI ── */
     let _twbS=document.getElementById('_twb_s');
     if(!_twbS){_twbS=document.createElement('style');_twbS.id='_twb_s';document.head.appendChild(_twbS);}
-    _twbS.textContent=`
-     #splash-bg::before,#splash-bg::after,
-     #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-     #splash-content-wrap{top:74%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}
-     #splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}
-     #splash-film-logo{max-width:115px!important;}
-     #splash-quote-text{color:rgba(255,180,80,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.95)!important;}
-    `;
+    _twbS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:165px!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 10px rgba(0,0,0,0.98)!important;}';
     const _twbW=setInterval(()=>{if(stop.v){_twbS.textContent='';clearInterval(_twbW);}},200);
 
     /* ── Chargement SVG TWBB (derrick + sol noir) ── */
@@ -26845,28 +26838,31 @@
       img.src='images/TWBB.svg';
     })();
 
-    /* ── Particules de cendres orangées ── */
-    const embers=Array.from({length:55},(_,i)=>({
-      x:W*(0.25+Math.random()*0.50),
-      y:H*(0.55+Math.random()*0.30),
-      vx:(Math.random()-0.5)*0.22,
-      vy:-(0.08+Math.random()*0.28),
-      r:i<15?(1.2+Math.random()*2.0):(0.3+Math.random()*0.9),
-      op:i<15?(0.10+Math.random()*0.16):(0.05+Math.random()*0.10),
+    /* ── Cendres et braises — remontent depuis le sol ── */
+    const embers=Array.from({length:70},(_,i)=>({
+      x:W*(0.20+Math.random()*0.60),
+      y:H*(0.58+Math.random()*0.35),
+      vx:(Math.random()-0.5)*0.30,
+      vy:-(0.10+Math.random()*0.35),
+      /* Deux types : braises lumineuses (i<20) et cendres fines (i>=20) */
+      r:i<20?(1.5+Math.random()*2.5):(0.4+Math.random()*1.0),
+      op:i<20?(0.55+Math.random()*0.35):(0.20+Math.random()*0.25),
       phase:Math.random()*Math.PI*2,
-      spd:0.014+Math.random()*0.022,
+      spd:0.016+Math.random()*0.024,
+      isBraise:i<20,
     }));
 
-    /* ── Fumée noire montante ── */
-    const smoke=Array.from({length:18},(_,i)=>({
-      x:W*(0.42+Math.random()*0.16),
-      y:H*(0.30+Math.random()*0.20),
-      vx:(Math.random()-0.5)*0.18,
-      vy:-(0.10+Math.random()*0.18),
-      r:W*(0.05+Math.random()*0.08),
+    /* ── Fumée noire montante — colonne organique ── */
+    const smoke=Array.from({length:32},(_,i)=>({
+      x:W*(0.38+Math.random()*0.24),
+      y:H*(0.15+Math.random()*0.45),
+      vx:(Math.random()-0.5)*0.12,
+      vy:-(0.06+Math.random()*0.12),
+      r:W*(0.028+Math.random()*0.042),
       life:Math.random(),
-      maxLife:1.4+Math.random()*1.8,
+      maxLife:2.2+Math.random()*2.8,
       phase:Math.random()*Math.PI*2,
+      layer:i%3,  /* 3 couches de profondeur */
     }));
 
     /* ── Derricks secondaires fantômes ── */
@@ -26917,37 +26913,64 @@
 
     function drawSmoke(){
       for(const s of smoke){
-        s.life+=0.005;s.x+=s.vx+Math.sin(t*0.4+s.phase)*0.12;s.y+=s.vy;
+        s.life+=0.003+s.layer*0.001;
+        /* Dérive avec turbulence — chaque couche a une fréquence différente */
+        s.x+=s.vx+Math.sin(t*(0.3+s.layer*0.1)+s.phase)*0.18;
+        s.y+=s.vy;
         if(s.life>=s.maxLife){
           s.life=0;
-          s.x=W*(0.43+Math.random()*0.14);
-          s.y=H*(0.36+Math.random()*0.10);
-          s.vx=(Math.random()-0.5)*0.18;
+          /* Naissance au pied du derrick — zone resserrée */
+          s.x=W*(0.40+Math.random()*0.20);
+          s.y=H*(0.48+Math.random()*0.08);
+          s.vx=(Math.random()-0.5)*0.10;
+          s.vy=-(0.05+Math.random()*0.10);
         }
         const prog=s.life/s.maxLife;
-        const fade=(prog<0.15?prog/0.15:prog>0.80?(1-prog)/0.20:1)*0.28;
-        const sz=s.r*(0.4+prog*1.2);
-        /* Gris foncé → noir opaque en montant */
-        const lum=Math.round(18*(1-prog));
-        ctx.fillStyle=`rgba(${lum},${lum*0.7|0},${lum*0.4|0},${fade})`;
+        /* Fondu entrée/sortie doux — fade in rapide, fade out lent */
+        const fadeIn=prog<0.12?prog/0.12:1;
+        const fadeOut=prog>0.72?(1-prog)/0.28:1;
+        const alpha=fadeIn*fadeOut*(s.layer===0?0.22:s.layer===1?0.16:0.11);
+        /* Grandit en montant et se dilate latéralement */
+        const sz=s.r*(0.3+prog*2.2);
+        /* Couleur : noir profond avec légère teinte chaude à la base */
+        const warm=Math.round(12*(1-prog*0.8));
+        const lum=Math.round(8*(1-prog));
+        ctx.fillStyle=`rgba(${lum+warm},${lum},${lum},${alpha})`;
         ctx.beginPath();ctx.arc(s.x,s.y,sz,0,Math.PI*2);ctx.fill();
       }
     }
 
     function drawEmbers(){
       for(const e of embers){
-        e.x+=e.vx+Math.sin(t*0.5+e.phase)*0.06;
+        e.x+=e.vx+Math.sin(t*0.4+e.phase)*0.08;
         e.y+=e.vy;
         e.phase+=e.spd;
-        if(e.y<H*0.18||e.x<-5||e.x>W+5){
-          e.x=W*(0.25+Math.random()*0.50);
-          e.y=H*(0.60+Math.random()*0.22);
-          e.vy=-(0.08+Math.random()*0.28);
+        /* Regen au sol près du derrick */
+        if(e.y<H*0.10||e.x<-8||e.x>W+8){
+          e.x=W*(0.22+Math.random()*0.56);
+          e.y=H*(0.62+Math.random()*0.28);
+          e.vy=-(0.10+Math.random()*0.35);
+          e.vx=(Math.random()-0.5)*0.30;
         }
-        const op=e.op*(0.55+0.45*Math.abs(Math.sin(e.phase)));
-        const warm=`rgba(${240+Math.random()*15|0},${50+Math.random()*40|0},0,${op})`;
-        ctx.fillStyle=warm;
-        ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+        const pulse=0.55+0.45*Math.abs(Math.sin(e.phase));
+        const op=e.op*pulse;
+        if(e.isBraise){
+          /* Braises : orange vif avec halo */
+          const br=240+Math.random()*15|0;
+          const bg=80+Math.random()*60|0;
+          ctx.fillStyle=`rgba(${br},${bg},5,${op})`;
+          ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+          /* Petit halo lumineux */
+          const hg=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r*2.5);
+          hg.addColorStop(0,`rgba(255,${bg+20|0},0,${op*0.25})`);
+          hg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=hg;ctx.beginPath();ctx.arc(e.x,e.y,e.r*2.5,0,Math.PI*2);ctx.fill();
+        } else {
+          /* Cendres fines : gris-brun translucide */
+          const cv=35+Math.random()*20|0;
+          ctx.fillStyle=`rgba(${cv+8},${cv+3},${cv},${op*0.6})`;
+          ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+        }
       }
     }
 
@@ -27334,7 +27357,7 @@
     /* Override position citation/logo */
     let _jhPos=document.getElementById('_jh_pos_s');
     if(!_jhPos){_jhPos=document.createElement('style');_jhPos.id='_jh_pos_s';document.head.appendChild(_jhPos);}
-    _jhPos.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:74%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:110px!important;}#splash-quote-text{color:rgba(255,200,120,0.90)!important;text-shadow:0 1px 8px rgba(0,0,0,0.95)!important;}';
+    _jhPos.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:160px!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 1px 10px rgba(0,0,0,0.98)!important;}';
     const _jhPosWatch=setInterval(()=>{if(stop.v){_jhPos.textContent='';clearInterval(_jhPosWatch);}},200);
 
     /* Cache silhouettes */
@@ -27457,13 +27480,13 @@
 
     function drawSoldiers(){
      if(!soldierReady) return;
-     /* Jarhead SVG ratio : 206/389 ≈ 0.530 */
-     const SH = H * 0.68;
+     /* Jarhead SVG 206×389 — ratio portrait 0.530
+        Taille : 45% de H pour bien voir le soldat sans dominer
+        Position : bord droit collé à ~98% de W, pied sur le sol */
+     const SH = H * 0.45;
      const SW = SH * (206/389);
-     /* Positionné à droite, bord droit du soldat à ~94% de W */
-     const SX = W * 0.94 - SW;
+     const SX = W * 0.98 - SW;
      const SY = groundY - SH;
-     /* Silhouette pure noir — composite source-in */
      drawSilhouette('jarhead_soldier', soldierImg, SX, SY, SW, SH, 0.96);
     }
 
@@ -46530,21 +46553,20 @@
     _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* ── Explosions — système complet ── */
+    /* ── Explosions — 3 puits de pétrole bien distincts ── */
     const EXPL_POSITIONS=[
-     {x:W*0.10,baseY:H*0.78},{x:W*0.25,baseY:H*0.80},
-     {x:W*0.60,baseY:H*0.79},{x:W*0.82,baseY:H*0.77},
-     {x:W*0.42,baseY:H*0.82},{x:W*0.72,baseY:H*0.81},
+     {x:W*0.18, baseY:H*0.78, scale:1.20},  /* gauche — grand */
+     {x:W*0.58, baseY:H*0.80, scale:0.75},  /* centre-droit — moyen */
+     {x:W*0.84, baseY:H*0.77, scale:0.55},  /* droite — petit (lointain) */
     ];
     const explosions=EXPL_POSITIONS.map((pos,i)=>({
      ...pos,
-     ph: Math.random()*Math.PI*2 + i*1.1,  /* décalage de phase */
-     spd: 0.022+Math.random()*0.014,
-     maxH: H*(0.22+Math.random()*0.16),
-     w: W*(0.09+Math.random()*0.07),
-     /* Chaque explosion a sa propre couleur de feu */
-     fireR: 200+Math.random()*55|0,
-     fireG: 80+Math.random()*80|0,
+     ph: i * (Math.PI*2/3),  /* phases bien écartées — jamais en même temps */
+     spd: 0.018+i*0.004,
+     maxH: H*(0.28+i*0.02)*pos.scale,
+     w: W*(0.10+i*0.005)*pos.scale,
+     fireR: i===0?255:220,
+     fireG: i===0?110:80,
     }));
 
     /* Débris volants — éjectés à chaque explosion */
@@ -46624,23 +46646,40 @@
      dustHaze.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=dustHaze;ctx.fillRect(0,0,W,H);
 
-     /* Dune avant — silhouette arrondie au premier plan */
-     ctx.fillStyle='rgba(28,18,8,0.98)';
+     /* ── Montagne désertique — 3 couches avec relief rocheux ── */
+     /* Couche 3 — collines lointaines, bleutées dans la brume */
+     ctx.fillStyle='rgba(55,42,28,0.60)';
      ctx.beginPath();
-     ctx.moveTo(-10,H);
-     ctx.lineTo(-10,H*0.82);
-     ctx.bezierCurveTo(W*0.08,H*0.74, W*0.22,H*0.72, W*0.42,H*0.78);
-     ctx.bezierCurveTo(W*0.58,H*0.82, W*0.70,H*0.80, W*0.85,H*0.76);
-     ctx.bezierCurveTo(W*0.92,H*0.74, W+10,H*0.78, W+10,H*0.80);
+     ctx.moveTo(-10,H);ctx.lineTo(-10,H*0.72);
+     ctx.bezierCurveTo(W*0.05,H*0.68, W*0.14,H*0.64, W*0.22,H*0.67);
+     ctx.bezierCurveTo(W*0.30,H*0.70, W*0.36,H*0.63, W*0.44,H*0.60);
+     ctx.bezierCurveTo(W*0.52,H*0.57, W*0.58,H*0.62, W*0.65,H*0.65);
+     ctx.bezierCurveTo(W*0.72,H*0.68, W*0.80,H*0.64, W*0.88,H*0.67);
+     ctx.bezierCurveTo(W*0.93,H*0.69, W+10,H*0.71, W+10,H*0.73);
      ctx.lineTo(W+10,H);ctx.closePath();ctx.fill();
 
-     /* Dune arrière gauche */
-     ctx.fillStyle='rgba(45,30,12,0.85)';
+     /* Couche 2 — relief médian avec crêtes */
+     ctx.fillStyle='rgba(40,27,10,0.82)';
      ctx.beginPath();
-     ctx.moveTo(-10,H);
-     ctx.lineTo(-10,H*0.70);
-     ctx.bezierCurveTo(W*0.10,H*0.62, W*0.28,H*0.60, W*0.50,H*0.66);
-     ctx.bezierCurveTo(W*0.65,H*0.70, W*0.78,H*0.68, W+10,H*0.72);
+     ctx.moveTo(-10,H);ctx.lineTo(-10,H*0.78);
+     ctx.bezierCurveTo(W*0.04,H*0.76, W*0.10,H*0.70, W*0.18,H*0.68);
+     ctx.bezierCurveTo(W*0.26,H*0.66, W*0.32,H*0.74, W*0.40,H*0.72);
+     ctx.bezierCurveTo(W*0.46,H*0.70, W*0.50,H*0.65, W*0.56,H*0.63);
+     ctx.bezierCurveTo(W*0.62,H*0.61, W*0.67,H*0.67, W*0.74,H*0.70);
+     ctx.bezierCurveTo(W*0.80,H*0.73, W*0.88,H*0.69, W*0.94,H*0.72);
+     ctx.bezierCurveTo(W*0.97,H*0.73, W+10,H*0.74, W+10,H*0.76);
+     ctx.lineTo(W+10,H);ctx.closePath();ctx.fill();
+
+     /* Couche 1 — premier plan, très sombre, terrain irrégulier */
+     ctx.fillStyle='rgba(22,14,5,0.97)';
+     ctx.beginPath();
+     ctx.moveTo(-10,H);ctx.lineTo(-10,H*0.84);
+     ctx.bezierCurveTo(W*0.03,H*0.83, W*0.08,H*0.80, W*0.14,H*0.78);
+     ctx.bezierCurveTo(W*0.20,H*0.76, W*0.25,H*0.80, W*0.32,H*0.79);
+     ctx.bezierCurveTo(W*0.38,H*0.78, W*0.43,H*0.75, W*0.50,H*0.77);
+     ctx.bezierCurveTo(W*0.57,H*0.79, W*0.62,H*0.76, W*0.68,H*0.77);
+     ctx.bezierCurveTo(W*0.74,H*0.78, W*0.80,H*0.80, W*0.86,H*0.78);
+     ctx.bezierCurveTo(W*0.91,H*0.76, W*0.96,H*0.79, W+10,H*0.81);
      ctx.lineTo(W+10,H);ctx.closePath();ctx.fill();
 
      /* Soleil voilé — haut gauche, blanc-jaune pâle */
@@ -46657,11 +46696,15 @@
 
      /* ── Iron Man armure — légèrement réduite, légère pulsation de brillance ── */
      if(ironReady){
-      const ironW=W*0.72;
-      const ironH=ironW;
+      /* Ratio réel du PNG — on utilise naturalWidth/naturalHeight si dispo */
+      const ratio=ironImg.naturalWidth&&ironImg.naturalHeight
+        ? ironImg.naturalWidth/ironImg.naturalHeight : 0.78;
+      const ironW=W*0.60;
+      const ironH=ironW/ratio;
       ctx.save();
-      ctx.globalAlpha=0.92+Math.sin(t*0.4)*0.05;
-      ctx.drawImage(ironImg,cx-ironW/2,H*0.50-ironH*0.50,ironW,ironH);
+      ctx.globalAlpha=0.93+Math.sin(t*0.4)*0.04;
+      /* Centré horizontalement, positionné dans le tiers supérieur-centre */
+      ctx.drawImage(ironImg,cx-ironW/2,H*0.28-ironH*0.12,ironW,ironH);
       ctx.restore();
      }
 
