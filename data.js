@@ -6746,6 +6746,7 @@ const BLINDTEST_DB = [
   {title:'True Lies', file:'True Lies.mp3', tmdb_id:36955, year:1994},
   {title:'Demolition Man', file:'Demolition Man.mp3', tmdb_id:9739, year:1993},
   {title:'Total Recall', file:'Total Recall.mp3', tmdb_id:861, year:1990},
+  {title:'Harold & Kumar', file:'HK.mp3', tmdb_id:11282, year:2004},
 ];
 
 // Signal que les données sont prêtes
