@@ -1699,7 +1699,7 @@
     /* ── Position citation + logo sous le header ── */
     let _alStyle=document.getElementById('_al_s');
     if(!_alStyle){_alStyle=document.createElement('style');_alStyle.id='_al_s';document.head.appendChild(_alStyle);}
-    _alStyle.textContent='#splash-content-wrap{top:28%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _alStyle.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _alW=setInterval(()=>{if(stop.v){_alStyle.textContent='';clearInterval(_alW);}},200);
 
     /* ── Radar — grand, décalé en bas ── */
@@ -13155,7 +13155,7 @@
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ia3_s');if(!_s){_s=document.createElement('style');_s.id='_ia3_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:66%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:64%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     const horizY=H*0.52;
@@ -13830,33 +13830,44 @@
     }
 
     function drawSky(){
+      /* Ciel nuit — bleu-nuit profond avec nuance forêt et légère lueur d'horizon */
       const sky=ctx.createLinearGradient(0,0,0,VP.y+H*0.08);
-      sky.addColorStop(0.00,'#1e2830');
-      sky.addColorStop(0.30,'#28363e');
-      sky.addColorStop(0.65,'#324048');
-      sky.addColorStop(1.00,'#3a4a50');
+      sky.addColorStop(0.00,'#0a0f1a');  /* bleu nuit quasi noir */
+      sky.addColorStop(0.25,'#0f1c2a');  /* bleu marine profond */
+      sky.addColorStop(0.55,'#152535');  /* bleu-vert forêt */
+      sky.addColorStop(0.82,'#1a3030');  /* vert-bleu horizon boisé */
+      sky.addColorStop(1.00,'#1e3428');  /* vert forêt sombre à l'horizon */
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,VP.y+H*0.10);
 
-      /* Nuages lourds */
+      /* Légère lueur froide à l'horizon — lune cachée derrière les arbres */
+      const horizG=ctx.createLinearGradient(0,VP.y-H*0.06,0,VP.y+H*0.04);
+      horizG.addColorStop(0,'rgba(0,0,0,0)');
+      horizG.addColorStop(0.6,`rgba(80,140,120,${0.08+Math.sin(t*0.15)*0.02})`);
+      horizG.addColorStop(1,`rgba(60,110,90,${0.14+Math.sin(t*0.12)*0.03})`);
+      ctx.fillStyle=horizG;ctx.fillRect(0,VP.y-H*0.06,W,H*0.12);
+
+      /* Nuages lourds — ton bleu-nuit */
       for(let ci=0;ci<7;ci++){
         const cx2=W*(0.05+ci*0.15)+Math.sin(t*0.012+ci*1.3)*W*0.015;
-        const cy2=H*(0.04+ci*0.04);
+        const cy2=H*(0.03+ci*0.04);
         const cg=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,W*0.18);
-        cg.addColorStop(0,`rgba(38,50,58,${0.45+Math.sin(t*0.02+ci)*0.05})`);
-        cg.addColorStop(0.5,'rgba(28,38,45,0.20)');
+        cg.addColorStop(0,`rgba(18,28,42,${0.40+Math.sin(t*0.02+ci)*0.05})`);
+        cg.addColorStop(0.5,'rgba(12,20,32,0.18)');
         cg.addColorStop(1,'rgba(0,0,0,0)');
         ctx.fillStyle=cg;ctx.beginPath();ctx.ellipse(cx2,cy2,W*0.18,H*0.032,0,0,Math.PI*2);ctx.fill();
       }
 
-      /* Lisière de cimes à l'horizon */
-      const treeLineY=VP.y-H*0.02;
-      ctx.fillStyle='rgba(12,18,14,0.92)';
-      ctx.beginPath();ctx.moveTo(0,treeLineY+H*0.02);
-      for(let xi=0;xi<=W;xi+=W*0.018){
-        const tip=treeLineY-H*(0.04+Math.abs(Math.sin(xi*0.025+12.3))*0.06+Math.abs(Math.sin(xi*0.045+7.1))*0.04);
+      /* Lisière de cimes à l'horizon — placée AU NIVEAU du VP, pas au-dessus
+         pour ne pas couper les pins SVG qui sont plus bas */
+      const treeLineY=VP.y+H*0.01;
+      /* Couleur vert sapin sombre */
+      ctx.fillStyle='rgba(8,22,14,0.96)';
+      ctx.beginPath();ctx.moveTo(0,treeLineY+H*0.03);
+      for(let xi=0;xi<=W;xi+=W*0.016){
+        const tip=treeLineY-H*(0.025+Math.abs(Math.sin(xi*0.022+12.3))*0.045+Math.abs(Math.sin(xi*0.042+7.1))*0.030);
         ctx.lineTo(xi,tip);
       }
-      ctx.lineTo(W,treeLineY+H*0.02);ctx.closePath();ctx.fill();
+      ctx.lineTo(W,treeLineY+H*0.03);ctx.closePath();ctx.fill();
     }
 
     function drawRoad(){
@@ -13921,27 +13932,33 @@
         const ratio=pin.variant===0?PIN1_RATIO:PIN2_RATIO;
         if(!(pin.variant===0?pin1Ready:pin2Ready))continue;
 
-        /* baseY — pied du pin sur le bord de la route */
         const baseY=VP.y+(roadBaseY-VP.y)*pin.z;
 
-        /* Hauteur du pin proportionnelle à z */
-        const pinH=H*(0.10+pin.z*0.38);
+        /* Plus hauts — 15% à 60% de H selon la profondeur */
+        const pinH=H*(0.15+pin.z*0.45);
         const pinW=pinH*ratio;
 
-        /* Position X — clairement à l'extérieur du bord de la route */
         const edgeX=roadEdgeX(pin.z,pin.side);
-        /* Marge supplémentaire pour ne pas empiéter sur la route */
-        const margin=pinW*0.08+pin.jitter*W*0.5;
+        const margin=pinW*0.06+pin.jitter*W*0.4;
         const pinX=(pin.side==='L')
-          ? edgeX - pinW - margin          /* le côté droit du pin = bord gauche de la route */
-          : edgeX + margin;                /* le côté gauche du pin = bord droit de la route */
+          ? edgeX - pinW - margin
+          : edgeX + margin;
 
-        /* Opacité selon profondeur — pins lointains plus transparents */
-        const alpha=0.40+pin.z*0.58;
+        /* Opacité : pins lointains discrets, proches bien visibles */
+        const alpha=0.35+pin.z*0.65;
 
         ctx.save();
         ctx.globalAlpha=alpha;
+
+        /* Teinte vert sapin — coloriser via composite */
         ctx.drawImage(img, pinX, baseY-pinH, pinW, pinH);
+
+        /* Overlay vert sapin sombre pour donner la teinte forêt */
+        ctx.globalCompositeOperation='multiply';
+        ctx.fillStyle=`rgba(30,${55+pin.z*40|0},25,${0.55+pin.z*0.20})`;
+        ctx.fillRect(pinX, baseY-pinH, pinW, pinH);
+        ctx.globalCompositeOperation='source-over';
+
         ctx.restore();
       }
     }
@@ -14039,7 +14056,7 @@
     function frame(){
       if(stop.v) return;
 
-      ctx.fillStyle='#1e2830'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#0a0f1a'; ctx.fillRect(0,0,W,H);
 
       drawSky();
       drawRoad();
@@ -19456,6 +19473,14 @@
      phase:Math.random()*Math.PI*2, hue:Math.random()*360
     }));
 
+    /* ── Lapin blanc — traverse l'herbe de gauche à droite ── */
+    const rabbit = {
+      x: -W*0.12,
+      spd: W*0.0030,
+      jumpT: 0,
+      jumpSpd: 0.14,
+    };
+
     function frame(){
      if(stop.v)return;
      /* Fond monde fantastique — violet/bleu */
@@ -19538,6 +19563,63 @@
      /* Bande du chapeau */
      ctx.fillStyle='rgba(220,30,30,0.80)';
      ctx.beginPath(); ctx.roundRect(hx-W*0.035,hy-H*0.310,W*0.070,H*0.020,0); ctx.fill();
+
+
+     /* ── Lapin blanc ── */
+     rabbit.x += rabbit.spd;
+     rabbit.jumpT += rabbit.jumpSpd;
+     if(rabbit.x > W + W*0.12) rabbit.x = -W*0.12;
+
+     const rGroundY = H*0.742;
+     const rSz = W*0.048;
+     const jumpAmp = rSz*1.1;
+     const jump = Math.max(0, -Math.sin(rabbit.jumpT)) * jumpAmp;
+
+     ctx.save();
+     ctx.translate(rabbit.x, rGroundY - jump);
+
+     /* Corps */
+     const bodyGr = ctx.createRadialGradient(-rSz*0.05,-rSz*0.10,rSz*0.05,0,0,rSz*0.72);
+     bodyGr.addColorStop(0,'rgba(255,255,252,0.97)');bodyGr.addColorStop(0.6,'rgba(235,232,225,0.95)');bodyGr.addColorStop(1,'rgba(210,208,200,0.90)');
+     ctx.fillStyle=bodyGr;ctx.beginPath();ctx.ellipse(0,0,rSz*0.60,rSz*0.48,0,0,Math.PI*2);ctx.fill();
+
+     /* Tête */
+     const headGr = ctx.createRadialGradient(-rSz*0.05,-rSz*0.05,rSz*0.04,0,0,rSz*0.36);
+     headGr.addColorStop(0,'rgba(255,255,253,0.97)');headGr.addColorStop(1,'rgba(225,222,215,0.92)');
+     ctx.fillStyle=headGr;ctx.beginPath();ctx.arc(rSz*0.52,-rSz*0.22,rSz*0.30,0,Math.PI*2);ctx.fill();
+
+     /* Oreille arrière */
+     ctx.fillStyle='rgba(240,235,228,0.92)';
+     ctx.beginPath();ctx.ellipse(rSz*0.40,-rSz*0.72,rSz*0.10,rSz*0.38,0.15,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle='rgba(240,160,160,0.65)';
+     ctx.beginPath();ctx.ellipse(rSz*0.40,-rSz*0.72,rSz*0.055,rSz*0.22,0.15,0,Math.PI*2);ctx.fill();
+     /* Oreille avant */
+     ctx.fillStyle='rgba(248,245,240,0.95)';
+     ctx.beginPath();ctx.ellipse(rSz*0.56,-rSz*0.70,rSz*0.09,rSz*0.36,-0.10,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle='rgba(240,150,150,0.65)';
+     ctx.beginPath();ctx.ellipse(rSz*0.56,-rSz*0.70,rSz*0.050,rSz*0.21,-0.10,0,Math.PI*2);ctx.fill();
+
+     /* Œil rouge */
+     ctx.fillStyle='rgba(200,30,30,0.90)';ctx.beginPath();ctx.arc(rSz*0.76,-rSz*0.28,rSz*0.065,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle='rgba(5,2,2,0.85)';ctx.beginPath();ctx.arc(rSz*0.77,-rSz*0.29,rSz*0.030,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle='rgba(255,255,255,0.80)';ctx.beginPath();ctx.arc(rSz*0.765,-rSz*0.305,rSz*0.012,0,Math.PI*2);ctx.fill();
+
+     /* Nez */
+     ctx.fillStyle='rgba(240,140,140,0.85)';ctx.beginPath();ctx.ellipse(rSz*0.84,-rSz*0.19,rSz*0.042,rSz*0.030,0,0,Math.PI*2);ctx.fill();
+
+     /* Pattes */
+     const legPh = Math.sin(rabbit.jumpT*2);
+     ctx.strokeStyle='rgba(235,232,225,0.90)';ctx.lineWidth=rSz*0.14;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(rSz*0.35,rSz*0.38);ctx.lineTo(rSz*0.20+legPh*rSz*0.08,rSz*0.55+Math.max(0,-legPh)*rSz*0.10);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(rSz*0.55,rSz*0.38);ctx.lineTo(rSz*0.72-legPh*rSz*0.06,rSz*0.55+Math.max(0,legPh)*rSz*0.08);ctx.stroke();
+
+     /* Queue */
+     ctx.fillStyle='rgba(252,252,250,0.92)';ctx.beginPath();ctx.arc(-rSz*0.58,rSz*0.05,rSz*0.18,0,Math.PI*2);ctx.fill();
+
+     /* Ombre */
+     ctx.fillStyle='rgba(5,30,5,0.20)';
+     ctx.beginPath();ctx.ellipse(0,rSz*0.50+jump*0.4,rSz*(0.85-jump/jumpAmp*0.35),rSz*0.08,0,0,Math.PI*2);ctx.fill();
+     ctx.restore();
 
      /* Vignette */
      const vg=ctx.createRadialGradient(cx,H*0.50,H*0.06,cx,H*0.50,H*0.90);
@@ -23341,7 +23423,7 @@
     /* ── Fond override ── */
     let _upStyle=document.getElementById('_up_s');
     if(!_upStyle){_upStyle=document.createElement('style');_upStyle.id='_up_s';document.head.appendChild(_upStyle);}
-    _upStyle.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}';
+    _upStyle.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-film-ref-bottom,#splash-film-ref{color:rgba(20,16,12,0.80)!important;}#splash-tagline{color:rgba(20,16,12,0.70)!important;}';
     const _upW=setInterval(()=>{if(stop.v){_upStyle.textContent='';clearInterval(_upW);}},200);
 
     /* ── Ballons — naissent en bas, remontent ── */
@@ -23496,33 +23578,43 @@
       drift:0.30+Math.random()*0.55, /* amplitude du balancement */
     }));
 
-    /* ── Particules de brume froide ── */
-    const mists=Array.from({length:8},()=>({
-      x:Math.random()*W*1.4-W*0.2,
-      y:H*(0.42+Math.random()*0.22),
-      w:W*(0.35+Math.random()*0.45),
-      h:H*(0.04+Math.random()*0.06),
-      op:0.04+Math.random()*0.08,
+    /* ── Nuages cotonneux — style Rocky Mountains ── */
+    const clouds=Array.from({length:6},(_,i)=>({
+      x:W*(0.04+i*0.17)+Math.random()*W*0.06,
+      y:H*(0.06+Math.random()*0.12),
+      w:W*(0.18+Math.random()*0.16),
+      h:H*(0.04+Math.random()*0.03),
+      op:0.55+Math.random()*0.30,
       ph:Math.random()*Math.PI*2,
-      spd:0.004+Math.random()*0.006,
-      dx:(Math.random()-0.5)*0.18,
+      spd:0.003+Math.random()*0.004,
+      dx:0.04+Math.random()*0.08,
     }));
 
-    /* ── Montagnes enneigées procédurales (fond) ── */
-    /* Palette : ciel→montagnes lointaines→proches, tons bleus */
-    /* Couche 1 — montagnes très lointaines, quasi-ciel */
+    /* ── Particules de brume froide ── */
+    const mists=Array.from({length:6},()=>({
+      x:Math.random()*W*1.4-W*0.2,
+      y:H*(0.48+Math.random()*0.12),
+      w:W*(0.40+Math.random()*0.40),
+      h:H*(0.025+Math.random()*0.030),
+      op:0.04+Math.random()*0.06,
+      ph:Math.random()*Math.PI*2,
+      spd:0.004+Math.random()*0.006,
+      dx:(Math.random()-0.5)*0.15,
+    }));
+
+    /* ── Montagnes enneigées procédurales — pics nets et majestueux ── */
+    /* Couche 1 — montagnes très lointaines, crêtes dentelées */
     const mtnFar=[
-      {x:0,    pts:[{x:0,y:0.52},{x:0.08,y:0.42},{x:0.18,y:0.36},{x:0.28,y:0.44},{x:0.38,y:0.52}]},
-      {x:0.28, pts:[{x:0,y:0.52},{x:0.10,y:0.34},{x:0.22,y:0.28},{x:0.32,y:0.38},{x:0.42,y:0.52}]}, /* pic central — plus haut */
-      {x:0.55, pts:[{x:0,y:0.52},{x:0.12,y:0.40},{x:0.22,y:0.35},{x:0.32,y:0.44},{x:0.45,y:0.52}]},
+      {x:0,    pts:[{x:0,y:0.54},{x:0.05,y:0.46},{x:0.12,y:0.38},{x:0.16,y:0.31},{x:0.20,y:0.38},{x:0.26,y:0.46},{x:0.38,y:0.54}]},
+      {x:0.24, pts:[{x:0,y:0.54},{x:0.06,y:0.44},{x:0.12,y:0.34},{x:0.18,y:0.24},{x:0.24,y:0.33},{x:0.30,y:0.43},{x:0.42,y:0.54}]},
+      {x:0.55, pts:[{x:0,y:0.54},{x:0.08,y:0.44},{x:0.14,y:0.36},{x:0.20,y:0.29},{x:0.26,y:0.37},{x:0.34,y:0.46},{x:0.46,y:0.54}]},
     ];
-    /* Couche 2 — montagnes intermédiaires */
+    /* Couche 2 — montagnes intermédiaires, plus sombres et proches */
     const mtnMid=[
-      {x:-0.02,pts:[{x:0,y:0.62},{x:0.10,y:0.50},{x:0.20,y:0.62}]},
-      {x:0.16, pts:[{x:0,y:0.62},{x:0.12,y:0.48},{x:0.24,y:0.62}]},
-      {x:0.35, pts:[{x:0,y:0.62},{x:0.14,y:0.52},{x:0.28,y:0.62}]},
-      {x:0.58, pts:[{x:0,y:0.62},{x:0.10,y:0.54},{x:0.20,y:0.62}]},
-      {x:0.72, pts:[{x:0,y:0.62},{x:0.12,y:0.50},{x:0.26,y:0.62}]},
+      {x:-0.04,pts:[{x:0,y:0.64},{x:0.08,y:0.52},{x:0.14,y:0.46},{x:0.20,y:0.52},{x:0.28,y:0.64}]},
+      {x:0.20, pts:[{x:0,y:0.64},{x:0.08,y:0.50},{x:0.16,y:0.42},{x:0.22,y:0.50},{x:0.30,y:0.64}]},
+      {x:0.42, pts:[{x:0,y:0.64},{x:0.10,y:0.54},{x:0.16,y:0.47},{x:0.22,y:0.54},{x:0.30,y:0.64}]},
+      {x:0.64, pts:[{x:0,y:0.64},{x:0.08,y:0.52},{x:0.14,y:0.45},{x:0.20,y:0.52},{x:0.28,y:0.64}]},
     ];
 
     function drawMountainShape(pts, baseY, fillCol){
@@ -23543,14 +23635,63 @@
     }
 
     function drawSnowCap(pts, capFrac, snowCol){
-      /* Dessine une calotte neigeuse sur le pic de la montagne */
+      /* Calotte neigeuse triangulaire qui épouse le contour du pic */
       const peakIdx=pts.reduce((mi,p,i)=>p.y<pts[mi].y?i:mi,0);
       const peak=pts[peakIdx];
-      const capH=H*(pts[pts.length-1].y-peak.y)*capFrac;
+      const baseY=pts[pts.length-1].y;
+      const capThresh=peak.y+(baseY-peak.y)*capFrac;
+
       ctx.fillStyle=snowCol;
       ctx.beginPath();
-      ctx.ellipse(peak.x*W, peak.y*H+capH*0.5, capH*1.8, capH*0.55, 0, 0, Math.PI*2);
-      ctx.fill();
+      ctx.moveTo(peak.x*W, peak.y*H);
+      /* Suivre le contour de la montagne jusqu'à la hauteur capThresh */
+      for(let i=peakIdx+1;i<pts.length;i++){
+        if(pts[i].y<=capThresh) ctx.lineTo(pts[i].x*W, pts[i].y*H);
+        else {
+          const prev=pts[i-1];const cur=pts[i];
+          const frac=(capThresh-prev.y)/(cur.y-prev.y);
+          ctx.lineTo((prev.x+frac*(cur.x-prev.x))*W, capThresh*H);
+          break;
+        }
+      }
+      for(let i=peakIdx-1;i>=0;i--){
+        if(pts[i].y<=capThresh) ctx.lineTo(pts[i].x*W, pts[i].y*H);
+        else {
+          const prev=pts[i+1];const cur=pts[i];
+          const frac=(capThresh-prev.y)/(cur.y-prev.y);
+          ctx.lineTo((prev.x+frac*(cur.x-prev.x))*W, capThresh*H);
+          break;
+        }
+      }
+      ctx.closePath(); ctx.fill();
+    }
+
+    function drawClouds(){
+      for(const c of clouds){
+        c.ph+=c.spd; c.x+=c.dx;
+        if(c.x>W*1.1) c.x=-c.w;
+        const pulse=0.85+0.15*Math.sin(c.ph);
+        const cx2=c.x+c.w*0.5, cy2=c.y;
+        /* Corps principal */
+        const cg=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,c.w*0.5);
+        cg.addColorStop(0,`rgba(240,248,255,${c.op*pulse})`);
+        cg.addColorStop(0.5,`rgba(220,235,250,${c.op*pulse*0.85})`);
+        cg.addColorStop(1,'rgba(200,220,240,0)');
+        ctx.fillStyle=cg;
+        ctx.beginPath(); ctx.ellipse(cx2,cy2,c.w*0.5,c.h,0,0,Math.PI*2); ctx.fill();
+        /* Bosse gauche */
+        const cg2=ctx.createRadialGradient(cx2-c.w*0.28,cy2-c.h*0.4,0,cx2-c.w*0.28,cy2-c.h*0.4,c.w*0.28);
+        cg2.addColorStop(0,`rgba(245,252,255,${c.op*pulse*0.90})`);
+        cg2.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=cg2;
+        ctx.beginPath(); ctx.ellipse(cx2-c.w*0.28,cy2-c.h*0.4,c.w*0.28,c.h*0.85,0,0,Math.PI*2); ctx.fill();
+        /* Bosse droite */
+        const cg3=ctx.createRadialGradient(cx2+c.w*0.20,cy2-c.h*0.30,0,cx2+c.w*0.20,cy2-c.h*0.30,c.w*0.22);
+        cg3.addColorStop(0,`rgba(238,248,255,${c.op*pulse*0.85})`);
+        cg3.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=cg3;
+        ctx.beginPath(); ctx.ellipse(cx2+c.w*0.20,cy2-c.h*0.30,c.w*0.22,c.h*0.75,0,0,Math.PI*2); ctx.fill();
+      }
     }
 
     function drawBackground(){
@@ -23569,17 +23710,17 @@
       ground.addColorStop(1,'#1a3550');
       ctx.fillStyle=ground; ctx.fillRect(0,H*0.58,W,H*0.42);
 
-      /* Montagnes lointaines — bleu très pâle */
+      /* Montagnes lointaines — bleu très pâle, plus contrastées */
       for(const m of mtnFar){
         const abspts=m.pts.map(p=>({x:m.x+p.x,y:p.y}));
-        drawMountainShape(abspts, H*0.52,'rgba(155,185,215,0.82)');
-        drawSnowCap(abspts, 0.28,'rgba(225,240,252,0.75)');
+        drawMountainShape(abspts, H*0.54,'rgba(165,198,225,0.88)');
+        drawSnowCap(abspts, 0.35,'rgba(235,248,255,0.88)');
       }
       /* Ligne de neige sur les crêtes lointaines */
       for(const m of mtnFar){
         const abspts=m.pts.map(p=>({x:m.x+p.x,y:p.y}));
-        ctx.strokeStyle='rgba(220,238,252,0.45)';
-        ctx.lineWidth=W*0.004;
+        ctx.strokeStyle='rgba(220,238,252,0.50)';
+        ctx.lineWidth=W*0.003;
         ctx.beginPath();
         ctx.moveTo(abspts[0].x*W, abspts[0].y*H);
         for(let i=1;i<abspts.length;i++)
@@ -23590,8 +23731,8 @@
       /* Montagnes intermédiaires — bleu moyen */
       for(const m of mtnMid){
         const abspts=m.pts.map(p=>({x:m.x+p.x,y:p.y}));
-        drawMountainShape(abspts, H*0.62,'rgba(88,128,168,0.88)');
-        drawSnowCap(abspts, 0.32,'rgba(200,225,245,0.60)');
+        drawMountainShape(abspts, H*0.64,'rgba(78,118,158,0.92)');
+        drawSnowCap(abspts, 0.28,'rgba(215,235,250,0.72)');
       }
 
       /* Bande de forêt en silhouette (sapins) — milieu */
@@ -23661,6 +23802,7 @@
       ctx.fillStyle='#a8cce0'; ctx.fillRect(0,0,W,H);
 
       drawBackground();
+      drawClouds();
       drawMist();
       drawFlakes();
       drawDecor();
@@ -24696,7 +24838,7 @@
      /* ── MCMURPHY — balancement subtil, taille réduite ── */
      ctx.save();
      ctx.translate(W*0.25, H*0.82);
-     ctx.scale(0.58, 0.58);
+     ctx.scale(0.82, 0.58);
      ctx.translate(-W*0.25, -H*0.82);
      drawMcMurphy(W*0.25, H*0.82, mcSway);
      ctx.restore();
@@ -24704,7 +24846,7 @@
      /* ── RATCHED — immobile, glaciale, taille réduite ── */
      ctx.save();
      ctx.translate(W*0.72, H*0.82);
-     ctx.scale(0.58, 0.58);
+     ctx.scale(0.82, 0.58);
      ctx.translate(-W*0.72, -H*0.82);
      drawRatched(W*0.72, H*0.82);
      ctx.restore();
@@ -27421,16 +27563,15 @@
     const cx=W/2;
     const groundY=H*0.78;
 
-    /* ── GEYSER DE PETROLE — colonne fine qui s'evase en panache ── */
-    const FX=W*0.28;   /* geyser gauche */
-    const FX2=W*0.72;  /* geyser droit — symétrique */
+    /* ── GEYSER DE PETROLE — colonne unique à gauche comme dans le film ── */
+    const FX=W*0.22;   /* geyser gauche — plus proche du bord */
     const F_BASE=groundY;
-    const F_STEM_W=W*0.028;
-    const F_CROWN_W=W*0.22;
-    const F_HEIGHT=H*0.72;
+    const F_STEM_W=W*0.030;
+    const F_CROWN_W=W*0.24;
+    const F_HEIGHT=H*0.78;
 
-    /* Particules geyser gauche */
-    const flameP=Array.from({length:110},()=>{
+    /* Particules geyser */
+    const flameP=Array.from({length:130},()=>{
      const isStem=Math.random()<0.40;
      return {
       yOff:Math.random()*(isStem?F_HEIGHT*0.45:F_HEIGHT),
@@ -27444,67 +27585,34 @@
      };
     });
 
-    /* Particules geyser droit — indépendantes pour décalage de phase */
-    const flameP2=Array.from({length:110},()=>{
-     const isStem=Math.random()<0.40;
-     return {
-      yOff:Math.random()*(isStem?F_HEIGHT*0.45:F_HEIGHT),
-      xOff:(Math.random()-0.5)*(isStem?F_STEM_W*1.2:F_CROWN_W*0.9),
-      vy:Math.random()*(isStem?4.5:2.8)+(isStem?2.5:1.4),
-      r:Math.random()*(isStem?F_STEM_W*0.8:F_CROWN_W*0.55)+(isStem?F_STEM_W*0.3:F_CROWN_W*0.18),
-      hot:Math.random(),
-      ph:Math.random()*Math.PI*2,
-      wobble:Math.random()*Math.PI*2,
-      stem:isStem,
-     };
-    });
-
-    /* Fumee noire de petrole — lourde, derive a droite */
-    const smokePuffs=Array.from({length:42},(_,i)=>({
-     x:FX+(Math.random()-0.3)*W*0.14,
-     y:groundY-F_HEIGHT*0.50-Math.random()*F_HEIGHT*0.50,
-     r:W*(0.09+Math.random()*0.22),
-     vx:0.22+Math.random()*0.35,
-     vy:-(0.03+Math.random()*0.06),
-     op:0.32+Math.random()*0.36,
-     tone:Math.random()*0.25,
+    /* Fumée noire de pétrole — lourde, dérive vers la droite et envahit le ciel */
+    const smokePuffs=Array.from({length:65},(_,i)=>({
+     x:FX+(Math.random()-0.3)*W*0.20,
+     y:groundY-F_HEIGHT*0.38-Math.random()*F_HEIGHT*0.62,
+     r:W*(0.12+Math.random()*0.32),
+     vx:0.18+Math.random()*0.40,
+     vy:-(0.02+Math.random()*0.05),
+     op:0.28+Math.random()*0.42,
+     tone:Math.random()*0.20,
      ph:Math.random()*Math.PI*2,
-     phSpd:Math.random()*0.007+0.002,
+     phSpd:Math.random()*0.006+0.002,
     }));
 
-    /* Fumee geyser droit — derive vers la gauche (symétrique) */
-    const smokePuffs2=Array.from({length:42},(_,i)=>({
-     x:FX2+(Math.random()-0.7)*W*0.14,
-     y:groundY-F_HEIGHT*0.50-Math.random()*F_HEIGHT*0.50,
-     r:W*(0.09+Math.random()*0.22),
-     vx:-(0.22+Math.random()*0.35),
-     vy:-(0.03+Math.random()*0.06),
-     op:0.32+Math.random()*0.36,
-     tone:Math.random()*0.25,
-     ph:Math.random()*Math.PI*2,
-     phSpd:Math.random()*0.007+0.002,
-    }));
-
-    /* Braises / gouttelettes enflammees — geyser gauche */
-    const embers=Array.from({length:55},()=>({
-     x:FX+(Math.random()-0.5)*F_STEM_W*3,
+    /* Braises / gouttelettes enflammées */
+    const embers=Array.from({length:65},()=>({
+     x:FX+(Math.random()-0.5)*F_STEM_W*4,
      y:groundY-Math.random()*F_HEIGHT*0.6,
-     vx:(Math.random()-0.5)*0.90,
-     vy:-(Math.random()*2.2+0.8),
-     r:Math.random()*2.5+0.6,
+     vx:(Math.random()-0.5)*1.10,
+     vy:-(Math.random()*2.4+0.8),
+     r:Math.random()*2.8+0.5,
      op:Math.random()*0.85+0.15,
      ph:Math.random()*Math.PI*2,
     }));
 
-    /* Braises geyser droit */
-    const embers2=Array.from({length:55},()=>({
-     x:FX2+(Math.random()-0.5)*F_STEM_W*3,
-     y:groundY-Math.random()*F_HEIGHT*0.6,
-     vx:(Math.random()-0.5)*0.90,
-     vy:-(Math.random()*2.2+0.8),
-     r:Math.random()*2.5+0.6,
-     op:Math.random()*0.85+0.15,
-     ph:Math.random()*Math.PI*2,
+    /* Silhouettes lointaines — soldats au fond comme dans le film */
+    const distFigures=Array.from({length:5},(_,i)=>({
+     x:W*(0.32+i*0.10+Math.random()*0.04),
+     h:H*(0.028+Math.random()*0.012),
     }));
 
     /* Override position citation/logo */
@@ -27633,14 +27741,22 @@
 
     function drawSoldiers(){
      if(!soldierReady) return;
-     /* Jarhead SVG 206×389 — ratio portrait 0.530
-        Taille : 45% de H pour bien voir le soldat sans dominer
-        Position : bord droit collé à ~98% de W, pied sur le sol */
-     const SH = H * 0.45;
+     /* Jarhead SVG 206×389 — réduit à 36% de H, collé à droite */
+     const SH = H * 0.36;
      const SW = SH * (206/389);
-     const SX = W * 0.98 - SW;
+     const SX = W * 0.97 - SW;
      const SY = groundY - SH;
-     drawSilhouette('jarhead_soldier', soldierImg, SX, SY, SW, SH, 0.96);
+     drawSilhouette('jarhead_soldier', soldierImg, SX, SY, SW, SH, 0.97);
+
+     /* Silhouettes lointaines au fond */
+     ctx.fillStyle='rgba(6,3,1,0.82)';
+     for(const f of distFigures){
+      const fx2=f.x, fy=groundY-f.h;
+      /* Corps */
+      ctx.beginPath();ctx.ellipse(fx2,fy-f.h*0.22,f.h*0.08,f.h*0.30,0,0,Math.PI*2);ctx.fill();
+      /* Tête */
+      ctx.beginPath();ctx.arc(fx2,fy-f.h*0.62,f.h*0.10,0,Math.PI*2);ctx.fill();
+     }
     }
 
     function frame(){
@@ -27656,72 +27772,54 @@
      bg.addColorStop(1.00,'#2e1604');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-     /* Lueur ambiante geyser */
-     const ambG=ctx.createRadialGradient(FX,groundY*0.60,0,FX,groundY*0.60,W*0.85);
-     ambG.addColorStop(0,`rgba(220,95,8,${0.22+Math.sin(t*0.9)*0.06})`);
-     ambG.addColorStop(0.35,'rgba(160,45,3,0.10)');
-     ambG.addColorStop(0.70,'rgba(80,15,0,0.04)');
+     /* Lueur ambiante geyser — plus chaude et large */
+     const ambG=ctx.createRadialGradient(FX,groundY*0.55,0,FX,groundY*0.55,W*1.0);
+     ambG.addColorStop(0,`rgba(230,100,8,${0.28+Math.sin(t*0.9)*0.07})`);
+     ambG.addColorStop(0.30,'rgba(170,50,3,0.14)');
+     ambG.addColorStop(0.60,'rgba(90,18,0,0.06)');
      ambG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=ambG;ctx.fillRect(0,0,W,H);
 
-     /* Sol desert sable+petrole */
+     /* Sol désert sable+pétrole */
      const dg=ctx.createLinearGradient(0,groundY,0,H);
      dg.addColorStop(0,'rgba(72,40,8,0.97)');
      dg.addColorStop(0.35,'rgba(42,22,5,0.99)');
      dg.addColorStop(1,'rgba(18,9,2,1.0)');
      ctx.fillStyle=dg;ctx.fillRect(0,groundY,W,H-groundY);
 
-     /* Mare de petrole au pied du geyser gauche */
+     /* Reflets des flammes sur le sol — flaque lumineuse */
+     const reflG=ctx.createRadialGradient(FX,groundY+H*0.02,0,FX,groundY+H*0.02,W*0.55);
+     reflG.addColorStop(0,`rgba(200,80,5,${0.30+Math.sin(t*2.1)*0.08})`);
+     reflG.addColorStop(0.40,`rgba(140,40,2,${0.12+Math.sin(t*1.5)*0.04})`);
+     reflG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=reflG;ctx.beginPath();ctx.ellipse(FX,groundY+H*0.018,W*0.50,H*0.030,0,0,Math.PI*2);ctx.fill();
+
+     /* Mare de pétrole au pied du geyser */
      const poolG=ctx.createRadialGradient(FX,groundY,0,FX,groundY,W*0.18);
      poolG.addColorStop(0,`rgba(8,5,1,${0.72+Math.sin(t*1.5)*0.08})`);
      poolG.addColorStop(0.55,'rgba(15,8,2,0.40)');
      poolG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=poolG;ctx.beginPath();ctx.ellipse(FX,groundY+4,W*0.18,H*0.015,0,0,Math.PI*2);ctx.fill();
 
-     /* Mare de petrole au pied du geyser droit */
-     const poolG2=ctx.createRadialGradient(FX2,groundY,0,FX2,groundY,W*0.18);
-     poolG2.addColorStop(0,`rgba(8,5,1,${0.72+Math.sin(t*1.5+1)*0.08})`);
-     poolG2.addColorStop(0.55,'rgba(15,8,2,0.40)');
-     poolG2.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=poolG2;ctx.beginPath();ctx.ellipse(FX2,groundY+4,W*0.18,H*0.015,0,0,Math.PI*2);ctx.fill();
-
-     /* Fumee (fond) */
+     /* Fumée (fond) */
      drawSmoke(smokePuffs,FX);
-     drawSmoke(smokePuffs2,FX2);
 
-     /* Geysers */
+     /* Geyser unique */
      drawFireColumn(FX,flameP);
-     drawFireColumn(FX2,flameP2);
 
      /* Soldats */
      drawSoldiers();
 
-     /* Braises geyser gauche */
+     /* Braises */
      for(const e of embers){
-      e.x+=e.vx+Math.sin(t*2.2+e.ph)*0.20;
+      e.x+=e.vx+Math.sin(t*2.2+e.ph)*0.22;
       e.y+=e.vy;
       e.vy+=0.018;
       if(e.y<groundY-F_HEIGHT*1.05||e.y>groundY+2||e.x<-5||e.x>W+5){
        e.x=FX+(Math.random()-0.5)*F_STEM_W*4;
-       e.y=groundY-F_HEIGHT*0.08-Math.random()*F_HEIGHT*0.25;
-       e.vy=-(Math.random()*2.2+0.8);
-       e.vx=(Math.random()-0.5)*0.90;
-      }
-      const ep=Math.max(0,1-(groundY-e.y)/(F_HEIGHT));
-      ctx.fillStyle=`rgba(255,${Math.round(150+ep*90)},${Math.round(ep*30)},${e.op*(0.45+Math.sin(e.ph+t*5)*0.55)})`;
-      ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
-     }
-
-     /* Braises geyser droit */
-     for(const e of embers2){
-      e.x+=e.vx+Math.sin(t*2.2+e.ph)*0.20;
-      e.y+=e.vy;
-      e.vy+=0.018;
-      if(e.y<groundY-F_HEIGHT*1.05||e.y>groundY+2||e.x<-5||e.x>W+5){
-       e.x=FX2+(Math.random()-0.5)*F_STEM_W*4;
-       e.y=groundY-F_HEIGHT*0.08-Math.random()*F_HEIGHT*0.25;
-       e.vy=-(Math.random()*2.2+0.8);
-       e.vx=(Math.random()-0.5)*0.90;
+       e.y=groundY-F_HEIGHT*0.08-Math.random()*F_HEIGHT*0.28;
+       e.vy=-(Math.random()*2.4+0.8);
+       e.vx=(Math.random()-0.5)*1.10;
       }
       const ep=Math.max(0,1-(groundY-e.y)/(F_HEIGHT));
       ctx.fillStyle=`rgba(255,${Math.round(150+ep*90)},${Math.round(ep*30)},${e.op*(0.45+Math.sin(e.ph+t*5)*0.55)})`;
@@ -32354,6 +32452,8 @@
      #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(40,35,30,0.88)!important;font-size:14px!important;text-shadow:0 1px 6px rgba(180,170,155,0.6)!important;}
      #splash-film-logo{max-width:60%!important;}
+     #splash-film-ref-bottom,#splash-film-ref{color:rgba(20,16,12,0.80)!important;}
+     #splash-tagline{color:rgba(20,16,12,0.70)!important;}
     `;
     const _rbW=setInterval(()=>{if(stop.v){_rbS.textContent='';clearInterval(_rbW);}},200);
 
@@ -33515,7 +33615,7 @@
       if(_helmetReady){
         const tgtW=W*0.779;
         const tgtH=tgtW*(SVG_H/SVG_W);
-        ctx.drawImage(_helmetImg,cx-tgtW/2,H*0.18,tgtW,tgtH);
+        ctx.drawImage(_helmetImg,cx-tgtW/2,H*0.20,tgtW,tgtH);
       }
       drawFMJ();
       for(const d of dust){
@@ -37436,7 +37536,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_vs_s');
     if(!_s){_s=document.createElement('style');_s.id='_vs_s';document.head.appendChild(_s);}
-    _s.textContent=`#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline{text-shadow:0 1px 6px rgba(0,0,0,0.55)!important;}#splash-credit,#splash-ref-bot,.splash-credit{text-shadow:0 1px 5px rgba(0,0,0,0.60)!important;}`;
+    _s.textContent=`#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline{color:rgba(180,60,90,0.80)!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{text-shadow:none!important;}#splash-film-ref-bottom,#splash-film-ref{color:rgba(180,55,85,0.80)!important;}`;
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -40281,7 +40381,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.52;
     let _s=document.getElementById('_jum_s');
     if(!_s){_s=document.createElement('style');_s.id='_jum_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote{display:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Plateau Jumanji — grille carrée avec chemin en escargot ── */
@@ -40619,19 +40719,46 @@
       ctx.strokeStyle=`rgba(80,200,55,${0.12+vi*0.03})`;ctx.lineWidth=1.2;
       ctx.beginPath();ctx.arc(DCX,DCY,DR*(0.30+vi*0.18),0,Math.PI*2);ctx.stroke();
      }
-     /* Texte JUMANJI */
+     /* Texte JUMANJI supprimé — remplacé par animations */
+     /* Ondes concentriques — effet sonar/magie */
+     for(let wi=0;wi<3;wi++){
+      const wPhase=(t*1.4+wi*Math.PI*0.65)%(Math.PI*2);
+      const wProg=Math.abs(Math.sin(wPhase*0.5));
+      const wR=DR*(0.15+wProg*0.78);
+      const wOp=(1-wProg)*0.45;
+      ctx.strokeStyle=`rgba(120,255,80,${wOp})`;
+      ctx.lineWidth=2.0;
+      ctx.beginPath();ctx.arc(DCX,DCY,wR,0,Math.PI*2);ctx.stroke();
+     }
+     /* Symbole central — œil de jungle rotatif */
      ctx.save();
-     ctx.font=`bold ${DR*0.38}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-     ctx.fillStyle=`rgba(220,190,40,${0.88+Math.sin(t*1.5)*0.12})`;
-     ctx.shadowColor='rgba(0,80,0,0.80)';ctx.shadowBlur=4;
-     ctx.fillText('JUMANJI',DCX,DCY);
+     ctx.translate(DCX,DCY);
+     ctx.rotate(t*0.22);
+     /* Branches de rune à 6 pointes */
+     ctx.strokeStyle=`rgba(160,255,100,${0.38+Math.sin(t*1.8)*0.12})`;
+     ctx.lineWidth=W*0.006;ctx.lineCap='round';
+     for(let si=0;si<6;si++){
+      const sa=si/6*Math.PI*2;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(sa)*DR*0.42,Math.sin(sa)*DR*0.42);ctx.stroke();
+     }
      ctx.restore();
-     /* Halo pulsant */
-     const ph2=DR*0.50*(1+Math.sin(t*2.2)*0.15);
+     /* Halo pulsant interne */
+     const ph2=DR*0.62*(0.88+Math.sin(t*2.2)*0.12);
      const phg=ctx.createRadialGradient(DCX,DCY,0,DCX,DCY,ph2);
-     phg.addColorStop(0,`rgba(100,255,80,${0.35+Math.sin(t*2.2)*0.15})`);
+     phg.addColorStop(0,`rgba(120,255,80,${0.28+Math.sin(t*2.2)*0.10})`);
+     phg.addColorStop(0.5,`rgba(60,200,40,${0.12+Math.sin(t*1.8)*0.06})`);
      phg.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=phg;ctx.beginPath();ctx.arc(DCX,DCY,ph2,0,Math.PI*2);ctx.fill();
+     /* Flash d'énergie éclairs — apparaît par intermittence */
+     if(Math.sin(t*3.1)>0.75){
+      const flashOp=(Math.sin(t*3.1)-0.75)/0.25*0.35;
+      ctx.strokeStyle=`rgba(200,255,150,${flashOp})`;ctx.lineWidth=1.2;
+      for(let li=0;li<4;li++){
+       const la=t*0.8+li*Math.PI*0.5;
+       ctx.beginPath();ctx.moveTo(DCX+Math.cos(la)*DR*0.15,DCY+Math.sin(la)*DR*0.15);
+       ctx.lineTo(DCX+Math.cos(la+0.3)*DR*0.55,DCY+Math.sin(la+0.3)*DR*0.55);ctx.stroke();
+      }
+     }
 
      /* ── 2 Pions aux coins du plateau ── */
      function drawPawn(px2,py2,col,sz2){
@@ -40703,7 +40830,7 @@
     /* ── Style ── */
     let _nmS=document.getElementById('_nm_s');
     if(!_nmS){_nmS=document.createElement('style');_nmS.id='_nm_s';document.head.appendChild(_nmS);}
-    _nmS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 12px rgba(0,0,0,0.98)!important;}#splash-film-logo{max-width:62%!important;}';
+    _nmS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:25%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 12px rgba(0,0,0,0.98)!important;}#splash-film-logo{max-width:62%!important;}';
     const _nmW=setInterval(()=>{if(stop.v){_nmS.textContent='';clearInterval(_nmW);}},200);
 
     const floorY=H*0.82;
@@ -40728,11 +40855,49 @@
     ];
 
     /* ── Poussière ── */
-    const dust=Array.from({length:40},()=>({
+    const dust=Array.from({length:65},()=>({
       x:Math.random()*W, y:H*(0.10+Math.random()*0.75),
-      r:0.5+Math.random()*1.3, op:0.04+Math.random()*0.12,
-      vx:(Math.random()-0.5)*0.06, vy:-(0.03+Math.random()*0.08),
+      r:0.5+Math.random()*1.5, op:0.04+Math.random()*0.14,
+      vx:(Math.random()-0.5)*0.08, vy:-(0.02+Math.random()*0.07),
       ph:Math.random()*Math.PI*2, spd:0.006+Math.random()*0.012,
+    }));
+
+    /* ── Étincelles tombant du plafond ── */
+    const sparkles=Array.from({length:22},()=>({
+      x:Math.random()*W,
+      y:Math.random()*H*0.15,
+      vy:0.12+Math.random()*0.28,
+      vx:(Math.random()-0.5)*0.10,
+      r:0.8+Math.random()*1.6,
+      op:0.0,
+      maxOp:0.25+Math.random()*0.45,
+      ph:Math.random()*Math.PI*2,
+      spd:0.020+Math.random()*0.035,
+      trail:[],
+    }));
+
+    /* ── Orbes de lumière flottants — magie du musée ── */
+    const orbs=Array.from({length:5},(_,i)=>({
+      x:W*(0.15+i*0.18),
+      y:H*(0.35+Math.sin(i*1.2)*0.12),
+      r:W*(0.008+Math.random()*0.010),
+      ph:Math.random()*Math.PI*2,
+      spd:0.008+Math.random()*0.010,
+      vx:(Math.random()-0.5)*0.10,
+      vy:(Math.random()-0.5)*0.06,
+      col:i%2===0?'255,200,80':'200,160,60',
+    }));
+
+    /* ── Souffle d'air au sol — particules horizontales ── */
+    const groundBreath=Array.from({length:18},()=>({
+      x:Math.random()*W,
+      y:floorY+H*(0.005+Math.random()*0.015),
+      vx:0.15+Math.random()*0.30,
+      r:W*(0.004+Math.random()*0.008),
+      op:0.0,
+      maxOp:0.06+Math.random()*0.10,
+      ph:Math.random()*Math.PI*2,
+      spd:0.015+Math.random()*0.020,
     }));
 
     /* ── Torches ── */
@@ -40985,6 +41150,62 @@
       }
     }
 
+    function drawSparkles(){
+      for(const s of sparkles){
+        s.ph+=s.spd;
+        s.y+=s.vy; s.x+=s.vx;
+        s.op=s.maxOp*(0.4+0.6*Math.abs(Math.sin(s.ph)));
+        s.trail.push({x:s.x,y:s.y});
+        if(s.trail.length>5)s.trail.shift();
+        /* Traîne dorée */
+        for(let ti=0;ti<s.trail.length-1;ti++){
+          const tf=ti/(s.trail.length-1);
+          ctx.strokeStyle=`rgba(255,210,80,${s.op*tf*0.5})`;
+          ctx.lineWidth=s.r*0.6;ctx.lineCap='round';
+          ctx.beginPath();ctx.moveTo(s.trail[ti].x,s.trail[ti].y);ctx.lineTo(s.trail[ti+1].x,s.trail[ti+1].y);ctx.stroke();
+        }
+        /* Étincelle */
+        ctx.fillStyle=`rgba(255,230,120,${s.op})`;
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+        /* Respawn en haut quand trop bas */
+        if(s.y>H*0.55){
+          s.y=Math.random()*H*0.05;
+          s.x=Math.random()*W;
+          s.trail.length=0;
+        }
+      }
+    }
+
+    function drawOrbs(){
+      for(const o of orbs){
+        o.ph+=o.spd;
+        o.x+=o.vx; o.y+=o.vy+Math.sin(o.ph)*0.06;
+        if(o.x<W*0.05)o.vx=Math.abs(o.vx);
+        if(o.x>W*0.95)o.vx=-Math.abs(o.vx);
+        if(o.y<H*0.20)o.vy=Math.abs(o.vy);
+        if(o.y>H*0.75)o.vy=-Math.abs(o.vy);
+        const pulse=0.5+0.5*Math.abs(Math.sin(o.ph));
+        const og=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r*4);
+        og.addColorStop(0,`rgba(${o.col},${pulse*0.55})`);
+        og.addColorStop(0.4,`rgba(${o.col},${pulse*0.18})`);
+        og.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=og;ctx.beginPath();ctx.arc(o.x,o.y,o.r*4,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=`rgba(255,245,200,${pulse*0.80})`;
+        ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();
+      }
+    }
+
+    function drawGroundBreath(){
+      for(const g of groundBreath){
+        g.ph+=g.spd;
+        g.x+=g.vx;
+        g.op=g.maxOp*(0.3+0.7*Math.abs(Math.sin(g.ph)));
+        if(g.x>W+g.r*2){g.x=-g.r;g.y=floorY+H*(0.005+Math.random()*0.015);}
+        ctx.fillStyle=`rgba(200,160,60,${g.op})`;
+        ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();
+      }
+    }
+
     function frame(){
       if(stop.v)return;
       drawHall();
@@ -40994,6 +41215,9 @@
       drawEyes();
       drawGlyphs();
       drawDust();
+      drawSparkles();
+      drawOrbs();
+      drawGroundBreath();
 
       const vg=ctx.createRadialGradient(cx,H*0.48,H*0.08,cx,H*0.48,H*0.88);
       vg.addColorStop(0,'rgba(0,0,0,0)');
@@ -43404,23 +43628,8 @@
      }
     }
 
-    (function(){
-     const _splash=document.getElementById('splash');
-     if(!_splash) return;
-     if(_splash.classList.contains('curtain-open')){
-      _mskInject();
-     } else {
-      const _obs=new MutationObserver(function(mutations){
-       for(const m of mutations){
-        if(m.type==='attributes'&&m.attributeName==='class'){
-         if(_splash.classList.contains('curtain-open')){_obs.disconnect();_mskInject();}
-        }
-       }
-      });
-      _obs.observe(_splash,{attributes:true,attributeFilter:['class']});
-      const _chk=setInterval(()=>{if(stop.v){_obs.disconnect();clearInterval(_chk);}},200);
-     }
-    })();
+    /* Injecter le chapeau immédiatement avec le reste */
+    _mskInject();
 
     function frame(){
      if(stop.v)return;
@@ -48628,11 +48837,11 @@
      ctx.fillStyle='rgba(255,120,0,0.92)';
      ctx.fillRect(ax-aw*0.50,amboY+ah*0.28,aw,ah*0.14);
 
-     /* Croix rouge — décalée à droite pour laisser place au texte */
-     const crX=ax+aw*0.08,crY=amboY+ah*0.12;
+     /* Croix rouge — sous la bande orange, centrée verticalement dans la partie basse */
+     const crX=ax+aw*0.08,crY=amboY+ah*0.50;
      ctx.fillStyle=`rgba(220,15,15,${0.85+strobeRed*0.12})`;
-     ctx.fillRect(crX-W*0.018,crY,W*0.036,H*0.052);
-     ctx.fillRect(crX-W*0.036,crY+H*0.016,W*0.072,H*0.020);
+     ctx.fillRect(crX-W*0.018,crY,W*0.036,H*0.040);
+     ctx.fillRect(crX-W*0.036,crY+H*0.010,W*0.072,H*0.020);
 
      /* AMBULANCE texte — counter-flip pour rester lisible */
      ctx.save();
