@@ -106,6 +106,14 @@
 @keyframes ticket-pulse{
   0%,100%{opacity:.5;} 50%{opacity:1;}
 }
+.bt-tap-hint{
+  margin-top:10px;
+  font-size:10px;letter-spacing:2px;font-weight:600;
+  color:rgba(167,139,250,.7);
+  text-align:center;
+  animation:ticket-pulse 1.8s ease-in-out infinite;
+  pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -5939,12 +5947,24 @@ function buildBlindTestQuestions(count){
 }
 
 function _btStop(){
-  if(_btAudio){try{_btAudio.pause();}catch(e){}; _btAudio.src='';_btAudio=null;}
+  /* Arrête les timers et l'état du player — GARDE la musique en cours */
   if(_btProgTimer){clearInterval(_btProgTimer);_btProgTimer=null;}
   if(_btRevealTimer){clearTimeout(_btRevealTimer);_btRevealTimer=null;}
   window._bt=null;
   var noop=function(){};
   window._btToggle=window._btDoPlay=window._btDoPause=window._btPlay=window._btPause=window._btUpdateUI=window._btUnlockAnswers=noop;
+}
+
+function _btStopAudio(){
+  /* Coupe la musique — appelé uniquement quand le joueur tape l'affiche */
+  if(_btAudio){
+    var a=_btAudio;
+    var v=a.volume||1,st=0,tot=12;
+    var fo=setInterval(function(){
+      st++;a.volume=Math.max(0,v*(1-st/tot));
+      if(st>=tot){clearInterval(fo);try{a.pause();a.src='';}catch(e){}  _btAudio=null;}
+    },200/tot);
+  }
 }
 
 function _btNextBtn(){
@@ -5979,14 +5999,15 @@ function _btRevealPoster(q){
       .then(d=>{
         if(d.poster_path){
           player.innerHTML=`
-            <div class="bt-reveal-fullposter" style="display:flex;flex-direction:column;align-items:center;width:100%;">
+            <div class="bt-reveal-fullposter" id="bt-tap-poster" style="display:flex;flex-direction:column;align-items:center;width:100%;cursor:pointer;position:relative;">
               <img class="bt-reveal-fullimg" src="${TI+d.poster_path}" alt="${q.title}" crossorigin="anonymous">
               <div class="bt-reveal-overlay">
                 <div class="bt-reveal-title">${q.title}</div>
                 <div class="bt-reveal-year">${q.year}</div>
               </div>
+              <div class="bt-tap-hint" id="bt-tap-hint">Touche l'affiche pour continuer →</div>
             </div>`;
-          
+          _btBindTapNext();
         } else { _btRevealText(player,q); }
       }).catch(()=>_btRevealText(player,q));
   } else { _btRevealText(player,q); }
@@ -5994,11 +6015,33 @@ function _btRevealPoster(q){
 
 function _btRevealText(player,q){
   player.innerHTML=`
-    <div style="text-align:center;width:100%;margin-bottom:4px;">
+    <div id="bt-tap-poster" style="text-align:center;width:100%;margin-bottom:4px;cursor:pointer;padding:16px 0;position:relative;">
       <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:4px;">${q.title} (${q.year})</div>
       <div style="font-size:11px;color:rgba(167,139,250,.7);">🎼 ${q.composer||''}</div>
+      <div class="bt-tap-hint" id="bt-tap-hint">Touche pour continuer →</div>
     </div>`;
-  
+  _btBindTapNext();
+}
+
+function _btBindTapNext(){
+  /* Attache le listener tap-to-next sur l'affiche révélée */
+  setTimeout(function(){
+    const el=document.getElementById('bt-tap-poster');
+    if(!el)return;
+    el.addEventListener('click',function(){
+      _btStopAudio();
+      if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+      hideToast();
+      advanceQ();
+    },{once:true});
+    el.addEventListener('touchend',function(e){
+      e.preventDefault();
+      _btStopAudio();
+      if(nextQTimer){clearTimeout(nextQTimer);nextQTimer=null;}
+      hideToast();
+      advanceQ();
+    },{once:true,passive:false});
+  },300); /* petit délai pour éviter un tap accidentel immédiat */
 }
 
 /* VRAI_FAUX → data.js */
@@ -12866,10 +12909,13 @@ function showToast(ok,pts,m,ans){
     if(m>=2)_spawnFloatPts(pts,m);
 
     if(nextQTimer)clearTimeout(nextQTimer);
-    if(selMode!=='vraifaux'){
+    if(selMode!=='vraifaux' && selMode!=='blindtest'){
       const textLen=msg.length+(ans||'').length;
       const delay=Math.min(2800,1400+Math.floor(textLen/20)*200);
       nextQTimer=setTimeout(()=>{_notifDismiss('score');advanceQ();},delay);
+    } else if(selMode==='blindtest'){
+      /* Blind Test — pas d'avance auto, le joueur tape l'affiche */
+      nextQTimer=setTimeout(()=>_notifDismiss('score'),2000);
     }
   } else {
     const q=qs[curQ];
@@ -13123,8 +13169,8 @@ function _updateSurvieHearts(lives){
   }).join('');
 }
 function advanceQ(){
-  // Arrêter l'audio blind test si actif
-  if(selMode==='blindtest')_btStop();
+  // Arrêter l'audio blind test si actif (cas quitte sans taper l'affiche)
+  if(selMode==='blindtest'){_btStop();_btStopAudio();}
   // Verrou : bloquer tout avancement si la partie survie est terminée
   if(selMode==='survie'&&_survieGameOver)return;
   curQ++;
@@ -14686,21 +14732,36 @@ function runSplash(){
       clearTimeout(skipTimeout);
       var skipEl = document.getElementById('splash-skip');
       if(skipEl) skipEl.classList.remove('visible');
-      // Si la musique est déjà terminée naturellement, pas de fade-out — on la libère directement
-      if(_splashAudioPlaying){
-        var a = _splashAudioPlaying;
-        if(a.ended){
-          a.currentTime = 0;
-          _splashAudioPlaying = null;
-        } else {
-          var v = a.volume, st = 0, tot = 20;
+
+      // Fade-out audio immédiat — 600ms, se termine AVANT que l'accueil soit visible
+      var _audioStopped = false;
+      function _stopAudio(cb){
+        if(_audioStopped){ cb(); return; }
+        _audioStopped = true;
+        if(_splashAudioPlaying && !_splashAudioPlaying.ended){
+          var a = _splashAudioPlaying;
+          var v = a.volume || 1, st = 0, tot = 24;
           var fo = setInterval(function(){
             st++;
             a.volume = Math.max(0, v * (1 - st / tot));
-            if(st >= tot){ clearInterval(fo); a.pause(); a.currentTime = 0; _splashAudioPlaying = null; }
+            if(st >= tot){
+              clearInterval(fo);
+              try{ a.pause(); a.currentTime = 0; }catch(e){}
+              _splashAudioPlaying = null;
+              cb();
+            }
           }, 600 / tot);
+        } else {
+          if(_splashAudioPlaying){ try{ _splashAudioPlaying.pause(); _splashAudioPlaying.currentTime=0; }catch(e){} _splashAudioPlaying=null; }
+          cb();
         }
       }
+
+      // Démarrer le fade-out audio MAINTENANT, puis déclencher la transition visuelle
+      _stopAudio(function(){
+        // Audio coupé — on peut lancer la musique de l'appli sans chevauchement
+      });
+
       splash.classList.add('out');
       // Afficher la nav immédiatement, sans attendre le MutationObserver
       if(typeof cqUpdateNav === 'function') {
@@ -14717,6 +14778,9 @@ function runSplash(){
         splash.querySelectorAll('*').forEach(el=>{ el.style.animation='none'; });
         if(window._stopNeuroSplash)window._stopNeuroSplash();
         if(window._stopSplashEffect)window._stopSplashEffect();
+        // S'assurer que l'audio splash est bien arrêté avant de lancer la musique appli
+        if(_splashAudioPlaying){ try{ _splashAudioPlaying.pause(); _splashAudioPlaying.currentTime=0; }catch(e){} _splashAudioPlaying=null; }
+        if(_splashAudioPrimed && !_splashAudioPrimed.paused){ try{ _splashAudioPrimed.pause(); _splashAudioPrimed.currentTime=0; }catch(e){} _splashAudioPrimed=null; }
         if(musOn) playMus();
       }, 700);
     }
