@@ -95,6 +95,7 @@
   text-align:center;line-height:1.15;
   animation:ticket-pulse 2s ease-in-out infinite;
 }
+
 .splash-ticket-date{
   font-size:7.5px;letter-spacing:2px;color:rgba(255,255,255,.18);text-align:center;margin-top:2px;
 }
@@ -958,7 +959,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
             <div class="splash-ticket-cta">
               <span class="splash-ticket-cta-text">DÉCHIRE POUR ENTRER</span>
             </div>
-            <div class="splash-ticket-date" id="splash-ticket-date"></div>
+            <div class="splash-ticket-date" id="splash-ticket-date" style="display:none"></div>
           </div>
         </div>
       </div>
@@ -14917,11 +14918,11 @@ function runSplash(){
     var perf = document.getElementById('splash-ticket-perf');
     if(!body) return;
     var phase='wait', timer=0;
-    var WAIT=90, LIFT=45, HOLD=35, DROP=40;
+    var WAIT=55, LIFT=28, HOLD=22, DROP=26;
     function ease(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
     function setLift(p){
       body.style.transition='none';
-      body.style.transform = p<0.01?'':'translateX('+(9*p)+'px)';
+      body.style.transform = p<0.01?'':'translateX('+(14*p)+'px)';
       if(perf) perf.style.opacity=String(Math.max(0.25,1-p*0.65));
     }
     function tick(){
@@ -14941,7 +14942,7 @@ function runSplash(){
 
   window._swipeTriggered = false;
   let tearTriggered = false;
-  let dragStartX = 0, dragStarted = false;
+  let dragStartX = 0, dragStartY = 0, dragAxis = null, dragStarted = false;
   let leftDx = 0, rightDx = 0;
   let tearDirection = 1; // +1 = droite, -1 = gauche
   let dragSide = 'right'; // 'left' = talon, 'right' = corps
@@ -15019,7 +15020,10 @@ function runSplash(){
   function _onTearStart(e){
     if(tearTriggered) return;
     const touchX = e.touches ? e.touches[0].clientX : e.clientX;
+    const touchY = e.touches ? e.touches[0].clientY : e.clientY;
     dragStartX = touchX;
+    dragStartY = touchY;
+    dragAxis   = null;   /* 'h' ou 'v' — détecté après 8px */
     dragStarted = true;
 
     // Neutraliser l'animation d'invitation pour que le drag parte de zéro
@@ -15052,37 +15056,55 @@ function runSplash(){
   function _onTearMove(e){
     if(!dragStarted || tearTriggered) return;
     const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
     const dx = cx - dragStartX;
-    const pull = Math.abs(dx);
+    const dy = cy - dragStartY;
 
-    if(pull > 6) tearDirection = dx > 0 ? 1 : -1;
-
-    const resistance = 1 - Math.min(0.35, pull / 450);
+    /* Déterminer l'axe dominant après 8px */
+    if(!dragAxis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)){
+      dragAxis = Math.abs(dy) > Math.abs(dx) ? 'v' : 'h';
+    }
 
     ticketL.style.transition = 'none';
     ticketR.style.transition = 'none';
     ticketPerf.style.transition = 'none';
 
-    if(dragSide === 'right'){
-      // Doigt sur le corps droit → seul le corps suit le doigt, talon reste fixe
-      ticketR.style.transform = `translateX(${dx * resistance}px) rotate(${dx * 0.02}deg)`;
-      ticketL.style.transform = '';
+    if(dragAxis === 'v'){
+      /* ── Swipe vertical — haut ou bas ── */
+      const pull = Math.abs(dy);
+      const dir = dy < 0 ? -1 : 1; /* -1 = vers le haut, 1 = vers le bas */
+      const resistance = 1 - Math.min(0.35, pull / 450);
+      const pullR = pull * resistance;
+      /* Les deux moitiés s'écartent latéralement + se déplacent dans la direction du swipe */
+      ticketL.style.transform = `translateX(${-pullR * 0.18}px) translateY(${pullR * 0.55 * dir}px) rotate(${-pull * 0.025 * dir}deg)`;
+      ticketR.style.transform = `translateX(${pullR * 0.18}px) translateY(${pullR * 0.45 * dir}px) rotate(${pull * 0.020 * dir}deg)`;
+      ticketPerf.style.opacity = String(Math.max(0, 1 - pull / 80));
+      if(pull >= 110) _triggerTear();
+
     } else {
-      // Doigt sur le talon gauche → seul le talon suit le doigt, corps reste fixe
-      ticketL.style.transform = `translateX(${dx * resistance}px) rotate(${dx * 0.02}deg)`;
-      ticketR.style.transform = '';
+      /* ── Swipe horizontal — comportement original ── */
+      const pull = Math.abs(dx);
+      if(pull > 6) tearDirection = dx > 0 ? 1 : -1;
+      const resistance = 1 - Math.min(0.35, pull / 450);
+
+      if(dragSide === 'right'){
+        ticketR.style.transform = `translateX(${dx * resistance}px) rotate(${dx * 0.02}deg)`;
+        ticketL.style.transform = '';
+      } else {
+        ticketL.style.transform = `translateX(${dx * resistance}px) rotate(${dx * 0.02}deg)`;
+        ticketR.style.transform = '';
+      }
+
+      ticketPerf.style.opacity = String(Math.max(0, 1 - pull / 100));
+      const threshold = dragSide === 'left' ? 80 : 130;
+      if(pull >= threshold) _triggerTear();
     }
-
-    ticketPerf.style.opacity = String(Math.max(0, 1 - pull / 100));
-
-    /* Seuil plus bas pour le talon (petit) que pour le corps (large) */
-    const threshold = dragSide === 'left' ? 80 : 130;
-    if(pull >= threshold) _triggerTear();
   }
 
   function _onTearEnd(){
     if(tearTriggered || !dragStarted) return;
     dragStarted = false;
+    dragAxis = null;
     ticketL.style.transition = 'transform .45s cubic-bezier(.34,1.4,.64,1)';
     ticketR.style.transition = 'transform .45s cubic-bezier(.34,1.4,.64,1)';
     ticketPerf.style.transition = 'opacity .35s ease';
