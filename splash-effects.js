@@ -34593,20 +34593,22 @@
 
      /* Nuages — style affiche peinte, formes douces ── */
      for(const cl of clouds){
-      /* Corps principal */
-      const cg=ctx.createRadialGradient(cl.x,cl.y,0,cl.x,cl.y,cl.rx*0.9);
-      cg.addColorStop(0,cl.col.replace('0.','0.85,').replace(/,[^,]+\)$/,',0.85)').replace(/rgba\((\d+),(\d+),(\d+),[\d.]+\)/,
-       (_,r,g,b)=>`rgba(${Math.min(255,+r+30)},${Math.min(255,+g+18)},${Math.min(255,+b+10)},0.88)`));
-      cg.addColorStop(0.55,cl.col);
-      cg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=cg;
+      /* Extraire r,g,b de la couleur du nuage */
+      const m=cl.col.match(/rgba\((\d+),(\d+),(\d+),/);
+      const [cr,cg,cb]=m?[+m[1],+m[2],+m[3]]:[180,60,20];
+      /* Corps principal — version plus claire au centre */
+      const cgrad=ctx.createRadialGradient(cl.x,cl.y,0,cl.x,cl.y,cl.rx*0.9);
+      cgrad.addColorStop(0,`rgba(${Math.min(255,cr+30)},${Math.min(255,cg+18)},${Math.min(255,cb+10)},0.88)`);
+      cgrad.addColorStop(0.55,cl.col);
+      cgrad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=cgrad;
       ctx.beginPath();ctx.ellipse(cl.x,cl.y,cl.rx,cl.ry,0,0,Math.PI*2);ctx.fill();
       /* Sous-masses */
-      ctx.fillStyle=cl.col.replace(/[\d.]+\)$/,'0.55)');
+      ctx.fillStyle=`rgba(${cr},${cg},${cb},0.55)`;
       ctx.beginPath();ctx.ellipse(cl.x-cl.rx*0.32,cl.y+cl.ry*0.22,cl.rx*0.52,cl.ry*0.68,0,0,Math.PI*2);ctx.fill();
       ctx.beginPath();ctx.ellipse(cl.x+cl.rx*0.35,cl.y+cl.ry*0.18,cl.rx*0.48,cl.ry*0.65,0,0,Math.PI*2);ctx.fill();
       /* Bord lumineux (contre-jour) */
-      ctx.strokeStyle=`rgba(255,200,100,0.12)`;ctx.lineWidth=cl.ry*0.15;
+      ctx.strokeStyle='rgba(255,200,100,0.12)';ctx.lineWidth=cl.ry*0.15;
       ctx.beginPath();ctx.ellipse(cl.x,cl.y-cl.ry*0.10,cl.rx*0.85,cl.ry*0.70,0,Math.PI,Math.PI*2);ctx.stroke();
      }
 
@@ -47093,6 +47095,39 @@
      };
     });
 
+    /* ── Lucioles / étincelles dorées sur le lac ── */
+    const fireflies=Array.from({length:18},()=>({
+     x:Math.random()*W,
+     y:lakeY-H*(0.02+Math.random()*0.12),
+     ph:Math.random()*Math.PI*2,
+     spd:0.018+Math.random()*0.025,
+     vx:(Math.random()-0.5)*0.12,
+     vy:(Math.random()-0.5)*0.05,
+     r:W*(0.004+Math.random()*0.005),
+     op:0.0,
+     maxOp:0.35+Math.random()*0.45,
+    }));
+
+    /* ── Particules soleil — poussière orange dans l'air ── */
+    const sunDust=Array.from({length:30},()=>({
+     x:Math.random()*W,
+     y:H*(0.08+Math.random()*0.42),
+     vx:(Math.random()-0.5)*0.06,
+     vy:-(0.015+Math.random()*0.030),
+     r:W*(0.001+Math.random()*0.002),
+     op:0.04+Math.random()*0.10,
+     ph:Math.random()*Math.PI*2,
+     spd:0.008+Math.random()*0.012,
+    }));
+
+    /* ── Brume légère sur le lac ── */
+    const mistBands=Array.from({length:4},(_,i)=>({
+     y:lakeY+H*(0.005+i*0.012),
+     ph:Math.random()*Math.PI*2,
+     spd:0.004+Math.random()*0.005,
+     op:0.04+Math.random()*0.05,
+    }));
+
     function drawBird(bx,by,sc,flipX){
      if(!duckReady)return;
      const dw=W*0.09*sc*DUCK_RATIO, dh=W*0.09*sc;
@@ -47118,7 +47153,7 @@
     }
 
     function drawBoat(){
-     const bx=cx, by=lakeY+H*0.110;
+     const bx=cx, by=lakeY+H*0.160;
      /* Reflet de la barque */
      ctx.save();ctx.globalAlpha=0.18;
      ctx.fillStyle='rgba(8,4,1,0.85)';
@@ -47177,63 +47212,16 @@
      sky.addColorStop(1,`hsl(${20+Math.sin(t*0.07)*2|0},65%,38%)`);
      ctx.fillStyle=sky;ctx.fillRect(0,0,W,horizY);
 
-     /* ── Silhouette forêt à l'horizon — cyprès à longs troncs ── */
-     /* Fond de forêt : masse sombre au-dessus de l'horizon */
-     ctx.fillStyle='rgba(14,6,3,0.96)';
-     ctx.fillRect(0,horizY-H*0.032,W,H*0.034);
-
-     /* Troncs longs et fins — cyprès du bayou, comme dans le film */
-     const trunkData=[
-      /* [xRatio, hauteurRatio, largeurRatio, inclinaison] */
-      [0.02, 0.38, 0.009,  0.002],[0.06, 0.32, 0.008, -0.001],[0.10, 0.42, 0.010,  0.001],
-      [0.14, 0.28, 0.007,  0.003],[0.18, 0.45, 0.011, -0.002],[0.22, 0.35, 0.008,  0.001],
-      [0.26, 0.40, 0.009, -0.003],[0.30, 0.30, 0.007,  0.002],[0.34, 0.48, 0.012, -0.001],
-      [0.38, 0.26, 0.006,  0.002],[0.42, 0.43, 0.010,  0.001],[0.46, 0.33, 0.008, -0.002],
-      [0.50, 0.50, 0.011,  0.003],[0.54, 0.29, 0.007, -0.001],[0.58, 0.44, 0.010,  0.002],
-      [0.62, 0.36, 0.009, -0.002],[0.66, 0.46, 0.011,  0.001],[0.70, 0.27, 0.006,  0.003],
-      [0.74, 0.41, 0.009, -0.001],[0.78, 0.34, 0.008,  0.002],[0.82, 0.47, 0.010, -0.003],
-      [0.86, 0.31, 0.007,  0.001],[0.90, 0.39, 0.009, -0.002],[0.94, 0.44, 0.010,  0.001],
-      [0.97, 0.29, 0.007,  0.002],[0.99, 0.36, 0.008, -0.001],
-     ];
-     for(const [xr,hr,wr,tilt] of trunkData){
-      const tx=xr*W;
-      const th=H*hr;
-      const tw=W*wr;
-      const topX=tx+tilt*th; /* légère inclinaison */
-      /* Tronc — gradient léger pour donner du relief */
-      const tg=ctx.createLinearGradient(tx-tw*0.5,0,tx+tw*0.5,0);
-      tg.addColorStop(0,'rgba(10,5,2,0.95)');
-      tg.addColorStop(0.40,'rgba(22,11,5,0.90)');
-      tg.addColorStop(0.60,'rgba(14,7,3,0.95)');
-      tg.addColorStop(1,'rgba(8,4,1,0.97)');
-      ctx.fillStyle=tg;
-      ctx.beginPath();
-      ctx.moveTo(tx-tw*0.5, horizY);
-      ctx.lineTo(topX-tw*0.35, horizY-th);
-      ctx.lineTo(topX+tw*0.35, horizY-th);
-      ctx.lineTo(tx+tw*0.5, horizY);
-      ctx.closePath();ctx.fill();
-      /* Petite touffe de feuillage au sommet du cyprès */
-      const foliageH=H*0.028;
-      ctx.fillStyle='rgba(12,6,2,0.94)';
-      ctx.beginPath();
-      ctx.moveTo(topX-tw*1.4, horizY-th+foliageH);
-      ctx.bezierCurveTo(topX-tw*0.8,horizY-th-foliageH*0.8, topX+tw*0.8,horizY-th-foliageH*0.8, topX+tw*1.4,horizY-th+foliageH);
-      ctx.closePath();ctx.fill();
+     /* ── Silhouette forêt à l'horizon — lisière basse et discrète ── */
+     ctx.fillStyle='rgba(10,5,2,0.97)';
+     ctx.beginPath();
+     ctx.moveTo(0,horizY+H*0.010);
+     for(let xi=0;xi<=W;xi+=W*0.022){
+      const tip=horizY-H*(0.012+Math.abs(Math.sin(xi*0.028+3.1))*0.022+Math.abs(Math.sin(xi*0.055+7.8))*0.014);
+      ctx.lineTo(xi,tip);
      }
-     /* Deuxième rang d'arbres — plus petits, plus recul, pour profondeur */
-     for(let i=0;i<16;i++){
-      const tx2=(0.03+i*0.062)*W;
-      const th2=H*(0.18+((i*17)%12)/100*0.14);
-      const tw2=W*0.005;
-      ctx.fillStyle='rgba(10,5,2,0.70)';
-      ctx.beginPath();
-      ctx.moveTo(tx2-tw2,horizY-H*0.010);
-      ctx.lineTo(tx2-tw2*0.5,horizY-th2);
-      ctx.lineTo(tx2+tw2*0.5,horizY-th2);
-      ctx.lineTo(tx2+tw2,horizY-H*0.010);
-      ctx.closePath();ctx.fill();
-     }
+     ctx.lineTo(W,horizY+H*0.010);
+     ctx.closePath();ctx.fill();
 
      /* ── Soleil — grand disque orange ── */
      const sunX=cx*0.88, sunY=horizY-H*0.06;
@@ -47299,7 +47287,44 @@
      /* ── Barque + silhouettes ── */
      drawBoat();
 
-     /* ── Vignette douce — laisse le centre lumineux ── */
+     /* ── Brume sur le lac ── */
+     for(const m of mistBands){
+      m.ph+=m.spd;
+      const mg=ctx.createLinearGradient(0,m.y,0,m.y+H*0.018);
+      mg.addColorStop(0,`rgba(230,160,60,${m.op*(0.4+0.6*Math.abs(Math.sin(m.ph)))})`);
+      mg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=mg;ctx.fillRect(0,m.y,W,H*0.018);
+     }
+
+     /* ── Poussière soleil — particules ambrées flottant dans l'air ── */
+     for(const d of sunDust){
+      d.ph+=d.spd; d.x+=d.vx+Math.sin(d.ph*0.4)*0.04; d.y+=d.vy;
+      if(d.y<-d.r){d.y=H*0.50;d.x=Math.random()*W;}
+      ctx.fillStyle=`rgba(255,${170+Math.random()*40|0},40,${d.op*(0.5+0.5*Math.abs(Math.sin(d.ph)))})`;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Lucioles — brillent et s'estompent doucement ── */
+     for(const f of fireflies){
+      f.ph+=f.spd; f.x+=f.vx+Math.sin(f.ph*0.5)*0.08; f.y+=f.vy;
+      if(f.x<0)f.x=W; if(f.x>W)f.x=0;
+      if(f.y>lakeY)f.y=lakeY-H*0.02;
+      if(f.y<H*0.30)f.vy=Math.abs(f.vy)*0.5;
+      const glow=Math.pow(Math.max(0,Math.sin(f.ph)),2);
+      const alpha=glow*f.maxOp;
+      if(alpha<0.01)continue;
+      /* Halo extérieur */
+      const fg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r*5);
+      fg.addColorStop(0,`rgba(255,220,80,${alpha*0.55})`);
+      fg.addColorStop(0.4,`rgba(255,160,40,${alpha*0.22})`);
+      fg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(f.x,f.y,f.r*5,0,Math.PI*2);ctx.fill();
+      /* Point lumineux */
+      ctx.fillStyle=`rgba(255,240,160,${alpha*0.95})`;
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Vignette douce ── */
      const vg=ctx.createRadialGradient(cx,H*0.52,H*0.12,cx,H*0.52,H*0.80);
      vg.addColorStop(0,'rgba(0,0,0,0)');
      vg.addColorStop(0.50,'rgba(10,4,1,0.06)');
