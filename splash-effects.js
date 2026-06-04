@@ -13903,8 +13903,8 @@
           ? edgeX - pinW - margin
           : edgeX + margin;
 
-        /* Opacité : pins lointains discrets, proches bien visibles */
-        const alpha=0.35+pin.z*0.65;
+        /* Opacité : pins lointains visibles, proches pleine opacité */
+        const alpha=0.72+pin.z*0.28;
 
         ctx.save();
         ctx.globalAlpha=alpha;
@@ -21319,6 +21319,12 @@
     let t=0;
     const cx=W/2;
 
+    /* ── Neutralise les orbes de couleur du fond global ── */
+    let _dhS=document.getElementById('_dh_s');
+    if(!_dhS){_dhS=document.createElement('style');_dhS.id='_dh_s';document.head.appendChild(_dhS);}
+    _dhS.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}';
+    const _dhSW=setInterval(()=>{if(stop.v){_dhS.textContent='';clearInterval(_dhSW);}},200);
+
     /* ── Géométrie de la tour (référence partagée) ── */
     const BW=W*0.44, BH=H*0.78, BX=cx-BW/2, BY=H-BH;
 
@@ -21351,6 +21357,95 @@
      r:W*(0.025+Math.random()*0.020),vx:(Math.random()-0.5)*0.4,
      vy:-(Math.random()*0.7+0.4),op:0.04+Math.random()*0.06,ph:Math.random()*Math.PI*2
     }));
+
+    /* ── Skyline Los Angeles — immeubles de fond ── */
+    const GROUND_Y = H*0.72;
+    const cityBldg = (function(){
+      const arr = [];
+      const zones = [
+        {x0:0,             x1:BX-W*0.01,    hMin:0.06, hMax:0.30, wMin:0.020, wMax:0.052},
+        {x0:BX+BW+W*0.01,  x1:W,            hMin:0.06, hMax:0.30, wMin:0.020, wMax:0.052},
+      ];
+      for(const z of zones){
+        let x=z.x0;
+        while(x<z.x1){
+          const bw=W*(z.wMin+Math.random()*(z.wMax-z.wMin));
+          const bh=H*(z.hMin+Math.random()*(z.hMax-z.hMin));
+          const nt=Math.random();
+          arr.push({x,w:bw,h:bh,
+            hasNeon:nt<0.28,
+            neonCol:nt<0.10?[40,130,255]:nt<0.19?[255,115,25]:[190,215,255],
+            neonPh:Math.random()*Math.PI*2,
+            wins:Array.from({length:22},()=>({
+              xf:Math.random(),yf:Math.random(),
+              on:Math.random()<0.52,
+              warm:Math.random()<0.58,
+              fire:Math.random()<0.07,
+              ph:Math.random()*Math.PI*2,
+              flicker:Math.random()<0.05,
+            })),
+          });
+          x+=bw+W*0.003;
+        }
+      }
+      return arr;
+    })();
+
+    function drawCityBg(){
+      /* Smog orangé horizon — Los Angeles by night */
+      const smog=ctx.createLinearGradient(0,GROUND_Y*0.60,0,GROUND_Y);
+      smog.addColorStop(0,'rgba(0,0,0,0)');
+      smog.addColorStop(0.55,'rgba(60,22,5,0.10)');
+      smog.addColorStop(1,'rgba(90,32,6,0.18)');
+      ctx.fillStyle=smog;ctx.fillRect(0,GROUND_Y*0.60,W,GROUND_Y*0.40);
+
+      for(const b of cityBldg){
+        const by=GROUND_Y-b.h;
+        /* Corps building — quasi noir bleuté */
+        const bg=ctx.createLinearGradient(b.x,by,b.x+b.w,GROUND_Y);
+        bg.addColorStop(0,'rgba(7,9,18,0.97)');
+        bg.addColorStop(1,'rgba(4,6,12,0.98)');
+        ctx.fillStyle=bg;ctx.fillRect(b.x,by,b.w,b.h);
+        ctx.strokeStyle='rgba(18,28,52,0.22)';ctx.lineWidth=0.5;
+        ctx.strokeRect(b.x,by,b.w,b.h);
+
+        /* Fenêtres */
+        const fw=Math.max(1.6,b.w*0.16),fh=Math.max(1.8,b.h*0.058);
+        for(const w of b.wins){
+          if(!w.on)continue;
+          if(w.flicker&&Math.sin(t*4.2+w.ph)<-0.15)continue;
+          const wx=b.x+w.xf*(b.w-fw);
+          const wy=by+w.yf*(b.h-fh*1.8)+fh;
+          if(wy>GROUND_Y-fh)continue;
+          let col;
+          if(w.fire) col='rgba(255,'+(55+Math.random()*45|0)+',8,'+(0.50+Math.sin(t*3+w.ph)*0.22)+')';
+          else if(w.warm) col='rgba(215,162,55,'+(0.20+Math.sin(t*0.4+w.ph)*0.07)+')';
+          else col='rgba(140,190,255,'+(0.16+Math.sin(t*0.5+w.ph)*0.06)+')';
+          ctx.fillStyle=col;ctx.fillRect(wx,wy,fw,fh);
+        }
+
+        /* Néon en toiture */
+        if(b.hasNeon){
+          const nc=b.neonCol;
+          const np=0.40+0.60*Math.abs(Math.sin(t*1.6+b.neonPh));
+          ctx.strokeStyle='rgba('+nc[0]+','+nc[1]+','+nc[2]+','+(np*0.60)+')';
+          ctx.lineWidth=b.w*0.20;ctx.lineCap='round';
+          ctx.beginPath();
+          ctx.moveTo(b.x+b.w*0.22,by-0.5);ctx.lineTo(b.x+b.w*0.78,by-0.5);ctx.stroke();
+          const nhg=ctx.createRadialGradient(b.x+b.w/2,by,0,b.x+b.w/2,by,b.w*1.1);
+          nhg.addColorStop(0,'rgba('+nc[0]+','+nc[1]+','+nc[2]+','+(np*0.09)+')');
+          nhg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=nhg;ctx.fillRect(b.x-b.w*0.1,by-b.w*1.1,b.w*1.2,b.w*1.1);
+        }
+
+        /* Reflet sol mouillé */
+        const ra=0.04+Math.sin(t*0.3+b.x*0.005)*0.012;
+        const rg=ctx.createLinearGradient(b.x,GROUND_Y,b.x,GROUND_Y+b.h*0.28);
+        rg.addColorStop(0,'rgba(160,125,50,'+ra+')');
+        rg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=rg;ctx.fillRect(b.x,GROUND_Y,b.w,b.h*0.28);
+      }
+    }
 
     /* ── Tremblement de la tour ── */
     let shakeX=0,shakeDecay=0,shakeTimer=0;
@@ -21512,6 +21607,9 @@
      if(shakeTimer>4.2+Math.random()*2){shakeTimer=0;shakeDecay=1;}
      shakeDecay*=0.88;
      shakeX=shakeDecay>0.02?Math.sin(t*42)*1.8*shakeDecay:0;
+
+     /* ── Skyline Los Angeles ── */
+     drawCityBg();
 
      /* ── Tour Nakatomi ── */
      drawNakatomi(shakeX);
