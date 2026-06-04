@@ -14213,8 +14213,8 @@
 
     const carImg=new Image(); let carReady=false;
     carImg.onload=()=>{ carReady=true; };
-    carImg.src='images/GranTorino.svg';
-    const CAR_RATIO=435/118;
+    carImg.src='images/GranTorino.png';
+    const CAR_RATIO=1370/738;
 
     const RAIN_ANGLE=0.12;
     const rain=Array.from({length:70},()=>({
