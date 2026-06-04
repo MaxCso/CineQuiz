@@ -5158,6 +5158,12 @@
      /* Sol damier */
      ctx.drawImage(floorC,0,0);
 
+     /* ── Brouillard East River ── */
+     drawFog();
+
+     /* ── Poussière urbaine ── */
+     drawUrbanDust();
+
      /* Fumée */
      for(const s of smoke){
       s.y+=s.vy;s.x+=s.vx;
@@ -13154,6 +13160,122 @@
      ph:Math.random()*Math.PI*2,
     }));
 
+    /* ── Brouillard sur l'East River — nappes horizontales ── */
+    const fogBands=Array.from({length:8},(_,i)=>({
+     y:horizY+H*(0.012+i*0.018),
+     w:W*(0.55+Math.random()*0.70),
+     x:Math.random()*W,
+     vx:(Math.random()-0.5)*0.055,
+     op:0.04+Math.random()*0.08,
+     ph:Math.random()*Math.PI*2,
+     spd:0.004+Math.random()*0.006,
+    }));
+
+    /* ── Fumée de cigarette — Noodles & Max ── */
+    const cigSmoke=Array.from({length:18},(_,i)=>({
+     /* 0-8 : Noodles (gauche), 9-17 : Max (droite) */
+     side: i<9 ? 'L' : 'R',
+     x:0, y:0,
+     r:W*(0.008+Math.random()*0.012),
+     vx:(Math.random()-0.5)*0.06+(i<9?-0.02:0.02),
+     vy:-(0.08+Math.random()*0.12),
+     op:0.08+Math.random()*0.10,
+     ph:Math.random()*Math.PI*2,
+     spd:0.010+Math.random()*0.012,
+     life:Math.random(),
+     maxLife:0.6+Math.random()*1.0,
+    }));
+    /* Braises de cigarette — petits points orangés */
+    const cigEmbers=Array.from({length:4},(_,i)=>({
+     side: i<2?'L':'R',
+     ph:Math.random()*Math.PI*2,
+    }));
+
+    /* ── Particules de poussière urbaine ── */
+    const urbanDust=Array.from({length:35},()=>({
+     x:Math.random()*W,
+     y:H*(0.55+Math.random()*0.40),
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(0.02+Math.random()*0.05),
+     r:0.4+Math.random()*0.9,
+     op:0.04+Math.random()*0.08,
+     ph:Math.random()*Math.PI*2,
+     spd:0.006+Math.random()*0.010,
+    }));
+
+    function drawFog(){
+     for(const f of fogBands){
+      f.ph+=f.spd; f.x+=f.vx;
+      if(f.x>W+f.w*0.5)f.x=-f.w*0.5;
+      if(f.x<-f.w*0.5)f.x=W+f.w*0.5;
+      const pulse=0.60+0.40*Math.abs(Math.sin(f.ph));
+      const fg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.w*0.5);
+      fg.addColorStop(0,`rgba(160,110,55,${f.op*pulse})`);
+      fg.addColorStop(0.5,`rgba(120,80,35,${f.op*pulse*0.45})`);
+      fg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=fg;
+      ctx.beginPath();ctx.ellipse(f.x,f.y,f.w*0.5,H*0.018,0,0,Math.PI*2);ctx.fill();
+     }
+    }
+
+    function drawCigSmoke(){
+     const fy=horizY+H*0.040;
+     /* Positions des mains/bouches des silhouettes */
+     const srcL={x:cx-W*0.08-W*0.016, y:fy-H*0.110}; /* Noodles */
+     const srcR={x:cx+W*0.06+W*0.024, y:fy-H*0.082}; /* Max */
+
+     for(const s of cigSmoke){
+      s.life+=0.012;
+      if(s.life>=s.maxLife){
+       s.life=0; s.maxLife=0.5+Math.random()*1.0;
+       const src=s.side==='L'?srcL:srcR;
+       s.x=src.x+(Math.random()-0.5)*W*0.008;
+       s.y=src.y;
+       s.r=W*(0.006+Math.random()*0.008);
+       s.vx=(Math.random()-0.5)*0.05+(s.side==='L'?-0.015:0.015);
+       s.vy=-(0.06+Math.random()*0.10);
+      }
+      s.ph+=s.spd;
+      s.x+=s.vx+Math.sin(s.ph*0.7)*0.04;
+      s.y+=s.vy;
+      s.r+=0.08;
+      const ratio=s.life/s.maxLife;
+      const fade=(1-ratio)*(1-ratio);
+      const sg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
+      sg.addColorStop(0,`rgba(90,60,25,${s.op*fade})`);
+      sg.addColorStop(0.6,`rgba(65,40,15,${s.op*fade*0.40})`);
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Braises */
+     for(const e of cigEmbers){
+      e.ph+=0.08;
+      const src=e.side==='L'?srcL:srcR;
+      const glow=0.55+0.45*Math.abs(Math.sin(e.ph));
+      const eg=ctx.createRadialGradient(src.x,src.y,0,src.x,src.y,W*0.012);
+      eg.addColorStop(0,`rgba(255,120,20,${glow*0.75})`);
+      eg.addColorStop(0.5,`rgba(200,70,5,${glow*0.20})`);
+      eg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=eg;ctx.fillRect(src.x-W*0.012,src.y-W*0.012,W*0.024,W*0.024);
+      ctx.fillStyle=`rgba(255,180,60,${glow})`;
+      ctx.beginPath();ctx.arc(src.x,src.y,W*0.004,0,Math.PI*2);ctx.fill();
+     }
+    }
+
+    function drawUrbanDust(){
+     for(const d of urbanDust){
+      d.ph+=d.spd;
+      d.x+=d.vx+Math.sin(d.ph*0.6)*0.06;
+      d.y+=d.vy;
+      if(d.y<H*0.50){d.y=H*(0.78+Math.random()*0.18);d.x=Math.random()*W;}
+      if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+      const flicker=0.4+0.6*Math.abs(Math.sin(d.ph));
+      ctx.fillStyle=`rgba(160,110,45,${d.op*flicker})`;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
+     }
+    }
+
     function drawBrooklynBridge(){
      const baseY=horizY+H*0.005;
      const pyl1X=cx-W*0.18, pyl2X=cx+W*0.18;
@@ -13378,6 +13500,9 @@
 
      /* Silhouettes */
      drawFigures();
+
+     /* ── Fumée de cigarette ── */
+     drawCigSmoke();
 
      /* Vignette */
      const vg=ctx.createRadialGradient(cx,H*0.50,H*0.06,cx,H*0.50,H*0.82);
@@ -34304,12 +34429,6 @@
      haloG.addColorStop(0.6,'rgba(140,180,255,0.04)');
      haloG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=haloG;ctx.beginPath();ctx.arc(0,0,R*3.0,0,Math.PI*2);ctx.fill();
-
-     /* Ombre portée */
-     const shadG=ctx.createRadialGradient(R*0.1,R*0.85,0,R*0.1,R*0.85,R*1.2);
-     shadG.addColorStop(0,'rgba(20,10,40,0.50)');
-     shadG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=shadG;ctx.beginPath();ctx.ellipse(R*0.1,R*0.95,R*0.80,R*0.15,0,0,Math.PI*2);ctx.fill();
 
      /* ── Fonctions utilitaires ── */
      function polyPath(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
