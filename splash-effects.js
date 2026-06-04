@@ -13793,7 +13793,6 @@
     if(!_pbS){_pbS=document.createElement('style');_pbS.id='_pb_s';document.head.appendChild(_pbS);}
     _pbS.textContent=`
      
-     #splash-bg,#splash-bg-anim,#splash-canvas-wrap{background:#9ec8e0!important;}
      #splash-bg::before,#splash-bg::after,
      #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
      #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
@@ -21065,10 +21064,10 @@
     let t=0;
     const cx=W/2;
 
-    let _s=document.getElementById('_rb_s');
-    if(!_s){_s=document.createElement('style');_s.id='_rb_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
-    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+    let _rblS=document.getElementById('_rbl_s');
+    if(!_rblS){_rblS=document.createElement('style');_rblS.id='_rbl_s';document.head.appendChild(_rblS);}
+    _rblS.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _rblW=setInterval(()=>{if(stop.v){_rblS.textContent='';clearInterval(_rblW);}},200);
 
     /* ── Géométrie du ring ── */
     const FLOOR_Y=H*0.88;
@@ -23995,7 +23994,7 @@
   {
    name:'The Revenant',
    color:'120,160,200',
-   ref:'The Revenant \u2014 Alejandro G. I\u00f1\u00e1rritu, 2015',
+   ref:'The Revenant — Alejandro G. Iñárritu, 2015',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1';
     let t=0;
@@ -24015,11 +24014,10 @@
     `;
     const _rvW=setInterval(()=>{if(stop.v){_rvS.textContent='';clearInterval(_rvW);}},200);
 
-    /* ── SVG décor Revenant (737×574 ratio ~1.284) ── */
-    const revImg=new Image(); let revReady=false;
-    revImg.onload=()=>{ revReady=true; };
-    revImg.src='images/Revenent.svg';
-    const REV_RATIO=737/574;
+    /* ── Image de fond PNG — plein écran ── */
+    const bgImg=new Image(); let bgReady=false;
+    bgImg.onload=()=>{ bgReady=true; };
+    bgImg.src='images/Revenant.png';
 
     /* ── Flocons de neige ── */
     const flakes=Array.from({length:90},()=>({
@@ -24031,22 +24029,19 @@
       op:0.25+Math.random()*0.55,
       ph:Math.random()*Math.PI*2,
       spd:0.012+Math.random()*0.022,
-      drift:0.30+Math.random()*0.55, /* amplitude du balancement */
+      drift:0.30+Math.random()*0.55,
     }));
 
-    /* ── Nuages cotonneux — style Rocky Mountains ── */
-    /* Nuages effilochés hivernaux — bandes horizontales basses */
+    /* ── Nuages effilochés hivernaux ── */
     const clouds=Array.from({length:9},(_,i)=>({
       x:  (i%3)*W*0.40 + Math.random()*W*0.20 - W*0.10,
       y:  H*(0.04 + Math.floor(i/3)*0.045 + Math.random()*0.020),
       w:  W*(0.45+Math.random()*0.40),
-      /* Très aplatis — nuages stratus/nimbostratus */
       h:  H*(0.008+Math.random()*0.010),
       op: 0.28+Math.random()*0.30,
       ph: Math.random()*Math.PI*2,
       spd:0.002+Math.random()*0.003,
       dx: 0.025+Math.random()*0.040,
-      /* Décalage vertical sinusoïdal léger */
       dy: (Math.random()-0.5)*0.006,
     }));
 
@@ -24062,154 +24057,14 @@
       dx:(Math.random()-0.5)*0.15,
     }));
 
-    /* ── Montagnes pré-calculées — 3 couches, silhouettes propres ── */
-    /* Couche A : lointaines, bleu très pâle */
-    function mkRange(seed, n, x0, x1, yFloor, yPeak){
-      const pts = [{x:x0, y:yFloor}];
-      for(let i=1;i<n-1;i++){
-        const xr = i/(n-1);
-        /* Enveloppe en cloche asymétrique */
-        const peak = 0.35 + ((Math.sin(seed*7.3)*0.5+0.5)*0.20);
-        const env  = Math.pow(Math.max(0, 1-Math.abs(xr-peak)/Math.max(peak,1-peak)), 1.5);
-        /* Bruit doux : 2 octaves seulement, pas de micro-dentelures */
-        const n1 = Math.sin((x0+i)*0.18+seed*31)*0.50 + Math.sin((x0+i)*0.042+seed*17)*0.50;
-        const y  = yFloor + (yPeak-yFloor)*env + n1*(yFloor-yPeak)*0.06;
-        pts.push({x: x0 + (x1-x0)*xr, y: Math.min(yFloor, y)});
-      }
-      pts.push({x:x1, y:yFloor});
-      return pts;
-    }
-
-    const GROUND = H*0.72;
-
-    const layerA = [
-      mkRange(1, 32, -W*0.05, W*0.58, H*0.52, H*0.30),
-      mkRange(2, 32,  W*0.28, W*0.80, H*0.52, H*0.26),
-      mkRange(3, 32,  W*0.50, W*1.07, H*0.52, H*0.32),
-    ];
-    const layerB = [
-      mkRange(4, 28, -W*0.06, W*0.50, H*0.63, H*0.40),
-      mkRange(5, 28,  W*0.22, W*0.70, H*0.63, H*0.36),
-      mkRange(6, 28,  W*0.48, W*0.92, H*0.63, H*0.44),
-      mkRange(7, 28,  W*0.70, W*1.08, H*0.63, H*0.38),
-    ];
-    const layerC = [
-      mkRange(8, 24, -W*0.08, W*0.46, GROUND,  H*0.46),
-      mkRange(9, 24,  W*0.26, W*0.74, GROUND,  H*0.42),
-      mkRange(10,24,  W*0.54, W*1.10, GROUND,  H*0.50),
-    ];
-
-    function drawRange(pts, bodyCol, snowCol, snowFrac){
-      if(!pts||pts.length<3)return;
-      const minY = Math.min(...pts.map(p=>p.y));
-      const maxY = pts[0].y;
-
-      /* Corps */
-      const bg = ctx.createLinearGradient(0, minY, 0, maxY);
-      bg.addColorStop(0,   bodyCol[0]);
-      bg.addColorStop(0.5, bodyCol[1]);
-      bg.addColorStop(1,   bodyCol[2]);
-      ctx.fillStyle = bg;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.lineTo(pts[pts.length-1].x, maxY+2);
-      ctx.lineTo(pts[0].x, maxY+2);
-      ctx.closePath();
-      ctx.fill();
-
-      /* Calotte neigeuse — simple zone du haut */
-      const snowY = minY + (maxY - minY) * snowFrac;
-      ctx.fillStyle = snowCol;
-      ctx.beginPath();
-      let started = false;
-      for(let i=0;i<pts.length;i++){
-        if(pts[i].y <= snowY){
-          started ? ctx.lineTo(pts[i].x, pts[i].y) : ctx.moveTo(pts[i].x, pts[i].y);
-          started = true;
-        } else if(started){
-          /* Interpoler le point de coupure */
-          const prev = pts[i-1], cur = pts[i];
-          const frac = (snowY - prev.y) / (cur.y - prev.y);
-          ctx.lineTo(prev.x + frac*(cur.x-prev.x), snowY);
-          started = false;
-        } else {
-          /* Pas encore entré — interpoler si le suivant est dans la neige */
-          if(i+1<pts.length && pts[i+1].y <= snowY){
-            const cur = pts[i], next = pts[i+1];
-            const frac = (snowY - cur.y) / (next.y - cur.y);
-            ctx.moveTo(cur.x + frac*(next.x-cur.x), snowY);
-            started = true;
-          }
-        }
-      }
-      if(started) ctx.lineTo(pts[pts.length-1].x, snowY);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function drawBackground(){
-      /* Ciel bleu froid */
-      const sky = ctx.createLinearGradient(0,0,0,H*0.60);
-      sky.addColorStop(0,   '#9ec8e0');
-      sky.addColorStop(0.5, '#aed4e8');
-      sky.addColorStop(1,   '#bcdcee');
-      ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.62);
-
-      /* Sol / plaine */
-      const grd = ctx.createLinearGradient(0,H*0.60,0,H);
-      grd.addColorStop(0, '#4878a0');
-      grd.addColorStop(1, '#1e3a52');
-      ctx.fillStyle=grd; ctx.fillRect(0,H*0.60,W,H*0.40);
-
-      /* Couche A — très lointaine, bleu pâle brumeux */
-      for(const pts of layerA)
-        drawRange(pts,
-          ['rgba(175,205,228,0.75)','rgba(158,190,215,0.78)','rgba(140,175,205,0.80)'],
-          'rgba(230,245,255,0.70)', 0.38);
-
-      /* Couche B — intermédiaire */
-      for(const pts of layerB)
-        drawRange(pts,
-          ['rgba(90,128,162,0.88)','rgba(72,108,145,0.90)','rgba(55,88,125,0.92)'],
-          'rgba(215,235,252,0.75)', 0.32);
-
-      /* Forêt silhouette */
-      const treeY = H*0.645;
-      ctx.fillStyle = 'rgba(30,55,80,0.95)';
-      ctx.beginPath();
-      ctx.moveTo(0, treeY);
-      function sr(n){ const v=Math.sin(n*16807)*43758.5453; return v<0?-v:v-Math.floor(v); }
-      let tx=0;
-      while(tx<W){
-        const tw = W*(0.011+sr(tx|0)*0.008);
-        const th = H*(0.050+sr((tx|0)+500)*0.038);
-        ctx.lineTo(tx, treeY);
-        ctx.lineTo(tx+tw*0.5, treeY-th);
-        ctx.lineTo(tx+tw, treeY);
-        tx += tw*0.68 + W*0.004;
-      }
-      ctx.lineTo(W,treeY); ctx.lineTo(W,H); ctx.lineTo(0,H);
-      ctx.closePath(); ctx.fill();
-
-      /* Couche C — premier plan, plus sombres */
-      for(const pts of layerC)
-        drawRange(pts,
-          ['rgba(48,78,108,0.93)','rgba(36,62,90,0.95)','rgba(24,46,72,0.96)'],
-          'rgba(200,225,248,0.65)', 0.28);
-    }
-
     function drawClouds(){
       for(const c of clouds){
         c.ph += c.spd;
         c.x  += c.dx;
         c.y  += Math.sin(c.ph*0.5)*c.dy;
         if(c.x > W*1.15) c.x = -c.w;
-
         const pulse = 0.80 + 0.20*Math.sin(c.ph);
         const cx2 = c.x + c.w*0.5, cy2 = c.y;
-
-        /* Bande principale — dégradé horizontal pour l'effilochage */
         const lg = ctx.createLinearGradient(c.x, 0, c.x+c.w, 0);
         lg.addColorStop(0,   'rgba(210,230,248,0)');
         lg.addColorStop(0.08,`rgba(225,240,252,${c.op*pulse})`);
@@ -24218,12 +24073,9 @@
         lg.addColorStop(0.92,`rgba(218,236,250,${c.op*pulse})`);
         lg.addColorStop(1,   'rgba(210,230,248,0)');
         ctx.fillStyle = lg;
-        /* Ellipse très aplatie = banc de nuage stratus */
         ctx.beginPath();
         ctx.ellipse(cx2, cy2, c.w*0.5, c.h, 0, 0, Math.PI*2);
         ctx.fill();
-
-        /* Frange supérieure floue — donne le côté effiloché */
         const tg = ctx.createLinearGradient(c.x, cy2-c.h*2.5, c.x+c.w, cy2-c.h*2.5);
         tg.addColorStop(0,   'rgba(215,235,252,0)');
         tg.addColorStop(0.12,`rgba(220,238,254,${c.op*pulse*0.45})`);
@@ -24234,11 +24086,25 @@
         ctx.beginPath();
         ctx.ellipse(cx2, cy2-c.h*1.2, c.w*0.46, c.h*1.4, 0, 0, Math.PI*2);
         ctx.fill();
-
       }
     }
 
-    function drawMist(){}
+    function drawMist(){
+      for(const m of mists){
+        m.ph+=m.spd; m.x+=m.dx;
+        if(m.x>W*1.2)m.x=-m.w; if(m.x<-m.w)m.x=W*1.1;
+        const pulse=0.7+0.3*Math.sin(m.ph);
+        const mg=ctx.createLinearGradient(m.x,0,m.x+m.w,0);
+        mg.addColorStop(0,'rgba(180,210,235,0)');
+        mg.addColorStop(0.3,`rgba(180,210,235,${m.op*pulse})`);
+        mg.addColorStop(0.7,`rgba(180,210,235,${m.op*pulse})`);
+        mg.addColorStop(1,'rgba(180,210,235,0)');
+        ctx.fillStyle=mg;
+        ctx.beginPath();
+        ctx.ellipse(m.x+m.w*0.5, m.y, m.w*0.5, m.h, 0, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
 
     function drawFlakes(){
       for(const f of flakes){
@@ -24265,23 +24131,24 @@
     function frame(){
       if(stop.v) return;
 
-      ctx.fillStyle='#9ec8e0'; ctx.fillRect(0,0,W,H);
+      /* Image de fond PNG plein écran */
+      if(bgReady){
+        ctx.drawImage(bgImg, 0, 0, W, H);
+      } else {
+        ctx.fillStyle='#9ec8e0'; ctx.fillRect(0,0,W,H);
+      }
 
-      drawBackground();
       drawClouds();
       drawMist();
       drawFlakes();
-      drawDecor();
 
-      /* Vignette haut+bas uniquement — pas de bandes latérales */
-      const vgTop=ctx.createLinearGradient(0,0,0,H*0.18);
-      vgTop.addColorStop(0,'rgba(8,20,38,0.30)');
-      vgTop.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=vgTop; ctx.fillRect(0,0,W,H*0.18);
-      const vgBot=ctx.createLinearGradient(0,H*0.78,0,H);
-      vgBot.addColorStop(0,'rgba(0,0,0,0)');
-      vgBot.addColorStop(1,'rgba(8,20,38,0.55)');
-      ctx.fillStyle=vgBot; ctx.fillRect(0,H*0.78,W,H*0.22);
+      /* Vignette bleue */
+      const vg=ctx.createRadialGradient(cx,H*0.46,H*0.05,cx,H*0.46,H*0.90);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(0.50,'rgba(10,28,50,0.06)');
+      vg.addColorStop(0.78,'rgba(10,25,45,0.45)');
+      vg.addColorStop(1,'rgba(8,20,38,0.92)');
+      ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 
       /* Grain froid très léger */
       for(let i=0;i<20;i++){
@@ -32557,9 +32424,9 @@
     const cx=W/2;
 
     /* ── Style ── */
-    let _ffS=document.getElementById('_ff_s');
-    if(!_ffS){_ffS=document.createElement('style');_ffS.id='_ff_s';document.head.appendChild(_ffS);}
-    _ffS.textContent=`
+    let _fnfS=document.getElementById('_fnf_s');
+    if(!_fnfS){_fnfS=document.createElement('style');_fnfS.id='_fnf_s';document.head.appendChild(_fnfS);}
+    _fnfS.textContent=`
      
      #splash-bg::before,#splash-bg::after,
      #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
@@ -32568,7 +32435,7 @@
      #splash-quote-text{color:rgba(255,220,180,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
-    const _ffW=setInterval(()=>{if(stop.v){_ffS.textContent='';clearInterval(_ffW);}},200);
+    const _fnfW=setInterval(()=>{if(stop.v){_fnfS.textContent='';clearInterval(_fnfW);}},200);
 
     /* ══ GÉOMÉTRIE ══ */
     const VP={x:cx, y:H*0.52};   /* point de fuite — route en perspective */
@@ -32910,8 +32777,8 @@
     const cx=W/2;
 
     /* ── Style ── */
-    let _rbS=document.getElementById('_rb_s');
-    if(!_rbS){_rbS=document.createElement('style');_rbS.id='_rb_s';document.head.appendChild(_rbS);}
+    let _rbS=document.getElementById('_rmb_s');
+    if(!_rbS){_rbS=document.createElement('style');_rbS.id='_rmb_s';document.head.appendChild(_rbS);}
     _rbS.textContent=`
      
      #splash-bg::before,#splash-bg::after,
@@ -40892,9 +40759,9 @@
     const cx=W/2;
 
     /* ── Style ── */
-    let _pbS=document.getElementById('_pb_s');
-    if(!_pbS){_pbS=document.createElement('style');_pbS.id='_pb_s';document.head.appendChild(_pbS);}
-    _pbS.textContent=`
+    let _ptbkS=document.getElementById('_ptbk_s');
+    if(!_ptbkS){_ptbkS=document.createElement('style');_ptbkS.id='_ptbk_s';document.head.appendChild(_ptbkS);}
+    _ptbkS.textContent=`
      
      #splash-bg::before,#splash-bg::after,
      #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
@@ -40903,7 +40770,7 @@
      #splash-quote-text{color:rgba(220,245,255,0.92)!important;font-size:14px!important;text-shadow:0 1px 12px rgba(0,30,60,0.95)!important;}
      #splash-film-logo{max-width:62%!important;filter:drop-shadow(0 0 10px rgba(0,180,220,0.5))!important;}
     `;
-    const _pbW=setInterval(()=>{if(stop.v){_pbS.textContent='';clearInterval(_pbW);}},200);
+    const _ptbkW=setInterval(()=>{if(stop.v){_ptbkS.textContent='';clearInterval(_ptbkW);}},200);
 
     /* ══ EMBRUNS — particules d'écume ══ */
     const spray=Array.from({length:80},(_,i)=>({
