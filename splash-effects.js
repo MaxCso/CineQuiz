@@ -17558,8 +17558,7 @@
       #splash-content-wrap{top:50%!important;transform:translateY(-50%)!important;}
       #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
       #splash-logo-wrap,#splash-logo-wrap *{color:#000000!important;-webkit-text-fill-color:#000000!important;}
-      #splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}
-      .splash-tagline::before,.splash-tagline::after{background:none!important;}
+
       #splash-film-ref-bottom,#splash-film-ref{color:rgba(180,10,10,0.90)!important;-webkit-text-fill-color:rgba(180,10,10,0.90)!important;}
       #splash-credit,#splash-ref-bot,.splash-credit{color:rgba(180,10,10,0.90)!important;-webkit-text-fill-color:rgba(180,10,10,0.90)!important;}
       #splash-skip{color:rgba(255,255,255,0.90)!important;-webkit-text-fill-color:rgba(255,255,255,0.90)!important;letter-spacing:3px!important;}
@@ -20149,6 +20148,8 @@
       #splash-bg::after{background:none!important;}
       #splash-bg-anim::before{background:none!important;}
       #splash-bg-anim::after{background:none!important;}
+      #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+      #splash-content-wrap.reveal{transform:none!important;}
     `;
     const _lwWatch=setInterval(()=>{if(stop.v){_lwStyle.textContent='';clearInterval(_lwWatch);}},200);
 
@@ -26262,7 +26263,7 @@
     /* ── Citation remontée sous logo CinéQuiz ── */
     let _platPos=document.getElementById('_plat_pos_s');
     if(!_platPos){_platPos=document.createElement('style');_platPos.id='_plat_pos_s';document.head.appendChild(_platPos);}
-    _platPos.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _platPos.textContent='#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _platPosW=setInterval(()=>{if(stop.v){_platPos.textContent='';clearInterval(_platPosW);}},200);
 
     const groundY=H*0.72;
