@@ -13400,7 +13400,7 @@
      
      #splash-bg::before,#splash-bg::after,
      #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
-     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap{top:23%!important;bottom:auto!important;transform:none!important;}
      #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(240,218,168,0.92)!important;
@@ -15940,7 +15940,7 @@
     let t=0;
     const cx=W/2;
     let _es=document.getElementById('_es_s');if(!_es){_es=document.createElement('style');_es.id='_es_s';document.head.appendChild(_es);}
-    _es.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _es.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}.splash-tagline::before,.splash-tagline::after{background:none!important;}';
     const _esW=setInterval(()=>{if(stop.v){_es.textContent='';clearInterval(_esW);}},200);
 
     /* ── Flocons légers ── */
@@ -15979,7 +15979,7 @@
     /* ── Dessine les deux personnages vus du dessus ── */
     function drawCouple(t){
      /* Centre légèrement décalé vers le haut-droite comme l'affiche */
-     const px=cx+W*0.04, py=H*0.30;
+     const px=cx+W*0.04, py=H*0.32;
      /* Légère respiration */
      const breath=Math.sin(t*0.5)*1.2;
 
@@ -16123,13 +16123,18 @@
       #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
       
       #splash-bg{background:none!important;}
+
+      #splash-film-ref,#splash-film-ref-bottom,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}
+      #splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}
+      #splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}
+      .splash-tagline::before,.splash-tagline::after{background:none!important;}
     `;
     const _tsWatch=setInterval(()=>{if(stop.v){_tsStyle.textContent='';clearInterval(_tsWatch);}},200);
 
     /* ── Citation + logo remontés sous logo CinéQuiz ── */
     let _tsPos=document.getElementById('_tshow_pos_s');
     if(!_tsPos){_tsPos=document.createElement('style');_tsPos.id='_tshow_pos_s';document.head.appendChild(_tsPos);}
-    _tsPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 2px 12px rgba(0,0,80,0.25)!important;}';
+    _tsPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:#000000!important;text-shadow:none!important;}';
     const _tsPosW=setInterval(()=>{if(stop.v){_tsPos.textContent='';clearInterval(_tsPosW);}},200);
 
     let t=0;
@@ -16441,13 +16446,13 @@
      /* ── Feu de camp sous le bus ── */
      (function drawCampfire(){
       const FX=cx;
-      const FY=BY+BH+H*0.012; /* juste sous le bas du bus */
-      const fs=W*0.028; /* taille de référence */
+      const FY=BY+BH+H*0.040; /* juste sous le bas du bus */
+      const fs=W*0.038; /* taille de référence */
 
       /* Braises / sol */
       const emberGlow=ctx.createRadialGradient(FX,FY+fs*0.55,0,FX,FY+fs*0.55,fs*1.6);
-      emberGlow.addColorStop(0,`rgba(220,80,10,${0.22+Math.sin(t*3.1)*0.06})`);
-      emberGlow.addColorStop(0.4,`rgba(180,50,5,${0.10+Math.sin(t*2.7)*0.04})`);
+      emberGlow.addColorStop(0,`rgba(220,80,10,${0.22+Math.sin(t*2.0)*0.06})`);
+      emberGlow.addColorStop(0.4,`rgba(180,50,5,${0.10+Math.sin(t*1.8)*0.04})`);
       emberGlow.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=emberGlow;
       ctx.beginPath();ctx.ellipse(FX,FY+fs*0.55,fs*1.6,fs*0.45,0,0,Math.PI*2);ctx.fill();
@@ -16460,9 +16465,9 @@
       ctx.restore();
 
       /* Flammes — plusieurs couches oscillantes */
-      const flicker1=Math.sin(t*6.5)*0.18+Math.sin(t*11.3)*0.10;
-      const flicker2=Math.sin(t*7.8+1.2)*0.15+Math.sin(t*13.0)*0.08;
-      const flicker3=Math.sin(t*5.2+2.4)*0.20+Math.sin(t*9.7)*0.12;
+      const flicker1=Math.sin(t*4.2)*0.18+Math.sin(t*7.3)*0.10;
+      const flicker2=Math.sin(t*5.1+1.2)*0.15+Math.sin(t*8.4)*0.08;
+      const flicker3=Math.sin(t*3.4+2.4)*0.20+Math.sin(t*6.3)*0.12;
 
       function drawFlame(ox,oy,fw,fh,flk,alphaBase,hueShift){
        ctx.save();
@@ -16491,8 +16496,8 @@
 
       /* Halo lumineux sur le sol et le bus */
       const halo=ctx.createRadialGradient(FX,FY,0,FX,FY,fs*3.5);
-      halo.addColorStop(0,`rgba(255,130,20,${0.11+Math.sin(t*4.2)*0.04})`);
-      halo.addColorStop(0.5,`rgba(200,80,10,${0.05+Math.sin(t*3.8)*0.02})`);
+      halo.addColorStop(0,`rgba(255,130,20,${0.11+Math.sin(t*2.7)*0.04})`);
+      halo.addColorStop(0.5,`rgba(200,80,10,${0.05+Math.sin(t*2.5)*0.02})`);
       halo.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=halo;ctx.fillRect(FX-fs*3.5,FY-fs*3.5,fs*7,fs*7);
 
@@ -17627,7 +17632,7 @@
     /* ── Override fond : noir profond ── */
     let _s=document.getElementById('_rfd_s');
     if(!_s){_s=document.createElement('style');_s.id='_rfd_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';['_mib_fig','_mib_vig'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});clearInterval(_w);}},200);
 
     /* ── Télévision CRT — dimensions et position ── */
@@ -19328,9 +19333,9 @@
      '#splash-bg::after{background:none!important;}',
      '#splash-bg-anim::before{background:none!important;}',
      '#splash-bg-anim::after{background:none!important;}',
-     '#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}',
+     '#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}',
      '#splash-content-wrap.reveal{transform:translateY(0)!important;}',
-     '#splash-quote-text{color:rgba(210,195,160,0.92)!important;text-shadow:0 1px 8px rgba(0,0,0,0.90)!important;}',
+     '#splash-quote-text{color:#000000!important;text-shadow:none!important;}',
     ].join('');
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
@@ -22077,26 +22082,39 @@
     cv.style.opacity='0.82';
     let t=0;
     const cx=W/2;
+    let _mcs=document.getElementById('_mc_s');if(!_mcs){_mcs=document.createElement('style');_mcs.id='_mc_s';document.head.appendChild(_mcs);}
+    _mcs.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _mcw=setInterval(()=>{if(stop.v){_mcs.textContent='';clearInterval(_mcw);}},200);
     const doors=Array.from({length:14},(_,i)=>({x:Math.random()*W,y:H*0.15+Math.random()*H*0.60,vx:(Math.random()-0.5)*0.7,vy:(Math.random()-0.5)*0.4,w:W*(0.055+Math.random()*0.055),hd:H*(0.09+Math.random()*0.08),hue:Math.random()*360,open:Math.random()>0.45,ph:Math.random()*Math.PI*2,style:i%3}));
     const laughP=Array.from({length:26},()=>({x:Math.random()*W,y:H*0.30+Math.random()*H*0.45,vx:(Math.random()-0.5)*0.9,vy:-(Math.random()*0.7+0.2),r:Math.random()*4+1.5,ph:Math.random()*Math.PI*2,hue:Math.random()*60+30}));
     function drawSulley(sx,sy){
      /* Sully : grand monstre bleu-sarcelle poilu, taches violettes, deux yeux, cornes */
      const s=W*0.13; ctx.save(); ctx.translate(sx,sy);
 
-     /* Respiration — amplitude du corps */
+     /* ── Danse : rebond, hanche, bras levés en rythme ── */
+     const beat=t*2.8; /* tempo de danse */
+     const bounce=Math.abs(Math.sin(beat))*s*0.18; /* rebond vers le haut */
+     const hipSway=Math.sin(beat)*0.10; /* rotation de hanche */
      const breathX=1+Math.sin(t*1.1)*0.018;
      const breathY=1+Math.sin(t*1.1)*0.012;
-     const sway=Math.sin(t*0.55)*0.04; /* balancement latéral */
-     ctx.rotate(sway);
+     ctx.translate(0,-bounce);
+     ctx.rotate(hipSway);
 
-     /* ── Jambes ── */
+     /* ── Jambes — alternance gauche/droite ── */
+     const legL=Math.sin(beat)*0.18;
+     const legR=-Math.sin(beat)*0.18;
      ctx.fillStyle='rgba(38,110,95,0.95)';
-     ctx.beginPath(); ctx.ellipse(-s*0.28,s*0.90,s*0.16,s*0.32,0.10,0,Math.PI*2); ctx.fill();
-     ctx.beginPath(); ctx.ellipse(s*0.28,s*0.90,s*0.16,s*0.32,-0.10,0,Math.PI*2); ctx.fill();
-     /* Pieds / griffes */
+     ctx.save(); ctx.translate(-s*0.28,s*0.90); ctx.rotate(legL);
+     ctx.beginPath(); ctx.ellipse(0,0,s*0.16,s*0.32,0,0,Math.PI*2); ctx.fill();
      ctx.fillStyle='rgba(22,75,62,0.97)';
-     ctx.beginPath(); ctx.ellipse(-s*0.28,s*1.18,s*0.20,s*0.10,0,0,Math.PI*2); ctx.fill();
-     ctx.beginPath(); ctx.ellipse(s*0.28,s*1.18,s*0.20,s*0.10,0,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.ellipse(0,s*0.28,s*0.20,s*0.10,legL*0.5,0,Math.PI*2); ctx.fill();
+     ctx.restore();
+     ctx.fillStyle='rgba(38,110,95,0.95)';
+     ctx.save(); ctx.translate(s*0.28,s*0.90); ctx.rotate(legR);
+     ctx.beginPath(); ctx.ellipse(0,0,s*0.16,s*0.32,0,0,Math.PI*2); ctx.fill();
+     ctx.fillStyle='rgba(22,75,62,0.97)';
+     ctx.beginPath(); ctx.ellipse(0,s*0.28,s*0.20,s*0.10,legR*0.5,0,Math.PI*2); ctx.fill();
+     ctx.restore();
 
      /* ── Corps principal — teal poilu, forme large ── */
      const bodyG=ctx.createRadialGradient(-s*0.15,-s*0.05,s*0.1,0,s*0.3,s*1.2);
@@ -22115,30 +22133,35 @@
      ctx.beginPath(); ctx.ellipse(s*0.10,s*0.55,s*0.13,s*0.09,-0.2,0,Math.PI*2); ctx.fill();
      ctx.beginPath(); ctx.ellipse(-s*0.22,s*0.50,s*0.10,s*0.07,0.3,0,Math.PI*2); ctx.fill();
 
-     /* ── Bras gauche — levé légèrement ── */
-     const armSwing=Math.sin(t*0.55)*0.12;
+     /* ── Bras gauche — levé en rythme ── */
+     const armL=-0.55+Math.sin(beat+Math.PI)*0.70; /* angle bras gauche */
+     const armR=-0.55+Math.sin(beat)*0.70;          /* angle bras droit, déphasé */
      ctx.strokeStyle='rgba(45,148,125,0.95)'; ctx.lineWidth=s*0.28; ctx.lineCap='round';
+     const lArmEndX=-s*0.65+Math.cos(armL-Math.PI*0.5)*s*0.85;
+     const lArmEndY= s*0.20+Math.sin(armL-Math.PI*0.5)*s*0.85;
      ctx.beginPath();
      ctx.moveTo(-s*0.65,s*0.20);
-     ctx.quadraticCurveTo(-s*0.85,s*0.50+armSwing*s,-s*0.70,s*0.82);
+     ctx.quadraticCurveTo(-s*0.65+Math.cos(armL-Math.PI*0.5)*s*0.42, s*0.20+Math.sin(armL-Math.PI*0.5)*s*0.42, lArmEndX, lArmEndY);
      ctx.stroke();
      /* Griffes gauche */
      ctx.strokeStyle='rgba(22,75,62,0.90)'; ctx.lineWidth=s*0.07;
      for(let g=0;g<3;g++){
-      const ga=(-0.4+g*0.4);
-      ctx.beginPath(); ctx.moveTo(-s*0.70,s*0.82); ctx.lineTo(-s*0.70+Math.cos(ga+Math.PI*0.5)*s*0.22, s*0.82+Math.sin(ga+Math.PI*0.5)*s*0.22); ctx.stroke();
+      const ga=(-0.4+g*0.4)+armL;
+      ctx.beginPath(); ctx.moveTo(lArmEndX,lArmEndY); ctx.lineTo(lArmEndX+Math.cos(ga-Math.PI*0.5)*s*0.22, lArmEndY+Math.sin(ga-Math.PI*0.5)*s*0.22); ctx.stroke();
      }
 
      /* ── Bras droit ── */
      ctx.strokeStyle='rgba(45,148,125,0.95)'; ctx.lineWidth=s*0.28; ctx.lineCap='round';
+     const rArmEndX=s*0.65+Math.cos(armR+Math.PI*1.5)*s*0.85;
+     const rArmEndY=s*0.20+Math.sin(armR+Math.PI*1.5)*s*0.85;
      ctx.beginPath();
      ctx.moveTo(s*0.65,s*0.20);
-     ctx.quadraticCurveTo(s*0.88,s*0.48-armSwing*s,s*0.72,s*0.80);
+     ctx.quadraticCurveTo(s*0.65+Math.cos(armR+Math.PI*1.5)*s*0.42, s*0.20+Math.sin(armR+Math.PI*1.5)*s*0.42, rArmEndX, rArmEndY);
      ctx.stroke();
      ctx.strokeStyle='rgba(22,75,62,0.90)'; ctx.lineWidth=s*0.07;
      for(let g=0;g<3;g++){
-      const ga=(-0.4+g*0.4);
-      ctx.beginPath(); ctx.moveTo(s*0.72,s*0.80); ctx.lineTo(s*0.72+Math.cos(ga+Math.PI*0.5)*s*0.22, s*0.80+Math.sin(ga+Math.PI*0.5)*s*0.22); ctx.stroke();
+      const ga=(-0.4+g*0.4)+armR;
+      ctx.beginPath(); ctx.moveTo(rArmEndX,rArmEndY); ctx.lineTo(rArmEndX+Math.cos(ga+Math.PI*0.5)*s*0.22, rArmEndY+Math.sin(ga+Math.PI*0.5)*s*0.22); ctx.stroke();
      }
 
      /* ── Tête ── */
@@ -22205,21 +22228,27 @@
      /* Mike : petite boule verte, un seul œil énorme, deux petites cornes, bras fins, sourire large */
      const s=W*0.065; ctx.save(); ctx.translate(mx,my);
 
-     /* Petit balancement inverse de Sully */
-     const sway2=Math.sin(t*0.55+0.8)*-0.06;
-     ctx.rotate(sway2);
-     /* Petit rebond */
-     const bob=Math.sin(t*1.4)*s*0.08;
-     ctx.translate(0,bob);
+     /* ── Danse : rebond énergique, bras en l'air en opposition à Sully ── */
+     const beat=t*2.8;
+     const bobDance=-Math.abs(Math.sin(beat))*s*0.30; /* rebond vif vers le haut */
+     const hipDance=Math.sin(beat+Math.PI)*0.12; /* hanche déphasée vs Sully */
+     ctx.translate(0,bobDance);
+     ctx.rotate(hipDance);
 
-     /* ── Jambes fins ── */
+     /* ── Jambes — alternance opposée à Sully ── */
+     const legKickL=Math.sin(beat+Math.PI)*0.30;
+     const legKickR=-Math.sin(beat+Math.PI)*0.30;
      ctx.strokeStyle='rgba(55,140,30,0.92)'; ctx.lineWidth=s*0.20; ctx.lineCap='round';
-     ctx.beginPath(); ctx.moveTo(-s*0.22,s*0.82); ctx.lineTo(-s*0.26,s*1.28); ctx.stroke();
-     ctx.beginPath(); ctx.moveTo(s*0.22,s*0.82); ctx.lineTo(s*0.26,s*1.28); ctx.stroke();
+     const lLegEndX=-s*0.22+Math.sin(legKickL)*s*0.50;
+     const lLegEndY= s*0.82+Math.cos(legKickL)*s*0.50;
+     const rLegEndX= s*0.22+Math.sin(legKickR)*s*0.50;
+     const rLegEndY= s*0.82+Math.cos(legKickR)*s*0.50;
+     ctx.beginPath(); ctx.moveTo(-s*0.22,s*0.82); ctx.lineTo(lLegEndX,lLegEndY); ctx.stroke();
+     ctx.beginPath(); ctx.moveTo(s*0.22,s*0.82); ctx.lineTo(rLegEndX,rLegEndY); ctx.stroke();
      /* Pieds */
      ctx.fillStyle='rgba(38,105,18,0.92)';
-     ctx.beginPath(); ctx.ellipse(-s*0.28,s*1.32,s*0.18,s*0.09,-0.2,0,Math.PI*2); ctx.fill();
-     ctx.beginPath(); ctx.ellipse(s*0.28,s*1.32,s*0.18,s*0.09,0.2,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.ellipse(lLegEndX,lLegEndY,s*0.18,s*0.09,legKickL,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.ellipse(rLegEndX,rLegEndY,s*0.18,s*0.09,legKickR,0,Math.PI*2); ctx.fill();
 
      /* ── Corps — boule verte ── */
      const bg3=ctx.createRadialGradient(-s*0.15,-s*0.10,s*0.05,0,0,s*1.05);
@@ -22234,21 +22263,26 @@
      ctx.beginPath(); ctx.moveTo(-s*0.25,-s*0.72); ctx.lineTo(-s*0.20,-s*0.95); ctx.lineTo(-s*0.12,-s*0.72); ctx.closePath(); ctx.fill();
      ctx.beginPath(); ctx.moveTo(s*0.12,-s*0.72); ctx.lineTo(s*0.20,-s*0.95); ctx.lineTo(s*0.25,-s*0.72); ctx.closePath(); ctx.fill();
 
-     /* ── Bras droits et fins ── */
-     const armSway2=Math.sin(t*1.0)*0.15;
+     /* ── Bras — agités en l'air, déphasés de Sully ── */
+     const armL2=-0.55+Math.sin(beat+Math.PI)*0.85; /* bras levés en opposition */
+     const armR2=-0.55+Math.sin(beat)*0.85;
      ctx.strokeStyle='rgba(72,165,30,0.92)'; ctx.lineWidth=s*0.18; ctx.lineCap='round';
+     const lArmEndX2=-s*0.72+Math.cos(armL2-Math.PI*0.5)*s*0.75;
+     const lArmEndY2= s*0.08+Math.sin(armL2-Math.PI*0.5)*s*0.75;
+     const rArmEndX2= s*0.72+Math.cos(armR2+Math.PI*1.5)*s*0.75;
+     const rArmEndY2= s*0.08+Math.sin(armR2+Math.PI*1.5)*s*0.75;
      ctx.beginPath();
      ctx.moveTo(-s*0.72,s*0.08);
-     ctx.quadraticCurveTo(-s*0.95,s*0.35+armSway2*s,-s*0.80,s*0.62);
+     ctx.quadraticCurveTo((-s*0.72+lArmEndX2)/2+Math.cos(armL2)*s*0.25, (s*0.08+lArmEndY2)/2, lArmEndX2, lArmEndY2);
      ctx.stroke();
      ctx.beginPath();
      ctx.moveTo(s*0.72,s*0.08);
-     ctx.quadraticCurveTo(s*0.95,s*0.30-armSway2*s,s*0.82,s*0.58);
+     ctx.quadraticCurveTo((s*0.72+rArmEndX2)/2+Math.cos(armR2)*s*0.25, (s*0.08+rArmEndY2)/2, rArmEndX2, rArmEndY2);
      ctx.stroke();
      /* Mains — petites boules */
      ctx.fillStyle='rgba(55,140,25,0.92)';
-     ctx.beginPath(); ctx.arc(-s*0.80,s*0.62,s*0.14,0,Math.PI*2); ctx.fill();
-     ctx.beginPath(); ctx.arc(s*0.82,s*0.58,s*0.14,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.arc(lArmEndX2,lArmEndY2,s*0.14,0,Math.PI*2); ctx.fill();
+     ctx.beginPath(); ctx.arc(rArmEndX2,rArmEndY2,s*0.14,0,Math.PI*2); ctx.fill();
 
      /* ── Grand œil unique — blanc d'œil ── */
      const eyePulse=1+Math.sin(t*2.2)*0.012;
@@ -22749,7 +22783,7 @@
     /* ── Fond override ── */
     let _upStyle=document.getElementById('_up_s');
     if(!_upStyle){_upStyle=document.createElement('style');_upStyle.id='_up_s';document.head.appendChild(_upStyle);}
-    _upStyle.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-film-ref-bottom,#splash-film-ref{color:rgba(20,16,12,0.80)!important;}#splash-tagline{color:rgba(20,16,12,0.70)!important;}';
+    _upStyle.textContent='#splash-bg::before,#splash-bg::after,#splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}#splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}.splash-tagline::before,.splash-tagline::after{background:none!important;}';
     const _upW=setInterval(()=>{if(stop.v){_upStyle.textContent='';clearInterval(_upW);}},200);
 
     /* ── Ballons — naissent en bas, remontent ── */
