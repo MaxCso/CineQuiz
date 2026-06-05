@@ -10717,23 +10717,46 @@ function openCinepedia(){
   _cpActiveFilter='all';
   _cpRenderModal();
   if(typeof stopMus==='function') stopMus();
-  // Swipe depuis le bord gauche → fermer (sur l'overlay qui n'est pas bloqué par le scroll)
+  /* Swipe bord gauche → fermer — inline pour éviter tout pb de scope */
   const cpEdge=document.getElementById('cp-swipe-edge');
-  if(cpEdge) setupSwipeRight(cpEdge,closeCinepedia);
+  if(cpEdge&&!cpEdge._si){
+    cpEdge._si=true;
+    var _sx=0,_sy=0,_on=false,_go=false;
+    cpEdge.addEventListener('touchstart',function(e){
+      _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_on=true;_go=false;
+    },{passive:true});
+    cpEdge.addEventListener('touchmove',function(e){
+      if(!_on)return;
+      var dx=e.touches[0].clientX-_sx,dy=Math.abs(e.touches[0].clientY-_sy);
+      if(!_go){if(dy>dx+10){_on=false;modal.style.transform='';modal.style.transition='';return;}if(dx<6)return;_go=true;}
+      e.preventDefault();
+      modal.style.transition='none';
+      modal.style.transform='translateX('+Math.max(0,Math.min(dx*0.7,window.innerWidth))+'px)';
+    },{passive:false});
+    cpEdge.addEventListener('touchend',function(e){
+      if(!_on)return;_on=false;
+      var dx=e.changedTouches[0].clientX-_sx;
+      modal.style.transform='';modal.style.transition='';
+      if(_go&&dx>80)closeCinepedia();
+      _go=false;
+    },{passive:true});
+  }
 }
 
 function closeCinepedia(){
   const modal=document.getElementById('cinepedia-modal');
   if(!modal)return;
-  modal.style.transition='opacity .18s ease';
+  modal.style.transition='transform .28s cubic-bezier(.4,0,.2,1), opacity .28s ease';
+  modal.style.transform='translateX(100%)';
   modal.style.opacity='0';
   setTimeout(function(){
     modal.style.display='none';
+    modal.style.transform='';
     modal.style.opacity='';
     modal.style.transition='';
     document.body.style.overflow='';
     if(musOn) playMus();
-  },160);
+  },270);
 }
 
 function _cpRenderModal(){
@@ -15386,11 +15409,11 @@ function setupSwipeDown(el,onClose){
 }
 
 function setupSwipeRight(el,onClose){
-  const EDGE_ZONE=36; // px depuis le bord gauche pour activer le swipe
+  const EDGE_ZONE=36;
   let startX=0,startY=0,dragging=false,active=false;
   el.addEventListener('touchstart',e=>{
     startX=e.touches[0].clientX;startY=e.touches[0].clientY;
-    active=startX<=EDGE_ZONE; // n'activer que depuis le bord gauche
+    active=startX<=EDGE_ZONE;
     dragging=true;
   },{passive:true});
   el.addEventListener('touchmove',e=>{
@@ -15403,7 +15426,6 @@ function setupSwipeRight(el,onClose){
       el.style.transition='none';
       el.style.opacity=Math.max(0.4,1-dx/300);
     } else if(dy>dx+10){
-      // Scroll vertical détecté → désactiver pour ce geste
       active=false;
       el.style.transform='';el.style.opacity='';el.style.transition='';
     }
@@ -15414,6 +15436,34 @@ function setupSwipeRight(el,onClose){
     el.style.transform='';el.style.opacity='';el.style.transition='';
     if(active&&dx>80)onClose();
     active=false;
+  },{passive:true});
+}
+
+/* Variante sans opacité — edge capte le touch, translate le modal parent */
+function setupSwipeRightSolid(edgeEl,targetEl,onClose){
+  var el=edgeEl||targetEl;
+  var sx=0,sy=0,on=false,go=false;
+  el.addEventListener('touchstart',function(e){
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; on=true; go=false;
+  },{passive:true});
+  el.addEventListener('touchmove',function(e){
+    if(!on)return;
+    var dx=e.touches[0].clientX-sx, dy=Math.abs(e.touches[0].clientY-sy);
+    if(!go){
+      if(dy>dx+10){on=false;targetEl.style.transform='';targetEl.style.transition='';return;}
+      if(dx<6)return;
+      go=true;
+    }
+    e.preventDefault();
+    targetEl.style.transition='none';
+    targetEl.style.transform='translateX('+Math.max(0,Math.min(dx*0.7,window.innerWidth))+'px)';
+  },{passive:false});
+  el.addEventListener('touchend',function(e){
+    if(!on)return; on=false;
+    var dx=e.changedTouches[0].clientX-sx;
+    targetEl.style.transform=''; targetEl.style.transition='';
+    if(go&&dx>80)onClose();
+    go=false;
   },{passive:true});
 }
 
@@ -19622,9 +19672,9 @@ function hmReopenTuto() {
     </div>
   </div>
   <!-- Filtres par tag -->
-  <div id="cp-filters" style="position:relative;z-index:2;display:flex;gap:6px;padding:10px 18px 12px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,.06);"></div>
+  <div id="cp-filters" style="position:relative;z-index:2;display:flex;gap:6px;padding:10px 18px 12px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.06);"></div>
   <!-- Liste des anecdotes -->
-  <div id="cp-list" style="position:relative;z-index:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 18px max(40px,calc(env(safe-area-inset-bottom)+20px));display:flex;flex-direction:column;gap:10px;scrollbar-width:none;"></div>
+  <div id="cp-list" style="position:relative;z-index:1;flex:1;overflow-y:auto;padding:12px 18px max(40px,calc(env(safe-area-inset-bottom)+20px));display:flex;flex-direction:column;gap:10px;scrollbar-width:none;"></div>
 </div>
 
 <!-- ── SPLASH PREVIEW MODAL ── -->
@@ -19948,9 +19998,8 @@ function hmReopenTuto() {
     modal.style.display='flex';
     document.body.style.overflow='hidden';
     if(typeof stopMus==='function') stopMus();
-    // Swipe depuis le bord gauche → fermer
     var cineEdge=document.getElementById('cine-swipe-edge');
-    if(cineEdge) setupSwipeRight(cineEdge,window.closeCinematheque);
+    if(cineEdge&&!cineEdge._swipeInit){cineEdge._swipeInit=true;setupSwipeRightSolid(cineEdge,modal,window.closeCinematheque);}
     var grid=document.getElementById('cine-grid');
     var searchInput=document.getElementById('cine-search');
     if(searchInput) searchInput.value='';
@@ -20151,15 +20200,17 @@ function hmReopenTuto() {
   window.closeCinematheque=function(){
     var modal=document.getElementById('cinematheque-modal');
     if(!modal)return;
-    modal.style.transition='opacity .18s ease';
+    modal.style.transition='transform .28s cubic-bezier(.4,0,.2,1), opacity .28s ease';
+    modal.style.transform='translateX(100%)';
     modal.style.opacity='0';
     setTimeout(function(){
       modal.style.display='none';
+      modal.style.transform='';
       modal.style.opacity='';
       modal.style.transition='';
       document.body.style.overflow='';
       if(typeof musOn!=='undefined'&&musOn&&typeof playMus==='function') playMus();
-    },160);
+    },270);
   };
 
   window.cineFilter=function(val){
