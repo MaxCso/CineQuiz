@@ -22855,6 +22855,7 @@
      #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
      #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(0,0,0,0.92)!important;font-size:14px!important;text-shadow:none!important;}
+     #splash-film-ref,#splash-film-ref *,#splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
     const _rvW=setInterval(()=>{if(stop.v){_rvS.textContent='';clearInterval(_rvW);}},200);
@@ -22890,6 +22891,19 @@
       dy: (Math.random()-0.5)*0.006,
     }));
 
+    /* ── Nuages additionnels — plus bas, sous le logo (30%→55%) ── */
+    const cloudsLow=Array.from({length:10},(_,i)=>({
+      x:  (i%4)*W*0.30 + Math.random()*W*0.18 - W*0.08,
+      y:  H*(0.30 + Math.random()*0.22),
+      w:  W*(0.35+Math.random()*0.50),
+      h:  H*(0.010+Math.random()*0.014),
+      op: 0.16+Math.random()*0.22,
+      ph: Math.random()*Math.PI*2,
+      spd:0.002+Math.random()*0.003,
+      dx: 0.018+Math.random()*0.032,
+      dy: (Math.random()-0.5)*0.005,
+    }));
+
     /* ── Particules de brume froide ── */
     const mists=Array.from({length:6},()=>({
       x:Math.random()*W*1.4-W*0.2,
@@ -22903,7 +22917,7 @@
     }));
 
     function drawClouds(){
-      for(const c of clouds){
+      for(const c of [...clouds, ...cloudsLow]){
         c.ph += c.spd;
         c.x  += c.dx;
         c.y  += Math.sin(c.ph*0.5)*c.dy;
@@ -26899,14 +26913,14 @@
     });
 
     /* Fumée noire de pétrole — lourde, dérive vers la droite et envahit le ciel */
-    const smokePuffs=Array.from({length:65},(_,i)=>({
-     x:FX+(Math.random()-0.3)*W*0.20,
-     y:groundY-F_HEIGHT*0.38-Math.random()*F_HEIGHT*0.62,
-     r:W*(0.12+Math.random()*0.32),
-     vx:0.18+Math.random()*0.40,
-     vy:-(0.02+Math.random()*0.05),
-     op:0.28+Math.random()*0.42,
-     tone:Math.random()*0.20,
+    const smokePuffs=Array.from({length:80},(_,i)=>({
+     x:FX+(Math.random()-0.3)*W*0.22,
+     y:groundY-F_HEIGHT*0.38-Math.random()*F_HEIGHT*0.72,
+     r:W*(0.14+Math.random()*0.36),
+     vx:0.20+Math.random()*0.48,
+     vy:-(0.02+Math.random()*0.04),
+     op:0.32+Math.random()*0.46,
+     tone:Math.random()*0.25,
      ph:Math.random()*Math.PI*2,
      phSpd:Math.random()*0.006+0.002,
     }));
@@ -27075,37 +27089,69 @@
     function frame(){
      if(stop.v)return;
 
-     /* Ciel sombre dramatique */
+     /* Ciel dramatique — orange/ambre chaud en bas, quasi-noir en haut */
      const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0.00,'#120800');
-     bg.addColorStop(0.25,'#1e0d02');
-     bg.addColorStop(0.50,'#2e1505');
-     bg.addColorStop(0.68,'#4a2508');
-     bg.addColorStop(0.80,'#6e340a');
-     bg.addColorStop(1.00,'#2e1604');
+     bg.addColorStop(0.00,'#080400');
+     bg.addColorStop(0.18,'#110700');
+     bg.addColorStop(0.38,'#2a1002');
+     bg.addColorStop(0.55,'#5a2604');
+     bg.addColorStop(0.68,'#8c3f06');
+     bg.addColorStop(0.78,'#b05510');
+     bg.addColorStop(0.88,'#7a3808');
+     bg.addColorStop(1.00,'#2a1203');
      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-     /* Lueur ambiante geyser — plus chaude et large */
-     const ambG=ctx.createRadialGradient(FX,groundY*0.55,0,FX,groundY*0.55,W*1.0);
-     ambG.addColorStop(0,`rgba(230,100,8,${0.28+Math.sin(t*0.9)*0.07})`);
-     ambG.addColorStop(0.30,'rgba(170,50,3,0.14)');
-     ambG.addColorStop(0.60,'rgba(90,18,0,0.06)');
+     /* Lueur ambiante geyser — très chaude, couvre tout le ciel */
+     const ambG=ctx.createRadialGradient(FX,groundY*0.45,0,FX,groundY*0.45,W*1.20);
+     ambG.addColorStop(0,`rgba(255,120,10,${0.38+Math.sin(t*0.9)*0.09})`);
+     ambG.addColorStop(0.22,'rgba(200,60,4,0.22)');
+     ambG.addColorStop(0.48,'rgba(130,25,2,0.10)');
+     ambG.addColorStop(0.72,'rgba(60,8,0,0.04)');
      ambG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=ambG;ctx.fillRect(0,0,W,H);
 
-     /* Sol désert sable+pétrole */
+     /* Contre-jour chaud sur la droite — comme dans l'image */
+     const rimG=ctx.createLinearGradient(W*0.55,0,W,H*0.90);
+     rimG.addColorStop(0,'rgba(180,70,8,0.08)');
+     rimG.addColorStop(0.40,'rgba(140,50,5,0.12)');
+     rimG.addColorStop(0.70,'rgba(100,35,3,0.08)');
+     rimG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=rimG;ctx.fillRect(W*0.50,0,W*0.50,H);
+
+     /* Sol désert pétrole — quasi-noir, iridescent sous les flammes */
      const dg=ctx.createLinearGradient(0,groundY,0,H);
-     dg.addColorStop(0,'rgba(72,40,8,0.97)');
-     dg.addColorStop(0.35,'rgba(42,22,5,0.99)');
-     dg.addColorStop(1,'rgba(18,9,2,1.0)');
+     dg.addColorStop(0,'rgba(28,14,3,0.98)');
+     dg.addColorStop(0.20,'rgba(16,8,1,0.99)');
+     dg.addColorStop(0.55,'rgba(8,4,1,1.0)');
+     dg.addColorStop(1,'rgba(4,2,0,1.0)');
      ctx.fillStyle=dg;ctx.fillRect(0,groundY,W,H-groundY);
 
-     /* Reflets des flammes sur le sol — flaque lumineuse */
-     const reflG=ctx.createRadialGradient(FX,groundY+H*0.02,0,FX,groundY+H*0.02,W*0.55);
-     reflG.addColorStop(0,`rgba(200,80,5,${0.30+Math.sin(t*2.1)*0.08})`);
-     reflG.addColorStop(0.40,`rgba(140,40,2,${0.12+Math.sin(t*1.5)*0.04})`);
+     /* Reflet iridescent pétrole — nappe d'huile sur le sol */
+     const iridW=W*0.70, iridX=FX-iridW*0.30;
+     const iridG=ctx.createLinearGradient(iridX,groundY,iridX+iridW,groundY+H*0.08);
+     iridG.addColorStop(0,`rgba(80,50,8,${0.18+Math.sin(t*0.7)*0.04})`);
+     iridG.addColorStop(0.30,`rgba(50,80,40,${0.10+Math.sin(t*0.5+1)*0.03})`);
+     iridG.addColorStop(0.55,`rgba(30,50,80,${0.08+Math.sin(t*0.6+2)*0.03})`);
+     iridG.addColorStop(0.80,`rgba(60,30,60,${0.10+Math.sin(t*0.8)*0.03})`);
+     iridG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=iridG;
+     ctx.beginPath();ctx.ellipse(iridX+iridW*0.5,groundY+H*0.025,iridW*0.55,H*0.040,0,0,Math.PI*2);ctx.fill();
+
+     /* Reflets des flammes sur le sol miroitant — très étendus */
+     const reflG=ctx.createRadialGradient(FX,groundY+H*0.01,0,FX,groundY+H*0.01,W*0.75);
+     reflG.addColorStop(0,`rgba(255,120,8,${0.45+Math.sin(t*2.1)*0.12})`);
+     reflG.addColorStop(0.20,`rgba(200,65,4,${0.28+Math.sin(t*1.5)*0.07})`);
+     reflG.addColorStop(0.45,`rgba(130,28,2,${0.14+Math.sin(t*1.8)*0.04})`);
+     reflG.addColorStop(0.70,'rgba(60,10,0,0.05)');
      reflG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=reflG;ctx.beginPath();ctx.ellipse(FX,groundY+H*0.018,W*0.50,H*0.030,0,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle=reflG;ctx.beginPath();ctx.ellipse(FX,groundY+H*0.012,W*0.68,H*0.045,0,0,Math.PI*2);ctx.fill();
+
+     /* Ligne de lumière horizontale à l'horizon — sol pétrolier */
+     const horizG=ctx.createLinearGradient(0,groundY-2,0,groundY+H*0.06);
+     horizG.addColorStop(0,`rgba(180,80,10,${0.35+Math.sin(t*1.2)*0.08})`);
+     horizG.addColorStop(0.25,'rgba(120,40,4,0.15)');
+     horizG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=horizG;ctx.fillRect(0,groundY-2,W,H*0.06);
 
      /* Mare de pétrole au pied du geyser */
      const poolG=ctx.createRadialGradient(FX,groundY,0,FX,groundY,W*0.18);
@@ -27113,6 +27159,29 @@
      poolG.addColorStop(0.55,'rgba(15,8,2,0.40)');
      poolG.addColorStop(1,'rgba(0,0,0,0)');
      ctx.fillStyle=poolG;ctx.beginPath();ctx.ellipse(FX,groundY+4,W*0.18,H*0.015,0,0,Math.PI*2);ctx.fill();
+
+     /* ── Colonnes de feu secondaires en arrière-plan ── */
+     /* Petite colonne centrale (comme dans l'image) */
+     const bfx=W*0.54, bfBase=groundY, bfH=H*0.38;
+     const bfG=ctx.createLinearGradient(bfx,bfBase,bfx,bfBase-bfH);
+     bfG.addColorStop(0,`rgba(255,200,60,${0.55+Math.sin(t*2.8)*0.14})`);
+     bfG.addColorStop(0.15,`rgba(255,130,10,${0.38+Math.sin(t*2.0)*0.09})`);
+     bfG.addColorStop(0.40,'rgba(200,55,4,0.18)');
+     bfG.addColorStop(0.70,'rgba(110,20,0,0.06)');
+     bfG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=bfG;
+     const bsw=W*0.012*(1+Math.sin(t*7)*0.15);
+     ctx.beginPath();
+     ctx.moveTo(bfx-bsw*1.5,bfBase);
+     ctx.bezierCurveTo(bfx-bsw,bfBase-bfH*0.3,bfx-bsw*0.6,bfBase-bfH*0.6,bfx,bfBase-bfH);
+     ctx.bezierCurveTo(bfx+bsw*0.6,bfBase-bfH*0.6,bfx+bsw,bfBase-bfH*0.3,bfx+bsw*1.5,bfBase);
+     ctx.closePath();ctx.fill();
+     /* Halo de cette colonne */
+     const bfHaloG=ctx.createRadialGradient(bfx,bfBase-bfH*0.3,0,bfx,bfBase-bfH*0.3,W*0.18);
+     bfHaloG.addColorStop(0,`rgba(255,160,20,${0.18+Math.sin(t*2.5)*0.06})`);
+     bfHaloG.addColorStop(0.5,'rgba(180,55,4,0.06)');
+     bfHaloG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=bfHaloG;ctx.fillRect(bfx-W*0.20,bfBase-bfH,W*0.40,bfH);
 
      /* Fumée (fond) */
      drawSmoke(smokePuffs,FX);
