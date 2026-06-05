@@ -3770,7 +3770,7 @@
     /* ── Position citation + logo à 60% ── */
     const _jbStyle=document.createElement('style');
     _jbStyle.id='_jb_pos';
-    _jbStyle.textContent='#splash-content-wrap{top:60%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-logo{max-width:60%!important;}';
+    _jbStyle.textContent='#splash-content-wrap{top:70%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-logo{max-width:60%!important;}';
     document.head.appendChild(_jbStyle);
     const _jbPosW=setInterval(()=>{if(stop.v){_jbStyle.textContent='';clearInterval(_jbPosW);}},200);
 
@@ -3994,13 +3994,13 @@
       shotTimer=0;flashAlpha=1.0;bloodY=0;bloodActive=true;
      }
      if(bloodActive){
-      /* Descend rapidement... */
-      if(shotTimer>4&&shotTimer<110) bloodY+=H*0.005;
-      /* ...s'arrête un instant en plein écran... */
-      else if(shotTimer>=110&&shotTimer<190){bloodY=H;}
-      /* ...puis remonte lentement */
-      else if(shotTimer>=190) bloodY=Math.max(0,bloodY-H*0.018);
-      if(bloodY<=0&&shotTimer>250) bloodActive=false;
+      /* Descend doucement et régulièrement sur toute la hauteur (frames 4→204) */
+      if(shotTimer>4&&shotTimer<204) bloodY+=H*0.005;
+      /* S'arrête un instant plein écran */
+      else if(shotTimer>=204&&shotTimer<280){bloodY=H;}
+      /* Remonte lentement */
+      else if(shotTimer>=280) bloodY=Math.max(0,bloodY-H*0.018);
+      if(bloodY<=0&&shotTimer>340) bloodActive=false;
      }
 
      t+=0.016;requestAnimationFrame(frame);
@@ -4559,43 +4559,27 @@
      ctx.restore();
     }
 
-    function drawCandle(){
-     const flicker=0.7+Math.sin(t*7.3)*0.08+Math.sin(t*13.1)*0.05;
-     const candleX=cx*0.22, candleY=H*0.78;
-     const halo=ctx.createRadialGradient(candleX,candleY,0,candleX,candleY,W*0.55);
-     halo.addColorStop(0,`rgba(255,${180+Math.sin(t*3)*12|0},60,${0.22*flicker})`);
-     halo.addColorStop(0.3,`rgba(200,100,20,${0.12*flicker})`);
-     halo.addColorStop(0.6,`rgba(120,50,10,${0.06*flicker})`);
-     halo.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=halo;ctx.fillRect(0,0,W,H);
-     ctx.save();ctx.translate(candleX,candleY);
-     ctx.beginPath();
-     ctx.moveTo(0,0);
-     ctx.bezierCurveTo(-W*0.015,-H*0.018,W*0.008,-H*0.04,0,-H*0.052);
-     ctx.bezierCurveTo(-W*0.008,-H*0.04,W*0.015,-H*0.018,0,0);
-     ctx.fillStyle=`rgba(255,${200+Math.sin(t*9)*20|0},80,${0.85*flicker})`;
-     ctx.fill();
-     ctx.restore();
-    }
+    // ── Chargement du fond Godfather ──
+    const bgImg=new Image();
+    let bgLoaded=false;
+    bgImg.onload=()=>{bgLoaded=true;};
+    bgImg.src='images/Godfather.png';
 
     function frame(){
      if(stop.v)return;
 
-     // Fond parchemin sombre avec légères stries
-     ctx.fillStyle='#0a0604';ctx.fillRect(0,0,W,H);
-     for(let i=0;i<W;i+=18){
-      ctx.fillStyle=`rgba(${i%36===0?20:12},8,4,0.06)`;
-      ctx.fillRect(i,0,9,H);
+     // Fond : Godfather.png couvrant tout le canvas (object-fit: cover)
+     ctx.fillStyle='#080402';ctx.fillRect(0,0,W,H);
+     if(bgLoaded){
+      const iW=bgImg.naturalWidth, iH=bgImg.naturalHeight;
+      const scale=Math.max(W/iW, H/iH);
+      const dW=iW*scale, dH=iH*scale;
+      const dx=(W-dW)/2, dy=(H-dH)/2;
+      ctx.drawImage(bgImg,dx,dy,dW,dH);
      }
 
-     // Halo ambré central
-     const ag=ctx.createRadialGradient(cx,cy*1.1,0,cx,cy*1.1,W*0.5);
-     ag.addColorStop(0,`rgba(70,35,8,${0.18+Math.sin(t*0.4)*0.03})`);
-     ag.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
-
-     // Bougie
-     drawCandle();
+     // Voile sombre très léger pour que les animations ressortent
+     ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(0,0,W,H);
 
      // Oranges
      for(const o of oranges){
@@ -4611,12 +4595,13 @@
       drawPetal(p);
      }
 
-     // Vignette finale
+     // Vignette douce sur les bords
      ctx.globalAlpha=1;
-     const vg=ctx.createRadialGradient(cx,cy,H*0.05,cx,cy,H*0.92);
+     const vg=ctx.createRadialGradient(cx,cy,H*0.10,cx,cy,H*0.92);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.35,'rgba(0,0,0,0.30)');
-     vg.addColorStop(1,'rgba(0,0,0,0.96)');
+     vg.addColorStop(0.50,'rgba(0,0,0,0.12)');
+     vg.addColorStop(0.78,'rgba(0,0,0,0.45)');
+     vg.addColorStop(1,'rgba(0,0,0,0.85)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
