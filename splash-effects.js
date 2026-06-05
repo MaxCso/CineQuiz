@@ -10292,194 +10292,150 @@
 
     let _s=document.getElementById('_me_s');
     if(!_s){_s=document.createElement('style');_s.id='_me_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(200,195,210,0.92)!important;text-shadow:0 1px 10px rgba(0,0,0,0.90)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* ── Contenu des polaroids : 6 fragments essentiels ── */
-    const CONTENTS=[
-      {lines:['JOHN G.','KILLED','YOUR WIFE'],  note:'Ne pas lui faire confiance', tags:['#314','suspect']},
-      {lines:['TEDDY','= menteur'],              note:'Ne JAMAIS croire Teddy',     tags:['danger']},
-      {lines:['JE NE PEUX','PAS ME','SOUVENIR'],note:'système externe requis',      tags:['règle n°1']},
-      {lines:['FACTS','NOT','FEELINGS'],         note:'vérifié 3x',                 tags:['tatoué']},
-      {lines:['EMMA','†'],                       note:'ne jamais oublier',           tags:['raison','but']},
-      {lines:['DO NOT','TRUST','ANYONE'],        note:'surtout pas toi-même',        tags:['règle n°0']},
-    ];
+    /* ── Chargement du fond Memento ── */
+    const bgImg=new Image();
+    let bgLoaded=false;
+    bgImg.onload=()=>{bgLoaded=true;};
+    bgImg.src='images/Memento.png';
 
-    /* ── Seed déterministe pour positions stables ── */
-    function seededRand(seed){return(Math.abs(Math.sin(seed*127.1+311.7)*43758.5453123))%1;}
-
-    const SIZE_BASE=W*0.26;
-    /* 2 colonnes × 3 rangées, bien centrées et espacées */
-    const COLS=2;
-    const polaroids=CONTENTS.map((c,i)=>{
-      const sr=n=>seededRand(i*17+n);
-      const col=i%COLS;
-      const row=Math.floor(i/COLS);
-      return {
-        x: W*(0.28+col*0.44) + (sr(1)-0.5)*W*0.06,
-        y: H*(0.26+row*0.22) + (sr(2)-0.5)*H*0.03,
-        rot: (sr(3)-0.5)*0.32,
-        size: SIZE_BASE*(0.88+sr(4)*0.22),
-        phase: sr(5)*Math.PI*2,
-        spd: 0.003+sr(6)*0.003,
-        devPhase: sr(7)*Math.PI*2,
-        devSpd: 0.0018+sr(8)*0.0022,
-        content: c,
-        floatAmp: 0.003+sr(9)*0.004,
-      };
+    /* ── Fragments polaroid — dérivent très lentement ── */
+    const fragments=Array.from({length:9},(_,i)=>{
+     const sr=n=>(Math.abs(Math.sin(i*17.3+n*131.7)*43758.5))%1;
+     return {
+      x: W*(0.08+sr(1)*0.84),
+      y: H*(0.08+sr(2)*0.84),
+      w: W*(0.055+sr(3)*0.055),
+      rot: (sr(4)-0.5)*0.55,
+      vx: (sr(5)-0.5)*0.055,
+      vy: (sr(6)-0.5)*0.035,
+      vrot: (sr(7)-0.5)*0.0003,
+      op: 0.10+sr(8)*0.18,
+      ph: sr(9)*Math.PI*2,
+      spd: 0.004+sr(0)*0.006,
+     };
     });
 
-    /* ── Dessine un polaroid avec effet développement photo ── */
-    function drawPolaroid(p, baseOp){
-      const {size, content}=p;
-      const pad=size*0.07;
-      const photoW=size*0.86;
-      const photoH=size*0.78;
-      const totalH=size*1.30;
-      const px=-size/2;
-      const py=-size*0.58;
+    /* ── Poussière froide — particules bleutées/grises ── */
+    const dust=Array.from({length:35},()=>({
+     x: Math.random()*W,
+     y: Math.random()*H,
+     vx: (Math.random()-0.5)*0.12,
+     vy: -(0.04+Math.random()*0.10),
+     r: W*(0.001+Math.random()*0.003),
+     op: 0.06+Math.random()*0.14,
+     ph: Math.random()*Math.PI*2,
+     spd: 0.006+Math.random()*0.010,
+    }));
 
-      const dev=0.40+0.60*Math.abs(Math.sin(p.devPhase));
+    /* ── Lignes de scan — effet mémoire fragmentée ── */
+    const scanLines=Array.from({length:3},(_,i)=>({
+     y: H*(0.15+i*0.28)+Math.random()*H*0.08,
+     vy: 0.12+Math.random()*0.18,
+     op: 0.04+Math.random()*0.06,
+     w: W*(0.25+Math.random()*0.55),
+     x: W*(Math.random()*0.5),
+     h: H*(0.002+Math.random()*0.003),
+     delay: i*120+Math.random()*80,
+    }));
 
-      ctx.save();
-      ctx.shadowColor='rgba(0,0,0,0.60)';
-      ctx.shadowBlur=size*0.14;
-      ctx.shadowOffsetX=size*0.03;
-      ctx.shadowOffsetY=size*0.05;
-
-      ctx.fillStyle=`rgb(${238-dev*12},${233-dev*10},${215-dev*8})`;
-      ctx.beginPath();
-      ctx.roundRect(px,py,size,totalH,size*0.025);
-      ctx.fill();
-      ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
-
-      const imgX=px+pad;
-      const imgY=py+pad;
-
-      const whiteness=Math.round(255*(1-dev*0.82));
-      ctx.fillStyle=`rgb(${whiteness},${whiteness},${whiteness})`;
-      ctx.fillRect(imgX,imgY,photoW,photoH);
-
-      if(dev>0.15){
-        const imgAlpha=Math.max(0,(dev-0.15)/0.85);
-        const grainStep=Math.max(4,Math.floor(6*(1-dev*0.6)));
-        for(let gx=0;gx<photoW;gx+=grainStep){
-          for(let gy=0;gy<photoH;gy+=grainStep){
-            const bright=Math.round(30+Math.random()*140);
-            ctx.fillStyle=`rgba(${bright},${bright},${bright},${imgAlpha*0.45})`;
-            ctx.fillRect(imgX+gx,imgY+gy,grainStep,grainStep);
-          }
-        }
-
-        content.lines.forEach((line,li)=>{
-          const lineAlpha=Math.max(0,(dev-0.25-li*0.12)/0.6)*imgAlpha;
-          if(lineAlpha<=0)return;
-          const fontSize=size*(li===0?0.13:0.11);
-          ctx.font=`900 ${fontSize}px 'Courier New',monospace`;
-          ctx.textAlign='center';ctx.textBaseline='middle';
-          const offX=Math.sin(p.phase*2+li)*size*0.010;
-          const lineY=imgY+photoH*(0.22+li*0.26);
-          ctx.fillStyle=`rgba(0,0,0,${lineAlpha*0.45})`;
-          ctx.fillText(line,imgX+photoW/2+offX+1,lineY+1);
-          const col=li===0?`rgba(20,10,10,${lineAlpha})`:`rgba(30,20,20,${lineAlpha*0.88})`;
-          ctx.fillStyle=col;
-          ctx.fillText(line,imgX+photoW/2+offX,lineY);
-        });
-
-        if(dev>0.70&&(content.tags.includes('danger'))){
-          ctx.strokeStyle=`rgba(180,20,20,${(dev-0.70)*2.5*imgAlpha})`;
-          ctx.lineWidth=size*0.022;ctx.lineCap='round';
-          ctx.beginPath();ctx.moveTo(imgX+size*0.04,imgY+size*0.04);ctx.lineTo(imgX+photoW-size*0.04,imgY+photoH-size*0.04);ctx.stroke();
-          ctx.beginPath();ctx.moveTo(imgX+photoW-size*0.04,imgY+size*0.04);ctx.lineTo(imgX+size*0.04,imgY+photoH-size*0.04);ctx.stroke();
-        }
-      }
-
-      ctx.strokeStyle=`rgba(180,170,150,0.25)`;ctx.lineWidth=0.5;
-      ctx.strokeRect(imgX,imgY,photoW,photoH);
-
-      const noteY=py+pad+photoH+size*0.04;
-      const noteAlpha=Math.max(0,(dev-0.50)/0.50)*baseOp;
-      if(noteAlpha>0){
-        ctx.font=`italic ${size*0.085}px Georgia,serif`;
-        ctx.textAlign='center';ctx.textBaseline='top';
-        ctx.fillStyle=`rgba(40,30,20,${noteAlpha*0.80})`;
-        ctx.fillText(content.note,px+size/2,noteY,size*0.90);
-        if(dev>0.75){
-          const tagAlpha=Math.max(0,(dev-0.75)*4)*noteAlpha;
-          content.tags.forEach((tag,ti)=>{
-            ctx.font=`bold ${size*0.065}px 'Courier New',monospace`;
-            ctx.fillStyle=`rgba(100,10,10,${tagAlpha*0.65})`;
-            ctx.textAlign=ti===0?'left':'right';
-            const tagX=ti===0?px+size*0.07:px+size-size*0.07;
-            ctx.fillText(tag,tagX,py+totalH-size*0.12);
-          });
-        }
-      }
-      ctx.restore();
+    /* ── Dessine un fragment de polaroid ── */
+    function drawFragment(f){
+     const h=f.w*1.25;
+     ctx.save();
+     ctx.translate(f.x,f.y);
+     ctx.rotate(f.rot);
+     ctx.globalAlpha=f.op*(0.6+0.4*Math.abs(Math.sin(f.ph)));
+     ctx.shadowColor='rgba(0,0,0,0.5)';
+     ctx.shadowBlur=f.w*0.15;
+     /* Cadre blanc polaroid */
+     ctx.fillStyle='rgba(235,230,220,0.88)';
+     ctx.beginPath();ctx.roundRect(-f.w/2,-h/2,f.w,h,f.w*0.02);ctx.fill();
+     /* Zone photo grise avec grain */
+     const ph=h*0.72;
+     ctx.fillStyle='rgba(80,85,100,0.55)';
+     ctx.fillRect(-f.w/2+f.w*0.07,-h/2+f.w*0.07,f.w*0.86,ph);
+     /* Reflet léger */
+     ctx.fillStyle='rgba(200,210,230,0.12)';
+     ctx.beginPath();
+     ctx.moveTo(-f.w/2+f.w*0.07,-h/2+f.w*0.07);
+     ctx.lineTo(-f.w/2+f.w*0.07+f.w*0.42,-h/2+f.w*0.07);
+     ctx.lineTo(-f.w/2+f.w*0.07,-h/2+f.w*0.07+ph*0.55);
+     ctx.closePath();ctx.fill();
+     ctx.restore();
     }
 
     function frame(){
-      if(stop.v)return;
+     if(stop.v)return;
 
-      /* Fond liège chaud */
-      const bg=ctx.createLinearGradient(0,0,W,H);
-      bg.addColorStop(0,'#2a1e12');bg.addColorStop(0.35,'#2e2214');
-      bg.addColorStop(0.70,'#281c10');bg.addColorStop(1,'#241a0e');
-      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-      /* Grain liège — plus discret */
-      for(let i=0;i<100;i++){
-        ctx.fillStyle=`rgba(${80+Math.random()*50|0},${55+Math.random()*35|0},${20+Math.random()*20|0},${0.03+Math.random()*0.04})`;
-        ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*3+0.5,(Math.random()*2+0.3));
-      }
+     /* ── Fond : Memento.png en cover ── */
+     ctx.fillStyle='#12101a';ctx.fillRect(0,0,W,H);
+     if(bgLoaded){
+      const iW=bgImg.naturalWidth,iH=bgImg.naturalHeight;
+      const scale=Math.max(W/iW,H/iH);
+      const dW=iW*scale,dH=iH*scale;
+      ctx.drawImage(bgImg,(W-dW)/2,(H-dH)/2,dW,dH);
+     }
 
-      /* Tatouage en filigrane — "REMEMBER SAMMY JANKIS" */
-      ctx.save();
-      ctx.globalAlpha=0.04+Math.sin(t*0.22)*0.008;
-      ctx.font=`bold ${W*0.055}px 'Courier New',monospace`;
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillStyle='rgba(220,200,160,1)';
-      ctx.translate(cx,H*0.50);ctx.rotate(-0.08);
-      ctx.fillText('REMEMBER SAMMY JANKIS',0,0);
-      ctx.restore();
+     /* Voile très léger pour que les animations ressortent */
+     ctx.fillStyle='rgba(10,8,18,0.22)';ctx.fillRect(0,0,W,H);
 
-      /* Fils rouges — seulement les connexions essentielles */
-      const connections=[[0,1],[1,3],[0,2],[2,4],[3,5],[4,5]];
-      ctx.save();
-      for(const [a,b] of connections){
-        const pa=polaroids[a], pb=polaroids[b];
-        const ax=pa.x, ay=pa.y+Math.sin(pa.phase)*pa.floatAmp*H;
-        const bx=pb.x, by=pb.y+Math.sin(pb.phase)*pb.floatAmp*H;
-        const mx=(ax+bx)/2, my=(ay+by)/2+H*0.015;
-        ctx.strokeStyle=`rgba(165,22,22,${0.22+Math.sin(t*0.3+a)*0.06})`;
-        ctx.lineWidth=0.8;
-        ctx.beginPath();ctx.moveTo(ax,ay);ctx.quadraticCurveTo(mx,my,bx,by);ctx.stroke();
-      }
-      ctx.restore();
+     /* ── Fragments polaroid qui dérivent ── */
+     for(const f of fragments){
+      f.ph+=f.spd;
+      f.x+=f.vx;f.y+=f.vy;f.rot+=f.vrot;
+      if(f.x<-f.w*2)f.x=W+f.w; if(f.x>W+f.w*2)f.x=-f.w;
+      if(f.y<-f.w*2)f.y=H+f.w; if(f.y>H+f.w*2)f.y=-f.w;
+      drawFragment(f);
+     }
+     ctx.globalAlpha=1;
 
-      /* Polaroids */
-      const sorted=[...polaroids].sort((a,b)=>a.size-b.size);
-      for(const p of sorted){
-        p.phase+=p.spd;p.devPhase+=p.devSpd;
-        const floatY=Math.sin(p.phase)*p.floatAmp*H;
-        const floatRot=Math.sin(p.phase*0.7)*0.010;
-        const baseOp=0.60+0.25*Math.abs(Math.sin(p.phase*0.4));
-        ctx.save();
-        ctx.translate(p.x,p.y+floatY);ctx.rotate(p.rot+floatRot);
-        ctx.globalAlpha=baseOp;
-        drawPolaroid(p,baseOp);
-        ctx.restore();
-      }
+     /* ── Lignes de scan ── */
+     for(const s of scanLines){
+      if(s.delay>0){s.delay--;continue;}
+      s.y+=s.vy;
+      if(s.y>H+s.h*2){s.y=-s.h;s.x=W*(Math.random()*0.45);s.w=W*(0.25+Math.random()*0.55);}
+      const sg=ctx.createLinearGradient(s.x,0,s.x+s.w,0);
+      sg.addColorStop(0,'rgba(180,185,220,0)');
+      sg.addColorStop(0.15,`rgba(180,185,220,${s.op})`);
+      sg.addColorStop(0.85,`rgba(180,185,220,${s.op})`);
+      sg.addColorStop(1,'rgba(180,185,220,0)');
+      ctx.fillStyle=sg;
+      ctx.fillRect(s.x,s.y,s.w,s.h);
+     }
 
-      /* Vignette */
-      ctx.globalAlpha=1;
-      const vg=ctx.createRadialGradient(cx,cy,H*0.08,cx,cy,H*0.72);
-      vg.addColorStop(0,'rgba(0,0,0,0)');
-      vg.addColorStop(0.50,'rgba(0,0,0,0.08)');
-      vg.addColorStop(0.78,'rgba(12,8,4,0.48)');
-      vg.addColorStop(1,'rgba(10,6,3,0.85)');
-      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+     /* ── Poussière froide ── */
+     for(const d of dust){
+      d.ph+=d.spd;d.x+=d.vx;d.y+=d.vy;
+      if(d.y<-2){d.y=H+2;d.x=Math.random()*W;}
+      if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+      const da=d.op*(0.5+0.5*Math.abs(Math.sin(d.ph)));
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(170,175,210,${da})`;ctx.fill();
+     }
 
-      t+=0.016;requestAnimationFrame(frame);
+     /* ── Grain filmique animé — très subtil ── */
+     const grainAlpha=0.022+Math.sin(t*7.1)*0.004;
+     for(let i=0;i<160;i++){
+      const gx=Math.random()*W,gy=Math.random()*H;
+      const gs=Math.random()*1.8+0.4;
+      const gb=Math.round(140+Math.random()*115);
+      ctx.fillStyle=`rgba(${gb},${gb},${gb+15},${grainAlpha*(0.4+Math.random()*0.6)})`;
+      ctx.fillRect(gx,gy,gs,gs);
+     }
+
+     /* ── Vignette douce ── */
+     ctx.globalAlpha=1;
+     const vg=ctx.createRadialGradient(cx,cy*0.90,H*0.06,cx,cy*0.90,H*0.88);
+     vg.addColorStop(0,'rgba(0,0,0,0)');
+     vg.addColorStop(0.45,'rgba(5,4,12,0.10)');
+     vg.addColorStop(0.72,'rgba(5,4,12,0.42)');
+     vg.addColorStop(1,'rgba(5,4,12,0.88)');
+     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+     t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
