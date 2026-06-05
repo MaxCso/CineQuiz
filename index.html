@@ -1121,7 +1121,7 @@ try{if(typeof localStorage.getItem('setItem')==='string')localStorage.removeItem
         "Maman j'ai raté l'avion": {t:"Kevin !",a:"Angels with Filthy Souls"},
         "Ocean's Eleven": {t:"Les onze vont rentrer dans l'histoire.",a:"Danny Ocean"},
         "N'oublie jamais": {t:"Je t'ai écrit une lettre par jour pendant un an.",a:"Noah Calhoun"},
-        'Training Day':   {t:"À coté de moi King Kong est un ringard !",a:"Alonzo Harris"},
+        'Training Day':   {t:"À coté de moi King Kong est un ringard.",a:"Alonzo Harris"},
         'Fast and Furious':{t:"Je ne vis que pour les 400 mètres d'une course, tout le reste m'est égal... car pendant ces 10 secondes... je suis libre !",a:"Dominic Toretto"},
         'Rambo':          {t:"C'était pas ma guerre !",a:"John Rambo"},
         'Projet Hail Mary':{t:"Je suis seul à des années-lumière de la Terre. Je dois trouver Rocky.",a:"Ryland Grace"},
@@ -10736,8 +10736,13 @@ function openCinepedia(){
     cpEdge.addEventListener('touchend',function(e){
       if(!_on)return;_on=false;
       var dx=e.changedTouches[0].clientX-_sx;
-      modal.style.transform='';modal.style.transition='';
-      if(_go&&dx>80)closeCinepedia();
+      if(_go&&dx>80){
+        closeCinepedia();
+      } else {
+        modal.style.transition='transform .25s cubic-bezier(.4,0,.2,1)';
+        modal.style.transform='translateX(0)';
+        setTimeout(function(){modal.style.transition='';},260);
+      }
       _go=false;
     },{passive:true});
   }
@@ -10746,9 +10751,8 @@ function openCinepedia(){
 function closeCinepedia(){
   const modal=document.getElementById('cinepedia-modal');
   if(!modal)return;
-  modal.style.transition='transform .28s cubic-bezier(.4,0,.2,1), opacity .28s ease';
+  modal.style.transition='transform .28s cubic-bezier(.4,0,.2,1)';
   modal.style.transform='translateX(100%)';
-  modal.style.opacity='0';
   setTimeout(function(){
     modal.style.display='none';
     modal.style.transform='';
@@ -11302,6 +11306,7 @@ function closeSalleInfoModal(){document.getElementById('salle-info-modal').class
 function openCinepediaInfo(){
   const modal=document.getElementById('cinepedia-info-modal');
   if(!modal)return;
+  modal.style.pointerEvents='';
   // Mettre à jour le sous-titre avec le compteur débloqué
   const unlocked=cpGetAllUnlocked();
   const total=700;
@@ -11313,7 +11318,10 @@ function openCinepediaInfo(){
   modal.classList.add('on');
   setupSwipeDown(document.getElementById('cinepedia-info-sh'),closeCinepediaInfo);
 }
-function closeCinepediaInfo(){document.getElementById('cinepedia-info-modal').classList.remove('on');}
+function closeCinepediaInfo(){
+  const m=document.getElementById('cinepedia-info-modal');
+  if(m){m.classList.remove('on');m.style.pointerEvents='none';}
+}
 
 function openBadge(id){
   const b=BADGES.find(x=>x.id===id);if(!b)return;
