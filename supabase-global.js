@@ -50,7 +50,8 @@
     realisateur:'🎥 Réalisateur', casting:'🧩 Le Casting', generique:'📜 Le Générique',
     location:'🌍 Lieu de tournage', training:'📚 Entraînement', vraifaux:'🎯 Vrai ou Faux',
     decennie:'🗓️ Décennie', quiadit:'🗣️ Qui a dit ça ?', survie:'❤️ Survie',
-    pitch:'📝 Le Pitch', versusfilms:'📊 Versus Films', rebus:'🎭 Rébus', pendu:'💀 Le Pendu'
+    pitch:'📝 Le Pitch', versusfilms:'📊 Versus Films', rebus:'🎭 Rébus', pendu:'💀 Le Pendu',
+    blindtest:'🎵 Blind Test', versus:'⚔️ Multijoueur'
   };
 
   /* ── Headers Supabase ── */
