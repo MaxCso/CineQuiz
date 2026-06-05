@@ -13456,6 +13456,9 @@
     ROAD_PINS.sort((a,b)=>a.z-b.z); /* du plus lointain au plus proche */
 
     /* ── Étoiles ── */
+    const VP={x:cx, y:H*0.44};
+    const roadBaseY=H;
+
     const stars=Array.from({length:90},()=>({
       x:Math.random()*W,
       y:Math.random()*(VP.y*0.88),
@@ -13512,10 +13515,6 @@
       op:0.05+Math.random()*0.09,
       w:0.3+Math.random()*0.4,
     }));
-
-    /* Point de fuite */
-    const VP={x:cx, y:H*0.44};
-    const roadBaseY=H;
 
     /* ── Calcul de la position X du bord de la route à une profondeur z ── */
     function roadEdgeX(z,side){
@@ -24870,7 +24869,7 @@
     let _s=document.getElementById('_ff_s');
     if(!_s){_s=document.createElement('style');_s.id='_ff_s';document.head.appendChild(_s);}
     _s.textContent=[
-     '',
+     '#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}',
      '',
      '#splash-quote-text{color:rgba(255,248,220,0.94)!important;text-shadow:0 1px 8px rgba(0,0,0,0.80),0 0 20px rgba(180,230,80,0.18)!important;}',
     ].join('');
