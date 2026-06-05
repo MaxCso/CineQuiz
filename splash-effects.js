@@ -655,7 +655,7 @@
     /* ── Remonter citation + logo ── */
     let _interPos=document.getElementById('_inter_pos');
     if(!_interPos){_interPos=document.createElement('style');_interPos.id='_inter_pos';document.head.appendChild(_interPos);}
-    _interPos.textContent='';
+    _interPos.textContent='#splash-content-wrap{top:38%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _interPosW=setInterval(()=>{if(stop.v){_interPos.textContent='';clearInterval(_interPosW);}},200);
 
     /* Trou noir descendu + agrandi pour mieux l'espacer du contenu */
@@ -788,7 +788,7 @@
     /* ── Positionner citation + logo dans la zone bleue ── */
     let _tronPos=document.getElementById('_tron_pos');
     if(!_tronPos){_tronPos=document.createElement('style');_tronPos.id='_tron_pos';document.head.appendChild(_tronPos);}
-    _tronPos.textContent='#splash-film-logo{max-width:62%!important;}';
+    _tronPos.textContent='#splash-content-wrap{top:31%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-logo{max-width:62%!important;}';
     const _tronPosW=setInterval(()=>{if(stop.v){_tronPos.textContent='';clearInterval(_tronPosW);}},200);
 
     // ── Grille perspective pré-calculée ──
@@ -1098,7 +1098,7 @@
     /* ── Position citation sous le logo CinéQuiz ── */
     let _anS=document.getElementById('_an_s');
     if(!_anS){_anS=document.createElement('style');_anS.id='_an_s';document.head.appendChild(_anS);}
-    _anS.textContent='';
+    _anS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _anW=setInterval(()=>{if(stop.v){_anS.textContent='';clearInterval(_anW);}},200);
 
     /* ── Jungle pré-dessinée une seule fois sur offscreen canvas ── */
@@ -1699,7 +1699,7 @@
     /* ── Position citation + logo sous le header ── */
     let _alStyle=document.getElementById('_al_s');
     if(!_alStyle){_alStyle=document.createElement('style');_alStyle.id='_al_s';document.head.appendChild(_alStyle);}
-    _alStyle.textContent='';
+    _alStyle.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _alW=setInterval(()=>{if(stop.v){_alStyle.textContent='';clearInterval(_alW);}},200);
 
     /* ── Radar — grand, décalé en bas ── */
@@ -2256,7 +2256,7 @@
     /* ── Citation plus basse + logo réduit ── */
     let _herS=document.getElementById('_her_s');
     if(!_herS){_herS=document.createElement('style');_herS.id='_her_s';document.head.appendChild(_herS);}
-    _herS.textContent='#splash-film-logo{max-width:130px!important;}';
+    _herS.textContent='#splash-content-wrap{top:58%!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-logo{max-width:130px!important;}';
     const _herW=setInterval(()=>{if(stop.v){_herS.textContent='';clearInterval(_herW);}},200);
 
     const waves=Array.from({length:7},(_,i)=>({
@@ -2319,7 +2319,7 @@
     /* ── CSS position ── */
     let _dvS=document.getElementById('_dv_pos_s');
     if(!_dvS){_dvS=document.createElement('style');_dvS.id='_dv_pos_s';document.head.appendChild(_dvS);}
-    _dvS.textContent='';
+    _dvS.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _dvW=setInterval(()=>{if(stop.v){_dvS.textContent='';clearInterval(_dvW);}},200);
     const roadC=document.createElement('canvas');
     roadC.width=W;roadC.height=H;
@@ -3341,7 +3341,7 @@
 
     let _spStyle=document.getElementById('_sp_splash_style');
     if(!_spStyle){_spStyle=document.createElement('style');_spStyle.id='_sp_splash_style';document.head.appendChild(_spStyle);}
-    _spStyle.textContent='';
+    _spStyle.textContent='#splash-content-wrap{top:72%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _spWatch=setInterval(()=>{if(stop.v){_spStyle.textContent='';clearInterval(_spWatch);}},200);
 
     /* ── Charger l'image SVG Spider-Man ── */
@@ -3764,7 +3764,7 @@
     /* ── Position citation + logo à 60% ── */
     const _jbStyle=document.createElement('style');
     _jbStyle.id='_jb_pos';
-    _jbStyle.textContent='#splash-film-logo{max-width:60%!important;}';
+    _jbStyle.textContent='#splash-content-wrap{top:70%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-logo{max-width:60%!important;}';
     document.head.appendChild(_jbStyle);
     const _jbPosW=setInterval(()=>{if(stop.v){_jbStyle.textContent='';clearInterval(_jbPosW);}},200);
 
@@ -4484,7 +4484,7 @@
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
     let _s=document.getElementById('_pg2_s');if(!_s){_s=document.createElement('style');_s.id='_pg2_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-film-logo{max-width:62%!important;}';
+    _s.textContent='#splash-content-wrap{top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;}#splash-content-wrap.reveal{transform:translateY(-50%)!important;}#splash-film-logo{max-width:62%!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     // ── Pétales de rose simplifiés ──
@@ -4796,8 +4796,8 @@
     _leStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:62%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _leWatch=setInterval(()=>{if(stop.v){_leStyle.textContent='';clearInterval(_leWatch);}},200);
 
@@ -5388,7 +5388,7 @@
     /* ── Citation + logo remontés sous logo CinéQuiz ── */
     let _fcPos=document.getElementById('_fc_pos_s');
     if(!_fcPos){_fcPos=document.createElement('style');_fcPos.id='_fc_pos_s';document.head.appendChild(_fcPos);}
-    _fcPos.textContent='';
+    _fcPos.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _fcPosW=setInterval(()=>{if(stop.v){_fcPos.textContent='';clearInterval(_fcPosW);}},200);
 
     /* ── Décalage vertical global — descend la scène pour centrer dans la zone visible ── */
@@ -5793,8 +5793,8 @@
     if(!_incS){_incS=document.createElement('style');_incS.id='_inc_s';document.head.appendChild(_incS);}
     _incS.textContent=`
      
-     
-     
+     #splash-content-wrap{top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;}
+     #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
      #splash-quote-text{font-size:13px;color:rgba(255,255,255,0.85)!important;text-shadow:0 1px 10px rgba(0,0,0,0.90)!important;}
      #splash-film-logo{max-width:55%!important;filter:drop-shadow(0 2px 12px rgba(60,100,200,0.45))!important;}
     `;
@@ -6145,7 +6145,7 @@
     /* ── CSS ── */
     let _afPos=document.getElementById('_af_splash_pos');
     if(!_afPos){_afPos=document.createElement('style');_afPos.id='_af_splash_pos';document.head.appendChild(_afPos);}
-    _afPos.textContent='';
+    _afPos.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _afWatch=setInterval(()=>{if(stop.v){_afPos.textContent='';clearInterval(_afWatch);}},200);
 
     /* ── Image de fond ── */
@@ -6561,7 +6561,7 @@
 
     let _glS=document.getElementById('_gl_pos_s');
     if(!_glS){_glS=document.createElement('style');_glS.id='_gl_pos_s';document.head.appendChild(_glS);}
-    _glS.textContent='';
+    _glS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _glW=setInterval(()=>{if(stop.v){_glS.textContent='';clearInterval(_glW);}},200);
 
     /* ── Image de fond ── */
@@ -6695,7 +6695,7 @@
 
     let _weS=document.getElementById('_we_s');
     if(!_weS){_weS=document.createElement('style');_weS.id='_we_s';document.head.appendChild(_weS);}
-    _weS.textContent='';
+    _weS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _weW=setInterval(()=>{if(stop.v){_weS.textContent='';clearInterval(_weW);}},200);
 
     /* ── Étoiles — 3 couches de profondeur ── */
@@ -6940,8 +6940,8 @@
     _htS.textContent=`
       
       
-      
-      
+      #splash-content-wrap{top:50%!important;transform:translateY(-50%)!important;}
+      #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
     `;
     const _htW=setInterval(()=>{if(stop.v){_htS.textContent='';clearInterval(_htW);}},200);
 
@@ -7107,7 +7107,7 @@
     /* ── CSS ── */
     let _jpS=document.getElementById('_jp_pos_s');
     if(!_jpS){_jpS=document.createElement('style');_jpS.id='_jp_pos_s';document.head.appendChild(_jpS);}
-    _jpS.textContent='';
+    _jpS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _jpW=setInterval(()=>{if(stop.v){_jpS.textContent='';clearInterval(_jpW);}},200);
 
     /* ── Image de fond ── */
@@ -7315,7 +7315,7 @@
     /* ── Position citation + logo ── */
     let _dmS=document.getElementById('_dm_s');
     if(!_dmS){_dmS=document.createElement('style');_dmS.id='_dm_s';document.head.appendChild(_dmS);}
-    _dmS.textContent='';
+    _dmS.textContent='#splash-content-wrap{top:52%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _dmW=setInterval(()=>{if(stop.v){_dmS.textContent='';clearInterval(_dmW);}},200);
 
     /* ── Aileron de requin ── */
@@ -7496,7 +7496,7 @@
     /* ── Position citation sous le logo CinéQuiz ── */
     let _sbmS=document.getElementById('_sbm_s');
     if(!_sbmS){_sbmS=document.createElement('style');_sbmS.id='_sbm_s';document.head.appendChild(_sbmS);}
-    _sbmS.textContent='';
+    _sbmS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _sbmW=setInterval(()=>{if(stop.v){_sbmS.textContent='';clearInterval(_sbmW);}},200);
 
     // ── Point de fuite des rails ──
@@ -7806,7 +7806,7 @@
     /* ── Positionnement citation + logo sous le logo Cinéquiz ── */
     let _avPos=document.getElementById('_av_pos');
     if(!_avPos){_avPos=document.createElement('style');_avPos.id='_av_pos';document.head.appendChild(_avPos);}
-    _avPos.textContent='';
+    _avPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _avPosW=setInterval(()=>{if(stop.v){_avPos.textContent='';clearInterval(_avPosW);}},200);
 
     /* ── 6 Pierres de l'Infini ── */
@@ -8007,7 +8007,7 @@
 
     let _hpS=document.getElementById('_hp_s');
     if(!_hpS){_hpS=document.createElement('style');_hpS.id='_hp_s';document.head.appendChild(_hpS);}
-    _hpS.textContent='';
+    _hpS.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _hpW=setInterval(()=>{if(stop.v){_hpS.textContent='';clearInterval(_hpW);}},200);
 
     // ── Étoiles fixes ──
@@ -8424,7 +8424,7 @@
     /* ── Position citation dans le bas ── */
     let _ijS=document.getElementById('_ij_s');
     if(!_ijS){_ijS=document.createElement('style');_ijS.id='_ij_s';document.head.appendChild(_ijS);}
-    _ijS.textContent='';
+    _ijS.textContent='#splash-content-wrap{top:70%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _ijW=setInterval(()=>{if(stop.v){_ijS.textContent='';clearInterval(_ijW);}},200);
 
     // ── Poussière / particules sable ──
@@ -8891,7 +8891,7 @@
     /* ── CSS ── */
     let _bttfS=document.getElementById('_bttf_pos_s');
     if(!_bttfS){_bttfS=document.createElement('style');_bttfS.id='_bttf_pos_s';document.head.appendChild(_bttfS);}
-    _bttfS.textContent='';
+    _bttfS.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _bttfW=setInterval(()=>{if(stop.v){_bttfS.textContent='';clearInterval(_bttfW);}},200);
 
     /* ── Image de fond ── */
@@ -9201,8 +9201,8 @@
     let _rkS=document.getElementById('_rk_s');
     if(!_rkS){_rkS=document.createElement('style');_rkS.id='_rk_s';document.head.appendChild(_rkS);}
     _rkS.textContent=`
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
     `;
     const _rkW=setInterval(()=>{if(stop.v){_rkS.textContent='';clearInterval(_rkW);}},200);
 
@@ -10064,7 +10064,7 @@
     /* ── Position : citation + logo sous CinéQuiz ── */
     let _ncPos=document.getElementById('_nc_splash_pos');
     if(!_ncPos){_ncPos=document.createElement('style');_ncPos.id='_nc_splash_pos';document.head.appendChild(_ncPos);}
-    _ncPos.textContent='';
+    _ncPos.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _ncWatch=setInterval(()=>{if(stop.v){_ncPos.textContent='';clearInterval(_ncWatch);}},200);
 
     /* ── Poussière / particules de sable ── */
@@ -10274,7 +10274,7 @@
 
     let _s=document.getElementById('_me_s');
     if(!_s){_s=document.createElement('style');_s.id='_me_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-quote-text{color:rgba(200,195,210,0.92)!important;text-shadow:0 1px 10px rgba(0,0,0,0.90)!important;}';
+    _s.textContent='#splash-content-wrap{top:50%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(200,195,210,0.92)!important;text-shadow:0 1px 10px rgba(0,0,0,0.90)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Chargement du fond Memento ── */
@@ -10435,7 +10435,7 @@
     /* ── CSS ── */
     let _mmPos=document.getElementById('_mm_pos_s');
     if(!_mmPos){_mmPos=document.createElement('style');_mmPos.id='_mm_pos_s';document.head.appendChild(_mmPos);}
-    _mmPos.textContent='';
+    _mmPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _mmPosW=setInterval(()=>{if(stop.v){_mmPos.textContent='';clearInterval(_mmPosW);}},200);
 
     /* ── Image de fond ── */
@@ -10563,7 +10563,7 @@
     /* ── Position citation + logo à 25% ── */
     let _parS=document.getElementById('_par_pos_s');
     if(!_parS){_parS=document.createElement('style');_parS.id='_par_pos_s';document.head.appendChild(_parS);}
-    _parS.textContent='';
+    _parS.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _parW=setInterval(()=>{if(stop.v){_parS.textContent='';clearInterval(_parW);}},200);
 
     const rain=Array.from({length:150},()=>({
@@ -10645,7 +10645,7 @@
     let _llStyle=document.getElementById('_ll_pos_s');
     if(!_llStyle){_llStyle=document.createElement('style');_llStyle.id='_ll_pos_s';document.head.appendChild(_llStyle);}
     _llStyle.textContent=`
-      
+      #splash-content-wrap{top:42%!important;}
     `;
     const _llW=setInterval(()=>{if(stop.v){_llStyle.textContent='';clearInterval(_llW);}},200);
 
@@ -10894,7 +10894,7 @@
     /* ── Repositionner la citation sous le logo CinéQuiz ── */
     let _sc=document.getElementById('_schl_s');
     if(!_sc){_sc=document.createElement('style');_sc.id='_schl_s';document.head.appendChild(_sc);}
-    _sc.textContent='';
+    _sc.textContent='#splash-content-wrap{top:28%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _sw=setInterval(()=>{if(stop.v){_sc.textContent='';clearInterval(_sw);}},200);
 
     /* ── Cendres / flocons de cendre ── */
@@ -11269,7 +11269,7 @@
 
     let _titS=document.getElementById('_tit_s');
     if(!_titS){_titS=document.createElement('style');_titS.id='_tit_s';document.head.appendChild(_titS);}
-    _titS.textContent='';
+    _titS.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _titW=setInterval(()=>{if(stop.v){_titS.textContent='';clearInterval(_titW);}},200);
 
     const stars=Array.from({length:100},()=>({
@@ -11427,7 +11427,7 @@
     /* ── Positionnement citation + logo sous le logo Cinéquiz ── */
     let _llPos=document.getElementById('_ll_splash_pos');
     if(!_llPos){_llPos=document.createElement('style');_llPos.id='_ll_splash_pos';document.head.appendChild(_llPos);}
-    _llPos.textContent='';
+    _llPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _llWatch=setInterval(()=>{if(stop.v){_llPos.textContent='';clearInterval(_llWatch);}},200);
 
     /* ── Pride Rock SVG — Path2D depuis le fichier fourni ── */
@@ -11741,7 +11741,7 @@
     /* Position citation + logo haut de l'écran, juste sous le logo Cinéquiz */
     let _saPos=document.getElementById('_sa_splash_pos');
     if(!_saPos){_saPos=document.createElement('style');_saPos.id='_sa_splash_pos';document.head.appendChild(_saPos);}
-    _saPos.textContent='';
+    _saPos.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _saWatch=setInterval(()=>{if(stop.v){_saPos.textContent='';clearInterval(_saWatch);}},200);
 
     /* ── Étoiles fixes ── */
@@ -12053,7 +12053,7 @@
 
     let _emPos=document.getElementById('_em_pos_s');
     if(!_emPos){_emPos=document.createElement('style');_emPos.id='_em_pos_s';document.head.appendChild(_emPos);}
-    _emPos.textContent='';
+    _emPos.textContent='#splash-content-wrap{top:35%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _emW=setInterval(()=>{if(stop.v){_emPos.textContent='';clearInterval(_emW);}},200);
 
     // Marges sûres
@@ -12358,7 +12358,7 @@
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ia3_s');if(!_s){_s=document.createElement('style');_s.id='_ia3_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-bg::before{background:none!important;}#splash-bg::after{background:none!important;}#splash-bg-anim::before{background:none!important;}#splash-bg-anim::after{background:none!important;}#splash-content-wrap{top:64%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     const horizY=H*0.52;
@@ -12771,7 +12771,7 @@
     /* ── Fond ciel de Californie — pas d'orbes ── */
     let _s=document.getElementById('_tg_s');
     if(!_s){_s=document.createElement('style');_s.id='_tg_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:51%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horizon : mer en bas ── */
@@ -13033,8 +13033,8 @@
     _pbS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(240,248,255,0.90)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(10,30,20,0.80)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -13118,6 +13118,43 @@
     }
     ROAD_PINS.sort((a,b)=>a.z-b.z); /* du plus lointain au plus proche */
 
+    /* ── Étoiles ── */
+    const stars=Array.from({length:90},()=>({
+      x:Math.random()*W,
+      y:Math.random()*(VP.y*0.88),
+      r:Math.random()*1.1+0.2,
+      op:0.3+Math.random()*0.65,
+      ph:Math.random()*Math.PI*2,
+      twinkleSpd:0.020+Math.random()*0.045,
+    }));
+
+    /* ── Éclairs ── */
+    const lightning={
+      active:false,
+      timer:Math.floor(180+Math.random()*320),
+      alpha:0,
+      x:0,
+      branches:[],
+    };
+    function buildLightning(lx){
+      const segs=[];
+      let sy=VP.y*0.05, sx=lx;
+      const endY=VP.y*0.85;
+      while(sy<endY){
+        const segH=H*(0.035+Math.random()*0.055);
+        const nx=sx+(Math.random()-0.5)*W*0.12;
+        segs.push({x1:sx,y1:sy,x2:nx,y2:sy+segH});
+        /* Branche secondaire occasionnelle */
+        if(Math.random()<0.35){
+          const bx2=nx+(Math.random()-0.5)*W*0.10;
+          const by2=sy+segH*(0.6+Math.random()*0.6);
+          segs.push({x1:nx,y1:sy+segH,x2:bx2,y2:by2,branch:true});
+        }
+        sy+=segH;sx=nx;
+      }
+      return segs;
+    }
+
     /* ── Brume légère qui dérive ── */
     const mists=Array.from({length:5},(_,i)=>({
       x:Math.random()*W*1.2-W*0.1,
@@ -13160,6 +13197,14 @@
       sky.addColorStop(0.82,'#1a3030');  /* vert-bleu horizon boisé */
       sky.addColorStop(1.00,'#1e3428');  /* vert forêt sombre à l'horizon */
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,VP.y+H*0.10);
+
+      /* Étoiles scintillantes */
+      for(const s of stars){
+        s.ph+=s.twinkleSpd;
+        const a=s.op*(0.55+0.45*Math.sin(s.ph));
+        ctx.fillStyle=`rgba(220,235,255,${a})`;
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+      }
 
       /* Légère lueur froide à l'horizon — lune cachée derrière les arbres */
       const horizG=ctx.createLinearGradient(0,VP.y-H*0.06,0,VP.y+H*0.04);
@@ -13375,6 +13420,37 @@
       drawRoad();
       drawPines();
       drawMist();
+
+      /* ── Éclairs ── */
+      lightning.timer--;
+      if(lightning.timer<=0&&!lightning.active){
+        lightning.active=true;
+        lightning.alpha=0.92+Math.random()*0.08;
+        lightning.x=W*(0.15+Math.random()*0.70);
+        lightning.branches=buildLightning(lightning.x);
+        lightning.timer=Math.floor(200+Math.random()*400);
+      }
+      if(lightning.active){
+        /* Flash de ciel */
+        const flashLum=lightning.alpha*0.18;
+        ctx.fillStyle=`rgba(180,210,255,${flashLum})`;
+        ctx.fillRect(0,0,W,VP.y+H*0.08);
+        /* Branches */
+        ctx.save();
+        for(const seg of lightning.branches){
+          ctx.strokeStyle=seg.branch
+            ?`rgba(160,200,255,${lightning.alpha*0.55})`
+            :`rgba(220,235,255,${lightning.alpha})`;
+          ctx.lineWidth=seg.branch?0.8:1.4;
+          ctx.shadowColor='rgba(150,200,255,0.9)';
+          ctx.shadowBlur=seg.branch?6:12;
+          ctx.beginPath();ctx.moveTo(seg.x1,seg.y1);ctx.lineTo(seg.x2,seg.y2);ctx.stroke();
+        }
+        ctx.restore();
+        lightning.alpha-=0.06;
+        if(lightning.alpha<=0){lightning.active=false;lightning.alpha=0;}
+      }
+
       drawRain();
       drawMoto();
 
@@ -13409,7 +13485,7 @@
     cv.style.opacity='1.0'; let t=0; const cx=W/2, cy=H/2;
     let _s=document.getElementById('_jm_s');
     if(!_s){_s=document.createElement('style');_s.id='_jm_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Orbes violettes ── */
@@ -13567,8 +13643,8 @@
     _gtS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(245,230,195,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.9)!important;}
     `;
     const _gtW=setInterval(()=>{if(stop.v){_gtS.textContent='';clearInterval(_gtW);}},200);
@@ -13765,8 +13841,8 @@
     _ds.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:26%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(240,218,168,0.92)!important;
        text-shadow:0 2px 20px rgba(0,0,0,1),0 0 40px rgba(160,80,10,0.6)!important;
@@ -14555,8 +14631,8 @@
     _skStyle.textContent=`
       
       
-      
-      
+      #splash-content-wrap{top:20%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _skW=setInterval(()=>{if(stop.v){_skStyle.textContent='';clearInterval(_skW);}},200);
 
@@ -14764,7 +14840,7 @@
     /* ── Override fond ── */
     let _tfStyle=document.getElementById('_tf_s');
     if(!_tfStyle){_tfStyle=document.createElement('style');_tfStyle.id='_tf_s';document.head.appendChild(_tfStyle);}
-    _tfStyle.textContent='';
+    _tfStyle.textContent='#splash-content-wrap{top:76%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _tfW=setInterval(()=>{if(stop.v){_tfStyle.textContent='';clearInterval(_tfW);}},200);
 
     /* ── Robot SVG ── */
@@ -15006,7 +15082,7 @@
     /* ── Citation + logo sous le bateau ── */
     let _pirStyle=document.getElementById('_pir_s');
     if(!_pirStyle){_pirStyle=document.createElement('style');_pirStyle.id='_pir_s';document.head.appendChild(_pirStyle);}
-    _pirStyle.textContent='';
+    _pirStyle.textContent='#splash-content-wrap{top:70%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _pirW=setInterval(()=>{if(stop.v){_pirStyle.textContent='';clearInterval(_pirW);}},200);
 
     /* Vagues */
@@ -15212,7 +15288,7 @@
     /* Cleanup DOM éléments injectés */
     let _mibStyle=document.getElementById('_mib_pos_s');
     if(!_mibStyle){_mibStyle=document.createElement('style');_mibStyle.id='_mib_pos_s';document.head.appendChild(_mibStyle);}
-    _mibStyle.textContent='';
+    _mibStyle.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _mibW=setInterval(()=>{
      if(stop.v){
       _mibStyle.textContent='';
@@ -15431,7 +15507,7 @@
 
     let _s=document.getElementById('_et_s');
     if(!_s){_s=document.createElement('style');_s.id='_et_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:68%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* SVG vélo+ET — viewBox 0 0 570 459 */
@@ -15732,8 +15808,8 @@
     if(!_svStyle){_svStyle=document.createElement('style');_svStyle.id='_sv_splash_style';document.head.appendChild(_svStyle);}
     _svStyle.textContent=`
 
-      
-      
+      #splash-content-wrap{top:39%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
       #splash-quote-text{color:rgba(255,255,255,0.92)!important;text-shadow:0 1px 8px rgba(0,0,0,0.90)!important;font-size:14px!important;}
     `;
     const _svWatch=setInterval(()=>{if(stop.v){_svStyle.textContent='';clearInterval(_svWatch);}},200);
@@ -16073,7 +16149,7 @@
 
     let _goS=document.getElementById('_go_s');
     if(!_goS){_goS=document.createElement('style');_goS.id='_go_s';document.head.appendChild(_goS);}
-    _goS.textContent='';
+    _goS.textContent='#splash-content-wrap{top:68%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _goW=setInterval(()=>{if(stop.v){_goS.textContent='';clearInterval(_goW);}},200);
 
     /* Pieces d or */
@@ -16301,7 +16377,7 @@
     let t=0;
     const cx=W/2;
     let _es=document.getElementById('_es_s');if(!_es){_es=document.createElement('style');_es.id='_es_s';document.head.appendChild(_es);}
-    _es.textContent='';
+    _es.textContent='#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}.splash-tagline::before,.splash-tagline::after{background:none!important;}';
     const _esW=setInterval(()=>{if(stop.v){_es.textContent='';clearInterval(_esW);}},200);
 
     /* ── Flocons légers ── */
@@ -16483,16 +16559,14 @@
 
       
       
-
-      
-            
+      #splash-film-quote{color:rgba(60,30,10,0.92)!important;text-shadow:0 1px 3px rgba(255,220,120,0.45)!important;}
     `;
     const _tsWatch=setInterval(()=>{if(stop.v){_tsStyle.textContent='';clearInterval(_tsWatch);}},200);
 
     /* ── Citation + logo remontés sous logo CinéQuiz ── */
     let _tsPos=document.getElementById('_tshow_pos_s');
     if(!_tsPos){_tsPos=document.createElement('style');_tsPos.id='_tshow_pos_s';document.head.appendChild(_tsPos);}
-    _tsPos.textContent='#splash-quote-text{color:#000000!important;text-shadow:none!important;}';
+    _tsPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:#000000!important;text-shadow:none!important;}';
     const _tsPosW=setInterval(()=>{if(stop.v){_tsPos.textContent='';clearInterval(_tsPosW);}},200);
 
     let t=0;
@@ -16723,7 +16797,7 @@
     /* ── CSS override : remonter citation + logo (~25%), descendre bus géré via BY ── */
     let _itwStyle=document.getElementById('_itw_splash_style');
     if(!_itwStyle){_itwStyle=document.createElement('style');_itwStyle.id='_itw_splash_style';document.head.appendChild(_itwStyle);}
-    _itwStyle.textContent='';
+    _itwStyle.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _itwWatch=setInterval(()=>{if(stop.v){_itwStyle.textContent='';clearInterval(_itwWatch);}},200);
 
     /* Étoiles — nuit Alaska */
@@ -16911,12 +16985,12 @@
     _kbStyle.textContent=`
       
 
-      
-      
-      
+      #splash-content-wrap{top:50%!important;transform:translateY(-50%)!important;}
+      #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
+      #splash-logo-wrap,#splash-logo-wrap *{color:#000000!important;-webkit-text-fill-color:#000000!important;}
 
-      
-      
+      #splash-film-ref-bottom,#splash-film-ref{color:rgba(180,10,10,0.90)!important;-webkit-text-fill-color:rgba(180,10,10,0.90)!important;}
+      #splash-credit,#splash-ref-bot,.splash-credit{color:rgba(180,10,10,0.90)!important;-webkit-text-fill-color:rgba(180,10,10,0.90)!important;}
       #splash-skip{color:rgba(255,255,255,0.90)!important;-webkit-text-fill-color:rgba(255,255,255,0.90)!important;letter-spacing:3px!important;}
     `;
     const _kbWatch=setInterval(()=>{if(stop.v){_kbStyle.textContent='';clearInterval(_kbWatch);}},200);
@@ -17295,7 +17369,7 @@
     /* ── Style UI — citation + logo centrés à 50% ── */
     let _djS=document.getElementById('_dj_s');
     if(!_djS){_djS=document.createElement('style');_djS.id='_dj_s';document.head.appendChild(_djS);}
-    _djS.textContent='#splash-film-logo{max-width:160px!important;}#splash-quote-text{color:rgba(255,210,180,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.9)!important;}';
+    _djS.textContent='#splash-content-wrap{top:50%!important;transform:translateY(-50%)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(-50%)!important;}#splash-film-logo{max-width:160px!important;}#splash-quote-text{color:rgba(255,210,180,0.88)!important;text-shadow:0 1px 8px rgba(0,0,0,0.9)!important;}';
     const _djW=setInterval(()=>{if(stop.v){_djS.textContent='';clearInterval(_djW);}},200);
 
     /* ── Chargement SVG Chaîne (214×1192) ── */
@@ -17987,7 +18061,7 @@
     /* ── Override fond : noir profond ── */
     let _s=document.getElementById('_rfd_s');
     if(!_s){_s=document.createElement('style');_s.id='_rfd_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';['_mib_fig','_mib_vig'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});clearInterval(_w);}},200);
 
     /* ── Télévision CRT — dimensions et position ── */
@@ -18247,8 +18321,8 @@
     if(!_gbuStyle){_gbuStyle=document.createElement('style');_gbuStyle.id='_gbu_splash_style';document.head.appendChild(_gbuStyle);}
     _gbuStyle.textContent=`
 
-      
-      
+      #splash-content-wrap{top:20%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _gbuWatch=setInterval(()=>{if(stop.v){_gbuStyle.textContent='';clearInterval(_gbuWatch);}},200);
 
@@ -18672,7 +18746,7 @@
     /* ── Positionnement citation+logo : remonté sous le logo CinéQuiz ── */
     let _gremS=document.getElementById('_grem_pos_s');
     if(!_gremS){_gremS=document.createElement('style');_gremS.id='_grem_pos_s';document.head.appendChild(_gremS);}
-    _gremS.textContent='';
+    _gremS.textContent='#splash-content-wrap{top:30%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _gremW=setInterval(()=>{if(stop.v){_gremS.textContent='';clearInterval(_gremW);}},200);
 
     /* ── Neige persistante — beaucoup plus de flocons, variés ── */
@@ -19161,7 +19235,7 @@
 
     let _s=document.getElementById('_rb_s');
     if(!_s){_s=document.createElement('style');_s.id='_rb_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Géographie ── */
@@ -19497,8 +19571,8 @@
     _lwStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+      #splash-content-wrap.reveal{transform:none!important;}
     `;
     const _lwWatch=setInterval(()=>{if(stop.v){_lwStyle.textContent='';clearInterval(_lwWatch);}},200);
 
@@ -19510,7 +19584,7 @@
     /* ── CSS override : citation + logo sous le stylo ── */
     let _lwPos=document.getElementById('_lw_pos_s');
     if(!_lwPos){_lwPos=document.createElement('style');_lwPos.id='_lw_pos_s';document.head.appendChild(_lwPos);}
-    _lwPos.textContent=``;
+    _lwPos.textContent=`#splash-content-wrap{top:72%!important;}`;
     const _lwPosW=setInterval(()=>{if(stop.v){_lwPos.textContent='';clearInterval(_lwPosW);}},200);
 
     /* Dimensions stylo : descendu à H*0.22, hauteur 46% */
@@ -20104,7 +20178,8 @@
     let _scPos=document.getElementById('_sc_pos_s');
     if(!_scPos){_scPos=document.createElement('style');_scPos.id='_sc_pos_s';document.head.appendChild(_scPos);}
     _scPos.textContent=`
-            
+      #splash-content-wrap{top:${Math.round((MASK_Y+MASK_H)/H*100)+2}%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _scPosWatch=setInterval(()=>{if(stop.v){_scPos.textContent='';clearInterval(_scPosWatch);}},200);
 
@@ -20282,7 +20357,7 @@
 
     let _rblS=document.getElementById('_rbl_s');
     if(!_rblS){_rblS=document.createElement('style');_rblS.id='_rbl_s';document.head.appendChild(_rblS);}
-    _rblS.textContent='';
+    _rblS.textContent='#splash-content-wrap{top:50%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _rblW=setInterval(()=>{if(stop.v){_rblS.textContent='';clearInterval(_rblW);}},200);
 
     /* ── Image de fond PNG ── */
@@ -20302,16 +20377,17 @@
      warm:Math.random(), /* 0=violet, 1=rouge */
     }));
 
-    /* ── Particules sueur/sang éjectées ── */
-    const drops=Array.from({length:24},()=>({
-     x:cx+(Math.random()-0.5)*W*0.30,
-     y:H*(0.68+Math.random()*0.14),
-     vx:(Math.random()-0.5)*3.2,
-     vy:-(Math.random()*2.4+0.6),
-     r:Math.random()*2.8+0.5,
+    /* ── Particules de poussière de ring ── */
+    const drops=Array.from({length:55},()=>({
+     x:Math.random()*W,
+     y:H*(0.45+Math.random()*0.50),
+     vx:(Math.random()-0.5)*0.55,
+     vy:-(0.08+Math.random()*0.22),
+     r:Math.random()*1.6+0.3,
      life:Math.random(),
-     decay:0.010+Math.random()*0.014,
-     red:Math.random()>0.45,
+     decay:0.003+Math.random()*0.006,
+     wobble:Math.random()*Math.PI*2,
+     wobbleSpd:(Math.random()-0.5)*0.04,
     }));
 
     /* ── Flashes photo depuis les bords — ringside ── */
@@ -20397,18 +20473,24 @@
       }
      }
 
-     /* ── Particules sueur/sang ── */
+     /* ── Particules de poussière ── */
      for(const d of drops){
-      d.x+=d.vx;d.y+=d.vy;d.vy+=0.12;d.life-=d.decay;
+      d.x+=d.vx+Math.sin(d.wobble)*0.30;
+      d.y+=d.vy;
+      d.wobble+=d.wobbleSpd;
+      d.vy*=0.995;
+      d.life-=d.decay;
       if(d.life<=0){
-       d.x=cx+(Math.random()-0.5)*W*0.28;
-       d.y=H*(0.70+Math.random()*0.10);
-       d.vx=(Math.random()-0.5)*3.0;d.vy=-(Math.random()*2.2+0.5);
-       d.life=0.75+Math.random()*0.25;
-       d.red=Math.random()>0.45;
+       d.x=Math.random()*W;
+       d.y=H*(0.75+Math.random()*0.22);
+       d.vx=(Math.random()-0.5)*0.50;
+       d.vy=-(0.06+Math.random()*0.20);
+       d.life=0.60+Math.random()*0.40;
+       d.r=Math.random()*1.6+0.3;
       }
-      const da=d.life*0.65;
-      ctx.fillStyle=d.red?`rgba(220,18,12,${da})`:`rgba(255,235,210,${da*0.55})`;
+      const da=d.life*0.50;
+      const gr=Math.floor(180+Math.random()*40);
+      ctx.fillStyle=`rgba(${gr},${gr-20},${gr-40},${da})`;
       ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
      }
 
@@ -20851,7 +20933,7 @@
     /* ── Fond : coucher de soleil Miami — pas d'orbes ── */
     let _s=document.getElementById('_sf_s');
     if(!_s){_s=document.createElement('style');_s.id='_sf_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:72%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horizon ── */
@@ -21356,7 +21438,7 @@
     /* CSS — position du contenu */
     let _rdtS=document.getElementById('_rdt_s');
     if(!_rdtS){_rdtS=document.createElement('style');_rdtS.id='_rdt_s';document.head.appendChild(_rdtS);}
-    _rdtS.textContent='';
+    _rdtS.textContent='#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _rdtW=setInterval(()=>{if(stop.v){_rdtS.textContent='';clearInterval(_rdtW);}},200);
     /* Point de fuite horizon — légèrement en dessous du centre */
     const vpX=cx, vpY=H*0.52;
@@ -21569,8 +21651,8 @@
     _dhStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:25%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _dhWatch=setInterval(()=>{if(stop.v){_dhStyle.textContent='';clearInterval(_dhWatch);}},200);
 
@@ -21780,8 +21862,8 @@
     if(!_tsStyle){_tsStyle=document.createElement('style');_tsStyle.id='_ts_splash_style';document.head.appendChild(_tsStyle);}
     _tsStyle.textContent=`
 
-      
-      
+      #splash-content-wrap{top:30%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
       #splash-film-quote{color:rgba(60,30,10,0.92)!important;text-shadow:0 1px 3px rgba(255,220,120,0.45)!important;}
     `;
     const _tsWatch=setInterval(()=>{if(stop.v){_tsStyle.textContent='';clearInterval(_tsWatch);}},200);
@@ -22202,7 +22284,7 @@
     let t=0;
     const cx=W/2;
     let _mcs=document.getElementById('_mc_s');if(!_mcs){_mcs=document.createElement('style');_mcs.id='_mc_s';document.head.appendChild(_mcs);}
-    _mcs.textContent='';
+    _mcs.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _mcw=setInterval(()=>{if(stop.v){_mcs.textContent='';clearInterval(_mcw);}},200);
     const doors=Array.from({length:14},(_,i)=>({x:Math.random()*W,y:H*0.15+Math.random()*H*0.60,vx:(Math.random()-0.5)*0.7,vy:(Math.random()-0.5)*0.4,w:W*(0.055+Math.random()*0.055),hd:H*(0.09+Math.random()*0.08),hue:Math.random()*360,open:Math.random()>0.45,ph:Math.random()*Math.PI*2,style:i%3}));
     const laughP=Array.from({length:26},()=>({x:Math.random()*W,y:H*0.30+Math.random()*H*0.45,vx:(Math.random()-0.5)*0.9,vy:-(Math.random()*0.7+0.2),r:Math.random()*4+1.5,ph:Math.random()*Math.PI*2,hue:Math.random()*60+30}));
@@ -22524,7 +22606,7 @@
     /* ── Fond override : beurre chaud parisien ── */
     let _rs=document.getElementById('_rata_s');
     if(!_rs){_rs=document.createElement('style');_rs.id='_rata_s';document.head.appendChild(_rs);}
-    _rs.textContent='';
+    _rs.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _rw=setInterval(()=>{if(stop.v){_rs.textContent='';clearInterval(_rw);}},200);
 
     /* ── Étoiles parisiennes ── */
@@ -23030,10 +23112,11 @@
     _rvS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:30%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(0,0,0,0.92)!important;font-size:14px!important;text-shadow:none!important;}
-     
+     #splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}
+     #splash-film-logo{max-width:62%!important;}
     `;
     const _rvW=setInterval(()=>{if(stop.v){_rvS.textContent='';clearInterval(_rvW);}},200);
 
@@ -23210,7 +23293,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
     let _s=document.getElementById('_ug_s');
     if(!_s){_s=document.createElement('style');_s.id='_ug_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Particules étoilées — 3 couches ── */
@@ -23478,8 +23561,8 @@
     _dd.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(195,210,240,0.90)!important;
        text-shadow:0 2px 18px rgba(0,0,0,1),0 0 32px rgba(80,100,200,0.40)!important;
@@ -24281,8 +24364,8 @@
     _ryStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:20%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _ryW=setInterval(()=>{if(stop.v){_ryStyle.textContent='';clearInterval(_ryW);}},200);
 
@@ -24773,9 +24856,9 @@
     _wpStyle.textContent=`
 
       
-      
-      
-      
+      #splash-bg{background:none!important;}
+      #splash-content-wrap{top:64%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _wpWatch=setInterval(()=>{if(stop.v){_wpStyle.textContent='';clearInterval(_wpWatch);}},200);
 
@@ -25032,9 +25115,9 @@
     _lnStyle.textContent=`
 
       
-      
-      
-      
+      #splash-bg{background:none!important;}
+      #splash-content-wrap{top:26%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _lnWatch=setInterval(()=>{if(stop.v){_lnStyle.textContent='';clearInterval(_lnWatch);}},200);
 
@@ -25044,7 +25127,7 @@
     /* ── Positionnement citation + logo juste sous Cinéquiz ── */
     let _lnPos=document.getElementById('_ln_pos');
     if(!_lnPos){_lnPos=document.createElement('style');_lnPos.id='_ln_pos';document.head.appendChild(_lnPos);}
-    _lnPos.textContent='';
+    _lnPos.textContent='#splash-content-wrap{top:calc(19% + 2px)!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _lnPosW=setInterval(()=>{if(stop.v){_lnPos.textContent='';clearInterval(_lnPosW);}},200);
 
     /* ── Particules ── */
@@ -25383,7 +25466,7 @@
     /* ── Citation remontée sous logo CinéQuiz ── */
     let _platPos=document.getElementById('_plat_pos_s');
     if(!_platPos){_platPos=document.createElement('style');_platPos.id='_plat_pos_s';document.head.appendChild(_platPos);}
-    _platPos.textContent='';
+    _platPos.textContent='#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _platPosW=setInterval(()=>{if(stop.v){_platPos.textContent='';clearInterval(_platPosW);}},200);
 
     const groundY=H*0.72;
@@ -25916,8 +25999,8 @@
     if(!_s){_s=document.createElement('style');_s.id='_intou_s';document.head.appendChild(_s);}
     _s.textContent=`
 
-      
-      
+      #splash-content-wrap{top:30%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
       #splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 1px 12px rgba(0,0,0,0.60)!important;}
       #splash-film-logo{filter:drop-shadow(0 2px 10px rgba(0,0,0,0.50))!important;}
     `;
@@ -26122,9 +26205,9 @@
     _mrStyle.textContent=`
 
       
-      
-      
-      
+      #splash-bg{background:none!important;}
+      #splash-content-wrap{top:20%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _mrWatch=setInterval(()=>{if(stop.v){_mrStyle.textContent='';clearInterval(_mrWatch);}},200);
 
@@ -26470,7 +26553,7 @@
     /* ── Style UI ── */
     let _twbS=document.getElementById('_twb_s');
     if(!_twbS){_twbS=document.createElement('style');_twbS.id='_twb_s';document.head.appendChild(_twbS);}
-    _twbS.textContent='#splash-film-logo{max-width:165px!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 10px rgba(0,0,0,0.98)!important;}';
+    _twbS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:165px!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 10px rgba(0,0,0,0.98)!important;}';
     const _twbW=setInterval(()=>{if(stop.v){_twbS.textContent='';clearInterval(_twbW);}},200);
 
     /* ── Chargement SVG TWBB (derrick + sol noir) ── */
@@ -26685,8 +26768,8 @@
     _5eStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:62%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     /* Supprimer le positionnement inline résiduel */
     const _5eWrap=document.getElementById('splash-content-wrap');
@@ -26961,7 +27044,7 @@
     /* Override position citation/logo */
     let _jhPos=document.getElementById('_jh_pos_s');
     if(!_jhPos){_jhPos=document.createElement('style');_jhPos.id='_jh_pos_s';document.head.appendChild(_jhPos);}
-    _jhPos.textContent='#splash-film-logo{max-width:160px!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 1px 10px rgba(0,0,0,0.98)!important;}';
+    _jhPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-film-logo{max-width:160px!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 1px 10px rgba(0,0,0,0.98)!important;}';
     const _jhPosWatch=setInterval(()=>{if(stop.v){_jhPos.textContent='';clearInterval(_jhPosWatch);}},200);
 
     /* Cache silhouettes */
@@ -27091,15 +27174,7 @@
      const SY = groundY - SH;
      drawSilhouette('jarhead_soldier', soldierImg, SX, SY, SW, SH, 0.97);
 
-     /* Silhouettes lointaines au fond */
-     ctx.fillStyle='rgba(6,3,1,0.82)';
-     for(const f of distFigures){
-      const fx2=f.x, fy=groundY-f.h;
-      /* Corps */
-      ctx.beginPath();ctx.ellipse(fx2,fy-f.h*0.22,f.h*0.08,f.h*0.30,0,0,Math.PI*2);ctx.fill();
-      /* Tête */
-      ctx.beginPath();ctx.arc(fx2,fy-f.h*0.62,f.h*0.10,0,Math.PI*2);ctx.fill();
-     }
+     /* Silhouettes lointaines au fond — supprimées */
     }
 
     function frame(){
@@ -27255,8 +27330,8 @@
     _tpStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:28%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _tpW=setInterval(()=>{if(stop.v){_tpStyle.textContent='';clearInterval(_tpW);}},200);
 
@@ -27575,7 +27650,7 @@
     /* ── Positionnement citation + logo sous le logo Cinéquiz ── */
     let _tlPos=document.getElementById('_tl_pos');
     if(!_tlPos){_tlPos=document.createElement('style');_tlPos.id='_tl_pos';document.head.appendChild(_tlPos);}
-    _tlPos.textContent='';
+    _tlPos.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _tlPosW=setInterval(()=>{if(stop.v){_tlPos.textContent='';clearInterval(_tlPosW);}},200);
 
     /* ── SVG voiture ── */
@@ -28732,8 +28807,8 @@
     _smStyle.textContent=`
       
 
-      
-      
+      #splash-content-wrap{top:68%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _smWatch=setInterval(()=>{if(stop.v){_smStyle.textContent='';clearInterval(_smWatch);}},200);
 
@@ -28952,7 +29027,7 @@
     /* ── Citation remontée sous logo CinéQuiz ── */
     let _ewPos=document.getElementById('_ews_pos_s');
     if(!_ewPos){_ewPos=document.createElement('style');_ewPos.id='_ews_pos_s';document.head.appendChild(_ewPos);}
-    _ewPos.textContent='#splash-quote-text{color:rgba(255,255,255,0.88)!important;text-shadow:0 0 18px rgba(255,255,255,0.18)!important;}';
+    _ewPos.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.88)!important;text-shadow:0 0 18px rgba(255,255,255,0.18)!important;}';
     const _ewPosW=setInterval(()=>{if(stop.v){_ewPos.textContent='';clearInterval(_ewPosW);}},200);
 
     /* ── Chargement SVG œil ── */
@@ -29281,7 +29356,7 @@
     /* ── Positionnement citation + logo sous l'horloge ── */
     let _jfPos=document.getElementById('_jf_pos');
     if(!_jfPos){_jfPos=document.createElement('style');_jfPos.id='_jf_pos';document.head.appendChild(_jfPos);}
-    _jfPos.textContent='';
+    _jfPos.textContent='#splash-content-wrap{top:60%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _jfPosW=setInterval(()=>{if(stop.v){_jfPos.textContent='';clearInterval(_jfPosW);}},200);
 
     /* ── État de l'oiseau coucou ── */
@@ -29672,7 +29747,7 @@
     /* ── Position citation/logo en haut + neutralise splash-bg ── */
     let _lowPos=document.getElementById('_low_pos_s');
     if(!_lowPos){_lowPos=document.createElement('style');_lowPos.id='_low_pos_s';document.head.appendChild(_lowPos);}
-    _lowPos.textContent='';
+    _lowPos.textContent='#splash-content-wrap{top:35%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _lowW=setInterval(()=>{if(stop.v){_lowPos.textContent='';clearInterval(_lowW);}},200);
 
     /* ── Nuages ── */
@@ -30492,7 +30567,7 @@
     /* ── Positionnement citation + logo juste au-dessus des buildings ── */
     let _oppPos=document.getElementById('_opp_splash_pos');
     if(!_oppPos){_oppPos=document.createElement('style');_oppPos.id='_opp_splash_pos';document.head.appendChild(_oppPos);}
-    _oppPos.textContent='';
+    _oppPos.textContent='#splash-content-wrap{top:58%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _oppPosWatch=setInterval(()=>{if(stop.v){_oppPos.textContent='';clearInterval(_oppPosWatch);}},200);
 
     /* ── Override fond : dégradé orange chaud de l'affiche ── */
@@ -30719,7 +30794,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ia2_s');
     if(!_s){_s=document.createElement('style');_s.id='_ia2_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Étoiles / ciel nocturne ── */
@@ -31313,7 +31388,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_td_s');
     if(!_s){_s=document.createElement('style');_s.id='_td_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-quote-text{color:rgba(30,22,8,0.88)!important;text-shadow:none!important;}';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(30,22,8,0.88)!important;text-shadow:none!important;}#splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}.splash-tagline::before,.splash-tagline::after{background:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Silhouette Alonzo — Path2D depuis SVG (viewBox 0 0 546 584) */
@@ -31471,8 +31546,8 @@
     _fnfS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:23%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,255,255,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -31823,13 +31898,14 @@
     _rbS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(40,35,30,0.88)!important;font-size:14px!important;text-shadow:0 1px 6px rgba(180,170,155,0.6)!important;}
      #splash-film-logo{max-width:60%!important;}
-     
-     
-          
+     #splash-film-ref-bottom,#splash-film-ref{color:rgba(0,0,0,0.85)!important;-webkit-text-fill-color:rgba(0,0,0,0.85)!important;}
+     #splash-credit,#splash-ref-bot,.splash-credit{color:rgba(0,0,0,0.85)!important;-webkit-text-fill-color:rgba(0,0,0,0.85)!important;}
+     #splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}
+     .splash-tagline::before,.splash-tagline::after{background:none!important;}
     `;
     const _rbW=setInterval(()=>{if(stop.v){_rbS.textContent='';clearInterval(_rbW);}},200);
 
@@ -33076,7 +33152,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_fmj_s');
     if(!_s){_s=document.createElement('style');_s.id='_fmj_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-logo-wrap .splash-logo,#splash-logo-wrap .splash-tagline{color:#1a1a1a!important;-webkit-text-fill-color:#1a1a1a!important;background:none!important;}#splash-content-wrap{top:52%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:#1a1a1a!important;text-shadow:none!important;}.splash-tagline{background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;-webkit-text-fill-color:#1a1a1a!important;color:#1a1a1a!important;filter:none!important;opacity:0.55!important;animation:none!important;}.splash-tagline::before,.splash-tagline::after{background:rgba(0,0,0,0.25)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
     const _helmetImg=new Image();
     let _helmetReady=false;
@@ -33145,8 +33221,8 @@
     if(!_sn){_sn=document.createElement('style');_sn.id='_sn_s';document.head.appendChild(_sn);}
     _sn.textContent=`
 
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(235,225,210,0.92)!important;
        text-shadow:0 2px 18px rgba(0,0,0,1),0 0 30px rgba(180,140,255,0.25)!important;
@@ -33652,7 +33728,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_rm_s');
     if(!_s){_s=document.createElement('style');_s.id='_rm_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horizon — géographie ── */
@@ -34167,7 +34243,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_wh_s');
     if(!_s){_s=document.createElement('style');_s.id='_wh_s';document.head.appendChild(_s);}
-    _s.textContent=`#splash-quote-text{color:rgba(255,245,220,0.92)!important;text-shadow:0 1px 8px rgba(80,40,0,0.35)!important;}`;
+    _s.textContent=`#splash-content-wrap{top:24%!important;bottom:auto!important;transform:none!important;}#splash-content-wrap.reveal{transform:none!important;}#splash-quote-text{color:rgba(255,245,220,0.92)!important;text-shadow:0 1px 8px rgba(80,40,0,0.35)!important;}`;
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -34375,10 +34451,14 @@
     _tdkS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:30%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(240,250,255,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(10,25,40,0.85)!important;}
      #splash-film-logo{max-width:60%!important;filter:drop-shadow(0 2px 8px rgba(10,25,50,0.6))!important;}
+     #splash-tagline,.splash-tagline{color:#000000!important;-webkit-text-fill-color:#000000!important;background:none!important;-webkit-background-clip:unset!important;background-clip:unset!important;}
+     .splash-tagline::before,.splash-tagline::after{background:none!important;}
+     #splash-film-ref-bottom,#splash-film-ref{color:rgba(0,0,0,0.85)!important;-webkit-text-fill-color:rgba(0,0,0,0.85)!important;}
+     #splash-credit,#splash-ref-bot,.splash-credit{color:rgba(0,0,0,0.85)!important;-webkit-text-fill-color:rgba(0,0,0,0.85)!important;}
      #splash-skip{color:rgba(0,0,0,0.80)!important;-webkit-text-fill-color:rgba(0,0,0,0.80)!important;}
     `;
     const _tdkW=setInterval(()=>{if(stop.v){_tdkS.textContent='';clearInterval(_tdkW);}},200);
@@ -34554,7 +34634,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_gr_s');
     if(!_s){_s=document.createElement('style');_s.id='_gr_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Étoiles fond */
@@ -34856,7 +34936,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_om_s');
     if(!_s){_s=document.createElement('style');_s.id='_om_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     const NB_STRIPES=14;
@@ -35119,8 +35199,8 @@
     _litS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,255,255,0.92)!important;font-size:15px!important;text-shadow:0 1px 12px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -35409,8 +35489,8 @@
     _s.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(210,225,210,0.90)!important;
        text-shadow:0 2px 18px rgba(0,0,0,1),0 0 30px rgba(80,180,80,0.18)!important;
@@ -35755,7 +35835,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ib_s');
     if(!_s){_s=document.createElement('style');_s.id='_ib_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Particules de cendres */
@@ -35932,7 +36012,7 @@
     /* ── Styles ── */
     let _s=document.getElementById('_bm_s');
     if(!_s){_s=document.createElement('style');_s.id='_bm_s';document.head.appendChild(_s);}
-    _s.textContent=`#splash-quote-text{font-size:15px;color:rgba(255,255,255,.88)!important;text-shadow:0 2px 16px rgba(0,0,0,.35)!important;}`;
+    _s.textContent=`#splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}#splash-content-wrap.reveal{transform:none!important;}#splash-quote-text{font-size:15px;color:rgba(255,255,255,.88)!important;text-shadow:0 2px 16px rgba(0,0,0,.35)!important;}`;
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -36118,7 +36198,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_tbc_s');
     if(!_s){_s=document.createElement('style');_s.id='_tbc_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* SVG groupe — viewBox 0 0 739 623, ratio 1.185 */
@@ -36300,7 +36380,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_lp_s');
     if(!_s){_s=document.createElement('style');_s.id='_lp_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-quote-text{color:rgba(255,255,255,0.92)!important;text-shadow:0 2px 12px rgba(0,0,0,0.95)!important;}#splash-film-logo{filter:drop-shadow(0 2px 12px rgba(0,0,0,0.95))!important;}';
+    _s.textContent='#splash-content-wrap{top:30%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.92)!important;text-shadow:0 2px 12px rgba(0,0,0,0.95)!important;}#splash-film-logo{filter:drop-shadow(0 2px 12px rgba(0,0,0,0.95))!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Chapeau SVG — chargé depuis le dossier images ── */
@@ -36409,8 +36489,8 @@
     _mdS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,255,255,0.92)!important;font-size:14px!important;text-shadow:0 1px 12px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -36776,7 +36856,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ml_s');
     if(!_s){_s=document.createElement('style');_s.id='_ml_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:28%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── SVG silhouette + vagues ── */
@@ -37020,7 +37100,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_vs_s');
     if(!_s){_s=document.createElement('style');_s.id='_vs_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent=`#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline{color:rgba(255,105,165,0.90)!important;-webkit-text-fill-color:rgba(255,105,165,0.90)!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:rgba(255,105,165,0.90)!important;-webkit-text-fill-color:rgba(255,105,165,0.90)!important;text-shadow:none!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;text-shadow:none!important;}`;
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -37387,7 +37467,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ed_s');
     if(!_s){_s=document.createElement('style');_s.id='_ed_s';document.head.appendChild(_s);}
-    _s.textContent=`#splash-quote-text{color:rgba(255,240,235,.92)!important;text-shadow:0 2px 16px rgba(0,0,0,.45)!important;}#splash-film-logo{display:block!important;filter:drop-shadow(0 2px 12px rgba(0,0,0,0.65)) drop-shadow(0 0 18px rgba(180,150,220,0.35))!important;}"`;
+    _s.textContent=`#splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}#splash-content-wrap.reveal{transform:none!important;}#splash-quote-text{color:rgba(255,240,235,.92)!important;text-shadow:0 2px 16px rgba(0,0,0,.45)!important;}#splash-film-logo{display:block!important;filter:drop-shadow(0 2px 12px rgba(0,0,0,0.65)) drop-shadow(0 0 18px rgba(180,150,220,0.35))!important;}"`;
     function _edCleanup(){
      _s.textContent='';
      ['_ed_fig','_ed_vig','_ed_fig_s'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});
@@ -37567,8 +37647,8 @@
     _s.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;}
+     #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
      #splash-quote-text{
        color:rgba(245,238,215,0.92)!important;
        text-shadow:0 2px 20px rgba(0,0,0,1),0 0 40px rgba(0,0,0,0.9)!important;
@@ -37890,7 +37970,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_cm_s');
     if(!_s){_s=document.createElement('style');_s.id='_cm_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:21%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Palette Saul Bass / années 60 ── */
@@ -38120,8 +38200,8 @@
     _s.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(230,215,200,0.90)!important;
        text-shadow:0 2px 18px rgba(0,0,0,1),0 0 28px rgba(160,20,20,0.35)!important;
@@ -39017,8 +39097,8 @@
     _gs.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{
        color:rgba(230,218,168,0.92)!important;
        text-shadow:0 2px 16px rgba(0,0,0,0.95),0 0 28px rgba(20,60,30,0.6)!important;
@@ -39276,7 +39356,7 @@
      /* ── SILHOUETTE SVG ── */
      if(silLoaded&&silhouetteImg){
       const iW=W*0.60, iH=iW*(silhouetteImg.naturalHeight/silhouetteImg.naturalWidth||1.6);
-      const ix=cx-iW/2, iy=H*0.39;
+      const ix=cx-iW/2, iy=H*0.38;
       const sway=Math.sin(t*0.20)*W*0.003;
       ctx.save();
       ctx.globalAlpha=0.96;
@@ -39334,7 +39414,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_lms_s');
     if(!_s){_s=document.createElement('style');_s.id='_lms_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 2px 12px rgba(0,0,0,0.35)!important;}#splash-film-logo img,#splash-film-logo svg{filter:drop-shadow(0 2px 10px rgba(0,0,0,0.40))!important;}';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 2px 12px rgba(0,0,0,0.35)!important;}#splash-film-logo img,#splash-film-logo svg{filter:drop-shadow(0 2px 10px rgba(0,0,0,0.40))!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Charger l'image SVG du van */
@@ -39511,9 +39591,10 @@
     if(!_ptbkS){_ptbkS=document.createElement('style');_ptbkS.id='_ptbk_s';document.head.appendChild(_ptbkS);}
     _ptbkS.textContent=`
      
-     
-     
-     
+     #splash-bg::before,#splash-bg::after,
+     #splash-bg-anim::before,#splash-bg-anim::after{background:none!important;}
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(220,245,255,0.92)!important;font-size:14px!important;text-shadow:0 1px 12px rgba(0,30,60,0.95)!important;}
      #splash-film-logo{max-width:62%!important;filter:drop-shadow(0 0 10px rgba(0,180,220,0.5))!important;}
     `;
@@ -39872,7 +39953,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.52;
     let _s=document.getElementById('_jum_s');
     if(!_s){_s=document.createElement('style');_s.id='_jum_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-quote{display:none!important;}';
+    _s.textContent='#splash-content-wrap{top:18%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote{display:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Plateau Jumanji — grille carrée avec chemin en escargot ── */
@@ -40321,7 +40402,7 @@
     /* ── Style ── */
     let _nmS=document.getElementById('_nm_s');
     if(!_nmS){_nmS=document.createElement('style');_nmS.id='_nm_s';document.head.appendChild(_nmS);}
-    _nmS.textContent='#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 12px rgba(0,0,0,0.98)!important;}#splash-film-logo{max-width:62%!important;}';
+    _nmS.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;transition:opacity 0.65s ease 0.20s!important;}#splash-content-wrap.reveal{opacity:1!important;transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.96)!important;text-shadow:0 1px 12px rgba(0,0,0,0.98)!important;}#splash-film-logo{max-width:62%!important;}';
     const _nmW=setInterval(()=>{if(stop.v){_nmS.textContent='';clearInterval(_nmW);}},200);
 
     const floorY=H*0.82;
@@ -40738,7 +40819,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ha_s');
     if(!_s){_s=document.createElement('style');_s.id='_ha_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:31%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Neige */
@@ -41015,8 +41096,8 @@
     _lsS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:25%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,240,210,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.8)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -41203,8 +41284,8 @@
     _s.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:70%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,225,200,0.92)!important;font-size:14px!important;text-shadow:0 1px 12px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -41438,8 +41519,8 @@
     _icS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(200,235,255,0.90)!important;font-size:14px!important;text-shadow:0 1px 12px rgba(0,40,80,0.90)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -41699,8 +41780,8 @@
     _prS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:24%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(210,220,235,0.85)!important;font-size:14px!important;text-shadow:0 1px 8px rgba(10,20,35,0.7)!important;}
      #splash-film-logo{max-width:60%!important;}
     `;
@@ -41926,7 +42007,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_bnh_s');
     if(!_s){_s=document.createElement('style');_s.id='_bnh_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:28%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Étoiles */
@@ -42155,8 +42236,8 @@
     _ocS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,235,170,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -42519,8 +42600,8 @@
     _boS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:50%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(180,220,255,0.88)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,20,60,0.90)!important;font-family:monospace!important;}
      #splash-film-logo{max-width:62%!important;filter:drop-shadow(0 0 8px rgba(60,140,255,0.4))!important;}
     `;
@@ -42872,7 +42953,7 @@
     /* ── Style ── */
     let _s=document.getElementById('_gd_s');
     if(!_s){_s=document.createElement('style');_s.id='_gd_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Marmotte SVG ── */
@@ -43231,7 +43312,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_msk_s');
     if(!_s){_s=document.createElement('style');_s.id='_msk_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:62%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     function _mskCleanup(){
       _s.textContent='';
       ['_msk_hat','_msk_vig','_msk_hat_s'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});
@@ -43384,8 +43465,8 @@
     _csS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(255,245,225,0.92)!important;font-size:14px!important;text-shadow:0 1px 8px rgba(80,0,0,0.70)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -43566,7 +43647,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_fy_s');
     if(!_s){_s=document.createElement('style');_s.id='_fy_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Tank SVG — Path2D (viewBox 0 0 549 347) */
@@ -43733,7 +43814,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_col_s');
     if(!_s){_s=document.createElement('style');_s.id='_col_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Skyline de LA — immeubles précalculés ── */
@@ -43990,7 +44071,7 @@
     /* Position citation + logo — haut de l'ecran */
     let _bpos=document.getElementById('_big_pos');
     if(!_bpos){_bpos=document.createElement('style');_bpos.id='_big_pos';document.head.appendChild(_bpos);}
-    _bpos.textContent='';
+    _bpos.textContent='#splash-content-wrap{top:24%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _bposW=setInterval(()=>{if(stop.v){_bpos.textContent='';clearInterval(_bposW);}},200);
 
     /* Piano au sol */
@@ -44472,7 +44553,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.38;
     let _s=document.getElementById('_ep_s');
     if(!_s){_s=document.createElement('style');_s.id='_ep_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:70%!important;transform:translateY(-50%)!important;}#splash-content-wrap.reveal{transform:translateY(-50%)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── SVG papillon — recolorisé en blanc pour teinte via canvas ── */
@@ -44745,7 +44826,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_cdd_s');
     if(!_s){_s=document.createElement('style');_s.id='_cdd_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
     const streetY=H*0.74;const groundH=H-streetY;
     const stars=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*(streetY*0.70),r:Math.random()*1.3+0.2,op:0.15+Math.random()*0.50,ph:Math.random()*Math.PI*2}));
@@ -44789,7 +44870,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_gat_s');
     if(!_s){_s=document.createElement('style');_s.id='_gat_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Double hélice d'ADN */
@@ -44894,7 +44975,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_laur_s');
     if(!_s){_s=document.createElement('style');_s.id='_laur_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Zones ── */
@@ -45212,8 +45293,8 @@
     _wbS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(240,230,210,0.92)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.80)!important;}
      #splash-film-logo{max-width:60%!important;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6))!important;}
     `;
@@ -45569,7 +45650,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_sin_s');
     if(!_s){_s=document.createElement('style');_s.id='_sin_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Braises ── */
@@ -45791,8 +45872,8 @@
     _apS.textContent=`
      
 
-     
-     
+     #splash-content-wrap{top:20%!important;bottom:auto!important;transform:none!important;}
+     #splash-content-wrap.reveal{transform:none!important;}
      #splash-quote-text{color:rgba(220,210,210,0.88)!important;font-size:14px!important;text-shadow:0 1px 10px rgba(0,0,0,0.95)!important;}
      #splash-film-logo{max-width:62%!important;}
     `;
@@ -46147,7 +46228,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ah_s');
     if(!_s){_s=document.createElement('style');_s.id='_ah_s';document.head.appendChild(_s);}
-    _s.textContent='#splash{background:#04080e!important;padding-bottom:0!important;}#splash-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;}#splash::after{content:"";display:block;position:absolute;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,40px);background:#04080e;z-index:0;}';
+    _s.textContent='#splash{background:#04080e!important;padding-bottom:0!important;}#splash-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;}#splash::after{content:"";display:block;position:absolute;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,40px);background:#04080e;z-index:0;}#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Horloge ── */
@@ -46428,7 +46509,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_chal_s');
     if(!_s){_s=document.createElement('style');_s.id='_chal_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:26%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Balle de tennis — point de vue balle (POV) */
@@ -46607,7 +46688,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_cmbyn_s');
     if(!_s){_s=document.createElement('style');_s.id='_cmbyn_s';document.head.appendChild(_s);}
-    _s.textContent=``;
+    _s.textContent='';
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -46750,7 +46831,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_nb_s');
     if(!_s){_s=document.createElement('style');_s.id='_nb_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Géographie ── */
@@ -47044,7 +47125,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_im_s');
     if(!_s){_s=document.createElement('style');_s.id='_im_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── JPG Tony Stark — fond plein canvas ── */
@@ -47241,7 +47322,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_gotg_s');
     if(!_s){_s=document.createElement('style');_s.id='_gotg_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:45%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Étoiles */
@@ -47588,7 +47669,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_zod_s');
     if(!_s){_s=document.createElement('style');_s.id='_zod_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-logo-wrap .splash-logo,#splash-logo-wrap .splash-tagline{color:#e8e0cc!important;-webkit-text-fill-color:#e8e0cc!important;background:none!important;}#splash-content-wrap{top:60%!important;transform:translateY(-50%)!important;}#splash-content-wrap.reveal{transform:translateY(-50%)!important;}';
     const _zodWatch=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_zodWatch);}},200);
 
     /* Pluie fine SF */
@@ -47743,7 +47824,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_nc_s');
     if(!_s){_s=document.createElement('style');_s.id='_nc_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* SVGs — viewBox: Night 115×269, Palmier1 467×820, Palmier2 676×875 */
@@ -47922,7 +48003,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_jw_s');
     if(!_s){_s=document.createElement('style');_s.id='_jw_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── SVG silhouette blanche ── */
@@ -48081,7 +48162,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_vbt_s');
     if(!_s){_s=document.createElement('style');_s.id='_vbt_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-quote-text{color:rgba(255,230,170,0.92)!important;text-shadow:0 1px 10px rgba(0,0,0,0.90)!important;}';
+    _s.textContent='#splash-content-wrap{top:23%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,230,170,0.92)!important;text-shadow:0 1px 10px rgba(0,0,0,0.90)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Confettis + cartes à jouer + billets ── */
@@ -48462,7 +48543,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_28_s');
     if(!_s){_s=document.createElement('style');_s.id='_28_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
     const horizY=H*0.62;
     const spores=Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.20,vy:(Math.random()-0.5)*0.15,r:Math.random()*2.0+0.5,op:0.06+Math.random()*0.22,ph:Math.random()*Math.PI*2,spd:0.018+Math.random()*0.022}));
@@ -48505,7 +48586,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_atbo_s');
     if(!_s){_s=document.createElement('style');_s.id='_atbo_s';document.head.appendChild(_s);}
-    _s.textContent='';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Ambulance ── */
@@ -48798,16 +48879,18 @@
 
 
   /* ── Règle globale : masque les orbes (#splash-bg) à l'ouverture du rideau ──
-     Le masquage principal est déclenché par JS au déchirement du ticket (index.html).
-     La règle curtain-open ci-dessous sert de filet de sécurité. */
+     Transition douce via CSS — la classe curtain-open déclenche le fade. */
   (function(){
     let _orbStyle=document.getElementById('_orb_hide_global');
     if(!_orbStyle){
       _orbStyle=document.createElement('style');
       _orbStyle.id='_orb_hide_global';
       _orbStyle.textContent=(
-        '#splash.curtain-open #splash-bg,'
-        +'#splash.curtain-open '
+        '#splash-bg,#splash-bg-anim{'
+        +'transition:opacity 1.2s ease!important;}'
+        +'#splash.curtain-open #splash-bg,'
+        +'#splash.curtain-open #splash-bg-anim{'
+        +'opacity:0!important;pointer-events:none!important;}'
       );
       document.head.appendChild(_orbStyle);
     }
@@ -48820,8 +48903,8 @@
       function _hideOrbs(){
         var _bgEl=document.getElementById('splash-bg');
         var _bgAnimEl=document.getElementById('splash-bg-anim');
-        if(_bgEl){_bgEl.style.opacity='0';_bgEl.style.pointerEvents='none';}
-        if(_bgAnimEl){_bgAnimEl.style.opacity='0';_bgAnimEl.style.pointerEvents='none';}
+        if(_bgEl){_bgEl.style.pointerEvents='none';}
+        if(_bgAnimEl){_bgAnimEl.style.pointerEvents='none';}
       }
       if(_splashEl){
         if(_splashEl.classList.contains('curtain-open')){
@@ -48867,8 +48950,8 @@
       /* Restaurer les orbes du splash principal */
       var _bgEl=document.getElementById('splash-bg');
       var _bgAnimEl=document.getElementById('splash-bg-anim');
-      if(_bgEl){_bgEl.style.opacity='';_bgEl.style.pointerEvents='';}
-      if(_bgAnimEl){_bgAnimEl.style.opacity='';_bgAnimEl.style.pointerEvents='';}
+      if(_bgEl){_bgEl.style.transition='';_bgEl.style.pointerEvents='';}
+      if(_bgAnimEl){_bgAnimEl.style.transition='';_bgAnimEl.style.pointerEvents='';}
       /* Purge immédiate de tous les styles injectés par les splashs */
       ['_28_s','_5e_splash_style','_af_splash_pos','_ah_s','_al_s','_an_s','_ap_s','_as_splash_style','_atbo_s','_av_pos','_bd_s','_big_pos','_big_s','_bl_s','_bm_aud','_bm_fig','_bm_fig_s','_bm_s','_bm_spot','_bm_spot_s','_bm_vig','_bnh_s','_bo_s','_bp_s','_br_bg_override','_bttf_pos_s','_cc_s','_cdd_s','_chal_s','_cm_s','_cmbyn_fig','_cmbyn_s','_cmbyn_vig','_col_s','_cr_splash_style','_cs_s','_cuckoo_s','_dd_s','_dd_splash_style','_dep_s','_dh_s','_dh_splash_style','_dj_s','_dm_s','_dn_s','_dv_pos_s','_ed_fig','_ed_fig_s','_ed_s','_ed_vig','_em_pos_s','_ep_s','_es_s','_et_s','_ews_pos_s','_ews_splash_style','_fc_pos_s','_ff_s','_fg_splash_style','_fmj_s','_fnf_s','_fy_s','_gat_s','_gbu_splash_style','_gd_s','_gits_s','_gl_pos_s','_go_s','_gotg_s','_gr_s','_grem_pos_s','_gs_s','_gt_s','_ha_s','_her_s','_hook_s','_hp_s','_ht_s','_ia2_s','_ia3_s','_ib_s','_ic_s','_ig_splash_style','_ij_s','_im_s','_inc_s','_inter_pos','_intou_s','_itw_splash_style','_jb_pos','_jf_pos','_jf_s','_jh_pos_s','_jh_splash_style','_jm_s','_joker_s','_jp_pos_s','_jum_s','_jw_s','_kb_splash_style','_laur_s','_le_splash_style','_lh_splash_style','_lit_s','_ll_pos_s','_ll_splash_pos','_lms_s','_ln_pos','_ln_splash_style','_low_pos_s','_lp_s','_ls_s','_lw_pos_s','_lw_splash_style','_mag_splash_style','_mc_s','_md_s','_me_s','_mib_fig','_mib_fig_s','_mib_pos_s','_ml_s','_mm_pos_s','_mr_splash_style','_ms_s','_msk_hat','_msk_hat_s','_msk_s','_msk_vig','_narnia_splash_style','_nb_s','_nc_s','_nc_splash_pos','_nm_s','_nope_splash_style','_ob_s','_oc_s','_om_s','_opp_splash_pos','_opp_splash_style','_par_pos_s','_pb_s','_pg2_s','_phm_s','_pir_s','_plat_pos_s','_plat_s','_pr_s','_ptbk_s','_rata_s','_rb_s','_rbl_s','_rd_s','_rdt_s','_rfd_s','_rk_s','_rm_s','_rmb_s','_rv_s','_ry_splash_style','_sa_splash_pos','_sbm_s','_sc_pos_s','_sc_splash_style','_schl_s','_seven_glow','_sf_s','_sf_splash_style','_sh_pos_s','_sil_s','_sin_s','_sk_s','_sm_splash_style','_sn_s','_sn_splash_style','_sp_splash_style','_ss_s','_sup_s','_sv_splash_style','_tbc_s','_td_s','_td_splash_style','_tdk_s','_tf_s','_tg_s','_tit_s','_tl_pos','_tl_splash_style','_tp_splash_style','_tron_pos','_ts_splash_style','_tshow_pos_s','_tshow_splash_style','_twb_s','_ug_s','_up_s','_us_s','_vbt_s','_vs_s','_vs_splash_style','_vs_vig','_wb_s','_we_s','_wh_fig','_wh_fig_s','_wh_s','_wh_vig','_wp_splash_style','_zod_s'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='';});
     };
