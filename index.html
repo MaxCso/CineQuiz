@@ -13302,7 +13302,7 @@ function endGame(){
   if(selMode==='generique')s.generiqueGames=(s.generiqueGames||0)+1;
   if(selMode==='realisateur')s.realisateurGames=(s.realisateurGames||0)+1;
   if(selMode==='location')s.locationGames=(s.locationGames||0)+1;
-  if(selMode==='boxoffice')s.boGames=(s.boGames||0)+1;
+  if(selMode==='boxoffice')s.boxofficeGames=(s.boxofficeGames||0)+1;
   if(selMode==='replique'){s.repliqueGames=(s.repliqueGames||0)+1;s.repliqueOk=(s.repliqueOk||0)+okCnt;if(okCnt===TOTAL)s.repliquePerfects=(s.repliquePerfects||0)+1;}
   if(selMode==='acteur')s.acteurGames=(s.acteurGames||0)+1;
   if(selMode==='pitch')s.pitchGames=(s.pitchGames||0)+1;
@@ -13310,6 +13310,8 @@ function endGame(){
   if(selMode==='survie'){s.survieGames=(s.survieGames||0)+1;if(curQ>(s.survieBest||0))s.survieBest=curQ;}
   if(selMode==='compositeur')s.compositeurGames=(s.compositeurGames||0)+1;
   if(selMode==='filmographie')s.filmographieGames=(s.filmographieGames||0)+1;
+  if(selMode==='rebus')s.rebusGames=(s.rebusGames||0)+1;
+  if(selMode==='pendu')s.penduGames=(s.penduGames||0)+1;
   const dt=new Date();s.history=[...(s.history||[]),{score,correct:okCnt,total:TOTAL,mode:selMode,xp,date:`${dt.getDate()}/${dt.getMonth()+1}`}];
   if(s.history.length>20)s.history=s.history.slice(-20);
   const{s:us}=chkBadges(s);const newLvl=glv(us.xp);ss(us);
@@ -14473,7 +14475,15 @@ function showVersusHandoff(playerName,cb){
 function endVersus(){
   cancelAnimationFrame(tInt);clearInterval(tInt);tInt=null;
   document.getElementById('game').classList.remove('vs-mode');
-  const s=ls();s.versusGames=(s.versusGames||0)+1;ss(s);
+  const s=ls();s.versusGames=(s.versusGames||0)+1;
+  // Sauvegarder le score du gagnant dans l'historique pour les stats par mode
+  const _sorted=[...vsPlayers].sort((a,b)=>b.score-a.score);
+  if(_sorted.length>0&&_sorted[0].score>0){
+    const _dt=new Date();
+    s.history=[...(s.history||[]),{score:_sorted[0].score,correct:0,total:vsPlayers.length,mode:'versus',xp:0,date:`${_dt.getDate()}/${_dt.getMonth()+1}`}];
+    if(s.history.length>20)s.history=s.history.slice(-20);
+  }
+  ss(s);
   const qa=document.getElementById('qa');
   const grid=document.getElementById('agrid');
   grid.innerHTML='';
