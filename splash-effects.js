@@ -12826,7 +12826,7 @@
     const CAR_TARGET_X=cx+W*0.18;
     const CAR_Y=H*0.870;
     let carAnimX=-W*0.22;
-    let carVx=W*0.009;
+    let carVx=W*0.004;
     let carParked=false;
 
     function drawFog(){
@@ -43807,35 +43807,204 @@
    color:'40,180,40',
    ref:'The Mask \u2014 Chuck Russell, 1994',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2;
+    cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.42;
     let _s=document.getElementById('_msk_s');
     if(!_s){_s=document.createElement('style');_s.id='_msk_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:62%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-content-wrap{top:74%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     function _mskCleanup(){
       _s.textContent='';
       ['_msk_hat','_msk_vig','_msk_hat_s'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});
     }
     const _w=setInterval(()=>{if(stop.v){_mskCleanup();clearInterval(_w);}},200);
 
-    /* Confettis jaunes + verts — ambiance cartoonesque */
-    const confetti=Array.from({length:50},()=>({
-     x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.35, vy:0.20+Math.random()*0.40,
-     rot:Math.random()*Math.PI*2, rotSpd:(Math.random()-0.5)*0.09,
-     w:W*(0.008+Math.random()*0.014), h:H*(0.004+Math.random()*0.008),
-     col:Math.random()<0.55 ? '253,192,24' : Math.random()<0.5 ? '80,180,40' : '180,220,60',
+    /* ── Particules orbitales du tourbillon ── */
+    const orbs=Array.from({length:110},()=>({
+     angle:Math.random()*Math.PI*2,
+     radius:W*(0.05+Math.random()*0.54),
+     spd:(0.016+Math.random()*0.032)*(Math.random()<0.5?1:-1),
+     r:W*(0.003+Math.random()*0.008),
+     col:Math.random()<0.42?'80,210,50':Math.random()<0.5?'253,218,24':'160,255,70',
+     op:0.50+Math.random()*0.50,
+     ph:Math.random()*Math.PI*2,
+     phSpd:0.04+Math.random()*0.06,
     }));
 
-    /* Étoiles comiques */
-    const stars=Array.from({length:8},()=>({
-     x:W*(0.08+Math.random()*0.84), y:H*(0.10+Math.random()*0.55),
-     r:W*(0.010+Math.random()*0.014),
-     op:0.25+Math.random()*0.35, ph:Math.random()*Math.PI*2, spd:0.05+Math.random()*0.04,
+    /* ── Symboles cartoon (remplacent les débris rectangulaires) ── */
+    const SYMBOL_TYPES=['star','bang','dollar','heart','excl'];
+    const symbols=Array.from({length:42},(_,i)=>({
+     angle:Math.random()*Math.PI*2,
+     radius:W*(0.10+Math.random()*0.44),
+     spd:(0.018+Math.random()*0.026)*(Math.random()<0.5?1:-1),
+     rot:Math.random()*Math.PI*2,
+     size:W*(0.018+Math.random()*0.018),
+     type:SYMBOL_TYPES[i%SYMBOL_TYPES.length],
+     col:Math.random()<0.38?'253,218,24':Math.random()<0.45?'255,80,160':Math.random()<0.5?'80,255,120':'200,120,255',
     }));
 
-    function drawStar5(sx,sy,r1,r2,op,col){
-     ctx.save();ctx.translate(sx,sy);ctx.rotate(t*0.4);ctx.globalAlpha=op;
-     ctx.fillStyle=`rgba(${col},1)`;ctx.beginPath();
+    /* ── Ondes de choc ── */
+    const shockwaves=Array.from({length:4},(_,i)=>({
+     life:i/4,
+     maxLife:1.0,
+     spd:0.008+Math.random()*0.004,
+    }));
+
+    /* ── Éclairs cartoon ── */
+    const bolts=Array.from({length:8},(_,i)=>({
+     baseAngle:(i/8)*Math.PI*2,
+     dist:W*(0.20+Math.random()*0.16),
+     life:Math.random(),
+     maxLife:0.28+Math.random()*0.24,
+     size:W*(0.045+Math.random()*0.030),
+    }));
+
+    /* ── Anneaux du vortex ── */
+    const RINGS=6;
+
+    /* ── Étoiles cartoon ── */
+    const stars=Array.from({length:9},(_,i)=>({
+     angle:(i/9)*Math.PI*2,
+     dist:W*(0.30+Math.random()*0.22),
+     r:W*(0.012+Math.random()*0.010),
+     ph:Math.random()*Math.PI*2,
+     phSpd:0.045+Math.random()*0.030,
+     col:Math.random()<0.5?'253,218,24':'180,255,80',
+    }));
+
+    /* ── Visage The Mask (Path2D) — AGRANDI ── */
+    function drawFace(px,py,scale,alpha){
+     ctx.save();
+     ctx.translate(px,py);ctx.scale(scale,scale);ctx.globalAlpha=alpha;
+     /* Squash & stretch très exagéré cartoon */
+     const squash=1+0.18*Math.sin(t*3.5);
+     const stretch=1+0.18*Math.cos(t*3.5);
+     ctx.scale(squash,stretch);
+     /* Halo vert autour du visage */
+     const halo=ctx.createRadialGradient(0,-2,10,0,-2,48);
+     halo.addColorStop(0,'rgba(80,230,40,0.30)');
+     halo.addColorStop(0.5,'rgba(40,180,10,0.10)');
+     halo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=halo;
+     ctx.beginPath();ctx.ellipse(0,0,48,52,0,0,Math.PI*2);ctx.fill();
+     /* Tête verte */
+     const faceG=ctx.createRadialGradient(-6,-11,4,-3,-8,34);
+     faceG.addColorStop(0,'rgba(150,250,65,1)');
+     faceG.addColorStop(0.5,'rgba(60,200,30,1)');
+     faceG.addColorStop(1,'rgba(18,120,8,1)');
+     ctx.fillStyle=faceG;
+     ctx.beginPath();ctx.ellipse(0,0,28,34,0,0,Math.PI*2);ctx.fill();
+     /* Contour cartoon épais */
+     ctx.strokeStyle='rgba(0,0,0,0.92)';ctx.lineWidth=3.2;
+     ctx.beginPath();ctx.ellipse(0,0,28,34,0,0,Math.PI*2);ctx.stroke();
+     /* Sourcils très relevés */
+     ctx.strokeStyle='rgba(0,0,0,0.90)';ctx.lineWidth=3.5;ctx.lineCap='round';
+     ctx.beginPath();ctx.moveTo(-15,-17);ctx.quadraticCurveTo(-8,-26,0,-19);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(15,-17);ctx.quadraticCurveTo(8,-26,0,-19);ctx.stroke();
+     /* Yeux très exorbités — pop animé */
+     const eyePop=1+0.20*Math.abs(Math.sin(t*2.2));
+     ctx.fillStyle='#fffef0';
+     ctx.beginPath();ctx.ellipse(-10,-6,9*eyePop,12*eyePop,0.12,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(10,-6,9*eyePop,12*eyePop,-0.12,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle='rgba(0,0,0,0.80)';ctx.lineWidth=2.0;
+     ctx.beginPath();ctx.ellipse(-10,-6,9*eyePop,12*eyePop,0.12,0,Math.PI*2);ctx.stroke();
+     ctx.beginPath();ctx.ellipse(10,-6,9*eyePop,12*eyePop,-0.12,0,Math.PI*2);ctx.stroke();
+     /* Iris verts */
+     ctx.fillStyle='rgba(30,190,20,0.9)';
+     ctx.beginPath();ctx.ellipse(-10,-5,5*eyePop,6.5*eyePop,0,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(10,-5,5*eyePop,6.5*eyePop,0,0,Math.PI*2);ctx.fill();
+     /* Pupilles */
+     ctx.fillStyle='#050505';
+     ctx.beginPath();ctx.ellipse(-10,-4.5,3*eyePop,4*eyePop,0,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(10,-4.5,3*eyePop,4*eyePop,0,0,Math.PI*2);ctx.fill();
+     /* Reflets */
+     ctx.fillStyle='rgba(255,255,255,0.92)';
+     ctx.beginPath();ctx.ellipse(-12,-8,1.8,2.2,0,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(8,-8,1.8,2.2,0,0,Math.PI*2);ctx.fill();
+     /* Sourire très exagéré */
+     ctx.strokeStyle='rgba(0,0,0,0.90)';ctx.lineWidth=2.8;ctx.lineCap='round';
+     ctx.beginPath();ctx.arc(0,6,18,0.18,Math.PI-0.18);ctx.stroke();
+     /* Dents larges */
+     ctx.fillStyle='#fffde7';
+     const tW=6,tH=10;
+     for(let i=-2;i<=1;i++){
+      ctx.beginPath();
+      ctx.roundRect(i*tW-0.5,6.5,tW-1,tH,1.5);
+      ctx.fill();
+     }
+     ctx.strokeStyle='rgba(0,0,0,0.40)';ctx.lineWidth=0.8;
+     for(let i=-1;i<=1;i++){
+      ctx.beginPath();ctx.moveTo(i*tW-0.5,6.5);ctx.lineTo(i*tW-0.5,16.5);ctx.stroke();
+     }
+     /* Joues rondes */
+     ctx.fillStyle='rgba(40,200,15,0.40)';
+     ctx.beginPath();ctx.ellipse(-18,4,7,5,0.25,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(18,4,7,5,-0.25,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+    }
+    /* ── Dessin d'un symbole cartoon ── */
+    function drawSymbol(sx,sy,size,rot,col,type){
+     ctx.save();ctx.translate(sx,sy);ctx.rotate(rot);
+     ctx.fillStyle=`rgba(${col},0.88)`;
+     ctx.strokeStyle='rgba(0,0,0,0.55)';ctx.lineWidth=size*0.10;
+     ctx.shadowColor=`rgba(${col},0.60)`;ctx.shadowBlur=size*0.8;
+     if(type==='star'){
+      ctx.beginPath();
+      for(let i=0;i<8;i++){
+       const a=(i/8)*Math.PI*2;
+       const r=i%2===0?size:size*0.35;
+       i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      }
+      ctx.closePath();ctx.fill();ctx.stroke();
+     } else if(type==='bang'){
+      ctx.beginPath();
+      for(let i=0;i<12;i++){
+       const a=(i/12)*Math.PI*2;
+       const r=i%2===0?size:size*0.55;
+       i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      }
+      ctx.closePath();ctx.fill();ctx.stroke();
+     } else if(type==='dollar'){
+      ctx.font=`bold ${size*1.6}px monospace`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('$',0,0);
+     } else if(type==='heart'){
+      const h=size*0.9;
+      ctx.beginPath();
+      ctx.moveTo(0,h*0.35);
+      ctx.bezierCurveTo(0,h*0.05,-h*0.75,h*0.05,-h*0.75,-h*0.30);
+      ctx.bezierCurveTo(-h*0.75,-h*0.70,0,-h*0.55,0,-h*0.20);
+      ctx.bezierCurveTo(0,-h*0.55,h*0.75,-h*0.70,h*0.75,-h*0.30);
+      ctx.bezierCurveTo(h*0.75,h*0.05,0,h*0.05,0,h*0.35);
+      ctx.closePath();ctx.fill();ctx.stroke();
+     } else {
+      ctx.beginPath();ctx.roundRect(-size*0.20,-size*0.80,size*0.40,size*1.0,size*0.12);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(0,size*0.55,size*0.22,0,Math.PI*2);ctx.fill();
+     }
+     ctx.restore();
+    }
+
+    /* ── Éclair cartoon ── */
+    function drawBolt(bx,by,size,alpha){
+     ctx.save();ctx.globalAlpha=alpha;
+     ctx.shadowColor='rgba(255,230,0,0.95)';ctx.shadowBlur=size*0.6;
+     ctx.fillStyle='rgba(255,240,20,0.95)';ctx.strokeStyle='rgba(255,200,0,1)';
+     ctx.lineWidth=size*0.12;
+     ctx.beginPath();
+     ctx.moveTo(bx,         by-size*0.50);
+     ctx.lineTo(bx+size*0.22,by-size*0.04);
+     ctx.lineTo(bx+size*0.08,by-size*0.04);
+     ctx.lineTo(bx+size*0.32,by+size*0.50);
+     ctx.lineTo(bx-size*0.12,by+size*0.06);
+     ctx.lineTo(bx+size*0.04,by+size*0.06);
+     ctx.closePath();ctx.fill();ctx.stroke();
+     ctx.restore();
+    }
+
+    /* ── Étoile 5 branches ── */
+    function drawStar5(sx,sy,r1,r2,alpha,col,spin){
+     ctx.save();ctx.translate(sx,sy);ctx.rotate(spin||0);ctx.globalAlpha=alpha;
+     ctx.fillStyle=`rgba(${col},1)`;
+     ctx.shadowColor=`rgba(${col},0.75)`;ctx.shadowBlur=r1*0.9;
+     ctx.beginPath();
      for(let i=0;i<10;i++){
       const a=(i/10)*Math.PI*2-Math.PI/2;
       const r=i%2===0?r1:r2;
@@ -43844,40 +44013,17 @@
      ctx.closePath();ctx.fill();ctx.restore();
     }
 
-    /* Injection chapeau SVG — après curtain-open */
+    /* ── Injection chapeau SVG — après curtain-open ── */
     function _mskInject(){
-     if(!document.getElementById('_msk_hat')){
-      let _fs=document.getElementById('_msk_hat_s');
-      if(!_fs){_fs=document.createElement('style');_fs.id='_msk_hat_s';document.head.appendChild(_fs);}
-      /* Animation : chapeau qui tourne légèrement + monte/descend */
-      _fs.textContent=`
-       @keyframes _mskFloat{0%,100%{transform:translateX(-50%) rotate(-8deg) translateY(0)}50%{transform:translateX(-50%) rotate(-12deg) translateY(-12px)}}
-       @keyframes _mskSpin{0%{transform:translateX(-50%) rotate(-8deg)}100%{transform:translateX(-50%) rotate(352deg)}}
-      `;
-      const hat=document.createElement('div');hat.id='_msk_hat';
-      Object.assign(hat.style,{
-       position:'absolute', top:'22%', left:'50%',
-       transform:'translateX(-50%) rotate(-8deg)',
-       zIndex:'6', width:'68%', maxWidth:'265px',
-       opacity:'0', transition:'opacity 0.9s ease 2.0s',
-       pointerEvents:'none',
-       animation:'_mskFloat 5s ease-in-out infinite',
-      });
-      hat.innerHTML=`<svg viewBox="0 0 293 343" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;"><path d="M192.464 66C192.167 67.4346 191.864 68.868 191.558 70.3008C191.39 71.0992 191.221 71.8975 191.048 72.72C190.278 75.7277 188.921 78.2681 187.464 81C186.146 84.3686 185.373 87.4225 185.027 91C184.732 93.7505 184.383 95.1583 183.089 97.6875C179.324 105.362 178.199 114.093 177.773 122.563C177.426 125.301 176.503 127.452 175.464 130C175.127 132.129 175.127 132.129 175.027 134.25C174.723 137.575 174.088 140.419 172.964 143.563C170.015 151.92 170.344 160.233 170.464 169C166.696 170.135 162.924 171.256 159.152 172.375C158.099 172.692 157.047 173.009 155.962 173.336C143.917 176.894 132.98 178.344 120.402 178.313C118.455 178.337 118.455 178.337 116.47 178.361C107.031 178.366 98.4073 177.635 90.5266 172C89.4612 171.258 89.4612 171.258 88.3743 170.5C86.5935 169.102 85.0215 167.64 83.4641 166C85.3183 173.937 87.8359 180.454 94.468 185.535C111.206 195.805 135.707 191.773 153.691 187.5C164.194 184.84 174.854 182.101 184.464 177C186.795 175.787 189.128 174.579 191.464 173.375C192.055 173.063 192.645 172.751 193.253 172.43C196.986 170.522 200.3 169.47 204.464 169C204.464 168.34 204.464 167.68 204.464 167C206.074 165.852 206.074 165.852 208.214 164.625C211.426 162.712 213.863 160.701 216.464 158C217.124 158 217.784 158 218.464 158C218.464 157.34 218.464 156.68 218.464 156C219.186 155.299 219.908 154.598 220.652 153.875C225.494 149.12 228.734 144.588 228.952 137.625C228.92 135.749 228.861 133.874 228.777 132C228.754 131.035 228.732 130.069 228.708 129.074C228.65 126.715 228.568 124.358 228.464 122C227.804 122 227.144 122 226.464 122C226.464 123.258 226.464 124.516 226.464 125.813C225.447 134.347 219.482 140.582 213.067 145.874C204.332 152.692 185.802 167 174.464 167C174.199 163.906 174.225 162.375 175.921 159.715C177.702 156.581 178.021 154.323 178.343 150.746C178.46 149.562 178.576 148.378 178.697 147.158C178.805 145.93 178.914 144.703 179.027 143.438C179.25 140.998 179.48 138.559 179.718 136.121C179.814 135.043 179.91 133.964 180.009 132.853C180.448 130.104 181.169 128.422 182.464 126C182.85 124.506 183.181 122.997 183.464 121.481C183.629 120.623 183.794 119.765 183.964 118.881C184.129 117.992 184.294 117.103 184.464 116.188C185.56 110.364 186.731 104.671 188.464 99C189.124 99 189.784 99 190.464 99C190.464 97.35 190.464 95.7 190.464 94C191.124 94 191.784 94 192.464 94C192.429 93.3594 192.395 92.7187 192.359 92.0586C192.099 83.758 194.145 79.0679 198.464 72C198.794 71.01 199.124 70.02 199.464 69C204.306 69.4504 206.961 70.5998 210.464 74C210.464 74.66 210.464 75.32 210.464 76C211.124 76 211.784 76 212.464 76C212.464 76.66 212.464 77.32 212.464 78C213.124 78 213.784 78 214.464 78C214.464 79.32 214.464 80.64 214.464 82C215.555 82.2192 216.645 82.4383 217.769 82.6641C235.562 86.3579 254.841 91.4601 270.464 101C271.124 101.124 271.784 101.248 272.464 101.375C275.569 102.345 277.212 104.695 279.464 107C280.664 107.763 281.873 108.513 283.089 109.25C287.394 112.167 288.345 116.107 289.464 121C290.454 121 291.444 121 292.464 121C292.989 131.743 290.666 137.8 284.085 146.277C283.283 147.13 283.283 147.13 282.464 148C281.804 148 281.144 148 280.464 148C280.464 148.66 280.464 149.32 280.464 150C279.804 150 279.144 150 278.464 150C278.464 150.66 278.464 151.32 278.464 152C276.347 153.945 276.347 153.945 273.589 156.125C272.232 157.212 272.232 157.212 270.847 158.32C268.464 160 268.464 160 266.464 160C266.464 160.66 266.464 161.32 266.464 162C264.581 163.614 262.707 165.096 260.714 166.563C259.906 167.18 259.906 167.18 259.081 167.811C256.294 169.888 253.95 171.518 250.464 172C250.464 172.66 250.464 173.32 250.464 174C248.163 175.691 248.163 175.691 245.152 177.563C244.165 178.183 243.179 178.803 242.163 179.441C239.464 181 239.464 181 236.464 182C236.464 182.66 236.464 183.32 236.464 184C234.347 185.508 234.347 185.508 231.589 187.125C230.684 187.664 229.779 188.203 228.847 188.758C226.464 190 226.464 190 224.464 190C224.464 190.66 224.464 191.32 224.464 192C223.175 192.672 221.883 193.337 220.589 194C219.87 194.371 219.151 194.743 218.409 195.125C216.464 196 216.464 196 214.464 196C214.464 196.66 214.464 197.32 214.464 198C211.494 198.99 211.494 198.99 208.464 200C208.464 200.66 208.464 201.32 208.464 202C207.902 202.294 207.34 202.588 206.761 202.891C199.234 206.908 191.935 211.27 184.635 215.685C182.994 216.677 181.351 217.666 179.707 218.653C178.331 219.48 176.957 220.311 175.588 221.151C171.284 223.728 166.944 225.42 162.214 227C160.701 227.518 159.188 228.036 157.675 228.555C156.949 228.802 156.223 229.049 155.475 229.304C152.909 230.192 150.376 231.158 147.839 232.125C141.174 234.556 134.349 236.322 127.464 238C126.573 238.218 125.683 238.436 124.765 238.66C115.488 240.626 105.91 240.648 96.4641 241C96.8857 241.953 97.3072 242.905 97.7415 243.887C98.2951 245.154 98.8485 246.42 99.4016 247.688C99.6794 248.313 99.9572 248.939 100.243 249.584C101.737 253.022 103.037 256.261 103.464 260C102.464 261.813 102.464 261.813 100.464 263C97.0391 263.672 94.6948 263.718 91.6165 261.922C84.8219 256.397 77.3966 247.865 73.4641 240C72.4741 239.67 71.4841 239.34 70.4641 239C70.8015 239.463 71.1388 239.925 71.4863 240.402C91.8485 268.446 91.8485 268.446 90.4641 284C88.4641 286 88.4641 286 85.5891 286.375C82.4641 286 82.4641 286 80.0891 284.125C78.4641 282 78.4641 282 78.4641 280C77.8041 280 77.1441 280 76.4641 280C75.7766 276.688 75.7766 276.688 75.4641 273C76.9446 271.27 76.9446 271.27 78.4641 270C77.2479 270.087 77.2479 270.087 76.0071 270.176C67.4406 270.525 61.9633 268.957 54.4641 265C48.0413 261.883 43.2354 260.744 36.093 261.059C32.0735 260.969 29.1015 259.647 25.4641 258C29.4024 260.317 33.1565 262.434 37.4641 264C37.1341 265.32 36.8041 266.64 36.4641 268C33.4941 268.33 30.5241 268.66 27.4641 269C27.4641 269.66 27.4641 270.32 27.4641 271C34.3941 270.01 34.3941 270.01 41.4641 269C42.3114 273.236 42.548 276.724 42.4641 281C42.7941 279.68 43.1241 278.36 43.4641 277C44.4541 277 45.4441 277 46.4641 277C46.7941 274.69 47.1241 272.38 47.4641 270C48.4541 270 49.4441 270 50.4641 270C50.7941 270.99 51.1241 271.98 51.4641 273C52.1241 271.68 52.7841 270.36 53.4641 269C57.6536 269.455 61.6425 270.214 65.7141 271.313C66.5443 271.536 67.3744 271.759 68.2298 271.988C72.0574 273.721 73.3019 276.693 75.2141 280.313C76.8929 285.265 76.7268 288.34 74.4719 293.09C71.2049 298.59 66.9972 302.251 62.0034 306.188C57.6974 309.636 54.4912 313.449 51.1907 317.836C49.4641 320 49.4641 320 46.4641 322.438C42.6997 325.653 40.2 329.365 37.3626 333.398C35.2633 336.275 33.0909 338.612 30.4641 341C30.1341 341.33 29.8041 341.66 29.4641 342C24.1681 342.415 21.0098 341.708 16.4641 339C15.4741 338.443 14.4841 337.886 13.4641 337.313C5.78501 331.393 1.75443 323.151 0.0461594 313.684C-0.335432 307.918 1.69967 303.561 4.27272 298.48C6.3224 294.213 6.59473 290.433 6.75368 285.704C7.04899 277.007 7.65939 268.339 8.58913 259.688C8.66953 258.728 8.74994 257.769 8.83278 256.78C9.54709 250.727 10.9538 247.605 15.6194 243.646C17.5302 241.941 18.7272 240.2 20.1594 238.09C22.1138 235.767 23.082 235.08 26.0882 234.45C29.2015 234.311 32.2279 234.388 35.3391 234.563C36.409 234.594 37.479 234.626 38.5813 234.658C41.2118 234.74 43.8365 234.855 46.4641 235C44.0465 234.886 41.6307 234.759 39.2141 234.625C38.5322 234.594 37.8503 234.563 37.1477 234.531C33.4767 234.317 30.6016 233.989 27.4641 232C27.5891 230.25 27.5891 230.25 28.4641 228C32.0113 225.178 34.946 223.532 39.4641 223C39.0426 222.541 38.6211 222.082 38.1868 221.609C37.365 220.689 37.365 220.689 36.5266 219.75C35.9814 219.147 35.4361 218.543 34.8743 217.922C33.402 215.915 32.8888 214.43 32.4641 212C31.8041 212 31.1441 212 30.4641 212C30.4641 210.68 30.4641 209.36 30.4641 208C29.8041 208 29.1441 208 28.4641 208C22.2639 190.783 22.7772 174.757 30.5266 158.125C40.0769 139.206 56.4476 124.719 74.4641 114C75.1241 114 75.7841 114 76.4641 114C76.6085 113.381 76.7529 112.763 76.9016 112.125C77.4641 110 77.4641 110 78.4641 108C79.1241 108 79.7841 108 80.4641 108C80.5724 107.403 80.6807 106.806 80.7923 106.191C82.4395 100.819 87.8318 97.6636 92.4641 95C93.342 94.2305 94.2198 93.4609 95.1243 92.668C98.5907 89.744 102.328 87.8249 106.402 85.875C107.418 85.3742 107.418 85.3742 108.454 84.8633C112.737 82.7693 117.074 80.8571 121.464 79C122.66 78.4432 123.857 77.8863 125.089 77.3125C128.227 76.0921 130.157 75.6994 133.464 76C133.464 75.34 133.464 74.68 133.464 74C153.553 67.4745 171.402 65.6599 192.464 66Z" fill="#FDC018"/><path d="M198.464 68.9997C199.108 70.82 199.108 70.82 199.464 72.9997C198.319 74.4228 198.319 74.4228 197.151 75.8747C193.046 81.0639 193.056 87.6239 192.464 93.9997C191.804 93.9997 191.144 93.9997 190.464 93.9997C190.464 95.6497 190.464 97.2997 190.464 98.9997C189.804 98.9997 189.144 98.9997 188.464 98.9997C188.339 99.9445 188.214 100.889 188.085 101.863C187.397 106.67 186.468 111.425 185.526 116.187C185.272 117.52 185.272 117.52 185.013 118.881C184.758 120.167 184.758 120.167 184.499 121.48C184.273 122.639 184.273 122.639 184.042 123.821C183.464 126 183.464 126 182.446 127.9C181.159 130.651 180.987 133.099 180.718 136.121C180.602 137.303 180.487 138.486 180.368 139.705C180.141 142.189 179.917 144.673 179.696 147.158C179.58 148.342 179.463 149.526 179.343 150.746C179.197 152.365 179.197 152.365 179.048 154.017C178.415 157.251 177.169 159.215 175.464 162C175.464 163.32 175.464 164.64 175.464 166C192.039 158.533 192.039 158.533 207.464 149C208.765 148.081 208.765 148.081 210.093 147.144C219.065 140.445 224.836 133.217 226.464 122C227.124 122 227.784 122 228.464 122C230.183 129.332 231.231 138.84 228.229 145.906C226.757 148.093 225.218 150.036 223.464 152C222.944 152.737 222.425 153.474 221.89 154.234C221.419 154.817 220.949 155.399 220.464 156C219.804 156 219.144 156 218.464 156C218.464 156.66 218.464 157.32 218.464 158C217.659 158.268 216.855 158.536 216.026 158.812C215.181 159.204 214.335 159.596 213.464 160C213.134 160.99 212.804 161.98 212.464 163C207.092 167 207.092 167 204.464 167C204.464 167.66 204.464 168.32 204.464 169C203.858 169.23 203.252 169.461 202.628 169.699C198.175 171.432 193.842 173.255 189.589 175.437C177.331 181.632 164.728 185.582 151.464 189C150.757 189.183 150.05 189.367 149.322 189.556C132.572 193.746 109.918 195.503 94.5264 186.375C89.4928 182.63 85.4157 177.826 83.8779 171.644C83.5889 169.437 83.5889 169.437 83.4639 166C84.4539 166.33 85.4439 166.66 86.4639 167C86.4639 167.66 86.4639 168.32 86.4639 169C87.3011 169.415 87.3011 169.415 88.1553 169.84C89.7319 170.632 91.302 171.437 92.8662 172.254C93.7028 172.685 94.5394 173.117 95.4014 173.562C96.2354 173.997 97.0694 174.431 97.9287 174.879C116.57 183.122 145.899 176.549 164.116 169.734C166.464 169 166.464 169 170.464 169C170.303 167.727 170.303 167.727 170.14 166.429C169.191 157.147 169.168 147.591 173.464 139C173.736 136.798 173.909 134.597 174.085 132.386C174.464 130 174.464 130 175.476 127.511C176.509 124.886 176.725 122.928 176.839 120.125C177.482 111.532 179.596 102.703 183.464 94.9997C183.826 93.4478 184.136 91.8833 184.401 90.3122C185.8 82.8844 188.198 75.8154 191.464 68.9997C194.131 67.6663 195.631 68.3286 198.464 68.9997Z" fill="#422E12"/><path d="M236.464 0C237.124 0.33 237.784 0.66 238.464 1C237.845 1.22688 237.226 1.45375 236.589 1.6875C234.284 2.81984 234.284 2.81984 233.589 5.1875C232.241 8.55832 230.317 10.6828 227.901 13.3516C226.271 15.1496 226.271 15.1496 224.464 18C223.804 18 223.144 18 222.464 18C222.343 18.5814 222.222 19.1627 222.097 19.7617C221.443 22.0733 220.566 23.7531 219.339 25.8125C215.611 32.3301 212.598 39.1846 209.464 46C209.134 46.66 208.804 47.32 208.464 48C207.474 48 206.484 48 205.464 48C205.134 49.98 204.804 51.96 204.464 54C203.804 54 203.144 54 202.464 54C202.343 54.892 202.222 55.7841 202.097 56.7031C201.845 58.4588 201.845 58.4588 201.589 60.25C201.426 61.4102 201.264 62.5703 201.097 63.7656C200.546 66.5819 199.906 68.5522 198.464 71C198.464 70.34 198.464 69.68 198.464 69C196.814 68.67 195.164 68.34 193.464 68C194.704 61.8278 196.36 55.9332 198.464 50C199.124 50 199.784 50 200.464 50C201.124 47.69 201.784 45.38 202.464 43C203.124 43 203.784 43 204.464 43C204.526 41.8863 204.588 40.7725 204.651 39.625C205.648 31.7096 209.968 24.6439 215.464 19C216.124 19 216.784 19 217.464 19C217.711 17.7316 217.711 17.7316 217.964 16.4375C220.462 10.7135 225.358 7.40418 230.464 4C231.454 4 232.444 4 233.464 4C233.464 3.34 233.464 2.68 233.464 2C234.454 1.34 235.444 0.68 236.464 0Z" fill="#3B2C16"/></svg>`;
-      const svgEl=hat.querySelector('svg');
-      if(svgEl) svgEl.style.filter='drop-shadow(0 8px 28px rgba(0,0,0,.55)) drop-shadow(0 0 12px rgba(253,192,24,.25))';
-      cv.parentElement.appendChild(hat);
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{hat.style.opacity='1';}));
-     }
      if(!document.getElementById('_msk_vig')){
       const v=document.createElement('div');v.id='_msk_vig';
       Object.assign(v.style,{position:'absolute',inset:'0',zIndex:'2',pointerEvents:'none',
-       background:'radial-gradient(ellipse 88% 88% at 50% 50%, transparent 30%, rgba(20,32,8,.65) 100%)'});
+       background:'radial-gradient(ellipse 80% 75% at 50% 42%, transparent 25%, rgba(0,18,4,.72) 100%)'});
       cv.parentElement.appendChild(v);
      }
     }
 
-    /* Injecter le chapeau uniquement à l'ouverture du rideau — splash du film */
+    /* Injecter la vignette à l'ouverture du rideau */
     const _splash=document.getElementById('splash');
     if(_splash&&_splash.classList.contains('curtain-open')){
       _mskInject();
@@ -43886,7 +44032,6 @@
         if(_splash.classList.contains('curtain-open')){_mskObs.disconnect();_mskInject();}
       });
       _mskObs.observe(_splash,{attributes:true,attributeFilter:['class']});
-      /* Cleanup si stop avant curtain-open */
       const _mskObsCleanup=stop.cleanup;
       stop.cleanup=function(){if(_mskObsCleanup)_mskObsCleanup();_mskObs.disconnect();};
     }
@@ -43894,52 +44039,137 @@
     function frame(){
      if(stop.v){_mskCleanup();return;}
 
-     /* ── Fond vert olive texturé — identique à l'affiche ── */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0.00,'#222d10');
-     bg.addColorStop(0.35,'#2d3d18');
-     bg.addColorStop(0.65,'#35481c');
-     bg.addColorStop(1.00,'#1e2c0e');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+     /* ── Fond : noir profond + lueur verte centrale ── */
+     ctx.fillStyle='#030a02';ctx.fillRect(0,0,W,H);
 
-     /* Texture grain — effet affiche vintage */
-     for(let i=0;i<18;i++){
-      ctx.fillStyle=`rgba(${Math.random()<0.5?20:50},${Math.random()<0.5?35:60},${Math.random()<0.5?8:20},${Math.random()*0.035})`;
-      ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*3+0.5,Math.random()*3+0.5);
-     }
+     /* Lueur verte rayonnante depuis le centre */
+     const bgGlow=ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.72);
+     bgGlow.addColorStop(0,'rgba(30,140,10,0.28)');
+     bgGlow.addColorStop(0.35,'rgba(10,80,4,0.16)');
+     bgGlow.addColorStop(0.70,'rgba(0,30,0,0.08)');
+     bgGlow.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=bgGlow;ctx.fillRect(0,0,W,H);
 
-     /* Halo central jaune chaud — lumière du chapeau */
-     const glow=ctx.createRadialGradient(cx,H*0.38,0,cx,H*0.38,W*0.55);
-     glow.addColorStop(0,'rgba(253,192,24,0.12)');
-     glow.addColorStop(0.4,'rgba(200,150,10,0.06)');
-     glow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+     /* ── Traînée persistante du vortex (motion blur) ── */
+     ctx.fillStyle='rgba(3,10,2,0.18)';ctx.fillRect(0,0,W,H);
 
-     /* Confettis tombants */
-     for(const c of confetti){
-      c.x+=c.vx; c.y+=c.vy; c.rot+=c.rotSpd;
-      if(c.y>H+10){c.y=-10;c.x=Math.random()*W;}
-      if(c.x<-10||c.x>W+10)c.vx*=-1;
-      ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);
-      ctx.fillStyle=`rgba(${c.col},0.75)`;
-      ctx.fillRect(-c.w/2,-c.h/2,c.w,c.h);
+     /* ── Ondes de choc pulsantes depuis le centre ── */
+     const swCols=['0,220,60','180,60,255','255,210,0','0,200,180'];
+     for(let si=0;si<shockwaves.length;si++){
+      const sw=shockwaves[si];
+      sw.life+=sw.spd;
+      if(sw.life>sw.maxLife) sw.life=0;
+      const swFrac=sw.life/sw.maxLife;
+      const swR=W*(0.06+swFrac*0.58);
+      const swAlpha=(1-swFrac)*(1-swFrac)*0.55;
+      ctx.save();
+      ctx.strokeStyle=`rgba(${swCols[si%swCols.length]},${swAlpha})`;
+      ctx.lineWidth=2.5*(1-swFrac)+0.5;
+      ctx.shadowColor=`rgba(${swCols[si%swCols.length]},${swAlpha*0.8})`;
+      ctx.shadowBlur=8;
+      ctx.beginPath();ctx.arc(cx,cy,swR,0,Math.PI*2);ctx.stroke();
       ctx.restore();
      }
 
-     /* Étoiles comiques */
-     for(const s of stars){
-      s.ph+=s.spd;
-      drawStar5(s.x,s.y,s.r,s.r*0.42,s.op*(0.4+0.6*Math.abs(Math.sin(s.ph))),'253,192,24');
+     /* ── Anneaux concentriques du tourbillon ── */
+     for(let i=0;i<RINGS;i++){
+      const rPhase=t*0.55*(i%2===0?1:-1)+(i/RINGS)*Math.PI*2;
+      const rRadius=W*(0.10+i*0.085);
+      const rOp=0.12+0.10*Math.abs(Math.sin(t*0.4+i));
+      const dashLen=rRadius*0.22;
+      ctx.save();
+      ctx.strokeStyle=`rgba(${i%2===0?'60,210,30':'220,195,20'},${rOp})`;
+      ctx.lineWidth=i===0?2.0:1.2;
+      ctx.setLineDash([dashLen,dashLen*0.7]);
+      ctx.lineDashOffset=-rPhase*rRadius*0.5;
+      ctx.beginPath();ctx.arc(cx,cy,rRadius,0,Math.PI*2);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
      }
 
-     /* Trait contour décoratif — cercle pointillé style bande dessinée */
-     ctx.save();
-     ctx.strokeStyle=`rgba(253,192,24,${0.06+Math.sin(t*0.8)*0.02})`;
-     ctx.lineWidth=1.5;
-     ctx.setLineDash([W*0.020,W*0.012]);
-     ctx.beginPath();ctx.arc(cx,H*0.40,W*0.40,0,Math.PI*2);ctx.stroke();
-     ctx.setLineDash([]);
-     ctx.restore();
+     /* ── Bras spiraux lumineux ── */
+     const ARMS=16;
+     for(let i=0;i<ARMS;i++){
+      const baseAngle=(i/ARMS)*Math.PI*2+t*0.65;
+      const armLen=W*(0.08+0.40*(i%3===0?1:0.6));
+      ctx.save();
+      ctx.strokeStyle=i%3===0?`rgba(80,220,35,0.22)`:`rgba(200,240,50,0.12)`;
+      ctx.lineWidth=i%3===0?1.8:1.0;
+      ctx.beginPath();
+      for(let s=0;s<32;s++){
+       const frac=s/31;
+       const spiralAngle=baseAngle+frac*1.4;
+       const r=armLen*frac;
+       const px2=cx+Math.cos(spiralAngle)*r;
+       const py2=cy+Math.sin(spiralAngle)*r;
+       s===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+      }
+      ctx.stroke();ctx.restore();
+     }
+
+     /* ── Particules orbitales ── */
+     for(const o of orbs){
+      o.angle+=o.spd*(1+0.4*Math.sin(t*0.3+o.ph));
+      o.ph+=o.phSpd;
+      const ox=cx+Math.cos(o.angle)*o.radius;
+      const oy=cy+Math.sin(o.angle)*o.radius*0.88;
+      const glow=ctx.createRadialGradient(ox,oy,0,ox,oy,o.r*2.8);
+      glow.addColorStop(0,`rgba(${o.col},${o.op})`);
+      glow.addColorStop(0.5,`rgba(${o.col},${o.op*0.30})`);
+      glow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=glow;
+      ctx.beginPath();ctx.arc(ox,oy,o.r*2.8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=`rgba(${o.col},${o.op})`;
+      ctx.beginPath();ctx.arc(ox,oy,o.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Symboles cartoon orbitaux ── */
+     for(const sym of symbols){
+      sym.angle+=sym.spd;
+      sym.rot+=sym.spd*1.8;
+      const sx=cx+Math.cos(sym.angle)*sym.radius;
+      const sy2=cy+Math.sin(sym.angle)*sym.radius*0.88;
+      drawSymbol(sx,sy2,sym.size,sym.rot,sym.col,sym.type);
+     }
+
+     /* ── Étoiles cartoon orbitales ── */
+     for(const s of stars){
+      s.angle+=0.012;
+      s.ph+=s.phSpd;
+      const sx=cx+Math.cos(s.angle)*s.dist;
+      const sy2=cy+Math.sin(s.angle)*s.dist*0.88;
+      const pulse=0.55+0.45*Math.abs(Math.sin(s.ph));
+      drawStar5(sx,sy2,s.r,s.r*0.42,pulse,s.col,t*0.8+s.angle);
+     }
+
+     /* ── Éclairs cartoon ── */
+     for(const b of bolts){
+      b.life+=0.022;
+      if(b.life>=b.maxLife){b.life=0;b.maxLife=0.25+Math.random()*0.22;b.dist=W*(0.18+Math.random()*0.18);b.size=W*(0.040+Math.random()*0.035);}
+      const bAlpha=Math.sin((b.life/b.maxLife)*Math.PI)*0.90;
+      const bAngle=b.baseAngle+t*0.30;
+      const bx=cx+Math.cos(bAngle)*b.dist;
+      const by2=cy+Math.sin(bAngle)*b.dist*0.88;
+      if(bAlpha>0.05) drawBolt(bx,by2,b.size,bAlpha);
+     }
+
+     /* ── Visage The Mask au centre — AGRANDI ── */
+     const faceScale=W*0.0042*(1+0.06*Math.sin(t*2.8));
+     const faceGlowR=W*0.30*(1+0.06*Math.sin(t*1.8));
+     /* Halo pulsant derrière le visage */
+     const fg=ctx.createRadialGradient(cx,cy,0,cx,cy,faceGlowR);
+     fg.addColorStop(0,'rgba(60,220,25,0.38)');
+     fg.addColorStop(0.35,'rgba(35,150,10,0.18)');
+     fg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=fg;ctx.fillRect(cx-faceGlowR,cy-faceGlowR,faceGlowR*2,faceGlowR*2);
+     drawFace(cx,cy,faceScale,1.0);
+
+     /* ── Vignette noire sur les bords ── */
+     const vig=ctx.createRadialGradient(cx,cy,H*0.22,cx,cy,H*0.75);
+     vig.addColorStop(0,'rgba(0,0,0,0)');
+     vig.addColorStop(0.55,'rgba(0,0,0,0.08)');
+     vig.addColorStop(1,'rgba(0,0,0,0.88)');
+     ctx.fillStyle=vig;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
     }
