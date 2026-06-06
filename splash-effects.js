@@ -12779,7 +12779,7 @@
      r:W*(0.008+Math.random()*0.012),
      vx:(Math.random()-0.5)*0.06+(i<9?-0.02:0.02),
      vy:-(0.08+Math.random()*0.12),
-     op:0.08+Math.random()*0.10,
+     op:0.35+Math.random()*0.30,
      ph:Math.random()*Math.PI*2,
      spd:0.010+Math.random()*0.012,
      life:Math.random(),
@@ -12802,6 +12802,32 @@
      ph:Math.random()*Math.PI*2,
      spd:0.006+Math.random()*0.010,
     }));
+
+    /* ── Étoiles filantes ── */
+    const shootingStars=Array.from({length:3},()=>({
+     x:-W*0.2, y:0, active:false,
+     timer:Math.floor(80+Math.random()*250),
+     vx:0, vy:0, alpha:0,
+    }));
+
+    /* ── Fumée pot d’échappement ── */
+    const exhaust=Array.from({length:12},()=>({
+     x:0, y:0,
+     vx:-(0.15+Math.random()*0.22),
+     vy:-(0.03+Math.random()*0.05),
+     r:W*(0.006+Math.random()*0.010),
+     op:0.08+Math.random()*0.10,
+     ph:Math.random()*Math.PI*2,
+     life:Math.random(),
+     maxLife:0.8+Math.random()*1.2,
+    }));
+
+    /* ── Animation voiture — arrive par la gauche et se gare ── */
+    const CAR_TARGET_X=cx+W*0.18;
+    const CAR_Y=H*0.870;
+    let carAnimX=-W*0.22;
+    let carVx=W*0.018;
+    let carParked=false;
 
     function drawFog(){
      for(const f of fogBands){
@@ -12842,8 +12868,8 @@
       const ratio=s.life/s.maxLife;
       const fade=(1-ratio)*(1-ratio);
       const sg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
-      sg.addColorStop(0,`rgba(90,60,25,${s.op*fade})`);
-      sg.addColorStop(0.6,`rgba(65,40,15,${s.op*fade*0.40})`);
+      sg.addColorStop(0,`rgba(110,75,35,${s.op*fade})`);
+      sg.addColorStop(0.6,`rgba(80,50,20,${s.op*fade*0.55})`);
       sg.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=sg;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
      }
@@ -13032,7 +13058,7 @@
      ctx.fillStyle=sunG;ctx.fillRect(0,0,W,horizY);
 
      /* Étoiles */
-     for(const s of stars){s.ph+=0.015;ctx.fillStyle=`rgba(220,210,190,${s.op*(0.7+0.3*Math.sin(s.ph))})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();}
+     for(const s of stars){s.ph+=0.015;const sa=s.op*(0.8+0.2*Math.sin(s.ph));ctx.fillStyle=`rgba(230,218,195,${sa})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r+0.3,0,Math.PI*2);ctx.fill();if(s.r>0.9){const sg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*3.5);sg.addColorStop(0,`rgba(230,215,180,${sa*0.35})`);sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(s.x,s.y,s.r*3.5,0,Math.PI*2);ctx.fill();}}
 
      /* Nuages sépia */
      ctx.fillStyle='rgba(80,30,5,0.18)';
@@ -13095,22 +13121,89 @@
      }
      ctx.globalAlpha=1;ctx.restore();
 
-     /* Voiture années 30 */
-     drawCar(cx+W*0.18,H*0.870);
+      /* Voiture années 30 — animation de parking */
+      if(!carParked){
+        const dist=CAR_TARGET_X-carAnimX;
+        if(dist<=W*0.002){
+          carAnimX=CAR_TARGET_X;
+          carParked=true;
+        } else {
+          const ease=Math.min(1,dist/(W*0.35));
+          carVx=W*0.002+ease*W*0.016;
+          carAnimX+=carVx;
+        }
+      }
+      drawCar(carAnimX,CAR_Y);
 
      /* Silhouettes */
      drawFigures();
 
      /* ── Fumée de cigarette ── */
-     drawCigSmoke();
-
-     /* Vignette */
      const vg=ctx.createRadialGradient(cx,H*0.50,H*0.06,cx,H*0.50,H*0.82);
      vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.40,'rgba(0,0,0,0.15)');vg.addColorStop(1,'rgba(0,0,0,0.94)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      /* Teinte sépia */
      ctx.fillStyle=`rgba(40,18,2,${0.08+Math.sin(t*0.15)*0.01})`;ctx.fillRect(0,0,W,H);
+     drawCigSmoke();
+
+     /* ── Étoiles filantes ── */
+     for(const ss of shootingStars){
+      if(!ss.active){
+       ss.timer--;
+       if(ss.timer<=0){
+        ss.active=true;
+        ss.x=W*(0.05+Math.random()*0.75);
+        ss.y=H*(0.02+Math.random()*0.22);
+        const angle=Math.PI/6+Math.random()*Math.PI/8;
+        const spd=W*(0.012+Math.random()*0.018);
+        ss.vx=Math.cos(angle)*spd;
+        ss.vy=Math.sin(angle)*spd;
+        ss.alpha=0.85+Math.random()*0.15;
+        ss.timer=Math.floor(80+Math.random()*280);
+       }
+       continue;
+      }
+      ss.x+=ss.vx;ss.y+=ss.vy;ss.alpha-=0.028;
+      if(ss.alpha<=0||ss.y>H*0.50){ss.active=false;continue;}
+      const tailLen=W*0.055;
+      const grad=ctx.createLinearGradient(ss.x,ss.y,ss.x-ss.vx*5,ss.y-ss.vy*5);
+      grad.addColorStop(0,`rgba(230,215,180,${ss.alpha})`);
+      grad.addColorStop(0.4,`rgba(200,180,120,${ss.alpha*0.4})`);
+      grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.save();ctx.strokeStyle=grad;ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.moveTo(ss.x,ss.y);ctx.lineTo(ss.x-ss.vx*5,ss.y-ss.vy*5);ctx.stroke();
+      ctx.fillStyle=`rgba(240,225,190,${ss.alpha})`;
+      ctx.beginPath();ctx.arc(ss.x,ss.y,1.2,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+     }
+
+     /* ── Fumée pot d'échappement ── */
+     const exSrc={x:cx+W*0.18-W*0.28*0.48, y:H*0.870+H*0.012};
+     for(const e of exhaust){
+      e.life+=0.014;
+      if(e.life>=e.maxLife){
+       e.life=0;e.maxLife=0.6+Math.random()*1.0;
+       e.x=exSrc.x+(Math.random()-0.5)*W*0.012;
+       e.y=exSrc.y;
+       e.vx=-(0.12+Math.random()*0.18);
+       e.vy=-(0.02+Math.random()*0.04);
+       e.r=W*(0.016+Math.random()*0.020);
+       e.op=0.07+Math.random()*0.08;
+      }
+      e.ph+=0.018;
+      e.x+=e.vx+Math.sin(e.ph*0.5)*0.04;
+      e.y+=e.vy;
+      e.r+=0.08;
+      const ratio=e.life/e.maxLife;
+      const fade=(1-ratio)*(1-ratio);
+      const eg=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r);
+      eg.addColorStop(0,`rgba(90,60,25,${e.op*fade})`);
+      eg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=eg;ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* Vignette */
 
      /* Grain pellicule */
      for(let i=0;i<55;i++){const g=10+Math.random()*22|0;ctx.fillStyle=`rgba(${g+6},${g+3},${g},${Math.random()*0.022})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*1.6+0.3,1);}
@@ -47524,195 +47617,203 @@
   /* ══ IRON MAN ══ */
   {
    name:'Iron Man',
-   color:'200,80,20',
+   color:'30,180,220',
    ref:'Iron Man \u2014 Jon Favreau, 2008',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2;
-    let _s=document.getElementById('_im_s');
-    if(!_s){_s=document.createElement('style');_s.id='_im_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
-    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
+    cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H/2;
 
-    /* ── JPG Tony Stark — fond plein canvas ── */
-    const tonyImg=new Image();let tonyReady=false;
-    tonyImg.onload=()=>{tonyReady=true;};
-    tonyImg.src='images/Tony.jpg';
+    /* ── CSS ── */
+    let _imS=document.getElementById('_im_s');
+    if(!_imS){_imS=document.createElement('style');_imS.id='_im_s';document.head.appendChild(_imS);}
+    _imS.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(100,220,255,0.92)!important;text-shadow:0 0 12px rgba(0,180,255,0.8)!important;}#splash-film-logo{filter:drop-shadow(0 0 10px rgba(0,200,255,0.7))!important;}';
+    const _imW=setInterval(()=>{if(stop.v){_imS.textContent='';clearInterval(_imW);}},200);
 
-    /* ── PNG Iron Man armure ── */
-    const ironImg=new Image();let ironReady=false;
-    ironImg.onload=()=>{ironReady=true;};
-    ironImg.src='images/IronMan.png';
+    /* ── Hexagones de fond ── */
+    const HEX_SIZE=W*0.055;
+    const hexGrid=[];
+    const hxStep=HEX_SIZE*1.732, hyStep=HEX_SIZE*1.5;
+    for(let row=-1;row<Math.ceil(H/hyStep)+1;row++){
+      for(let col=-1;col<Math.ceil(W/hxStep)+1;col++){
+        const ox=row%2===0?0:hxStep*0.5;
+        hexGrid.push({
+          x:col*hxStep+ox, y:row*hyStep,
+          ph:Math.random()*Math.PI*2,
+          spd:0.008+Math.random()*0.012,
+          bright:0.04+Math.random()*0.08,
+        });
+      }
+    }
 
-    /* ── Particules énergétiques flottantes ── */
-    /* Deux types : étincelles orange/or qui montent, et particules arc reactor cyan */
-    const sparks=Array.from({length:60},()=>({
-     x:W*(0.1+Math.random()*0.8),
-     y:H*(0.5+Math.random()*0.5),
-     vx:(Math.random()-0.5)*0.55,
-     vy:-(0.35+Math.random()*0.85),
-     r:Math.random()*1.6+0.4,
-     life:Math.random(),
-     decay:0.003+Math.random()*0.007,
-     col:Math.random()<0.65?'255,190,60':Math.random()<0.5?'255,120,20':'200,235,255',
-     ph:Math.random()*Math.PI*2,
-    }));
+    function drawHex(x,y,size,alpha){
+      ctx.beginPath();
+      for(let i=0;i<6;i++){
+        const a=Math.PI/3*i-Math.PI/6;
+        const px=x+size*Math.cos(a), py=y+size*Math.sin(a);
+        i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(0,180,255,${alpha})`;
+      ctx.lineWidth=0.8;
+      ctx.stroke();
+    }
 
-    /* ── Éclairs arc reactor — cercles concentriques depuis la poitrine d'Iron Man ── */
-    /* Centre arc reactor = centre horizontal, ~55% hauteur (milieu du PNG Iron Man) */
-    const arcX=cx, arcY=H*0.55;
-    const arcRings=Array.from({length:5},(_,i)=>({
-     maxR:W*(0.08+i*0.06),
-     ph:i*(Math.PI*2/5),
-     spd:0.022+i*0.003,
-    }));
-
-    /* ── Repulseurs des mains de Tony (bas de l'image) ── */
-    /* Tony bras écartés → mains ~20% et ~80% largeur, ~88% hauteur */
-    const repulsors=[
-     {x:W*0.20, y:H*0.875},
-     {x:W*0.80, y:H*0.875},
+    /* ── Réacteur arc (cercles concentriques) ── */
+    const REACTOR_Y=H*0.64;
+    const rings=[
+      {r:W*0.220, spd: 0.008, dash:[12,8],  alpha:0.55, w:1.5},
+      {r:W*0.175, spd:-0.012, dash:[6,10],  alpha:0.65, w:1.2},
+      {r:W*0.130, spd: 0.018, dash:[20,6],  alpha:0.70, w:1.8},
+      {r:W*0.090, spd:-0.025, dash:[4,4],   alpha:0.75, w:1.5},
+      {r:W*0.055, spd: 0.035, dash:[8,3],   alpha:0.85, w:2.0},
     ];
 
-    /* ── Lignes HUD tech subtiles ── */
-    const hudLines=Array.from({length:6},(_,i)=>({
-     y:H*(0.22+i*0.07),
-     w:W*(0.15+((i*41)%50)/100*0.35),
-     x:W*((i*23)%55)/100,
-     op:0.04+((i*17)%12)/100*0.05,
+    /* ── Données HUD qui défilent ── */
+    const hudLines=[
+      'STARK INDUSTRIES v4.1','POWER: ARC REACTOR',
+      'ALTITUDE: 3842 m','SPEED: 1840 km/h',
+      'TARGET LOCK: ON','THREAT LEVEL: LOW',
+      'SYSTEM INTEGRITY: 98%','WEAPONS: ONLINE',
+      'JARVIS: READY','SUIT UP SEQUENCE: OK',
+    ];
+    let hudScroll=0;
+    /* Colonne gauche : sous la citation, avant le réacteur */
+    /* Colonne droite : bas de l'écran, après le réacteur */
+
+    /* ── Particules orbitales ── */
+    const orbitParts=Array.from({length:28},(_,i)=>({
+      angle:i/28*Math.PI*2,
+      radius:W*(0.14+Math.random()*0.10),
+      spd:(Math.random()-0.5)*0.025+0.018,
+      size:Math.random()*2+0.8,
+      op:0.4+Math.random()*0.5,
     }));
 
-    /* ── Étincelles burst depuis les repulseurs (pool recyclé) ── */
-    const repBursts=Array.from({length:24},(_,i)=>{
-     const src=repulsors[i%2];
-     return{
-      x:src.x, y:src.y,
-      vx:(Math.random()-0.5)*2.8,
-      vy:-(Math.random()*3.2+0.5),
-      r:W*(0.003+Math.random()*0.004),
-      life:Math.random(),
-      decay:0.012+Math.random()*0.016,
-      srcIdx:i%2,
-     };
-    });
+    /* ── Scan lines ── */
+    const scanLines=Array.from({length:6},(_,i)=>({
+      y:H*i/6, spd:H*0.003+Math.random()*H*0.002, op:0.04+Math.random()*0.04
+    }));
 
     function frame(){
-     if(stop.v)return;
+      if(stop.v)return;
 
-     /* ── FOND : Tony.jpg — cover plein canvas ── */
-     ctx.fillStyle='#4a5a6a';ctx.fillRect(0,0,W,H);
-     if(tonyReady){
-      const iW=tonyImg.naturalWidth||675, iH=tonyImg.naturalHeight||1200;
-      const scale=Math.max(W/iW, H/iH);
-      const dw=iW*scale, dh=iH*scale;
-      const dx=(W-dw)/2, dy=(H-dh)/2;
-      ctx.drawImage(tonyImg,dx,dy,dw,dh);
-     }
-     /* Voile sombre en haut — lisibilité citation */
-     const topFade=ctx.createLinearGradient(0,0,0,H*0.45);
-     topFade.addColorStop(0,'rgba(0,0,0,0.50)');
-     topFade.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=topFade;ctx.fillRect(0,0,W,H*0.45);
+      /* ── Fond noir bleu nuit ── */
+      ctx.fillStyle='rgba(2,8,18,0.22)';ctx.fillRect(0,0,W,H);
 
-     /* ── Lueur ambiante des repulseurs sur le sol/le corps de Tony ── */
-     for(const rp of repulsors){
-      const rpulse=0.18+Math.sin(t*2.8+rp.x)*0.10;
-      const rg=ctx.createRadialGradient(rp.x,rp.y,0,rp.x,rp.y,W*0.22);
-      rg.addColorStop(0,`rgba(160,220,255,${rpulse})`);
-      rg.addColorStop(0.35,`rgba(80,160,255,${rpulse*0.4})`);
-      rg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
-      /* Point lumineux central */
-      ctx.beginPath();ctx.arc(rp.x,rp.y,W*0.016,0,Math.PI*2);
-      ctx.fillStyle=`rgba(220,240,255,${0.55+Math.sin(t*3.2+rp.x)*0.30})`;
-      ctx.fill();
-     }
-
-     /* ── Étincelles burst repulseurs ── */
-     for(const b of repBursts){
-      b.x+=b.vx;b.y+=b.vy;b.vy+=0.08;b.life-=b.decay;
-      if(b.life<=0){
-       const src=repulsors[b.srcIdx];
-       b.x=src.x+(Math.random()-0.5)*W*0.04;
-       b.y=src.y;
-       b.vx=(Math.random()-0.5)*2.8;
-       b.vy=-(Math.random()*3.2+0.5);
-       b.life=0.6+Math.random()*0.4;
+      /* ── Grille hexagonale ── */
+      for(const h of hexGrid){
+        h.ph+=h.spd;
+        const a=h.bright*(0.5+0.5*Math.sin(h.ph));
+        drawHex(h.x,h.y,HEX_SIZE,a);
       }
-      ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(180,225,255,${b.life*0.75})`;
-      ctx.fill();
-     }
 
-     /* ── Iron Man armure ── */
-     if(ironReady){
-      const ratio=ironImg.naturalWidth&&ironImg.naturalHeight
-        ? ironImg.naturalWidth/ironImg.naturalHeight : 0.78;
-      const ironW=W*0.72;
-      const ironH=ironW/ratio;
+      /* ── Scan lines horizontales ── */
+      for(const sl of scanLines){
+        sl.y+=sl.spd;
+        if(sl.y>H)sl.y=-4;
+        ctx.fillStyle=`rgba(0,200,255,${sl.op})`;
+        ctx.fillRect(0,sl.y,W,1.5);
+      }
+
+      /* ── Données HUD gauche et droite ── */
+      hudScroll+=0.025;
+      ctx.font=`${Math.floor(H*0.013)}px "Courier New",monospace`;
+      ctx.textBaseline='top';
+
+      /* Colonne gauche — entre la citation et le réacteur */
+      ctx.textAlign='left';
+      for(let li=0;li<4;li++){
+        const idx=(Math.floor(hudScroll)+li)%hudLines.length;
+        const fadeAlpha=0.18+0.22*Math.abs(Math.sin(t*0.5+li*0.7));
+        ctx.fillStyle=`rgba(0,200,255,${fadeAlpha})`;
+        ctx.fillText(hudLines[idx], W*0.05, H*0.40+li*H*0.030);
+      }
+
+      /* Colonne droite — entre la citation et le réacteur, alignée à droite */
+      ctx.textAlign='right';
+      for(let li=0;li<4;li++){
+        const idx=(Math.floor(hudScroll)+li+5)%hudLines.length;
+        const fadeAlpha=0.18+0.22*Math.abs(Math.sin(t*0.5+li*0.6+1.2));
+        ctx.fillStyle=`rgba(0,200,255,${fadeAlpha})`;
+        ctx.fillText(hudLines[idx], W*0.95, H*0.40+li*H*0.030);
+      }
+
+      /* ── Réacteur arc ── */
+      /* Lueur centrale */
+      const coreG=ctx.createRadialGradient(cx,REACTOR_Y,0,cx,REACTOR_Y,W*0.25);
+      const corePulse=0.5+0.5*Math.sin(t*2.2);
+      coreG.addColorStop(0,`rgba(180,240,255,${0.22+corePulse*0.12})`);
+      coreG.addColorStop(0.25,`rgba(0,180,255,${0.14+corePulse*0.08})`);
+      coreG.addColorStop(0.6,`rgba(0,80,180,${0.06+corePulse*0.04})`);
+      coreG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=coreG;ctx.fillRect(0,REACTOR_Y-W*0.25,W,W*0.50);
+
+      /* Anneaux rotatifs */
+      for(const ring of rings){
+        ctx.save();
+        ctx.translate(cx,REACTOR_Y);
+        ctx.rotate(t*ring.spd*30);
+        ctx.setLineDash(ring.dash);
+        ctx.strokeStyle=`rgba(0,200,255,${ring.alpha*(0.7+0.3*Math.sin(t*1.8))})`;
+        ctx.lineWidth=ring.w;
+        ctx.shadowColor='rgba(0,180,255,0.6)';
+        ctx.shadowBlur=8;
+        ctx.beginPath();ctx.arc(0,0,ring.r,0,Math.PI*2);ctx.stroke();
+        ctx.restore();
+      }
+      ctx.setLineDash([]);
+
+      /* Cœur du réacteur */
+      const innerG=ctx.createRadialGradient(cx,REACTOR_Y,0,cx,REACTOR_Y,W*0.038);
+      innerG.addColorStop(0,`rgba(255,255,255,${0.85+corePulse*0.15})`);
+      innerG.addColorStop(0.4,`rgba(140,220,255,${0.70+corePulse*0.20})`);
+      innerG.addColorStop(1,'rgba(0,120,220,0)');
+      ctx.fillStyle=innerG;
+      ctx.beginPath();ctx.arc(cx,REACTOR_Y,W*0.038,0,Math.PI*2);ctx.fill();
+
+      /* Triangle intérieur tournant */
       ctx.save();
-      ctx.globalAlpha=0.93+Math.sin(t*0.4)*0.04;
-      ctx.drawImage(ironImg,cx-ironW/2,H*0.38,ironW,ironH);
-      ctx.restore();
-     }
-
-     /* ── Arc reactor — halo pulsant sur la poitrine d'Iron Man ── */
-     const arcPulse=0.22+Math.sin(t*2.2)*0.10;
-     const arcGlow=ctx.createRadialGradient(arcX,arcY,0,arcX,arcY,W*0.12);
-     arcGlow.addColorStop(0,`rgba(120,210,255,${arcPulse*1.4})`);
-     arcGlow.addColorStop(0.4,`rgba(60,150,230,${arcPulse*0.7})`);
-     arcGlow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=arcGlow;ctx.fillRect(0,0,W,H);
-     /* Point brillant central */
-     ctx.beginPath();ctx.arc(arcX,arcY,W*0.018,0,Math.PI*2);
-     ctx.fillStyle=`rgba(200,240,255,${0.60+Math.sin(t*2.2)*0.25})`;
-     ctx.fill();
-
-     /* ── Ondes concentriques arc reactor ── */
-     for(const ring of arcRings){
-      ring.ph+=ring.spd;
-      const prog=(ring.ph%1);
-      const r=ring.maxR*prog;
-      const alpha=(1-prog)*0.28;
-      ctx.beginPath();ctx.arc(arcX,arcY,r,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(100,200,255,${alpha})`;
-      ctx.lineWidth=1.2;
-      ctx.stroke();
-     }
-
-     /* ── Lignes HUD tech ── */
-     ctx.lineCap='square';
-     for(const l of hudLines){
-      ctx.strokeStyle=`rgba(255,180,60,${l.op})`;ctx.lineWidth=0.7;
-      ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(l.x+l.w,l.y);ctx.stroke();
-      ctx.fillStyle=`rgba(255,180,60,${l.op*2})`;
-      ctx.fillRect(l.x+l.w-W*0.006,l.y-H*0.0015,W*0.006,H*0.003);
-     }
-
-     /* ── Particules flottantes (étincelles + poussière) ── */
-     for(const p of sparks){
-      p.x+=p.vx;p.y+=p.vy;p.ph+=0.04;p.life-=p.decay;
-      if(p.life<=0){
-       p.x=W*(0.05+Math.random()*0.90);
-       p.y=H*(0.55+Math.random()*0.40);
-       p.vx=(Math.random()-0.5)*0.55;
-       p.vy=-(0.35+Math.random()*0.85);
-       p.life=0.5+Math.random()*0.5;
+      ctx.translate(cx,REACTOR_Y);ctx.rotate(t*0.8);
+      ctx.strokeStyle=`rgba(200,240,255,${0.55+corePulse*0.25})`;
+      ctx.lineWidth=1.5;ctx.shadowColor='rgba(0,200,255,0.8)';ctx.shadowBlur=10;
+      ctx.beginPath();
+      for(let i=0;i<3;i++){
+        const a=i/3*Math.PI*2;
+        const r=W*0.028;
+        i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
       }
-      const pa=(0.3+0.7*Math.abs(Math.sin(p.ph)))*p.life;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${p.col},${pa})`;
-      ctx.fill();
-     }
+      ctx.closePath();ctx.stroke();
+      ctx.restore();
 
-     /* ── Vignette ── */
-     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.06,cx,H*0.48,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.42,'rgba(0,0,0,0.06)');
-     vg.addColorStop(0.72,'rgba(0,0,0,0.32)');
-     vg.addColorStop(1,'rgba(0,0,0,0.85)');
-     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+      /* ── Particules orbitales ── */
+      for(const p of orbitParts){
+        p.angle+=p.spd;
+        const px=cx+Math.cos(p.angle)*p.radius;
+        const py=REACTOR_Y+Math.sin(p.angle)*p.radius*0.35;
+        const pg=ctx.createRadialGradient(px,py,0,px,py,p.size*2);
+        pg.addColorStop(0,`rgba(100,220,255,${p.op})`);
+        pg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=pg;
+        ctx.beginPath();ctx.arc(px,py,p.size*2,0,Math.PI*2);ctx.fill();
+      }
 
-     t+=0.016;requestAnimationFrame(frame);
+      /* ── Cadres HUD coins ── */
+      const cw=W*0.12, ch=H*0.06, cs=W*0.022;
+      const corners=[[0,0],[W-cw,0],[0,H-ch],[W-cw,H-ch]];
+      ctx.strokeStyle='rgba(0,180,255,0.45)';ctx.lineWidth=1.2;
+      for(const [bx,by] of corners){
+        ctx.beginPath();
+        ctx.moveTo(bx,by+ch);ctx.lineTo(bx,by);ctx.lineTo(bx+cw,by);ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(bx+cw-cs,by);ctx.lineTo(bx+cw,by);ctx.lineTo(bx+cw,by+cs);ctx.stroke();
+      }
+
+      /* ── Vignette ── */
+      const vg=ctx.createRadialGradient(cx,cy,H*0.20,cx,cy,H*0.75);
+      vg.addColorStop(0,'rgba(0,0,0,0)');
+      vg.addColorStop(1,'rgba(0,5,20,0.80)');
+      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+      t+=0.016;requestAnimationFrame(frame);
     }
     frame();
    }
