@@ -13168,7 +13168,7 @@
           carParked=true;
         } else {
           const ease=Math.min(1,dist/(W*0.35));
-          carVx=W*0.002+ease*W*0.016;
+          carVx=W*0.001+ease*W*0.008;
           carAnimX+=carVx;
         }
       }
