@@ -12826,7 +12826,7 @@
     const CAR_TARGET_X=cx+W*0.18;
     const CAR_Y=H*0.870;
     let carAnimX=-W*0.22;
-    let carVx=W*0.018;
+    let carVx=W*0.009;
     let carParked=false;
 
     function drawFog(){
