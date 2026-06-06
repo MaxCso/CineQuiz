@@ -42400,32 +42400,55 @@
      {wx:cx+W*0.20, pose:0, spd:0.52+Math.random()*0.15, ph:Math.PI*1.5},
     ];
 
-    function drawFigure(fx,bobY,pose){
+    function drawFigure(fx,ph){
      /* Couleur silhouette : bleu nuit foncé, pas noir total */
      const col='rgba(18,22,35,0.97)';
-     const bY=bobY; /* base locale = 0 après translate */
+     const bY=0; /* origine en bas du personnage après ctx.translate */
+     const swing=Math.sin(ph);   /* -1..1, cycle de marche */
+     const swing2=Math.sin(ph*2); /* fréquence double pour les coudes */
+
      /* Tête */
      ctx.fillStyle=col;
      ctx.beginPath();ctx.arc(fx,bY-H*0.090,W*0.015,0,Math.PI*2);ctx.fill();
      /* Corps */
      ctx.beginPath();ctx.ellipse(fx,bY-H*0.044,W*0.017,H*0.042,0,0,Math.PI*2);ctx.fill();
-     /* Bras — balancement selon phase de marche */
+
+     /* Bras — balancement opposé aux jambes */
      ctx.strokeStyle=col;ctx.lineWidth=W*0.008;ctx.lineCap='round';
-     if(pose===1){
-      ctx.beginPath();ctx.moveTo(fx,bY-H*0.058);ctx.lineTo(fx-W*0.029,bY-H*0.033);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(fx,bY-H*0.058);ctx.lineTo(fx+W*0.025,bY-H*0.042);ctx.stroke();
-     } else if(pose===2){
-      ctx.beginPath();ctx.moveTo(fx,bY-H*0.058);ctx.lineTo(fx-W*0.023,bY-H*0.044);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(fx,bY-H*0.058);ctx.lineTo(fx+W*0.021,bY-H*0.046);ctx.stroke();
-     } else {
-      ctx.beginPath();ctx.moveTo(fx,bY-H*0.058);ctx.lineTo(fx-W*0.027,bY-H*0.017);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(fx,bY-H*0.058);ctx.lineTo(fx+W*0.024,bY-H*0.019);ctx.stroke();
-     }
-     /* Jambes — alternance gauche/droite selon bobY (proxy de la phase) */
+     const armSwing=swing*W*0.022;
+     /* Bras gauche avant quand jambe gauche arrière, et vice-versa */
+     ctx.beginPath();
+     ctx.moveTo(fx,bY-H*0.072);
+     ctx.lineTo(fx-W*0.012-armSwing, bY-H*0.040+Math.abs(armSwing)*0.3);
+     ctx.stroke();
+     ctx.beginPath();
+     ctx.moveTo(fx,bY-H*0.072);
+     ctx.lineTo(fx+W*0.012+armSwing, bY-H*0.040-Math.abs(armSwing)*0.3);
+     ctx.stroke();
+
+     /* Jambes — deux segments articulés (cuisse + tibia) */
      ctx.lineWidth=W*0.010;
-     const legSwing=H*0.015*Math.sin(bobY*80); /* bobY encode sin(ph) */
-     ctx.beginPath();ctx.moveTo(fx,bY-H*0.022);ctx.lineTo(fx-W*0.012+legSwing*0.4,bY+legSwing);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(fx,bY-H*0.022);ctx.lineTo(fx+W*0.012-legSwing*0.4,bY-legSwing);ctx.stroke();
+     const hipY   = bY-H*0.022;          /* point d'attache des hanches */
+     const kneeOff= H*0.038;             /* longueur cuisse */
+     const shinOff= H*0.036;             /* longueur tibia */
+     const stepX  = swing*W*0.018;       /* amplitude latérale du pas */
+     const stepY  = Math.abs(swing)*H*0.020; /* genou monte en milieu de foulée */
+
+     /* Jambe gauche */
+     const lkx = fx - W*0.010 - stepX;
+     const lky = hipY + kneeOff - stepY;
+     const lfx = lkx + stepX*0.6;
+     const lfy = lky + shinOff;
+     ctx.beginPath();ctx.moveTo(fx-W*0.010, hipY);ctx.lineTo(lkx, lky);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(lkx, lky);ctx.lineTo(lfx, lfy);ctx.stroke();
+
+     /* Jambe droite (phase opposée) */
+     const rkx = fx + W*0.010 + stepX;
+     const rky = hipY + kneeOff - (H*0.020 - stepY); /* genou bas quand gauche haut */
+     const rfx = rkx - stepX*0.6;
+     const rfy = rky + shinOff;
+     ctx.beginPath();ctx.moveTo(fx+W*0.010, hipY);ctx.lineTo(rkx, rky);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(rkx, rky);ctx.lineTo(rfx, rfy);ctx.stroke();
     }
 
     function frame(){
@@ -42580,7 +42603,7 @@
       ctx.save();
       ctx.translate(fx, baseY-bobY);
       ctx.rotate(lean);
-      drawFigure(0, bobY, fig.pose);
+      drawFigure(0, fig.ph);
       ctx.restore();
      }
 
