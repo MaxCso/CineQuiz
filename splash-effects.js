@@ -4029,6 +4029,30 @@
     }
     const sparks=Array.from({length:24},()=>({x:0,y:0,vx:0,vy:0,life:0,size:0}));
 
+    /* ── Particules d'explosion ── */
+    const explParts=Array.from({length:120},()=>({x:0,y:0,vx:0,vy:0,life:0,size:0,hue:0,active:false}));
+    let exploded=false;
+    let explFlash=0; /* flash blanc au moment de l'explosion */
+
+    function triggerExplosion(){
+      if(exploded)return;
+      exploded=true;
+      explFlash=1.0;
+      const ex=cx, ey=H*0.84; /* position de la mèche */
+      for(const p of explParts){
+        const angle=Math.random()*Math.PI*2;
+        const spd=2+Math.random()*8;
+        p.x=ex+(Math.random()-0.5)*20;
+        p.y=ey+(Math.random()-0.5)*20;
+        p.vx=Math.cos(angle)*spd;
+        p.vy=Math.sin(angle)*spd-(Math.random()*4+2);
+        p.life=0.7+Math.random()*0.8;
+        p.size=1.5+Math.random()*4.5;
+        p.hue=Math.random()<0.6 ? 20+Math.random()*30 : 50+Math.random()*20;
+        p.active=true;
+      }
+    }
+
     /* particules de poussière */
     const dust=Array.from({length:30},()=>({
      x:Math.random()*W, y:Math.random()*H,
@@ -4139,6 +4163,35 @@
 
      /* ── COMPTEUR ── */
      const cdY=H*0.25;
+
+     /* Déclencher l'explosion quand le compte atteint 0 */
+     if(countdown===0 && !exploded) triggerExplosion();
+
+     /* ── EXPLOSION ── */
+     if(explFlash>0){
+       ctx.fillStyle=`rgba(255,220,120,${explFlash*0.55})`;
+       ctx.fillRect(0,0,W,H);
+       explFlash=Math.max(0,explFlash-0.06);
+     }
+     for(const p of explParts){
+       if(!p.active||p.life<=0)continue;
+       p.x+=p.vx;p.y+=p.vy;
+       p.vy+=0.15; /* gravité */
+       p.vx*=0.97;
+       p.life-=0.018;
+       if(p.life<=0){p.active=false;continue;}
+       /* Traînée lumineuse */
+       const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*2.5);
+       grd.addColorStop(0,`hsla(${p.hue},100%,80%,${p.life*0.9})`);
+       grd.addColorStop(0.5,`hsla(${p.hue},95%,55%,${p.life*0.5})`);
+       grd.addColorStop(1,'rgba(0,0,0,0)');
+       ctx.fillStyle=grd;
+       ctx.beginPath();ctx.arc(p.x,p.y,p.size*2.5,0,Math.PI*2);ctx.fill();
+       /* Point central */
+       ctx.fillStyle=`hsla(${p.hue+30},100%,92%,${p.life})`;
+       ctx.beginPath();ctx.arc(p.x,p.y,Math.max(0.5,p.size*p.life*0.5),0,Math.PI*2);ctx.fill();
+     }
+
      ctx.save();
      ctx.shadowColor='rgba(255,20,8,0.9)'; ctx.shadowBlur=14;
      ctx.strokeStyle='rgba(255,20,8,0.70)'; ctx.lineWidth=2;
@@ -4147,8 +4200,12 @@
      ctx.fillRect(cx-42,cdY-26,84,52);
      ctx.font='bold '+Math.floor(H*0.058)+'px "Courier New",monospace';
      ctx.textAlign='center';ctx.textBaseline='middle';
-     ctx.fillStyle='rgba(255,30,10,0.97)';
-     ctx.shadowColor='rgba(255,30,10,0.8)'; ctx.shadowBlur=10;
+     /* Clignotement rouge vif dans les 5 dernières secondes */
+     const urgency=elapsed>37;
+     const blink=urgency&&Math.floor(t*8)%2===0;
+     ctx.fillStyle=blink?'rgba(255,255,80,1)':'rgba(255,30,10,0.97)';
+     ctx.shadowColor=blink?'rgba(255,255,0,1)':'rgba(255,30,10,0.8)';
+     ctx.shadowBlur=blink?20:10;
      ctx.fillText(String(countdown).padStart(2,'0'),cx,cdY);
      ctx.restore();
 
