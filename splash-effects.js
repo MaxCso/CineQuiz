@@ -7074,8 +7074,8 @@
     let _htS=document.getElementById('_ht_s');
     if(!_htS){_htS=document.createElement('style');_htS.id='_ht_s';document.head.appendChild(_htS);}
     _htS.textContent=`
-      #splash-content-wrap{top:50%!important;transform:translateY(-50%)!important;}
-      #splash-content-wrap.reveal{transform:translateY(-50%)!important;}
+      #splash-content-wrap{top:25%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _htW=setInterval(()=>{if(stop.v){_htS.textContent='';clearInterval(_htW);}},200);
 
@@ -16303,7 +16303,7 @@
     let _svS=document.getElementById('_sv_splash_style');
     if(!_svS){_svS=document.createElement('style');_svS.id='_sv_splash_style';document.head.appendChild(_svS);}
     _svS.textContent=`
-      #splash-content-wrap{top:18%!important;transform:translateY(0)!important;}
+      #splash-content-wrap{top:30%!important;transform:translateY(0)!important;}
       #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _svW=setInterval(()=>{if(stop.v){_svS.textContent='';clearInterval(_svW);}},200);
@@ -16354,10 +16354,23 @@
 
     /* ── Grain filmique ── */
     // Pré-générer un tableau de positions pour le grain
-    const grainCount=900;
+    const grainCount=2200;
     const grainX=new Float32Array(grainCount);
     const grainY=new Float32Array(grainCount);
     for(let i=0;i<grainCount;i++){grainX[i]=Math.random()*W;grainY[i]=Math.random()*H;}
+
+    /* ── Particules de poussière flottantes ── */
+    const dust=Array.from({length:120},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H,
+     r:Math.random()*1.6+0.3,
+     vx:(Math.random()-0.5)*0.18,
+     vy:-(0.04+Math.random()*0.12),
+     op:Math.random()*0.20+0.04,
+     ph:Math.random()*Math.PI*2,
+     freq:0.006+Math.random()*0.018,
+     col:Math.random()>0.5?'120,145,130':'160,175,155',
+    }));
 
     /* ── Vignette : amplitude pulsante ── */
     let vigPulse=0;
@@ -16426,6 +16439,21 @@
        dr.trail=[];dr.pause=Math.random()*240+60;
        dr.spd=0.08+Math.random()*0.18;
       }
+     }
+
+     /* ── Particules de poussière flottantes ── */
+     for(const d of dust){
+      d.x+=d.vx+Math.sin(t*0.7+d.ph)*0.08;
+      d.y+=d.vy;
+      d.ph+=d.freq;
+      if(d.y<-d.r){d.y=H+d.r;d.x=Math.random()*W;}
+      if(d.x<0)d.x=W;if(d.x>W)d.x=0;
+      const dop=d.op*(0.5+0.5*Math.sin(d.ph));
+      if(dop<0.01)continue;
+      const dg=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*2.2);
+      dg.addColorStop(0,`rgba(${d.col},${dop})`);
+      dg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=dg;ctx.beginPath();ctx.arc(d.x,d.y,d.r*2.2,0,Math.PI*2);ctx.fill();
      }
 
      /* ── Grain filmique ── */
