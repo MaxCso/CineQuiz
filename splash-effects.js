@@ -47352,7 +47352,7 @@
     /* ── CSS positionnement ── */
     let _s=document.getElementById('_cmbyn_s');
     if(!_s){_s=document.createElement('style');_s.id='_cmbyn_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:12%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Image de fond CMBYN.png ── */
