@@ -15748,143 +15748,36 @@ function launchDailyFromModal(){
   const key=getDailyKey();const data=getDailyData();
   closeDailyModal();
   if(data[key]){setTimeout(()=>_showDailyDone(data[key]),120);return;}
-  _showDailyCountdown(()=>{
-    isDailyMode=true;
-    qs=buildDailyQuestions();
-    score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];dotRes=[];missedArr=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
-    tStart=Date.now();selMode='quiz';
-    const gbg=document.getElementById('game-bg');if(gbg)gbg.className='on mode-quiz';
-    go('game');loadQ();
-  });
+  // Initialiser et naviguer vers #game d'abord, puis afficher le countdown par-dessus
+  isDailyMode=true;
+  qs=buildDailyQuestions();
+  score=0;curQ=0;okCnt=0;combo=0;bestM=1;times=[];dotRes=[];missedArr=[];fastCnt=0;photoOkCnt=0;lastTick=-1;
+  tStart=Date.now();selMode='quiz';
+  const gbg=document.getElementById('game-bg');if(gbg)gbg.className='on mode-quiz';
+  go('game');
+  // Légère pause pour laisser #game s'afficher avant d'injecter l'overlay
+  setTimeout(()=>_showDailyCountdown(()=>loadQ()),80);
 }
 
 function _showDailyCountdown(cb){
-  /* Overlay plein écran */
-  const ov=document.createElement('div');
-  ov.id='_daily_countdown_ov';
-  Object.assign(ov.style,{
-    position:'fixed',inset:'0',zIndex:'9999',
-    background:'rgba(0,0,0,0.88)',
-    display:'flex',flexDirection:'column',
-    alignItems:'center',justifyContent:'center',
-    backdropFilter:'blur(6px)',
-    WebkitBackdropFilter:'blur(6px)',
-  });
-
-  /* Texte "Défi du Jour" au dessus */
-  const label=document.createElement('div');
-  Object.assign(label.style,{
-    color:'rgba(245,200,66,0.90)',
-    fontSize:'13px',letterSpacing:'4px',fontWeight:'700',
-    textTransform:'uppercase',marginBottom:'28px',
-    fontFamily:'inherit',
-  });
-  label.textContent='DÉFI DU JOUR';
-
-  /* Cercle de progression SVG */
-  const svgNS='http://www.w3.org/2000/svg';
-  const svg=document.createElementNS(svgNS,'svg');
-  svg.setAttribute('viewBox','0 0 120 120');
-  svg.style.cssText='width:140px;height:140px;';
-
-  const R=52, CX=60, CY=60;
-  const CIRC=2*Math.PI*R;
-
-  /* Cercle fond */
-  const bgCircle=document.createElementNS(svgNS,'circle');
-  bgCircle.setAttribute('cx',CX);bgCircle.setAttribute('cy',CY);bgCircle.setAttribute('r',R);
-  bgCircle.setAttribute('fill','none');bgCircle.setAttribute('stroke','rgba(255,255,255,0.10)');
-  bgCircle.setAttribute('stroke-width','6');
-
-  /* Arc de progression */
-  const arc=document.createElementNS(svgNS,'circle');
-  arc.setAttribute('cx',CX);arc.setAttribute('cy',CY);arc.setAttribute('r',R);
-  arc.setAttribute('fill','none');arc.setAttribute('stroke','#f5c842');
-  arc.setAttribute('stroke-width','6');
-  arc.setAttribute('stroke-linecap','round');
-  arc.setAttribute('stroke-dasharray',CIRC);
-  arc.setAttribute('stroke-dashoffset','0');
-  arc.setAttribute('transform',`rotate(-90 ${CX} ${CY})`);
-
-  svg.appendChild(bgCircle);svg.appendChild(arc);
-
-  /* Chiffre central */
-  const num=document.createElement('div');
-  Object.assign(num.style,{
-    position:'absolute',
-    width:'140px',height:'140px',
-    display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'72px',fontWeight:'900',color:'#fff',
-    fontFamily:'inherit',
-    transition:'transform 0.15s cubic-bezier(.34,1.56,.64,1), opacity 0.15s ease',
-    lineHeight:'1',
-  });
-
-  /* Wrapper pour superposer SVG + chiffre */
-  const wrap=document.createElement('div');
-  Object.assign(wrap.style,{position:'relative',width:'140px',height:'140px'});
-  wrap.appendChild(svg);wrap.appendChild(num);
-
-  /* Sous-texte */
-  const sub=document.createElement('div');
-  Object.assign(sub.style,{
-    marginTop:'28px',color:'rgba(255,255,255,0.45)',
-    fontSize:'12px',letterSpacing:'3px',fontFamily:'inherit',
-    textTransform:'uppercase',
-  });
-  sub.textContent='Prépare-toi…';
-
-  ov.appendChild(label);ov.appendChild(wrap);ov.appendChild(sub);
-  document.body.appendChild(ov);
-
+  const game=document.getElementById('game');
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:20;gap:10px;';
+  overlay.innerHTML=`
+    <div style="font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.35);font-family:'Bebas Neue',sans-serif;margin-bottom:4px;">PRÉPARE-TOI !</div>
+    <div id="vs-cnum" style="font-family:'Bebas Neue',sans-serif;font-size:100px;color:var(--gold);line-height:1;animation:vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both;">3</div>
+    <div style="font-size:15px;color:rgba(255,255,255,.55);">Défi du Jour</div>`;
+  game.appendChild(overlay);
   let count=3;
-  const DURATION=900; // ms par chiffre
-
-  function tick(){
-    /* Animation chiffre — pop */
-    num.style.transform='scale(1.35)';num.style.opacity='0.3';
-    num.textContent=count;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      num.style.transform='scale(1)';num.style.opacity='1';
-    }));
-
-    /* Arc progress : on veut que l'arc parte de plein (1 cercle) et se vide */
-    const startOffset=0;
-    const endOffset=CIRC;
-    const startTime=performance.now();
-
-    function animArc(now){
-      const elapsed=now-startTime;
-      const progress=Math.min(elapsed/DURATION,1);
-      arc.setAttribute('stroke-dashoffset', progress*CIRC);
-      if(progress<1) requestAnimationFrame(animArc);
-    }
-    requestAnimationFrame(animArc);
-
-    if(count===1){
-      /* Dernier tick — on remplace le chiffre par GO et on lance */
-      setTimeout(()=>{
-        num.style.transform='scale(1.35)';num.style.opacity='0.3';
-        sub.textContent="C'est parti !";
-        sub.style.color='rgba(245,200,66,0.80)';
-        requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          num.textContent='GO !';
-          num.style.fontSize='52px';
-          num.style.color='#f5c842';
-          num.style.transform='scale(1.1)';num.style.opacity='1';
-        }));
-        setTimeout(()=>{
-          ov.style.transition='opacity 0.35s ease';
-          ov.style.opacity='0';
-          setTimeout(()=>{if(ov.parentNode)ov.parentNode.removeChild(ov);cb();},350);
-        },600);
-      },DURATION);
-      return;
-    }
+  const tick=setInterval(()=>{
     count--;
-    setTimeout(tick, DURATION);
-  }
-  tick();
+    if(count>0){
+      const el=document.getElementById('vs-cnum');
+      if(el){el.textContent=count;el.style.animation='none';void el.offsetWidth;el.style.animation='vsCountPop .55s cubic-bezier(.34,1.56,.64,1) both';haptic('countdown');}
+    } else {
+      clearInterval(tick);overlay.remove();cb();
+    }
+  },750);
 }
 
 function _showDailyDone(d){
