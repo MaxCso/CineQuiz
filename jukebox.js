@@ -660,6 +660,7 @@ const JK_VIDEOS=[
   {name:"The Hateful Eight",               src:"The Hateful Eight.mp4",                       icon:'❄️'},
   {name:"Wild Tales",                      src:"Wild Tales.mp4",                              icon:'🌪️'},
   {name:"FightClub",                        src:"FightClub.mp4",                               icon:'👊'},
+  {name:"Retour vers le futur",              src:"Retour vers le futur.mp4",                    icon:'⚡'},
 ];
 let _jkVidIdx=-1;
 
