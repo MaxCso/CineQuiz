@@ -47348,134 +47348,158 @@
    ref:'Call Me by Your Name \u2014 Luca Guadagnino, 2017',
    run(cv,ctx,W,H,stop){
     cv.style.opacity='1.0';let t=0;const cx=W/2;
+
+    /* ── CSS positionnement ── */
     let _s=document.getElementById('_cmbyn_s');
     if(!_s){_s=document.createElement('style');_s.id='_cmbyn_s';document.head.appendChild(_s);}
-    _s.textContent='';
-    const _w=setInterval(()=>{
-     if(stop.v){
-      _s.textContent='';
-      ['_cmbyn_fig','_cmbyn_vig'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});
-      clearInterval(_w);
-     }
-    },200);
+    _s.textContent='#splash-content-wrap{top:12%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* Particules lumineuses — été italien */
-    const pollen=Array.from({length:110},()=>({
+    /* ── Image de fond CMBYN.png ── */
+    const bgImg=new Image();
+    let bgReady=false;
+    bgImg.onload=()=>{bgReady=true;};
+    bgImg.src='images/CMBYN.png';
+
+    /* ── Particules de pollen / lumière d'été (flottent doucement) ── */
+    const pollen=Array.from({length:90},()=>({
      x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.14, vy:-(0.04+Math.random()*0.09),
-     r:Math.random()*1.4+0.3, op:0.08+Math.random()*0.18,
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(0.06+Math.random()*0.12),
+     r:Math.random()*1.6+0.3,
+     op:0.10+Math.random()*0.20,
      ph:Math.random()*Math.PI*2,
-    }));
-    /* Particules fines — poussière de lumière plus rapides */
-    const dust2=Array.from({length:80},()=>({
-     x:Math.random()*W, y:Math.random()*H,
-     vx:(Math.random()-0.5)*0.09, vy:-(0.12+Math.random()*0.22),
-     r:Math.random()*0.7+0.15, op:0.05+Math.random()*0.10,
-     ph:Math.random()*Math.PI*2,
+     freq:0.010+Math.random()*0.018,
     }));
 
-    /* Chargement SVG silhouettes */
-    const _figImg=new Image();
-    _figImg.src='images/sprite_47.svg';
-    let _figReady=false;
-    _figImg.onload=()=>{_figReady=true;};
+    /* ── Poussière de lumière fine (plus rapide) ── */
+    const motes=Array.from({length:55},()=>({
+     x:Math.random()*W, y:Math.random()*H,
+     vx:(Math.random()-0.5)*0.08,
+     vy:-(0.18+Math.random()*0.28),
+     r:Math.random()*0.6+0.12,
+     op:0.06+Math.random()*0.12,
+     ph:Math.random()*Math.PI*2,
+     freq:0.020+Math.random()*0.030,
+    }));
 
-    /* Injection conteneur SVG — après curtain-open */
-    function _cmbynInject(){
-     if(document.getElementById('_cmbyn_fig')) return;
+    /* ── Lueurs de chaleur — shimmer bleu subtil ── */
+    const heatPh=Math.random()*Math.PI*2;
 
-     /* Vignette radiale bleue */
-     if(!document.getElementById('_cmbyn_vig')){
-      const v=document.createElement('div');v.id='_cmbyn_vig';
-      Object.assign(v.style,{position:'absolute',inset:'0',zIndex:'2',pointerEvents:'none',
-       background:'radial-gradient(ellipse 92% 92% at 50% 60%, transparent 35%, rgba(10,32,70,.50) 100%)'});
-      cv.parentElement.appendChild(v);
-     }
+    /* ── Reflets / raies de lumière traversantes ── */
+    const rays=Array.from({length:4},(_,i)=>({
+     x:W*(0.10+i*0.25+Math.random()*0.10),
+     angle:-Math.PI*0.35+Math.random()*0.20,
+     width:W*(0.012+Math.random()*0.020),
+     op:0.0,
+     maxOp:0.06+Math.random()*0.06,
+     ph:Math.random()*Math.PI*2,
+     freq:0.004+Math.random()*0.006,
+    }));
 
-     /* Indicateur pour autoriser drawImage après inject */
-     const marker=document.createElement('div');marker.id='_cmbyn_fig';
-     marker.style.display='none';
-     cv.parentElement.appendChild(marker);
-    }
+    /* ── Petites étincelles dorées (lumière solaire filtrée) ── */
+    const sparks=Array.from({length:18},()=>({
+     x:Math.random()*W,
+     y:Math.random()*H*0.65,
+     r:Math.random()*2.2+0.5,
+     ph:Math.random()*Math.PI*2,
+     freq:0.018+Math.random()*0.035,
+     op:0.12+Math.random()*0.22,
+    }));
 
-    (function(){
-     const _splash=document.getElementById('splash');
-     if(!_splash) return;
-     if(_splash.classList.contains('curtain-open')){
-      _cmbynInject();
-     } else {
-      const _obs=new MutationObserver(function(mutations){
-       for(const m of mutations){
-        if(m.type==='attributes'&&m.attributeName==='class'){
-         if(_splash.classList.contains('curtain-open')){_obs.disconnect();_cmbynInject();}
-        }
-       }
-      });
-      _obs.observe(_splash,{attributes:true,attributeFilter:['class']});
-      const _chk=setInterval(()=>{if(stop.v){_obs.disconnect();clearInterval(_chk);}},200);
-     }
-    })();
-
-    /* Ratio SVG 984×815 */
-    const FIG_RATIO=984/815;
+    /* ── Lueur solaire coin haut-gauche / haut-droit ── */
+    let sunPh=Math.random()*Math.PI*2;
 
     function frame(){
      if(stop.v)return;
 
-     /* ── Fond bleu cobalt — identique à l'affiche ── */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0.00,'#1040a0');
-     bg.addColorStop(0.40,'#1a4a8a');
-     bg.addColorStop(0.75,'#163d7a');
-     bg.addColorStop(1.00,'#102e60');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-
-     /* Légère variation de luminosité au centre — profondeur */
-     const glow=ctx.createRadialGradient(cx,H*0.55,0,cx,H*0.55,W*0.70);
-     glow.addColorStop(0,'rgba(50,90,180,0.18)');
-     glow.addColorStop(0.5,'rgba(20,60,140,0.08)');
-     glow.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
-
-     /* Particules lumineuses — lumière d'été */
-     for(const po of pollen){
-      po.x+=po.vx;po.y+=po.vy;po.ph+=0.015;
-      if(po.y<-10){po.y=H+10;po.x=Math.random()*W;}
-      if(po.x<0||po.x>W)po.vx*=-1;
-      ctx.beginPath();ctx.arc(po.x,po.y,po.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${po.op*(0.4+0.6*Math.abs(Math.sin(po.ph)))})`;ctx.fill();
-     }
-     /* Poussière fine rapide */
-     for(const d of dust2){
-      d.x+=d.vx;d.y+=d.vy;d.ph+=0.022;
-      if(d.y<-10){d.y=H+10;d.x=Math.random()*W;}
-      if(d.x<0||d.x>W)d.vx*=-1;
-      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(220,235,255,${d.op*(0.3+0.7*Math.abs(Math.sin(d.ph)))})`;ctx.fill();
+     /* ── Image de fond plein-canvas (cover) ── */
+     if(bgReady){
+      ctx.save();ctx.globalAlpha=1.0;
+      const ir=bgImg.naturalWidth/bgImg.naturalHeight;
+      const cr=W/H;
+      let dw,dh,dx,dy;
+      if(ir>cr){dh=H;dw=dh*ir;dx=(W-dw)/2;dy=0;}
+      else{dw=W;dh=dw/ir;dx=0;dy=(H-dh)/2;}
+      ctx.drawImage(bgImg,dx,dy,dw,dh);
+      ctx.restore();
+     } else {
+      /* fallback */
+      const bg=ctx.createLinearGradient(0,0,0,H);
+      bg.addColorStop(0,'#1a4aaa');bg.addColorStop(1,'#102e60');
+      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
      }
 
-     /* ── Silhouettes SVG — ancrées dans le bas ── */
-     if(_figReady && document.getElementById('_cmbyn_fig')){
-      const figW=W*1.02;            /* légèrement plus large que l'écran */
-      const figH=figW/FIG_RATIO;
-      const figX=cx-figW/2;
-      const figY=H-figH*0.88;       /* bien ancrée en bas, les têtes émergent */
-      /* Halo très doux autour des silhouettes */
-      const figGlow=ctx.createRadialGradient(cx,figY+figH*0.35,0,cx,figY+figH*0.35,figW*0.48);
-      figGlow.addColorStop(0,'rgba(100,160,255,0.08)');
-      figGlow.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=figGlow;ctx.fillRect(0,figY,W,figH);
-      /* Opacité légèrement pulsée — respiration subtile */
-      ctx.globalAlpha=0.88+Math.sin(t*0.45)*0.06;
-      ctx.drawImage(_figImg,figX,figY,figW,figH);
-      ctx.globalAlpha=1;
+     /* ── Overlay très léger pour garder la profondeur ── */
+     ctx.fillStyle='rgba(10,30,80,0.10)';ctx.fillRect(0,0,W,H);
+
+     /* ── Lueur solaire en haut (légère, chaude) ── */
+     sunPh+=0.008;
+     const sunOp=0.10+Math.sin(sunPh)*0.04;
+     const sunG=ctx.createRadialGradient(W*0.72,0,0,W*0.72,0,H*0.55);
+     sunG.addColorStop(0,`rgba(255,230,140,${sunOp})`);
+     sunG.addColorStop(0.35,`rgba(255,190,80,${sunOp*0.30})`);
+     sunG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H*0.55);
+
+     /* ── Raies de lumière traversantes ── */
+     for(const r of rays){
+      r.ph+=r.freq;
+      r.op=r.maxOp*(0.4+0.6*Math.abs(Math.sin(r.ph)));
+      if(r.op<0.005)continue;
+      ctx.save();
+      ctx.translate(r.x,0);ctx.rotate(r.angle);
+      const lg=ctx.createLinearGradient(0,0,r.width,0);
+      lg.addColorStop(0,'rgba(255,255,255,0)');
+      lg.addColorStop(0.5,`rgba(255,245,200,${r.op})`);
+      lg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=lg;ctx.fillRect(-r.width,0,r.width*2,H*1.4);
+      ctx.restore();
      }
 
-     /* Vignette bleue bords */
-     const vg=ctx.createRadialGradient(cx,H*0.50,H*0.08,cx,H*0.50,H*0.75);
+     /* ── Particules pollen ── */
+     for(const p of pollen){
+      p.x+=p.vx+Math.sin(t*0.5+p.ph)*0.06;
+      p.y+=p.vy;p.ph+=p.freq;
+      if(p.y<-8){p.y=H+8;p.x=Math.random()*W;}
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+      const pop=p.op*(0.45+0.55*Math.sin(p.ph));
+      if(pop<0.01)continue;
+      const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.5);
+      pg.addColorStop(0,`rgba(255,255,255,${pop})`);
+      pg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=pg;ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.5,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Poussière fine ── */
+     for(const m of motes){
+      m.x+=m.vx;m.y+=m.vy;m.ph+=m.freq;
+      if(m.y<-5){m.y=H+5;m.x=Math.random()*W;}
+      if(m.x<0)m.x=W;if(m.x>W)m.x=0;
+      const mop=m.op*(0.3+0.7*Math.abs(Math.sin(m.ph)));
+      if(mop<0.008)continue;
+      ctx.fillStyle=`rgba(220,235,255,${mop})`;
+      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Étincelles dorées (zone haute — lumière filtrée) ── */
+     for(const sp of sparks){
+      sp.ph+=sp.freq;
+      const sop=sp.op*(0.5+0.5*Math.sin(sp.ph));
+      if(sop<0.01)continue;
+      const sg=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,sp.r*3);
+      sg.addColorStop(0,`rgba(255,225,120,${sop})`);
+      sg.addColorStop(0.5,`rgba(255,200,80,${sop*0.35})`);
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sp.x,sp.y,sp.r*3,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Vignette douce sur les bords ── */
+     const vg=ctx.createRadialGradient(cx,H*0.48,H*0.10,cx,H*0.48,H*0.78);
      vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.55,'rgba(10,32,80,0.12)');
-     vg.addColorStop(1,'rgba(8,24,60,0.70)');
+     vg.addColorStop(0.50,'rgba(8,22,60,0.08)');
+     vg.addColorStop(0.78,'rgba(6,18,50,0.38)');
+     vg.addColorStop(1,'rgba(4,12,40,0.72)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
