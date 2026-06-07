@@ -17223,10 +17223,6 @@
      for(let x=0;x<=W;x+=4) ctx.lineTo(x,H*0.60+Math.sin(x*0.022+1.5)*7+Math.sin(x*0.04)*4);
      ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
 
-     /* Forêt de sapins */
-     const treeData=[[W*0.04,H*0.60,H*0.32,W*0.038],[W*0.14,H*0.58,H*0.38,W*0.042],[W*0.24,H*0.61,H*0.28,W*0.030],[W*0.76,H*0.60,H*0.36,W*0.040],[W*0.86,H*0.58,H*0.40,W*0.044],[W*0.94,H*0.61,H*0.30,W*0.032]];
-     for(const [tx2,ty2,th,tw3] of treeData) drawTree(tx2,ty2,th,tw3);
-
      /* Bus Magic (212) — SVG */
      const BW=W*0.72;
      const BH=BW*(117/391);
@@ -17239,6 +17235,10 @@
       ctx.drawImage(imgBus,BX,BY,BW,BH);
       ctx.restore();
      }
+
+     /* Forêt de sapins — dessinée APRÈS le bus pour passer devant */
+     const treeData=[[W*0.04,H*0.60,H*0.32,W*0.038],[W*0.14,H*0.58,H*0.38,W*0.042],[W*0.24,H*0.61,H*0.28,W*0.030],[W*0.76,H*0.60,H*0.36,W*0.040],[W*0.86,H*0.58,H*0.40,W*0.044],[W*0.94,H*0.61,H*0.30,W*0.032]];
+     for(const [tx2,ty2,th,tw3] of treeData) drawTree(tx2,ty2,th,tw3);
 
      /* ── Feu de camp sous le bus ── */
      (function drawCampfire(){
