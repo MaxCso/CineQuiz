@@ -9543,7 +9543,7 @@
     const SVG_W=261, SVG_H=861;
 
     function drawRocky(){
-     const targetH=H*0.25;
+     const targetH=H*0.20;
      const targetW=targetH*(SVG_W/SVG_H);
      const drawX=cx-targetW/2;
      const drawY=H*0.65-targetH;
@@ -49722,6 +49722,12 @@
       if(_bgAnimEl){_bgAnimEl.style.transition='';_bgAnimEl.style.pointerEvents='';}
       /* Purge immédiate de tous les styles injectés par les splashs */
       ['_28_s','_5e_splash_style','_af_splash_pos','_ah_s','_al_s','_an_s','_ap_s','_as_splash_style','_atbo_s','_av_pos','_bd_s','_big_pos','_big_s','_bl_s','_bm_aud','_bm_fig','_bm_fig_s','_bm_s','_bm_spot','_bm_spot_s','_bm_vig','_bnh_s','_bo_s','_bp_s','_br_bg_override','_bttf_pos_s','_cc_s','_cdd_s','_chal_s','_cm_s','_cmbyn_fig','_cmbyn_s','_cmbyn_vig','_col_s','_cr_splash_style','_cs_s','_cuckoo_s','_dd_s','_dd_splash_style','_dep_s','_dh_s','_dh_splash_style','_dj_s','_dm_s','_dn_s','_dv_pos_s','_ed_fig','_ed_fig_s','_ed_s','_ed_vig','_em_pos_s','_ep_s','_es_s','_et_s','_ews_pos_s','_ews_splash_style','_fc_pos_s','_ff_s','_fg_splash_style','_fmj_s','_fnf_s','_fy_s','_gat_s','_gbu_splash_style','_gd_s','_gits_s','_gl_pos_s','_go_s','_gotg_s','_gr_s','_grem_pos_s','_gs_s','_gt_s','_ha_s','_her_s','_hook_s','_hp_s','_ht_s','_ia2_s','_ia3_s','_ib_s','_ic_s','_ig_splash_style','_ij_s','_im_s','_inc_s','_inter_pos','_intou_s','_itw_splash_style','_jb_pos','_jf_pos','_jf_s','_jh_pos_s','_jh_splash_style','_jm_s','_joker_s','_jp_pos_s','_jum_s','_jw_s','_kb_splash_style','_laur_s','_le_splash_style','_lh_splash_style','_lit_s','_ll_pos_s','_ll_splash_pos','_lms_s','_ln_pos','_ln_splash_style','_low_pos_s','_lp_s','_ls_s','_lw_pos_s','_lw_splash_style','_mag_splash_style','_mc_s','_md_s','_me_s','_mib_fig','_mib_fig_s','_mib_pos_s','_ml_s','_mm_pos_s','_mr_splash_style','_ms_s','_msk_hat','_msk_hat_s','_msk_s','_msk_vig','_narnia_splash_style','_nb_s','_nc_s','_nc_splash_pos','_nm_s','_nope_splash_style','_ob_s','_oc_s','_om_s','_opp_splash_pos','_opp_splash_style','_par_pos_s','_pb_s','_pg2_s','_phm_s','_pir_s','_plat_pos_s','_plat_s','_pr_s','_ptbk_s','_rata_s','_rb_s','_rbl_s','_rd_s','_rdt_s','_rfd_s','_rk_s','_rm_s','_rmb_s','_rv_s','_ry_splash_style','_sa_splash_pos','_sbm_s','_sc_pos_s','_sc_splash_style','_schl_s','_seven_glow','_sf_s','_sf_splash_style','_sh_pos_s','_sil_s','_sin_s','_sk_s','_sm_splash_style','_sn_s','_sn_splash_style','_sp_splash_style','_ss_s','_sup_s','_sv_splash_style','_tbc_s','_td_s','_td_splash_style','_tdk_s','_tf_s','_tg_s','_tit_s','_tl_pos','_tl_splash_style','_tp_splash_style','_tron_pos','_ts_splash_style','_tshow_pos_s','_tshow_splash_style','_twb_s','_ug_s','_up_s','_us_s','_vbt_s','_vs_s','_vs_splash_style','_vs_vig','_wb_s','_we_s','_wh_fig','_wh_fig_s','_wh_s','_wh_vig','_wp_splash_style','_zod_s'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='';});
+      /* Réinitialisation immédiate des couleurs du logo et tagline principal */
+      var _logoEls=document.querySelectorAll('#splash-logo-wrap .splash-logo, #splash-logo-wrap .splash-tagline, .splash-tagline');
+      _logoEls.forEach(function(el){el.style.removeProperty('color');el.style.removeProperty('-webkit-text-fill-color');el.style.removeProperty('background');el.style.removeProperty('-webkit-background-clip');el.style.removeProperty('background-clip');el.style.removeProperty('filter');el.style.removeProperty('opacity');el.style.removeProperty('animation');});
+      /* Réinitialisation de la couleur de "Réalisé par Max" */
+      var _creditEls=document.querySelectorAll('#splash-credit, .splash-credit');
+      _creditEls.forEach(function(el){el.style.removeProperty('color');el.style.removeProperty('-webkit-text-fill-color');el.style.removeProperty('text-shadow');});;
     };
   };
   // Exposer pour la preview
