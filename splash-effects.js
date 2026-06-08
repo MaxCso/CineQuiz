@@ -30999,7 +30999,7 @@
     /* ── Positionnement citation + logo juste au-dessus des buildings ── */
     let _oppPos=document.getElementById('_opp_splash_pos');
     if(!_oppPos){_oppPos=document.createElement('style');_oppPos.id='_opp_splash_pos';document.head.appendChild(_oppPos);}
-    _oppPos.textContent='#splash-content-wrap{top:58%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _oppPos.textContent='#splash-content-wrap{top:56%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _oppPosWatch=setInterval(()=>{if(stop.v){_oppPos.textContent='';clearInterval(_oppPosWatch);}},200);
 
     /* ── Override fond : dégradé orange chaud de l'affiche ── */
@@ -42347,7 +42347,7 @@
     /* ── Silhouette Loki ── */
     function drawLoki(){
       if(!lokiReady)return;
-      const imgH=H*0.115;
+      const imgH=H*0.135;
       const imgW=imgH*LOKI_RATIO;
       /* Centré horizontalement, ancré au sol à 80% */
       const imgX=cx-imgW/2;
