@@ -17422,7 +17422,6 @@
       #splash-logo-wrap,#splash-logo-wrap *{color:#000000!important;-webkit-text-fill-color:#000000!important;}
 
       #splash-film-ref-bottom,#splash-film-ref{color:rgba(180,10,10,0.90)!important;-webkit-text-fill-color:rgba(180,10,10,0.90)!important;}
-      #splash-credit,#splash-ref-bot,.splash-credit{color:rgba(180,10,10,0.90)!important;-webkit-text-fill-color:rgba(180,10,10,0.90)!important;}
       #splash-skip{color:rgba(255,255,255,0.90)!important;-webkit-text-fill-color:rgba(255,255,255,0.90)!important;letter-spacing:3px!important;}
     `;
     const _kbWatch=setInterval(()=>{if(stop.v){_kbStyle.textContent='';clearInterval(_kbWatch);}},200);
@@ -37582,7 +37581,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_vs_s');
     if(!_s){_s=document.createElement('style');_s.id='_vs_s';document.head.appendChild(_s);}
-    _s.textContent=`#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline{color:rgba(255,105,165,0.90)!important;-webkit-text-fill-color:rgba(255,105,165,0.90)!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:rgba(255,105,165,0.90)!important;-webkit-text-fill-color:rgba(255,105,165,0.90)!important;text-shadow:none!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;text-shadow:none!important;}`;
+    _s.textContent=`#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-tagline{color:rgba(255,105,165,0.90)!important;-webkit-text-fill-color:rgba(255,105,165,0.90)!important;text-shadow:none!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;text-shadow:none!important;}`;
     const _w=setInterval(()=>{
      if(stop.v){
       _s.textContent='';
@@ -41393,7 +41392,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_ha_s');
     if(!_s){_s=document.createElement('style');_s.id='_ha_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:31%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}';
+    _s.textContent='#splash-content-wrap{top:31%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* Neige */
@@ -45849,7 +45848,7 @@
     cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_laur_s');
     if(!_s){_s=document.createElement('style');_s.id='_laur_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}#splash-credit,#splash-ref-bot,.splash-credit{color:#000000!important;-webkit-text-fill-color:#000000!important;}';
+    _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-film-ref-bottom,#splash-film-ref,#splash-film-ref *{color:#000000!important;-webkit-text-fill-color:#000000!important;text-shadow:none!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
     /* ── Zones ── */
