@@ -11014,10 +11014,15 @@ function refProfile(){
   document.getElementById('p-pc').textContent=pct+'%';
   document.getElementById('p-sk').textContent=s.maxStreak;
   // Sanitize playtime (anciens saves pouvaient stocker des ms au lieu de secondes)
+  // Correction one-shot via flag pour éviter de re-diviser à chaque ouverture du profil
   const rawPt=s.playtime||0;
-  // Si la valeur dépasse 20h, c'est probablement des millisecondes (bug ancien)
-  const sanePt=rawPt>72000?Math.round(rawPt/1000):rawPt;
-  if(sanePt!==rawPt){s.playtime=sanePt;ss(s);}
+  let sanePt=rawPt;
+  if(!s.playtimeSanitized){
+    sanePt=rawPt>72000?Math.round(rawPt/1000):rawPt;
+    if(sanePt!==rawPt)s.playtime=sanePt;
+    s.playtimeSanitized=true;
+    ss(s);
+  }
   document.getElementById('p-pt').textContent=fmtT(sanePt);
   document.getElementById('p-bs').textContent=s.best;
   const pbc=document.getElementById('p-bc');if(pbc)pbc.textContent=s.unlocked.length+'/'+BADGES.length;
