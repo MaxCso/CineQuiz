@@ -294,314 +294,216 @@
   },
   {
    name:'Blade Runner',
-   color:'255,60,30',
+   color:'255,120,30',
    ref:'Blade Runner \u2014 Ridley Scott, 1982',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.72';
+    cv.style.opacity='1';
     let t=0;
 
-    /* Fond sombre urbain — suppression des orbes colorées */
+    /* ── Masque les orbes du splash ── */
     const _brS=document.createElement('style');
     _brS.id='_br_bg_override';
-    _brS.textContent='';
+    _brS.textContent='#splash-bg,#splash-bg-anim{opacity:0!important;}';
     document.head.appendChild(_brS);
     const _brCleanup=setInterval(()=>{if(stop.v){clearInterval(_brCleanup);const el=document.getElementById('_br_bg_override');if(el)el.remove();}},200);
 
-    /* ── Préchargement licorne origami ── */
-    const _uImg=document.getElementById('unicornSvg');
-    let _uReady=false;
-    if(_uImg){
-     if(_uImg.complete && _uImg.naturalWidth>0){_uReady=true;}
-     else{_uImg.onload=()=>{_uReady=true;};}
-    }
+    /* ══ IMAGE DE FOND ══ */
+    const bg=new Image();
+    bg.src='images/BR.png';
+    let bgReady=false;
+    bg.onload=()=>{bgReady=true;};
 
-    /* ── Skyline pré-dessinée une seule fois ── */
-    const skyC=document.createElement('canvas');
-    skyC.width=W; skyC.height=H;
-    const sx=skyC.getContext('2d');
-    const horizY=H*0.78; /* sol plus bas — laisse plus de place aux bâtiments */
-
-    /* couleurs fenêtres — dominante ambre/orange, quelques bleus froids */
-    const winColors=[
-     'rgba(255,160,40,',
-     'rgba(255,160,40,',
-     'rgba(255,140,20,',
-     'rgba(220,120,20,',
-     'rgba(80,130,200,',
-     'rgba(60,110,180,',
-     'rgba(255,200,80,',
-     'rgba(180,80,20,',
-    ];
-
-    /* ── Plan arrière-plan : gratte-ciels très hauts (dépassent le haut du canvas) ── */
-    const bldgsBG=[
-     {x:-W*0.02, w:W*0.09, h:H*1.05, floors:22},
-     {x:W*0.06,  w:W*0.06, h:H*0.92, floors:18},
-     {x:W*0.11,  w:W*0.10, h:H*1.10, floors:24},
-     {x:W*0.20,  w:W*0.07, h:H*0.88, floors:16},
-     {x:W*0.26,  w:W*0.11, h:H*1.02, floors:21},
-     {x:W*0.36,  w:W*0.08, h:H*0.95, floors:19},
-     {x:W*0.43,  w:W*0.13, h:H*1.08, floors:23},
-     {x:W*0.54,  w:W*0.07, h:H*0.90, floors:17},
-     {x:W*0.60,  w:W*0.10, h:H*1.00, floors:20},
-     {x:W*0.69,  w:W*0.08, h:H*0.86, floors:15},
-     {x:W*0.76,  w:W*0.12, h:H*1.06, floors:22},
-     {x:W*0.87,  w:W*0.08, h:H*0.94, floors:18},
-     {x:W*0.93,  w:W*0.10, h:H*1.02, floors:21},
-    ];
-
-    /* ── Plan avant : bâtiments plus larges et variés ── */
-    const bldgsFG=[
-     {x:-W*0.01, w:W*0.14, h:H*0.72, floors:12},
-     {x:W*0.12,  w:W*0.09, h:H*0.82, floors:15},
-     {x:W*0.20,  w:W*0.16, h:H*0.62, floors:10},
-     {x:W*0.34,  w:W*0.11, h:H*0.88, floors:16},
-     {x:W*0.44,  w:W*0.18, h:H*0.70, floors:12},
-     {x:W*0.60,  w:W*0.10, h:H*0.92, floors:17},
-     {x:W*0.69,  w:W*0.14, h:H*0.65, floors:11},
-     {x:W*0.81,  w:W*0.12, h:H*0.78, floors:14},
-     {x:W*0.91,  w:W*0.12, h:H*0.68, floors:11},
-    ];
-
-    function drawBldg(b,alpha,isBack){
-     const by=horizY-b.h;
-     /* silhouette très sombre avec légère variation gauche/droite */
-     const darkL=isBack?'rgba(4,3,7,0.98)':'rgba(6,4,10,0.98)';
-     const darkR=isBack?'rgba(3,2,5,0.99)':'rgba(4,3,8,0.99)';
-     const bg=sx.createLinearGradient(b.x,0,b.x+b.w,0);
-     bg.addColorStop(0,darkL); bg.addColorStop(0.5,'rgba(10,8,16,0.97)'); bg.addColorStop(1,darkR);
-     sx.fillStyle=bg;
-     sx.fillRect(b.x,by,b.w,b.h+2);
-
-     /* ── Structure architecturale : panneaux verticaux ── */
-     const panelW=b.w/(Math.floor(b.w/(W*0.022))||1);
-     for(let px=b.x+panelW;px<b.x+b.w-1;px+=panelW){
-      sx.strokeStyle='rgba(20,15,30,0.6)';sx.lineWidth=0.5;
-      sx.beginPath();sx.moveTo(px,by);sx.lineTo(px,horizY);sx.stroke();
-     }
-
-     /* antenne + lumière rouge clignotante (statique ici) */
-     if(!isBack||Math.random()<0.6){
-      sx.strokeStyle='rgba(15,12,22,0.9)';sx.lineWidth=1.5;
-      sx.beginPath();sx.moveTo(b.x+b.w*0.5,by);sx.lineTo(b.x+b.w*0.5,by-H*0.03);sx.stroke();
-      sx.fillStyle='rgba(255,50,50,0.65)';
-      sx.beginPath();sx.arc(b.x+b.w*0.5,by-H*0.03,2,0,Math.PI*2);sx.fill();
-     }
-
-     /* fenêtres */
-     const fW=Math.max(2,b.w/(b.floors*0.55+2)*0.5);
-     const fH=fW*0.75;
-     const fCols=Math.floor(b.w/(fW*2.0));
-     const fRows=Math.floor(b.h/(fH*2.2));
-     for(let r=0;r<fRows;r++){
-      for(let c=0;c<fCols;c++){
-       const chance=isBack?0.38:0.42;
-       if(Math.random()<chance){
-        const wx=b.x+(b.w-fCols*fW*2.0)/2+c*fW*2.0;
-        const wy=by+(b.h-fRows*fH*2.2)/2+r*fH*2.2;
-        if(wy<0)continue; /* ne pas dessiner au-dessus du canvas */
-        const wc=winColors[Math.floor(Math.random()*winColors.length)];
-        const op=isBack?0.25:0.40;
-        sx.fillStyle=wc+op+')';
-        sx.fillRect(wx,wy,fW,fH);
-       }
-      }
-     }
-    }
-
-    /* Dessiner arrière-plan d'abord (plus sombre), puis avant-plan */
-    for(const b of bldgsBG) drawBldg(b,0.7,true);
-    for(const b of bldgsFG) drawBldg(b,1.0,false);
-
-    /* enseignes néon sur les bâtiments */
-    const signs=[
-     {x:W*0.10,y:horizY-H*0.22,w:55,color:[220,40,40],  label:'HOTEL'},
-     {x:W*0.40,y:horizY-H*0.16,w:48,color:[40,100,220],  label:'BAR'},
-     {x:W*0.64,y:horizY-H*0.24,w:62,color:[200,30,120],  label:'TYRELL'},
-     {x:W*0.82,y:horizY-H*0.12,w:44,color:[255,160,20],  label:'OFF-WORLD'},
-    ];
-
-    /* ── Pluie ── */
-    const drops=Array.from({length:200},()=>({
+    /* ══ PLUIE ══ */
+    const drops=Array.from({length:180},()=>({
      x:Math.random()*W*1.2-W*0.1,
      y:Math.random()*H,
      len:Math.random()*55+20,
      spd:Math.random()*7+5,
-     op:Math.random()*0.35+0.08,
+     op:Math.random()*0.20+0.05,
      w:Math.random()*0.6+0.2
     }));
 
-    /* ── Spinner (voiture volante) ── */
-    let spinX=-160, spinY=H*0.22, spinSpd=0.9;
-    /* ── Spinner 2 — sens inverse, plus haut, plus lent ── */
-    let spin2X=W+120, spin2Y=H*0.13, spin2Spd=0.55;
-    /* ── Spinner 3 — juste au-dessus de la citation, lent ── */
-    let spin3X=W+140, spin3Y=H*0.36, spin3Spd=0.40;
-    /* ── Spinner 4 — encore plus proche de la citation, sens contraire ── */
-    let spin4X=-160, spin4Y=H*0.44, spin4Spd=0.30;
-    function drawSpinner(x,y){
-     ctx.save();ctx.translate(x,y);
-     /* corps principal */
-     ctx.fillStyle='rgba(15,12,20,0.92)';
-     ctx.beginPath();ctx.ellipse(0,0,38,10,0,0,Math.PI*2);ctx.fill();
-     /* pare-brise */
-     ctx.fillStyle='rgba(40,80,120,0.55)';
-     ctx.beginPath();ctx.ellipse(-4,-5,16,6,0,0,Math.PI*2);ctx.fill();
+    /* ══ VAPEUR ══ */
+    function mkSteam(){
+     return {
+      x:W*(0.05+Math.random()*0.9),
+      y:H*(0.7+Math.random()*0.25),
+      r:W*(0.02+Math.random()*0.025),
+      vx:(Math.random()-0.5)*0.35,
+      vy:-(0.3+Math.random()*0.55),
+      op:0.04+Math.random()*0.07,
+      col:Math.random()<0.55?'160,100,220':'220,120,40'
+     };
+    }
+    const steams=Array.from({length:18},mkSteam);
+
+    /* ══ PARTICULES LUMINEUSES ══ */
+    const parts=Array.from({length:55},()=>({
+     x:Math.random()*W, y:Math.random()*H,
+     r:0.6+Math.random()*1.4,
+     vx:(Math.random()-0.5)*0.4,
+     vy:(Math.random()-0.5)*0.3-0.15,
+     op:0.15+Math.random()*0.45,
+     ph:Math.random()*Math.PI*2,
+     col:['255,140,40','0,200,220','180,80,255','255,200,60'][Math.random()*4|0]
+    }));
+
+    /* ══ SCAN LINE CRT ══ */
+    let scanY=0;
+
+    /* ══ HALO NÉON SUR LES BORDS ══ */
+    const GLOW_COLS=[[255,110,30],[0,180,210],[200,60,255]];
+    let glowIdx=0, glowNext=0;
+
+    /* ══ SPINNERS ══ */
+    /* Spinner 1 — gauche→droite, niveau haut */
+    let sp1X=-120, sp1Y=H*0.18, sp1Spd=0.75;
+    /* Spinner 2 — droite→gauche, niveau moyen, plus lent */
+    let sp2X=W+120, sp2Y=H*0.32, sp2Spd=0.45;
+
+    function drawSpinner(x,y,flip){
+     ctx.save();
+     ctx.translate(x,y);
+     if(flip){ctx.scale(-1,1);}
+     /* halo lumineux sous la carlingue */
+     const halo=ctx.createRadialGradient(0,6,0,0,6,48);
+     halo.addColorStop(0,`rgba(255,180,80,${0.12+0.06*Math.sin(t*3)})`);
+     halo.addColorStop(0.5,`rgba(40,100,200,${0.06+0.03*Math.sin(t*2.5)})`);
+     halo.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=halo;ctx.fillRect(-50,-10,100,40);
+     /* corps principal — fuselage */
+     ctx.fillStyle='rgba(18,14,26,0.92)';
+     ctx.beginPath();ctx.ellipse(0,0,36,9,0,0,Math.PI*2);ctx.fill();
+     /* reflet métallique sur le dessus */
+     const shine=ctx.createLinearGradient(-36,-9,0,-4);
+     shine.addColorStop(0,'rgba(80,70,110,0)');
+     shine.addColorStop(0.5,'rgba(120,110,160,0.35)');
+     shine.addColorStop(1,'rgba(80,70,110,0)');
+     ctx.fillStyle=shine;ctx.beginPath();ctx.ellipse(0,-2,30,5,0,0,Math.PI*2);ctx.fill();
+     /* pare-brise — teinte bleutée */
+     ctx.fillStyle='rgba(30,70,130,0.60)';
+     ctx.beginPath();ctx.ellipse(-3,-5,14,5,0,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle='rgba(80,140,220,0.35)';ctx.lineWidth=0.5;
+     ctx.beginPath();ctx.ellipse(-3,-5,14,5,0,0,Math.PI*2);ctx.stroke();
      /* ailes */
-     ctx.fillStyle='rgba(10,8,16,0.88)';
-     ctx.beginPath();ctx.moveTo(-30,2);ctx.lineTo(-48,8);ctx.lineTo(-44,12);ctx.lineTo(-28,6);ctx.closePath();ctx.fill();
-     ctx.beginPath();ctx.moveTo(30,2);ctx.lineTo(48,8);ctx.lineTo(44,12);ctx.lineTo(28,6);ctx.closePath();ctx.fill();
-     /* feux de position — rouge gauche, bleu droit */
-     const rg1=ctx.createRadialGradient(-46,10,0,-46,10,10);
-     rg1.addColorStop(0,`rgba(255,40,20,${0.7+Math.sin(t*4)*0.3})`);rg1.addColorStop(1,'rgba(255,40,20,0)');
-     ctx.fillStyle=rg1;ctx.fillRect(-56,3,20,15);
-     const rg2=ctx.createRadialGradient(46,10,0,46,10,10);
-     rg2.addColorStop(0,`rgba(40,100,255,${0.7+Math.sin(t*4+1)*0.3})`);rg2.addColorStop(1,'rgba(40,100,255,0)');
-     ctx.fillStyle=rg2;ctx.fillRect(36,3,20,15);
-     /* phare avant */
-     const ph=ctx.createRadialGradient(40,0,0,40,0,30);
-     ph.addColorStop(0,'rgba(255,240,200,0.55)');ph.addColorStop(1,'rgba(255,240,200,0)');
-     ctx.fillStyle=ph;ctx.fillRect(35,-15,50,30);
+     ctx.fillStyle='rgba(12,9,18,0.90)';
+     ctx.beginPath();ctx.moveTo(-28,2);ctx.lineTo(-50,8);ctx.lineTo(-46,13);ctx.lineTo(-26,6);ctx.closePath();ctx.fill();
+     ctx.beginPath();ctx.moveTo(28,2);ctx.lineTo(50,8);ctx.lineTo(46,13);ctx.lineTo(26,6);ctx.closePath();ctx.fill();
+     /* feux de position clignotants */
+     const f1=0.65+0.35*Math.sin(t*4.2);
+     const f2=0.65+0.35*Math.sin(t*4.2+Math.PI);
+     const rg1=ctx.createRadialGradient(-47,10,0,-47,10,9);
+     rg1.addColorStop(0,`rgba(255,45,20,${f1})`);rg1.addColorStop(1,'rgba(255,45,20,0)');
+     ctx.fillStyle=rg1;ctx.fillRect(-56,4,18,13);
+     const rg2=ctx.createRadialGradient(47,10,0,47,10,9);
+     rg2.addColorStop(0,`rgba(50,110,255,${f2})`);rg2.addColorStop(1,'rgba(50,110,255,0)');
+     ctx.fillStyle=rg2;ctx.fillRect(38,4,18,13);
+     /* phare avant — cone de lumière */
+     const ph=ctx.createRadialGradient(38,0,0,55,2,28);
+     ph.addColorStop(0,`rgba(255,240,200,${0.45+0.1*Math.sin(t*1.5)})`);
+     ph.addColorStop(0.4,'rgba(255,240,200,0.12)');
+     ph.addColorStop(1,'rgba(255,240,200,0)');
+     ctx.fillStyle=ph;ctx.beginPath();ctx.moveTo(36,-3);ctx.lineTo(82,-16);ctx.lineTo(82,18);ctx.lineTo(36,5);ctx.closePath();ctx.fill();
      ctx.restore();
     }
 
-    /* ── Flaques avec reflets (bande de sol) ── */
-    const puddles=[
-     {cx:W*0.2, cy:H*0.92, rx:60,ry:10, color:[220,40,40]},
-     {cx:W*0.5, cy:H*0.95, rx:80,ry:12, color:[40,100,220]},
-     {cx:W*0.78,cy:H*0.90, rx:55,ry:9,  color:[200,30,120]},
-    ];
-
     function frame(){
      if(stop.v)return;
-     ctx.fillStyle='rgba(3,2,6,0.20)';ctx.fillRect(0,0,W,H);
 
-     /* smog — couvre tout le canvas de haut en bas */
-     const sky=ctx.createLinearGradient(0,0,0,H);
-     sky.addColorStop(0,`rgba(${6+Math.sin(t*0.1)*2|0},3,${12+Math.sin(t*0.08)*3|0},0.70)`);
-     sky.addColorStop(0.18,`rgba(${20+Math.sin(t*0.12)*4|0},8,${22+Math.sin(t*0.10)*4|0},0.60)`);
-     sky.addColorStop(0.40,`rgba(${42+Math.sin(t*0.15)*6|0},14,${30+Math.sin(t*0.12)*5|0},0.55)`);
-     sky.addColorStop(0.65,`rgba(${70+Math.sin(t*0.20)*8|0},${24+Math.sin(t*0.18)*4|0},8,0.50)`);
-     sky.addColorStop(0.85,`rgba(${95+Math.sin(t*0.22)*10|0},${32+Math.sin(t*0.20)*5|0},5,0.45)`);
-     sky.addColorStop(1,`rgba(${60+Math.sin(t*0.18)*8|0},${18+Math.sin(t*0.15)*3|0},4,0.55)`);
-     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-
-     /* skyline statique */
-     ctx.drawImage(skyC,0,0);
-
-     /* brume atmosphérique entre les plans — couche de smog orange au milieu des buildings */
-     const hazeY=H*0.25;
-     const haze=ctx.createLinearGradient(0,hazeY,0,hazeY+H*0.30);
-     haze.addColorStop(0,`rgba(${60+Math.sin(t*0.14)*8|0},${18+Math.sin(t*0.10)*4|0},4,0)`);
-     haze.addColorStop(0.3,`rgba(${75+Math.sin(t*0.16)*10|0},${22+Math.sin(t*0.12)*4|0},5,${0.08+Math.sin(t*0.3)*0.03})`);
-     haze.addColorStop(0.6,`rgba(${55+Math.sin(t*0.18)*8|0},${16+Math.sin(t*0.14)*3|0},4,${0.06+Math.sin(t*0.25)*0.02})`);
-     haze.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=haze;ctx.fillRect(0,hazeY,W,H*0.30);
-
-     /* enseignes néon animées */
-     for(const s of signs){
-      const fl=0.45+Math.sin(t*1.8+s.x)*0.55;
-      const sg=ctx.createRadialGradient(s.x,s.y,2,s.x,s.y,s.w*0.9);
-      sg.addColorStop(0,`rgba(${s.color},${0.55*fl})`);
-      sg.addColorStop(0.5,`rgba(${s.color},${0.18*fl})`);
-      sg.addColorStop(1,`rgba(${s.color},0)`);
-      ctx.fillStyle=sg;ctx.fillRect(s.x-s.w,s.y-s.w,s.w*2,s.w*2);
-      ctx.save();
-      ctx.globalAlpha=0.7*fl;
-      ctx.fillStyle=`rgb(${s.color})`;
-      ctx.font=`bold 9px 'Courier New',monospace`;
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.shadowColor=`rgb(${s.color})`;ctx.shadowBlur=8*fl;
-      ctx.fillText(s.label,s.x,s.y+14);
-      ctx.restore();
+     /* ── Fond image BR.png — cover ── */
+     if(bgReady){
+      const iw=bg.naturalWidth,ih=bg.naturalHeight;
+      const scale=Math.max(W/iw,H/ih);
+      const dw=iw*scale,dh=ih*scale;
+      ctx.drawImage(bg,(W-dw)/2,(H-dh)/2,dw,dh);
+     } else {
+      ctx.fillStyle='#05060a';
+      ctx.fillRect(0,0,W,H);
      }
 
-     /* sol mouillé + reflets */
-     const road=ctx.createLinearGradient(0,horizY,0,H);
-     road.addColorStop(0,'rgba(8,5,14,0.96)');
-     road.addColorStop(1,'rgba(5,3,10,0.99)');
-     ctx.fillStyle=road;ctx.fillRect(0,horizY,W,H-horizY);
+     /* ── Voile sombre global ── */
+     ctx.fillStyle='rgba(2,3,8,0.28)';
+     ctx.fillRect(0,0,W,H);
 
-     /* flaques */
-     for(const p of puddles){
-      const fl=0.35+Math.sin(t*1.2+p.cx*0.01)*0.35;
-      const pg=ctx.createRadialGradient(p.cx,p.cy,2,p.cx,p.cy,p.rx);
-      pg.addColorStop(0,`rgba(${p.color},${0.3*fl})`);
-      pg.addColorStop(1,`rgba(${p.color},0)`);
-      ctx.fillStyle=pg;ctx.beginPath();ctx.ellipse(p.cx,p.cy,p.rx,p.ry,0,0,Math.PI*2);ctx.fill();
-      /* ondulation */
-      for(let r=0;r<3;r++){
-       const rr=((r/3+t*0.4)%1);
-       ctx.strokeStyle=`rgba(${p.color},${0.06*(1-rr)})`;ctx.lineWidth=0.5;
-       ctx.beginPath();ctx.ellipse(p.cx,p.cy,p.rx*rr,p.ry*rr,0,0,Math.PI*2);ctx.stroke();
-      }
+     /* ── Halo néon sur les bords (transition orange → cyan → violet) ── */
+     const gc=GLOW_COLS[glowIdx];
+     const gcN=GLOW_COLS[(glowIdx+1)%GLOW_COLS.length];
+     const gb=Math.max(0,Math.min(1,(t-glowNext+0.8)/0.8));
+     const gr=gc[0]+(gcN[0]-gc[0])*gb|0;
+     const gg=gc[1]+(gcN[1]-gc[1])*gb|0;
+     const gbl=gc[2]+(gcN[2]-gc[2])*gb|0;
+     if(t>glowNext+0.8){glowNext=t+4.5;glowIdx=(glowIdx+1)%GLOW_COLS.length;}
+     const gop=0.07+0.05*Math.sin(t*0.7);
+     const glL=ctx.createLinearGradient(0,0,W*0.28,0);
+     glL.addColorStop(0,`rgba(${gr},${gg},${gbl},${gop})`);glL.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glL;ctx.fillRect(0,0,W*0.28,H);
+     const glR=ctx.createLinearGradient(W,0,W*0.72,0);
+     glR.addColorStop(0,`rgba(${gr},${gg},${gbl},${gop})`);glR.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glR;ctx.fillRect(W*0.72,0,W*0.28,H);
+     const glB=ctx.createLinearGradient(0,H,0,H*0.72);
+     glB.addColorStop(0,`rgba(${gr},${gg},${gbl},${gop*1.4})`);glB.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=glB;ctx.fillRect(0,H*0.72,W,H*0.28);
+
+     /* ── Reflet horizon (béton mouillé) ── */
+     const horizY=H*0.62;
+     const hOp=0.04+0.03*Math.sin(t*1.1);
+     const hg=ctx.createLinearGradient(0,horizY-4,0,horizY+10);
+     hg.addColorStop(0,'rgba(0,0,0,0)');
+     hg.addColorStop(0.4,`rgba(255,150,50,${hOp})`);
+     hg.addColorStop(0.6,`rgba(0,180,200,${hOp*0.6})`);
+     hg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=hg;ctx.fillRect(0,horizY-4,W,14);
+
+     /* ── Vapeur ── */
+     for(const s of steams){
+      s.x+=s.vx;s.y+=s.vy;s.r+=0.12;s.op-=0.0008;
+      if(s.y<H*0.3||s.op<=0){Object.assign(s,mkSteam());}
+      const sg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r);
+      sg.addColorStop(0,`rgba(${s.col},${s.op})`);sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* Spinner 1 */
-     spinX+=spinSpd;
-     if(spinX>W+180)spinX=-160;
-     drawSpinner(spinX,spinY+Math.sin(t*0.8)*4);
+     /* ── Particules lumineuses ── */
+     for(const p of parts){
+      p.x+=p.vx;p.y+=p.vy;p.ph+=0.025;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.col},${p.op*(0.3+0.7*Math.abs(Math.sin(p.ph)))})`;ctx.fill();
+     }
 
-     /* Spinner 2 — sens inverse, plus petit, plus haut */
-     spin2X-=spin2Spd;
-     if(spin2X<-180)spin2X=W+120;
+     /* ── Spinners ── */
+     /* Spinner 1 : gauche → droite */
+     sp1X+=sp1Spd;
+     if(sp1X>W+130)sp1X=-120;
+     drawSpinner(sp1X, sp1Y+Math.sin(t*0.7)*5, false);
+     /* Spinner 2 : droite → gauche (miroir) */
+     sp2X-=sp2Spd;
+     if(sp2X<-130)sp2X=W+120;
+     drawSpinner(sp2X, sp2Y+Math.sin(t*0.55+1.8)*4, true);
+
+     /* ── Pluie ── */
      ctx.save();
-     ctx.scale(-1,1);
-     ctx.translate(-W,0);
-     drawSpinner(W-spin2X, spin2Y+Math.sin(t*0.6+1.5)*3);
-     ctx.restore();
-
-     /* Spinner 3 — au-dessus de la citation, traverse de droite à gauche */
-     spin3X-=spin3Spd;
-     if(spin3X<-180)spin3X=W+140;
-     ctx.save();
-     ctx.scale(-1,1);
-     ctx.translate(-W,0);
-     drawSpinner(W-spin3X, spin3Y+Math.sin(t*0.5+2.8)*3);
-     ctx.restore();
-
-     /* Spinner 4 — juste au-dessus de la citation, gauche→droite, très lent */
-     spin4X+=spin4Spd;
-     if(spin4X>W+180)spin4X=-160;
-     drawSpinner(spin4X, spin4Y+Math.sin(t*0.45+1.2)*2.5);
-
-     /* pluie */
      for(const d of drops){
       d.y+=d.spd;d.x-=d.spd*0.15;
       if(d.y>H+d.len){d.y=-d.len;d.x=Math.random()*W*1.2-W*0.1;}
       ctx.strokeStyle=`rgba(140,170,220,${d.op})`;
       ctx.lineWidth=d.w;
-      ctx.beginPath();
-      ctx.moveTo(d.x,d.y);
-      ctx.lineTo(d.x-d.len*0.15,d.y+d.len);
-      ctx.stroke();
+      ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-d.len*0.15,d.y+d.len);ctx.stroke();
      }
+     ctx.restore();
 
-     /* ── Licorne origami — SVG Blade Runner ── */
-     if(_uReady && _uImg){
-      try{
-       const uW=W*0.42, uH=W*0.42;
-       const uX=cx-uW/2, uY=H-uH*0.82;
-       const uPulse=0.55+Math.sin(t*0.7)*0.12;
-       /* Halo cyan via canvas (pas de filter CSS) */
-       const ug=ctx.createRadialGradient(cx,uY+uH*0.52,0,cx,uY+uH*0.52,uW*0.75);
-       ug.addColorStop(0,`rgba(0,210,255,${0.18+Math.sin(t*0.5)*0.06})`);
-       ug.addColorStop(0.4,`rgba(0,160,210,${0.08+Math.sin(t*0.4)*0.03})`);
-       ug.addColorStop(1,'rgba(0,0,0,0)');
-       ctx.fillStyle=ug;ctx.fillRect(uX-uW*0.3,uY,uW*1.6,uH*1.1);
-       /* Dessin SVG — sans filter */
-       ctx.save();
-       ctx.globalAlpha=uPulse*0.78;
-       ctx.drawImage(_uImg,uX,uY,uW,uH);
-       ctx.restore();
-      }catch(e){}
-     }
+     /* ── Scan line CRT ── */
+     scanY=(scanY+0.6)%H;
+     const slg=ctx.createLinearGradient(0,scanY-6,0,scanY+6);
+     slg.addColorStop(0,'rgba(255,255,255,0)');slg.addColorStop(0.5,'rgba(255,255,255,0.035)');slg.addColorStop(1,'rgba(255,255,255,0)');
+     ctx.fillStyle=slg;ctx.fillRect(0,scanY-6,W,12);
+     ctx.fillStyle='rgba(0,0,0,0.08)';
+     for(let y=0;y<H;y+=2)ctx.fillRect(0,y,W,1);
 
-     /* vignette */
-     const vg=ctx.createRadialGradient(W/2,H*0.45,H*0.06,W/2,H*0.45,H*0.88);
-     vg.addColorStop(0,'rgba(0,0,0,0)');
-     vg.addColorStop(0.55,'rgba(3,2,6,0.28)');
-     vg.addColorStop(1,'rgba(3,2,6,0.92)');
+     /* ── Vignette finale ── */
+     const vg=ctx.createRadialGradient(W/2,H*0.48,H*0.08,W/2,H*0.48,H*0.78);
+     vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(0.5,'rgba(0,0,0,0.08)');
+     vg.addColorStop(0.78,'rgba(0,0,0,0.42)');vg.addColorStop(1,'rgba(0,0,0,0.88)');
      ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
@@ -42577,252 +42479,136 @@
    color:'200,60,20',
    ref:"Boyz n the Hood \u2014 John Singleton, 1991",
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1.0';let t=0;const cx=W/2;
+    cv.style.opacity='1';let t=0;
+
+    /* ── Masque les orbes du splash ── */
     let _s=document.getElementById('_bnh_s');
     if(!_s){_s=document.createElement('style');_s.id='_bnh_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:28%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-bg,#splash-bg-anim{opacity:0!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* Étoiles */
-    const stars=Array.from({length:80},()=>({
-     x:Math.random()*W, y:Math.random()*H*0.50,
-     r:Math.random()*1.2+0.2, op:0.35+Math.random()*0.55,
-     ph:Math.random()*Math.PI*2,
-    }));
+    /* ══ IMAGE DE FOND ══ */
+    const bg=new Image();
+    bg.src='images/BNTH.png';
+    let bgReady=false;
+    bg.onload=()=>{bgReady=true;};
 
-    /* Voitures */
-    const cars=Array.from({length:3},(_,i)=>({
-     x:W*(0.1+i*0.55), y:H*(0.735+Math.random()*0.025),
-     spd:W*(0.0035+Math.random()*0.0025)*((i%2===0)?1:-1),
-     lights:true,
-    }));
+    /* ══ GRAIN CINÉMATOGRAPHIQUE ══ */
+    /* Généré hors-frame sur un petit canvas, mis à l'échelle */
+    const grainC=document.createElement('canvas');
+    grainC.width=200;grainC.height=300;
+    const gx=grainC.getContext('2d');
 
-    /* Réverbères — 4 poteaux répartis */
-    const lampposts=[
-     {x:W*0.12,y:H*0.56},{x:W*0.38,y:H*0.54},
-     {x:W*0.64,y:H*0.56},{x:W*0.88,y:H*0.54},
-    ];
-
-    /* Silhouettes — positions fixes pour éviter le tremblement */
-    const figures=[
-     {wx:cx-W*0.20, pose:0, spd:0.55+Math.random()*0.15, ph:0.0},
-     {wx:cx-W*0.07, pose:1, spd:0.50+Math.random()*0.15, ph:Math.PI*0.5},
-     {wx:cx+W*0.07, pose:2, spd:0.58+Math.random()*0.15, ph:Math.PI},
-     {wx:cx+W*0.20, pose:0, spd:0.52+Math.random()*0.15, ph:Math.PI*1.5},
-    ];
-
-    function drawFigure(fx,ph){
-     /* Couleur silhouette : bleu nuit foncé, pas noir total */
-     const col='rgba(18,22,35,0.97)';
-     const bY=0; /* origine en bas du personnage après ctx.translate */
-     const swing=Math.sin(ph);   /* -1..1, cycle de marche */
-     const swing2=Math.sin(ph*2); /* fréquence double pour les coudes */
-
-     /* Tête */
-     ctx.fillStyle=col;
-     ctx.beginPath();ctx.arc(fx,bY-H*0.090,W*0.015,0,Math.PI*2);ctx.fill();
-     /* Corps */
-     ctx.beginPath();ctx.ellipse(fx,bY-H*0.044,W*0.017,H*0.042,0,0,Math.PI*2);ctx.fill();
-
-     /* Bras — balancement opposé aux jambes */
-     ctx.strokeStyle=col;ctx.lineWidth=W*0.008;ctx.lineCap='round';
-     const armSwing=swing*W*0.022;
-     /* Bras gauche avant quand jambe gauche arrière, et vice-versa */
-     ctx.beginPath();
-     ctx.moveTo(fx,bY-H*0.072);
-     ctx.lineTo(fx-W*0.012-armSwing, bY-H*0.040+Math.abs(armSwing)*0.3);
-     ctx.stroke();
-     ctx.beginPath();
-     ctx.moveTo(fx,bY-H*0.072);
-     ctx.lineTo(fx+W*0.012+armSwing, bY-H*0.040-Math.abs(armSwing)*0.3);
-     ctx.stroke();
-
-     /* Jambes — deux segments articulés (cuisse + tibia) */
-     ctx.lineWidth=W*0.010;
-     const hipY   = bY-H*0.022;          /* point d'attache des hanches */
-     const kneeOff= H*0.038;             /* longueur cuisse */
-     const shinOff= H*0.036;             /* longueur tibia */
-     const stepX  = swing*W*0.018;       /* amplitude latérale du pas */
-     const stepY  = Math.abs(swing)*H*0.020; /* genou monte en milieu de foulée */
-
-     /* Jambe gauche */
-     const lkx = fx - W*0.010 - stepX;
-     const lky = hipY + kneeOff - stepY;
-     const lfx = lkx + stepX*0.6;
-     const lfy = lky + shinOff;
-     ctx.beginPath();ctx.moveTo(fx-W*0.010, hipY);ctx.lineTo(lkx, lky);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(lkx, lky);ctx.lineTo(lfx, lfy);ctx.stroke();
-
-     /* Jambe droite (phase opposée) */
-     const rkx = fx + W*0.010 + stepX;
-     const rky = hipY + kneeOff - (H*0.020 - stepY); /* genou bas quand gauche haut */
-     const rfx = rkx - stepX*0.6;
-     const rfy = rky + shinOff;
-     ctx.beginPath();ctx.moveTo(fx+W*0.010, hipY);ctx.lineTo(rkx, rky);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(rkx, rky);ctx.lineTo(rfx, rfy);ctx.stroke();
+    function updateGrain(){
+     const id=gx.createImageData(200,300);
+     const d=id.data;
+     for(let i=0;i<d.length;i+=4){
+      const v=Math.random()*55|0;
+      d[i]=d[i+1]=d[i+2]=v;d[i+3]=Math.random()<0.55?28:0;
+     }
+     gx.putImageData(id,0,0);
     }
+    updateGrain();
+    let grainTimer=0;
+
+    /* ══ POUSSIÈRE / CHALEUR ══ */
+    const dust=Array.from({length:40},()=>({
+     x:Math.random()*200,   /* coords sur 200x300, on scalera */
+     y:100+Math.random()*200,
+     r:0.4+Math.random()*1.0,
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(0.05+Math.random()*0.18),
+     op:0.05+Math.random()*0.22,
+     ph:Math.random()*Math.PI*2,
+     /* teinte : blanc chaud ou ocre */
+     col:Math.random()<0.6?'240,220,180':'255,245,220'
+    }));
+
+    /* ══ HAZE THERMIQUE (déformation bas d'image) ══ */
+    const hazeOffsets=Array.from({length:12},()=>({
+     ph:Math.random()*Math.PI*2,
+     spd:0.008+Math.random()*0.012,
+     amp:0.4+Math.random()*0.8
+    }));
+
+    /* ══ LUEUR SOLAIRE (haut de l'image, ciel) ══ */
+    let sunPh=0;
 
     function frame(){
      if(stop.v)return;
 
-     /* Ciel — bleu nuit de LA, pas noir total */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0,'#06080f');
-     bg.addColorStop(0.40,'#0a0e1a');
-     bg.addColorStop(0.68,'#111520');
-     bg.addColorStop(1,'#0d1018');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-
-     /* Smog orange de LA — lueur chaude à l'horizon */
-     const smog=ctx.createLinearGradient(0,H*0.52,0,H*0.72);
-     smog.addColorStop(0,'rgba(0,0,0,0)');
-     smog.addColorStop(0.6,'rgba(180,90,10,0.12)');
-     smog.addColorStop(1,'rgba(210,110,15,0.20)');
-     ctx.fillStyle=smog;ctx.fillRect(0,H*0.52,W,H*0.20);
-
-     /* Étoiles scintillantes */
-     for(const s of stars){
-      s.ph+=0.012;
-      const op=s.op*(0.55+0.45*Math.sin(s.ph));
-      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(220,215,200,${op})`;ctx.fill();
+     /* ── Fond image BNTH.png — cover ── */
+     if(bgReady){
+      const iw=bg.naturalWidth,ih=bg.naturalHeight;
+      const scale=Math.max(W/iw,H/ih);
+      const dw=iw*scale,dh=ih*scale;
+      ctx.drawImage(bg,(W-dw)/2,(H-dh)/2,dw,dh);
+     } else {
+      ctx.fillStyle='#3a4560';
+      ctx.fillRect(0,0,W,H);
      }
 
-     /* Halos des lampadaires au sol AVANT les poteaux */
-     for(const lp of lampposts){
-      /* Cône de lumière descendant */
-      const coneG=ctx.createRadialGradient(lp.x,H*0.68,0,lp.x,H*0.68,W*0.22);
-      coneG.addColorStop(0,'rgba(255,185,50,0.22)');
-      coneG.addColorStop(0.5,'rgba(220,150,30,0.08)');
-      coneG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=coneG;ctx.fillRect(lp.x-W*0.22,H*0.52,W*0.44,H*0.20);
-      /* Reflet sur asphalte */
-      const reflG=ctx.createRadialGradient(lp.x,H*0.72,0,lp.x,H*0.72,W*0.14);
-      reflG.addColorStop(0,'rgba(255,170,40,0.18)');
-      reflG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=reflG;ctx.fillRect(lp.x-W*0.14,H*0.68,W*0.28,H*0.12);
+     /* ── Lueur solaire californienne (haut, pulse lent) ── */
+     sunPh+=0.008;
+     const sunOp=0.06+0.03*Math.sin(sunPh);
+     const sunG=ctx.createRadialGradient(W*0.62,0,0,W*0.62,0,H*0.55);
+     sunG.addColorStop(0,`rgba(255,210,130,${sunOp})`);
+     sunG.addColorStop(0.45,`rgba(220,160,60,${sunOp*0.4})`);
+     sunG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H*0.55);
+
+     /* ── Haze thermique bas d'image ── */
+     /* On dessine en petites bandes horizontales légèrement décalées */
+     const hazeY=H*0.72;
+     const hazeH=H*0.28;
+     ctx.save();
+     ctx.globalAlpha=0.06;
+     for(let row=0;row<10;row++){
+      const y=hazeY+row*(hazeH/10);
+      const h=hazeH/10+1;
+      const ho=hazeOffsets[row%hazeOffsets.length];
+      ho.ph+=ho.spd;
+      const dx=Math.sin(ho.ph+row*0.6)*ho.amp*(0.5+row*0.08);
+      ctx.drawImage(cv, 0,y, W,h, dx,y, W,h);
+     }
+     ctx.restore();
+
+     /* ── Poussière flottante ── */
+     for(const d of dust){
+      d.x+=d.vx;d.y+=d.vy;d.ph+=0.018;
+      /* reboucle sur le petit espace 200x300 */
+      if(d.y<0){d.y=300;d.x=Math.random()*200;}
+      if(d.x<0)d.x=200;if(d.x>200)d.x=0;
+      /* coordonnées canvas réelles */
+      const rx=d.x/200*W, ry=d.y/300*H;
+      const pop=d.op*(0.4+0.6*Math.abs(Math.sin(d.ph)));
+      ctx.beginPath();ctx.arc(rx,ry,d.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${d.col},${pop})`;ctx.fill();
      }
 
-     /* Route — asphalte bleu-gris */
-     const roadG=ctx.createLinearGradient(0,H*0.68,0,H);
-     roadG.addColorStop(0,'rgba(22,26,36,0.98)');
-     roadG.addColorStop(1,'rgba(14,16,24,0.98)');
-     ctx.fillStyle=roadG;ctx.fillRect(0,H*0.68,W,H*0.32);
+     /* ── Grain cinématographique ── */
+     grainTimer++;
+     if(grainTimer%2===0) updateGrain(); /* refresh toutes les 2 frames */
+     ctx.save();
+     ctx.globalAlpha=0.32;
+     ctx.globalCompositeOperation='overlay';
+     ctx.drawImage(grainC,0,0,W,H);
+     ctx.restore();
 
-     /* Trottoir */
-     ctx.fillStyle='rgba(30,34,46,0.95)';ctx.fillRect(0,H*0.68,W,H*0.018);
+     /* ── Scan line pellicule (très subtil) ── */
+     const scanY=((t*18)%H);
+     const slg=ctx.createLinearGradient(0,scanY-5,0,scanY+5);
+     slg.addColorStop(0,'rgba(255,255,255,0)');
+     slg.addColorStop(0.5,'rgba(255,255,255,0.028)');
+     slg.addColorStop(1,'rgba(255,255,255,0)');
+     ctx.fillStyle=slg;ctx.fillRect(0,scanY-5,W,10);
 
-     /* Ligne centrale pointillée */
-     ctx.strokeStyle='rgba(220,190,60,0.35)';ctx.lineWidth=1.4;
-     ctx.setLineDash([W*0.045,W*0.045]);
-     ctx.beginPath();ctx.moveTo(0,H*0.755);ctx.lineTo(W,H*0.755);ctx.stroke();
-     ctx.setLineDash([]);
-
-     /* Poteaux des lampadaires */
-     for(const lp of lampposts){
-      /* Poteau */
-      ctx.strokeStyle='rgba(55,60,75,0.95)';ctx.lineWidth=W*0.008;
-      ctx.beginPath();ctx.moveTo(lp.x,H*0.68);ctx.lineTo(lp.x,lp.y+H*0.012);ctx.stroke();
-      /* Bras horizontal */
-      ctx.beginPath();ctx.moveTo(lp.x,lp.y+H*0.012);ctx.lineTo(lp.x+W*0.04,lp.y);ctx.stroke();
-      /* Ampoule */
-      const bulbG=ctx.createRadialGradient(lp.x+W*0.04,lp.y,0,lp.x+W*0.04,lp.y,W*0.018);
-      bulbG.addColorStop(0,'rgba(255,230,120,1.0)');
-      bulbG.addColorStop(0.3,'rgba(255,210,80,0.85)');
-      bulbG.addColorStop(1,'rgba(255,170,30,0)');
-      ctx.fillStyle=bulbG;ctx.beginPath();ctx.arc(lp.x+W*0.04,lp.y,W*0.018,0,Math.PI*2);ctx.fill();
-      /* Halo autour de l'ampoule */
-      const haloG=ctx.createRadialGradient(lp.x+W*0.04,lp.y,0,lp.x+W*0.04,lp.y,W*0.12);
-      haloG.addColorStop(0,'rgba(255,200,60,0.30)');
-      haloG.addColorStop(0.4,'rgba(255,170,30,0.10)');
-      haloG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=haloG;ctx.fillRect(lp.x-W*0.08,lp.y-W*0.12,W*0.24,W*0.24);
-     }
-
-     /* Voitures */
-     for(const c of cars){
-      c.x+=c.spd;
-      if(c.x>W*1.3)c.x=-W*0.3;
-      if(c.x<-W*0.3)c.x=W*1.3;
-      const dir=c.spd>0?1:-1;
-      /* Carrosserie */
-      ctx.fillStyle='rgba(18,22,34,0.97)';
-      ctx.beginPath();ctx.roundRect(c.x-W*0.10,c.y-H*0.022,W*0.20,H*0.030,W*0.006);ctx.fill();
-      ctx.beginPath();ctx.roundRect(c.x-W*0.065,c.y-H*0.038,W*0.13,H*0.020,W*0.004);ctx.fill();
-      /* Phares — cônes directionnels lumineux */
-      const hx=c.x+dir*W*0.095;
-      const hy=c.y-H*0.008;
-      /* Cône de lumière projeté vers l'avant */
-      const beamLen=W*0.42;
-      const beamW=H*0.060;
-      const beamG=ctx.createLinearGradient(hx,hy,hx+dir*beamLen,hy);
-      beamG.addColorStop(0,`rgba(255,248,210,${0.52+Math.sin(t*3.5)*0.04})`);
-      beamG.addColorStop(0.15,'rgba(255,235,170,0.28)');
-      beamG.addColorStop(0.45,'rgba(240,220,140,0.10)');
-      beamG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=beamG;
-      ctx.beginPath();
-      ctx.moveTo(hx,hy-H*0.006);
-      ctx.lineTo(hx+dir*beamLen,hy-beamW*0.5);
-      ctx.lineTo(hx+dir*beamLen,hy+beamW*0.5);
-      ctx.lineTo(hx,hy+H*0.006);
-      ctx.closePath();ctx.fill();
-      /* Halo radial autour du phare */
-      const hg=ctx.createRadialGradient(hx,hy,0,hx,hy,W*0.14);
-      hg.addColorStop(0,`rgba(255,250,215,${0.65+Math.sin(t*3.5)*0.05})`);
-      hg.addColorStop(0.25,'rgba(255,235,165,0.28)');
-      hg.addColorStop(0.6,'rgba(230,200,100,0.08)');
-      hg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=hg;ctx.fillRect(hx-W*0.15,c.y-H*0.10,W*0.30,H*0.18);
-      /* Ampoule */
-      ctx.fillStyle=`rgba(255,252,230,${0.98})`;
-      ctx.beginPath();ctx.arc(hx,hy,W*0.009,0,Math.PI*2);ctx.fill();
-      /* Reflet du phare sur l'asphalte */
-      const reflY=c.y+H*0.018;
-      const reflG=ctx.createLinearGradient(hx,reflY,hx+dir*beamLen*0.6,reflY);
-      reflG.addColorStop(0,`rgba(200,180,100,${0.18+Math.sin(t*3.5)*0.03})`);
-      reflG.addColorStop(0.4,'rgba(160,140,70,0.07)');
-      reflG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=reflG;
-      ctx.beginPath();ctx.ellipse(hx+dir*beamLen*0.3,reflY,beamLen*0.30,H*0.008,0,0,Math.PI*2);ctx.fill();
-      /* Feux arrière rouges */
-      const rx=c.x-dir*W*0.095;
-      ctx.fillStyle='rgba(220,30,10,0.80)';
-      ctx.beginPath();ctx.arc(rx,c.y-H*0.008,W*0.006,0,Math.PI*2);ctx.fill();
-      const rg=ctx.createRadialGradient(rx,c.y-H*0.008,0,rx,c.y-H*0.008,W*0.06);
-      rg.addColorStop(0,'rgba(220,30,10,0.20)');rg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=rg;ctx.fillRect(rx-W*0.06,c.y-H*0.06,W*0.12,H*0.12);
-     }
-
-     /* Silhouettes — éclairées par en dessous */
-     const baseY=H*0.68;
-     for(const fig of figures){
-      /* Avancée + rebobinage hors écran */
-      fig.ph+=0.038;
-      fig.wx+=fig.spd;
-      if(fig.wx>W*1.15) fig.wx=-W*0.15;
-      const fx=fig.wx;
-      /* Oscillation verticale (pas) */
-      const bobY=Math.abs(Math.sin(fig.ph))*H*0.008;
-      /* Inclinaison légère (balancement du corps) */
-      const lean=Math.sin(fig.ph)*0.04;
-      /* Lueur orangée au sol sous chaque silhouette */
-      const footG=ctx.createRadialGradient(fx,baseY,0,fx,baseY,W*0.10);
-      footG.addColorStop(0,'rgba(200,120,20,0.18)');
-      footG.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=footG;ctx.fillRect(fx-W*0.10,baseY-H*0.04,W*0.20,H*0.08);
-      ctx.save();
-      ctx.translate(fx, baseY-bobY);
-      ctx.rotate(lean);
-      drawFigure(0, fig.ph);
-      ctx.restore();
-     }
-
-     /* Vignette */
-     const vig=ctx.createRadialGradient(cx,H*0.50,H*0.10,cx,H*0.50,H*0.80);
+     /* ── Vignette finale ── */
+     const vig=ctx.createRadialGradient(W/2,H*0.50,H*0.08,W/2,H*0.50,H*0.82);
      vig.addColorStop(0,'rgba(0,0,0,0)');
-     vig.addColorStop(0.6,'rgba(0,0,0,0.10)');
-     vig.addColorStop(1,'rgba(0,0,0,0.65)');
+     vig.addColorStop(0.55,'rgba(0,0,0,0.10)');
+     vig.addColorStop(0.80,'rgba(0,0,0,0.45)');
+     vig.addColorStop(1,'rgba(0,0,0,0.80)');
      ctx.fillStyle=vig;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
@@ -42831,7 +42617,7 @@
    }
   },
 
-  /* ══ OCEAN'S ELEVEN ══ */
+    /* ══ OCEAN'S ELEVEN ══ */
   {
    name:"Ocean's Eleven",
    color:'40,120,180',
