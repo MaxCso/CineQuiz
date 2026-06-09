@@ -16891,7 +16891,7 @@
     /* ── Masque les orbes du splash ── */
     let _tsStyle=document.getElementById('_tshow_splash_style');
     if(!_tsStyle){_tsStyle=document.createElement('style');_tsStyle.id='_tshow_splash_style';document.head.appendChild(_tsStyle);}
-    _tsStyle.textContent='#splash-bg,#splash-bg-anim{opacity:0!important;}';
+    _tsStyle.textContent='#splash-bg,#splash-bg-anim{opacity:0!important;}#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _tsWatch=setInterval(()=>{if(stop.v){_tsStyle.textContent='';clearInterval(_tsWatch);}},200);
 
     /* ══ IMAGE DE FOND ══ */
@@ -42390,136 +42390,264 @@
    color:'200,60,20',
    ref:"Boyz n the Hood \u2014 John Singleton, 1991",
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='1';let t=0;
-
-    /* ── Masque les orbes du splash ── */
+    cv.style.opacity='1.0';let t=0;const cx=W/2;
     let _s=document.getElementById('_bnh_s');
     if(!_s){_s=document.createElement('style');_s.id='_bnh_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-bg,#splash-bg-anim{opacity:0!important;}';
+    _s.textContent='#splash-content-wrap{top:28%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* ══ IMAGE DE FOND ══ */
-    const bg=new Image();
-    bg.src='images/BNTH.png';
-    let bgReady=false;
-    bg.onload=()=>{bgReady=true;};
+    const baseY=H*0.68; /* sol / trottoir */
+    const roadY=H*0.72;
 
-    /* ══ GRAIN CINÉMATOGRAPHIQUE ══ */
-    /* Généré hors-frame sur un petit canvas, mis à l'échelle */
-    const grainC=document.createElement('canvas');
-    grainC.width=200;grainC.height=300;
-    const gx=grainC.getContext('2d');
+    /* ── Étoiles ── */
+    const stars=Array.from({length:70},()=>({
+     x:Math.random()*W, y:Math.random()*H*0.55,
+     r:Math.random()*1.1+0.2, op:0.3+Math.random()*0.5,
+     ph:Math.random()*Math.PI*2,
+    }));
 
-    function updateGrain(){
-     const id=gx.createImageData(200,300);
-     const d=id.data;
-     for(let i=0;i<d.length;i+=4){
-      const v=Math.random()*55|0;
-      d[i]=d[i+1]=d[i+2]=v;d[i+3]=Math.random()<0.55?28:0;
-     }
-     gx.putImageData(id,0,0);
+    /* ── Silhouettes qui courent vers la gauche (fuyant la voiture) ── */
+    const runners=Array.from({length:3},(_,i)=>({
+     x: W*(0.65 - i*0.16),   /* partent dispersés */
+     ph: (i/3)*Math.PI*2,    /* phases décalées */
+     spd: W*(0.0055+i*0.0012), /* vitesses légèrement différentes */
+    }));
+
+    /* ── Voiture du drive-by — traverse de droite à gauche, lentement ── */
+    const shootCar={
+     x: W*1.15,
+     y: roadY,
+     spd: W*0.0022,
+     /* Tirs : intervalles irréguliers */
+     nextShot: 60 + Math.random()*80,
+     shotTimer: 0,
+     /* Flash actif */
+     flash: 0,       /* intensité 0..1, décroît vite */
+     flashAngle: -Math.PI*0.75, /* direction du tir (vers le haut-gauche) */
+    };
+
+    /* ── Réverbère unique côté gauche ── */
+    const lamp={x:W*0.10, y:H*0.52};
+
+    /* ── Dessine une silhouette qui court (stick figure penché en avant) ── */
+    function drawRunner(x, ph){
+     const col='rgba(15,18,28,0.97)';
+     const fy=baseY; /* pied au sol */
+     const h=H*0.092; /* hauteur totale */
+     /* Corps penché en avant (~20°) */
+     const lean=0.36;
+     const hipY=fy - h*0.44;
+     const hipX=x;
+     const shoulderX=hipX - Math.sin(lean)*h*0.30;
+     const shoulderY=hipY - Math.cos(lean)*h*0.30;
+     const headX=shoulderX - Math.sin(lean)*h*0.12;
+     const headY=shoulderY - Math.cos(lean)*h*0.12;
+
+     ctx.strokeStyle=col; ctx.lineCap='round';
+
+     /* Torse */
+     ctx.lineWidth=W*0.009;
+     ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(shoulderX,shoulderY);ctx.stroke();
+
+     /* Tête */
+     ctx.fillStyle=col;
+     ctx.beginPath();ctx.arc(headX, headY, W*0.013, 0, Math.PI*2);ctx.fill();
+
+     /* Jambes — course : grande amplitude, genou haut devant */
+     ctx.lineWidth=W*0.010;
+     const ls=Math.sin(ph);        /* jambe G */
+     const rs=Math.sin(ph+Math.PI); /* jambe D, opposition */
+     /* Jambe gauche */
+     const lkx=hipX + ls*W*0.025;
+     const lky=hipY + h*0.22 + Math.abs(ls)*H*(-0.025); /* genou remonte en avant */
+     const lfx=lkx - ls*W*0.018;
+     const lfy=lky + h*0.22;
+     ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(lkx,lky);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(lkx,lky);ctx.lineTo(lfx,lfy);ctx.stroke();
+     /* Jambe droite */
+     const rkx=hipX + rs*W*0.025;
+     const rky=hipY + h*0.22 + Math.abs(rs)*H*(-0.025);
+     const rfx=rkx - rs*W*0.018;
+     const rfy=rky + h*0.22;
+     ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(rkx,rky);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(rkx,rky);ctx.lineTo(rfx,rfy);ctx.stroke();
+
+     /* Bras — balancement énergique, opposé aux jambes */
+     ctx.lineWidth=W*0.007;
+     const la=Math.sin(ph+Math.PI)*0.7; /* bras G */
+     const ra=Math.sin(ph)*0.7;          /* bras D */
+     const aLen=h*0.20;
+     /* Bras gauche */
+     const laex=shoulderX + Math.sin(la)*aLen*0.55;
+     const laey=shoulderY + Math.cos(la)*aLen*0.55;
+     const lawx=laex + Math.sin(la*1.3)*aLen*0.45;
+     const lawy=laey + Math.cos(la*1.3)*aLen*0.45;
+     ctx.beginPath();ctx.moveTo(shoulderX,shoulderY);ctx.lineTo(laex,laey);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(laex,laey);ctx.lineTo(lawx,lawy);ctx.stroke();
+     /* Bras droit */
+     const raex=shoulderX + Math.sin(ra)*aLen*0.55;
+     const raey=shoulderY + Math.cos(ra)*aLen*0.55;
+     const rawx=raex + Math.sin(ra*1.3)*aLen*0.45;
+     const rawy=raey + Math.cos(ra*1.3)*aLen*0.45;
+     ctx.beginPath();ctx.moveTo(shoulderX,shoulderY);ctx.lineTo(raex,raey);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(raex,raey);ctx.lineTo(rawx,rawy);ctx.stroke();
     }
-    updateGrain();
-    let grainTimer=0;
 
-    /* ══ POUSSIÈRE / CHALEUR ══ */
-    const dust=Array.from({length:40},()=>({
-     x:Math.random()*200,   /* coords sur 200x300, on scalera */
-     y:100+Math.random()*200,
-     r:0.4+Math.random()*1.0,
-     vx:(Math.random()-0.5)*0.12,
-     vy:-(0.05+Math.random()*0.18),
-     op:0.05+Math.random()*0.22,
-     ph:Math.random()*Math.PI*2,
-     /* teinte : blanc chaud ou ocre */
-     col:Math.random()<0.6?'240,220,180':'255,245,220'
-    }));
+    /* ── Dessine la voiture du drive-by ── */
+    function drawShootCar(c){
+     const x=c.x, y=c.y;
+     /* Carrosserie — muscle car sombre */
+     ctx.fillStyle='rgba(12,14,20,0.98)';
+     ctx.beginPath();ctx.roundRect(x-W*0.12,y-H*0.025,W*0.24,H*0.032,W*0.007);ctx.fill();
+     ctx.beginPath();ctx.roundRect(x-W*0.08,y-H*0.043,W*0.15,H*0.022,W*0.005);ctx.fill();
+     /* Roues */
+     ctx.fillStyle='rgba(8,8,12,1)';
+     ctx.beginPath();ctx.arc(x-W*0.075,y+H*0.006,H*0.013,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.arc(x+W*0.075,y+H*0.006,H*0.013,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle='rgba(40,40,55,0.8)';ctx.lineWidth=H*0.008;
+     ctx.beginPath();ctx.arc(x-W*0.075,y+H*0.006,H*0.009,0,Math.PI*2);ctx.stroke();
+     ctx.beginPath();ctx.arc(x+W*0.075,y+H*0.006,H*0.009,0,Math.PI*2);ctx.stroke();
+     /* Phares avant (côté gauche, car la voiture va vers la gauche) */
+     const hx=x-W*0.115, hy=y-H*0.010;
+     const bG=ctx.createRadialGradient(hx,hy,0,hx,hy,W*0.10);
+     bG.addColorStop(0,'rgba(255,245,200,0.80)');
+     bG.addColorStop(0.3,'rgba(240,220,140,0.30)');
+     bG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=bG;ctx.fillRect(hx-W*0.10,hy-H*0.08,W*0.20,H*0.14);
+     ctx.fillStyle='rgba(255,248,210,0.95)';
+     ctx.beginPath();ctx.arc(hx,hy,W*0.007,0,Math.PI*2);ctx.fill();
+     /* Feux arrière rouges */
+     ctx.fillStyle='rgba(200,15,5,0.85)';
+     ctx.beginPath();ctx.arc(x+W*0.115,y-H*0.010,W*0.006,0,Math.PI*2);ctx.fill();
+     const rg=ctx.createRadialGradient(x+W*0.115,y-H*0.010,0,x+W*0.115,y-H*0.010,W*0.055);
+     rg.addColorStop(0,'rgba(200,15,5,0.25)');rg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=rg;ctx.fillRect(x+W*0.06,y-H*0.06,W*0.11,H*0.10);
+    }
 
-    /* ══ HAZE THERMIQUE (déformation bas d'image) ══ */
-    const hazeOffsets=Array.from({length:12},()=>({
-     ph:Math.random()*Math.PI*2,
-     spd:0.008+Math.random()*0.012,
-     amp:0.4+Math.random()*0.8
-    }));
-
-    /* ══ LUEUR SOLAIRE (haut de l'image, ciel) ══ */
-    let sunPh=0;
+    /* ── Flash de tir depuis la vitre de la voiture ── */
+    function drawMuzzleFlash(c){
+     if(c.flash<=0.02)return;
+     /* Point d'origine : vitre côté gauche, légèrement en hauteur */
+     const ox=c.x - W*0.09;
+     const oy=c.y - H*0.030;
+     const ang=c.flashAngle;
+     const fl=c.flash;
+     /* Halo central brillant */
+     const mg=ctx.createRadialGradient(ox,oy,0,ox,oy,W*0.08*fl);
+     mg.addColorStop(0,`rgba(255,240,120,${fl*0.95})`);
+     mg.addColorStop(0.25,`rgba(255,160,20,${fl*0.65})`);
+     mg.addColorStop(0.6,`rgba(255,80,0,${fl*0.25})`);
+     mg.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=mg;
+     ctx.beginPath();ctx.arc(ox,oy,W*0.10*fl,0,Math.PI*2);ctx.fill();
+     /* Rayons du flash — 5 traits courts dans la direction du tir */
+     ctx.strokeStyle=`rgba(255,220,80,${fl*0.85})`;
+     ctx.lineWidth=W*0.004;ctx.lineCap='round';
+     for(let r=0;r<5;r++){
+      const ra=ang + (r-2)*0.22;
+      const rlen=W*(0.05+Math.random()*0.04)*fl;
+      ctx.beginPath();
+      ctx.moveTo(ox,oy);
+      ctx.lineTo(ox+Math.cos(ra)*rlen, oy+Math.sin(ra)*rlen);
+      ctx.stroke();
+     }
+     /* Flash ambiant qui éclaire brièvement toute la scène */
+     if(fl>0.4){
+      ctx.fillStyle=`rgba(255,180,30,${fl*0.07})`;
+      ctx.fillRect(0,0,W,H);
+     }
+    }
 
     function frame(){
      if(stop.v)return;
 
-     /* ── Fond image BNTH.png — cover ── */
-     if(bgReady){
-      const iw=bg.naturalWidth,ih=bg.naturalHeight;
-      const scale=Math.max(W/iw,H/ih);
-      const dw=iw*scale,dh=ih*scale;
-      ctx.drawImage(bg,(W-dw)/2,(H-dh)/2,dw,dh);
-     } else {
-      ctx.fillStyle='#3a4560';
-      ctx.fillRect(0,0,W,H);
+     /* ── Ciel nuit de Compton ── */
+     const bg=ctx.createLinearGradient(0,0,0,H);
+     bg.addColorStop(0,'#04060c');
+     bg.addColorStop(0.45,'#080b14');
+     bg.addColorStop(0.70,'#0e1118');
+     bg.addColorStop(1,'#0a0d14');
+     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+     /* Smog orange LA à l'horizon */
+     const smog=ctx.createLinearGradient(0,H*0.50,0,H*0.70);
+     smog.addColorStop(0,'rgba(0,0,0,0)');
+     smog.addColorStop(1,'rgba(190,80,8,0.16)');
+     ctx.fillStyle=smog;ctx.fillRect(0,H*0.50,W,H*0.20);
+
+     /* Étoiles */
+     for(const s of stars){
+      s.ph+=0.011;
+      ctx.fillStyle=`rgba(210,205,190,${s.op*(0.5+0.5*Math.sin(s.ph))})`;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
      }
 
-     /* ── Lueur solaire californienne (haut, pulse lent) ── */
-     sunPh+=0.008;
-     const sunOp=0.06+0.03*Math.sin(sunPh);
-     const sunG=ctx.createRadialGradient(W*0.62,0,0,W*0.62,0,H*0.55);
-     sunG.addColorStop(0,`rgba(255,210,130,${sunOp})`);
-     sunG.addColorStop(0.45,`rgba(220,160,60,${sunOp*0.4})`);
-     sunG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sunG;ctx.fillRect(0,0,W,H*0.55);
+     /* Halo du réverbère au sol */
+     const coneG=ctx.createRadialGradient(lamp.x,baseY,0,lamp.x,baseY,W*0.28);
+     coneG.addColorStop(0,'rgba(255,185,50,0.20)');
+     coneG.addColorStop(0.5,'rgba(200,140,25,0.07)');
+     coneG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=coneG;ctx.fillRect(lamp.x-W*0.28,H*0.48,W*0.56,H*0.25);
 
-     /* ── Haze thermique bas d'image ── */
-     /* On dessine en petites bandes horizontales légèrement décalées */
-     const hazeY=H*0.72;
-     const hazeH=H*0.28;
-     ctx.save();
-     ctx.globalAlpha=0.06;
-     for(let row=0;row<10;row++){
-      const y=hazeY+row*(hazeH/10);
-      const h=hazeH/10+1;
-      const ho=hazeOffsets[row%hazeOffsets.length];
-      ho.ph+=ho.spd;
-      const dx=Math.sin(ho.ph+row*0.6)*ho.amp*(0.5+row*0.08);
-      ctx.drawImage(cv, 0,y, W,h, dx,y, W,h);
+     /* Route */
+     const roadG=ctx.createLinearGradient(0,baseY,0,H);
+     roadG.addColorStop(0,'rgba(20,24,34,0.98)');
+     roadG.addColorStop(1,'rgba(12,14,22,0.98)');
+     ctx.fillStyle=roadG;ctx.fillRect(0,baseY,W,H-baseY);
+
+     /* Trottoir */
+     ctx.fillStyle='rgba(28,32,44,0.95)';ctx.fillRect(0,baseY,W,H*0.016);
+
+     /* Ligne de route pointillée */
+     ctx.strokeStyle='rgba(200,170,50,0.30)';ctx.lineWidth=1.2;
+     ctx.setLineDash([W*0.04,W*0.05]);
+     ctx.beginPath();ctx.moveTo(0,roadY+H*0.04);ctx.lineTo(W,roadY+H*0.04);ctx.stroke();
+     ctx.setLineDash([]);
+
+     /* Poteau réverbère */
+     ctx.strokeStyle='rgba(50,55,70,0.95)';ctx.lineWidth=W*0.007;
+     ctx.beginPath();ctx.moveTo(lamp.x,baseY);ctx.lineTo(lamp.x,lamp.y+H*0.012);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(lamp.x,lamp.y+H*0.012);ctx.lineTo(lamp.x+W*0.04,lamp.y);ctx.stroke();
+     const bulbG=ctx.createRadialGradient(lamp.x+W*0.04,lamp.y,0,lamp.x+W*0.04,lamp.y,W*0.016);
+     bulbG.addColorStop(0,'rgba(255,225,110,1)');bulbG.addColorStop(1,'rgba(255,165,25,0)');
+     ctx.fillStyle=bulbG;ctx.beginPath();ctx.arc(lamp.x+W*0.04,lamp.y,W*0.016,0,Math.PI*2);ctx.fill();
+
+     /* ── Coureurs ── */
+     for(const r of runners){
+      r.ph += 0.14; /* vitesse de foulée — rapide */
+      r.x  -= r.spd;
+      if(r.x < -W*0.15) r.x = W*1.10;
+      /* Bob vertical de course */
+      const bob=Math.abs(Math.sin(r.ph))*H*0.007;
+      ctx.save();
+      ctx.translate(0, -bob);
+      drawRunner(r.x, r.ph);
+      ctx.restore();
      }
-     ctx.restore();
 
-     /* ── Poussière flottante ── */
-     for(const d of dust){
-      d.x+=d.vx;d.y+=d.vy;d.ph+=0.018;
-      /* reboucle sur le petit espace 200x300 */
-      if(d.y<0){d.y=300;d.x=Math.random()*200;}
-      if(d.x<0)d.x=200;if(d.x>200)d.x=0;
-      /* coordonnées canvas réelles */
-      const rx=d.x/200*W, ry=d.y/300*H;
-      const pop=d.op*(0.4+0.6*Math.abs(Math.sin(d.ph)));
-      ctx.beginPath();ctx.arc(rx,ry,d.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${d.col},${pop})`;ctx.fill();
+     /* ── Voiture du drive-by ── */
+     shootCar.x -= shootCar.spd;
+     if(shootCar.x < -W*0.20) shootCar.x = W*1.20;
+
+     /* Gestion des tirs */
+     shootCar.shotTimer++;
+     if(shootCar.shotTimer >= shootCar.nextShot){
+      shootCar.shotTimer=0;
+      shootCar.nextShot = 55 + Math.random()*90; /* prochain tir dans 1–2.5s */
+      shootCar.flash = 1.0;
+      shootCar.flashAngle = -Math.PI*0.60 - Math.random()*0.30; /* légèrement variable */
      }
+     /* Décroissance rapide du flash */
+     if(shootCar.flash > 0) shootCar.flash = Math.max(0, shootCar.flash - 0.09);
 
-     /* ── Grain cinématographique ── */
-     grainTimer++;
-     if(grainTimer%2===0) updateGrain(); /* refresh toutes les 2 frames */
-     ctx.save();
-     ctx.globalAlpha=0.32;
-     ctx.globalCompositeOperation='overlay';
-     ctx.drawImage(grainC,0,0,W,H);
-     ctx.restore();
+     drawShootCar(shootCar);
+     drawMuzzleFlash(shootCar);
 
-     /* ── Scan line pellicule (très subtil) ── */
-     const scanY=((t*18)%H);
-     const slg=ctx.createLinearGradient(0,scanY-5,0,scanY+5);
-     slg.addColorStop(0,'rgba(255,255,255,0)');
-     slg.addColorStop(0.5,'rgba(255,255,255,0.028)');
-     slg.addColorStop(1,'rgba(255,255,255,0)');
-     ctx.fillStyle=slg;ctx.fillRect(0,scanY-5,W,10);
-
-     /* ── Vignette finale ── */
-     const vig=ctx.createRadialGradient(W/2,H*0.50,H*0.08,W/2,H*0.50,H*0.82);
+     /* ── Vignette ── */
+     const vig=ctx.createRadialGradient(cx,H*0.50,H*0.08,cx,H*0.50,H*0.80);
      vig.addColorStop(0,'rgba(0,0,0,0)');
-     vig.addColorStop(0.55,'rgba(0,0,0,0.10)');
-     vig.addColorStop(0.80,'rgba(0,0,0,0.45)');
-     vig.addColorStop(1,'rgba(0,0,0,0.80)');
+     vig.addColorStop(0.55,'rgba(0,0,0,0.12)');
+     vig.addColorStop(1,'rgba(0,0,0,0.72)');
      ctx.fillStyle=vig;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
@@ -42528,7 +42656,7 @@
    }
   },
 
-    /* ══ OCEAN'S ELEVEN ══ */
+  /* ══ OCEAN'S ELEVEN ══ */
   {
    name:"Ocean's Eleven",
    color:'40,120,180',
