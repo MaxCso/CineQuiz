@@ -37875,6 +37875,8 @@
      ctx.beginPath();ctx.ellipse(cx2-rx*0.38,cy-ry*0.35,rx*0.52,ry*0.90,0,0,Math.PI*2);ctx.fill();
     }
 
+    function frame(){
+     if(stop.v)return;
      /* ── Fond : image Edward.png couvrant tout le canvas ── */
      if(bgLoaded){
       const iW=bgImg.naturalWidth, iH=bgImg.naturalHeight;
