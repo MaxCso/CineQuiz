@@ -42374,65 +42374,64 @@
     /* ── Dessine une silhouette qui court (stick figure penché en avant) ── */
     function drawRunner(x, ph){
      const col='rgba(15,18,28,0.97)';
-     const fy=baseY; /* pied au sol */
-     const h=H*0.092; /* hauteur totale */
-     /* Corps penché en avant (~20°) */
-     const lean=0.36;
-     const hipY=fy - h*0.44;
-     const hipX=x;
-     const shoulderX=hipX - Math.sin(lean)*h*0.30;
-     const shoulderY=hipY - Math.cos(lean)*h*0.30;
-     const headX=shoulderX - Math.sin(lean)*h*0.12;
-     const headY=shoulderY - Math.cos(lean)*h*0.12;
+     const h=H*0.092;
+     const thigh=h*0.24;
+     const shin =h*0.22;
+     const lean=0.32;
 
-     ctx.strokeStyle=col; ctx.lineCap='round';
+     /* Jambes ancrées au sol : on part du pied (baseY) et on remonte */
+     function legPoints(legPh){
+      const thighAng = Math.sin(legPh)*0.70;
+      const kneeAng  = Math.max(0,-Math.cos(legPh))*0.80;
+      const shinAng  = thighAng + kneeAng;
+      const fx2= x + Math.sin(thighAng)*thigh + Math.sin(shinAng)*shin;
+      const fy2= baseY;
+      const kx = fx2 - Math.sin(shinAng)*shin;
+      const ky = fy2 - Math.cos(shinAng)*shin;
+      const hx = kx  - Math.sin(thighAng)*thigh;
+      const hy = ky  - Math.cos(thighAng)*thigh;
+      return {hx,hy,kx,ky,fx:fx2,fy:fy2};
+     }
+
+     const legL=legPoints(ph);
+     const legR=legPoints(ph+Math.PI);
+     const hipX=(legL.hx+legR.hx)*0.5;
+     const hipY=(legL.hy+legR.hy)*0.5;
+     const shoulderX=hipX-Math.sin(lean)*h*0.28;
+     const shoulderY=hipY-Math.cos(lean)*h*0.28;
+     const headX=shoulderX-Math.sin(lean)*h*0.10;
+     const headY=shoulderY-Math.cos(lean)*h*0.10;
+
+     ctx.strokeStyle=col;ctx.lineCap='round';
+
+     /* Jambes */
+     ctx.lineWidth=W*0.010;
+     ctx.beginPath();ctx.moveTo(legL.hx,legL.hy);ctx.lineTo(legL.kx,legL.ky);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(legL.kx,legL.ky);ctx.lineTo(legL.fx,legL.fy);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(legR.hx,legR.hy);ctx.lineTo(legR.kx,legR.ky);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(legR.kx,legR.ky);ctx.lineTo(legR.fx,legR.fy);ctx.stroke();
 
      /* Torse */
      ctx.lineWidth=W*0.009;
      ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(shoulderX,shoulderY);ctx.stroke();
 
+     /* Bras — opposition aux jambes */
+     ctx.lineWidth=W*0.007;
+     const aLen=h*0.18;
+     [-1,1].forEach(side=>{
+      const aPh=ph+(side<0?Math.PI:0);
+      const swing=Math.sin(aPh)*0.65;
+      const ex=shoulderX+side*W*0.006+Math.sin(swing)*aLen*0.55;
+      const ey=shoulderY+Math.cos(swing)*aLen*0.55;
+      const wx=ex-Math.sin(swing*0.5)*aLen*0.45;
+      const wy=ey+aLen*0.35;
+      ctx.beginPath();ctx.moveTo(shoulderX+side*W*0.006,shoulderY);ctx.lineTo(ex,ey);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(wx,wy);ctx.stroke();
+     });
+
      /* Tête */
      ctx.fillStyle=col;
-     ctx.beginPath();ctx.arc(headX, headY, W*0.013, 0, Math.PI*2);ctx.fill();
-
-     /* Jambes — course : grande amplitude, genou haut devant */
-     ctx.lineWidth=W*0.010;
-     const ls=Math.sin(ph);        /* jambe G */
-     const rs=Math.sin(ph+Math.PI); /* jambe D, opposition */
-     /* Jambe gauche */
-     const lkx=hipX + ls*W*0.025;
-     const lky=hipY + h*0.22 + Math.abs(ls)*H*(-0.025); /* genou remonte en avant */
-     const lfx=lkx - ls*W*0.018;
-     const lfy=lky + h*0.22;
-     ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(lkx,lky);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(lkx,lky);ctx.lineTo(lfx,lfy);ctx.stroke();
-     /* Jambe droite */
-     const rkx=hipX + rs*W*0.025;
-     const rky=hipY + h*0.22 + Math.abs(rs)*H*(-0.025);
-     const rfx=rkx - rs*W*0.018;
-     const rfy=rky + h*0.22;
-     ctx.beginPath();ctx.moveTo(hipX,hipY);ctx.lineTo(rkx,rky);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(rkx,rky);ctx.lineTo(rfx,rfy);ctx.stroke();
-
-     /* Bras — balancement énergique, opposé aux jambes */
-     ctx.lineWidth=W*0.007;
-     const la=Math.sin(ph+Math.PI)*0.7; /* bras G */
-     const ra=Math.sin(ph)*0.7;          /* bras D */
-     const aLen=h*0.20;
-     /* Bras gauche */
-     const laex=shoulderX + Math.sin(la)*aLen*0.55;
-     const laey=shoulderY + Math.cos(la)*aLen*0.55;
-     const lawx=laex + Math.sin(la*1.3)*aLen*0.45;
-     const lawy=laey + Math.cos(la*1.3)*aLen*0.45;
-     ctx.beginPath();ctx.moveTo(shoulderX,shoulderY);ctx.lineTo(laex,laey);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(laex,laey);ctx.lineTo(lawx,lawy);ctx.stroke();
-     /* Bras droit */
-     const raex=shoulderX + Math.sin(ra)*aLen*0.55;
-     const raey=shoulderY + Math.cos(ra)*aLen*0.55;
-     const rawx=raex + Math.sin(ra*1.3)*aLen*0.45;
-     const rawy=raey + Math.cos(ra*1.3)*aLen*0.45;
-     ctx.beginPath();ctx.moveTo(shoulderX,shoulderY);ctx.lineTo(raex,raey);ctx.stroke();
-     ctx.beginPath();ctx.moveTo(raex,raey);ctx.lineTo(rawx,rawy);ctx.stroke();
+     ctx.beginPath();ctx.arc(headX,headY,W*0.013,0,Math.PI*2);ctx.fill();
     }
 
     /* ── Dessine la voiture du drive-by ── */
@@ -42556,15 +42555,10 @@
 
      /* ── Coureurs ── */
      for(const r of runners){
-      r.ph += 0.14; /* vitesse de foulée — rapide */
+      r.ph += 0.14;
       r.x  -= r.spd;
       if(r.x < -W*0.15) r.x = W*1.10;
-      /* Bob vertical de course */
-      const bob=Math.abs(Math.sin(r.ph))*H*0.007;
-      ctx.save();
-      ctx.translate(0, -bob);
       drawRunner(r.x, r.ph);
-      ctx.restore();
      }
 
      /* ── Voiture du drive-by ── */
