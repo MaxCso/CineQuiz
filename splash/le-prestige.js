@@ -42,6 +42,21 @@ window._splashRegistry["Le Prestige"]={
     /* Trier par layer pour le rendu arrière→avant */
     hats.sort((a,b)=>a.layer-b.layer);
 
+    /* ── Particules de poussière magique — dorées et blanches ── */
+    const dust=Array.from({length:55},()=>({
+     x:Math.random()*W,
+     y:H*0.35+Math.random()*H*0.55,
+     vx:(Math.random()-0.5)*0.12,
+     vy:-(0.06+Math.random()*0.14),
+     r:Math.random()*1.6+0.4,
+     life:Math.random(),
+     decay:0.0014+Math.random()*0.0018,
+     op:0.55+Math.random()*0.40,
+     col:Math.random()<0.55?'220,175,60':Math.random()<0.5?'255,240,200':'180,210,255',
+     ph:Math.random()*Math.PI*2,
+     wf:0.008+Math.random()*0.012,
+    }));
+
     function drawHat(h){
      if(!hatReady)return;
      const hW=W*h.sc*HAT_RATIO;
@@ -62,15 +77,24 @@ window._splashRegistry["Le Prestige"]={
     function frame(){
      if(stop.v)return;
 
-     /* ── Fond : beige/crème en bas → noir en haut, comme l'affiche ── */
-     const bg=ctx.createLinearGradient(0,0,0,H);
-     bg.addColorStop(0.00,'rgba(0,0,0,1)');
-     bg.addColorStop(0.28,'rgba(18,12,10,1)');
-     bg.addColorStop(0.52,'rgba(55,42,35,1)');
-     bg.addColorStop(0.72,'rgba(175,162,148,1)');
-     bg.addColorStop(0.88,'rgba(218,208,194,1)');
-     bg.addColorStop(1.00,'rgba(232,224,212,1)');
-     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+     /* ── Fond noir théâtral ── */
+     ctx.fillStyle='#05030a';ctx.fillRect(0,0,W,H);
+
+     /* ── Spotlight radial — halo doré au centre, comme un feu de scène ── */
+     const spotY=H*0.52;
+     const spot=ctx.createRadialGradient(cx,spotY,0,cx,spotY,W*0.82);
+     spot.addColorStop(0.00,`rgba(160,110,40,${0.32+Math.sin(t*0.25)*0.04})`);
+     spot.addColorStop(0.18,`rgba(90,55,18,${0.22+Math.sin(t*0.18)*0.03})`);
+     spot.addColorStop(0.42,'rgba(35,20,8,0.18)');
+     spot.addColorStop(0.70,'rgba(10,6,2,0.08)');
+     spot.addColorStop(1.00,'rgba(0,0,0,0)');
+     ctx.fillStyle=spot;ctx.fillRect(0,0,W,H);
+
+     /* ── Halo bleu-nuit en haut — plafond du théâtre ── */
+     const topH=ctx.createRadialGradient(cx,0,0,cx,0,W*0.70);
+     topH.addColorStop(0,'rgba(15,18,40,0.55)');
+     topH.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=topH;ctx.fillRect(0,0,W,H*0.55);
 
      /* ── Mise à jour et dessin des chapeaux ── */
      for(const h of hats){
@@ -87,13 +111,38 @@ window._splashRegistry["Le Prestige"]={
       drawHat(h);
      }
 
-     /* ── Vignette bords gauche/droite — renforce la profondeur ── */
+     /* ── Particules de poussière magique ── */
+     for(const p of dust){
+      p.x+=p.vx+Math.sin(t*p.wf+p.ph)*0.18;
+      p.y+=p.vy;
+      p.life-=p.decay;
+      if(p.life<=0){
+       p.x=Math.random()*W;p.y=H*0.40+Math.random()*H*0.45;
+       p.life=0.6+Math.random()*0.4;p.vy=-(0.06+Math.random()*0.14);
+       p.vx=(Math.random()-0.5)*0.12;
+      }
+      const pa=p.life*p.op;
+      const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.2);
+      pg.addColorStop(0,`rgba(${p.col},${pa})`);
+      pg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=pg;ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.2,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=`rgba(${p.col},${Math.min(1,pa*1.4)})`;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+     }
+
+     /* ── Vignette forte sur les bords ── */
      const vgLR=ctx.createLinearGradient(0,0,W,0);
-     vgLR.addColorStop(0,'rgba(0,0,0,0.22)');
-     vgLR.addColorStop(0.15,'rgba(0,0,0,0)');
-     vgLR.addColorStop(0.85,'rgba(0,0,0,0)');
-     vgLR.addColorStop(1,'rgba(0,0,0,0.22)');
+     vgLR.addColorStop(0,'rgba(0,0,0,0.55)');
+     vgLR.addColorStop(0.18,'rgba(0,0,0,0)');
+     vgLR.addColorStop(0.82,'rgba(0,0,0,0)');
+     vgLR.addColorStop(1,'rgba(0,0,0,0.55)');
      ctx.fillStyle=vgLR;ctx.fillRect(0,0,W,H);
+     /* Vignette radiale globale */
+     const vgR=ctx.createRadialGradient(cx,H*0.50,H*0.12,cx,H*0.50,H*0.80);
+     vgR.addColorStop(0,'rgba(0,0,0,0)');
+     vgR.addColorStop(0.55,'rgba(0,0,0,0.08)');
+     vgR.addColorStop(1,'rgba(0,0,0,0.72)');
+     ctx.fillStyle=vgR;ctx.fillRect(0,0,W,H);
 
      t+=0.016;requestAnimationFrame(frame);
     }

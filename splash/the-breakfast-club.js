@@ -12,10 +12,15 @@ window._splashRegistry["The Breakfast Club"]={
     _s.textContent='#splash-content-wrap{top:20%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 
-    /* SVG groupe — viewBox 0 0 739 623, ratio 1.185 */
+    /* PNG groupe — pleine largeur, ratio calculé depuis les dimensions réelles */
     const bcImg=new Image();let bcReady=false;
-    bcImg.onload=()=>{bcReady=true;};bcImg.src='images/BC.svg';
-    const BC_W=W*0.88, BC_H=BC_W*(623/739);
+    let BC_W=W, BC_H=W;
+    bcImg.onload=()=>{
+     BC_W=W;
+     BC_H=BC_W*(bcImg.naturalHeight/bcImg.naturalWidth);
+     bcReady=true;
+    };
+    bcImg.src='images/Breakfast.png';
 
     /* Poussière dans les rayons de lumière */
     const motes=Array.from({length:55},()=>({
@@ -158,7 +163,7 @@ window._splashRegistry["The Breakfast Club"]={
       /* Légère ombre portée */
       ctx.save();ctx.shadowColor='rgba(0,0,0,0.45)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;
       ctx.globalAlpha=0.96;
-      ctx.drawImage(bcImg,cx-BC_W/2,bcy+Math.sin(t*0.35)*H*0.003,BC_W,BC_H);
+      ctx.drawImage(bcImg,0,bcy+Math.sin(t*0.35)*H*0.003,BC_W,BC_H);
       ctx.restore();
      }
 

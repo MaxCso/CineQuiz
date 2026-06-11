@@ -6,7 +6,7 @@ window._splashRegistry["Les Goonies"]={
    color:'40,120,200',
    ref:'Les Goonies \u2014 Richard Donner, 1985',
    run(cv,ctx,W,H,stop){
-    cv.style.opacity='0.80';
+    cv.style.opacity='1.0';
     let t=0;
     const cx=W/2;
 
@@ -78,8 +78,23 @@ window._splashRegistry["Les Goonies"]={
      ctx.restore();
     }
 
+    /* Stalactites fixes */
+    const stalactites=[
+     {x:W*0.24,len:H*0.055,w:W*0.018},{x:W*0.30,len:H*0.038,w:W*0.013},
+     {x:W*0.37,len:H*0.065,w:W*0.016},{x:W*0.44,len:H*0.030,w:W*0.011},
+     {x:W*0.50,len:H*0.048,w:W*0.015},{x:W*0.57,len:H*0.070,w:W*0.018},
+     {x:W*0.63,len:H*0.035,w:W*0.012},{x:W*0.70,len:H*0.055,w:W*0.016},
+     {x:W*0.76,len:H*0.042,w:W*0.014},
+    ];
+
     function drawWalls(){
-     ctx.fillStyle='rgba(14,9,4,0.97)';
+     /* ── Mur gauche avec gradient pierre ── */
+     const wgL=ctx.createLinearGradient(0,0,W*0.26,0);
+     wgL.addColorStop(0,'rgba(8,5,2,1)');
+     wgL.addColorStop(0.45,'rgba(62,40,18,0.98)');
+     wgL.addColorStop(0.75,'rgba(88,58,25,0.92)');
+     wgL.addColorStop(1,'rgba(105,70,28,0.55)');
+     ctx.fillStyle=wgL;
      ctx.beginPath();
      ctx.moveTo(0,0); ctx.lineTo(W*0.24,0);
      ctx.lineTo(W*0.20,H*0.12); ctx.lineTo(W*0.25,H*0.22);
@@ -88,12 +103,31 @@ window._splashRegistry["Les Goonies"]={
      ctx.lineTo(W*0.13,H*0.75); ctx.lineTo(W*0.18,H*0.88);
      ctx.lineTo(W*0.14,H); ctx.lineTo(0,H);
      ctx.closePath(); ctx.fill();
-     ctx.fillStyle='rgba(30,18,7,0.35)';
+     /* Détail de texture gauche */
+     ctx.strokeStyle='rgba(130,85,30,0.18)';ctx.lineWidth=1;
+     for(let i=0;i<6;i++){
+      const fy=H*(0.08+i*0.16);
+      ctx.beginPath();ctx.moveTo(W*0.06,fy);ctx.lineTo(W*0.20,fy+H*0.04);ctx.stroke();
+     }
+     /* Bord lumineux gauche — reflet torche */
+     const edgeL=ctx.createLinearGradient(W*0.14,0,W*0.26,0);
+     edgeL.addColorStop(0,'rgba(180,110,30,0.0)');
+     edgeL.addColorStop(1,'rgba(180,110,30,0.22)');
+     ctx.fillStyle=edgeL;
      ctx.beginPath();
-     ctx.moveTo(0,0); ctx.lineTo(W*0.10,0);
-     ctx.lineTo(W*0.08,H*0.3); ctx.lineTo(W*0.04,H*0.6); ctx.lineTo(0,H);
+     ctx.moveTo(W*0.14,0); ctx.lineTo(W*0.24,0);
+     ctx.lineTo(W*0.20,H*0.12); ctx.lineTo(W*0.25,H*0.22);
+     ctx.lineTo(W*0.16,H*0.32); ctx.lineTo(W*0.20,H*0.42);
+     ctx.lineTo(W*0.12,H*0.52); ctx.lineTo(W*0.14,H);
      ctx.closePath(); ctx.fill();
-     ctx.fillStyle='rgba(14,9,4,0.97)';
+
+     /* ── Mur droit ── */
+     const wgR=ctx.createLinearGradient(W,0,W*0.74,0);
+     wgR.addColorStop(0,'rgba(8,5,2,1)');
+     wgR.addColorStop(0.45,'rgba(62,40,18,0.98)');
+     wgR.addColorStop(0.75,'rgba(88,58,25,0.92)');
+     wgR.addColorStop(1,'rgba(105,70,28,0.55)');
+     ctx.fillStyle=wgR;
      ctx.beginPath();
      ctx.moveTo(W,0); ctx.lineTo(W*0.76,0);
      ctx.lineTo(W*0.80,H*0.12); ctx.lineTo(W*0.75,H*0.22);
@@ -102,12 +136,27 @@ window._splashRegistry["Les Goonies"]={
      ctx.lineTo(W*0.87,H*0.75); ctx.lineTo(W*0.82,H*0.88);
      ctx.lineTo(W*0.86,H); ctx.lineTo(W,H);
      ctx.closePath(); ctx.fill();
-     ctx.fillStyle='rgba(30,18,7,0.35)';
+     ctx.strokeStyle='rgba(130,85,30,0.18)';ctx.lineWidth=1;
+     for(let i=0;i<6;i++){
+      const fy=H*(0.08+i*0.16);
+      ctx.beginPath();ctx.moveTo(W*0.94,fy);ctx.lineTo(W*0.80,fy+H*0.04);ctx.stroke();
+     }
+     const edgeR=ctx.createLinearGradient(W*0.86,0,W*0.74,0);
+     edgeR.addColorStop(0,'rgba(180,110,30,0.0)');
+     edgeR.addColorStop(1,'rgba(180,110,30,0.22)');
+     ctx.fillStyle=edgeR;
      ctx.beginPath();
-     ctx.moveTo(W,0); ctx.lineTo(W*0.90,0);
-     ctx.lineTo(W*0.92,H*0.3); ctx.lineTo(W*0.96,H*0.6); ctx.lineTo(W,H);
+     ctx.moveTo(W*0.86,0); ctx.lineTo(W*0.76,0);
+     ctx.lineTo(W*0.80,H*0.12); ctx.lineTo(W*0.75,H*0.22);
+     ctx.lineTo(W*0.84,H*0.32); ctx.lineTo(W*0.80,H*0.42);
+     ctx.lineTo(W*0.88,H*0.52); ctx.lineTo(W*0.86,H);
      ctx.closePath(); ctx.fill();
-     ctx.fillStyle='rgba(10,6,2,0.92)';
+
+     /* ── Sol de la grotte ── */
+     const floorG=ctx.createLinearGradient(0,H*0.85,0,H);
+     floorG.addColorStop(0,'rgba(45,28,10,0.95)');
+     floorG.addColorStop(1,'rgba(12,7,2,0.98)');
+     ctx.fillStyle=floorG;
      ctx.beginPath();
      ctx.moveTo(0,H); ctx.lineTo(W,H); ctx.lineTo(W,H*0.88);
      ctx.lineTo(W*0.85,H*0.86); ctx.lineTo(W*0.70,H*0.88);
@@ -115,16 +164,51 @@ window._splashRegistry["Les Goonies"]={
      ctx.lineTo(W*0.40,H*0.85); ctx.lineTo(W*0.25,H*0.88);
      ctx.lineTo(W*0.12,H*0.86); ctx.lineTo(0,H*0.88);
      ctx.closePath(); ctx.fill();
+
+     /* ── Plafond de la grotte ── */
+     const ceilG=ctx.createLinearGradient(0,0,0,H*0.08);
+     ceilG.addColorStop(0,'rgba(22,14,5,1)');
+     ceilG.addColorStop(1,'rgba(35,22,8,0.0)');
+     ctx.fillStyle=ceilG;ctx.fillRect(W*0.22,0,W*0.56,H*0.08);
+
+     /* ── Stalactites ── */
+     for(const s of stalactites){
+      const sg=ctx.createLinearGradient(s.x,0,s.x,s.len);
+      sg.addColorStop(0,'rgba(55,35,14,0.95)');
+      sg.addColorStop(0.6,'rgba(78,52,20,0.85)');
+      sg.addColorStop(1,'rgba(95,64,24,0.0)');
+      ctx.fillStyle=sg;
+      ctx.beginPath();
+      ctx.moveTo(s.x-s.w*0.5,0);
+      ctx.lineTo(s.x+s.w*0.5,0);
+      ctx.lineTo(s.x,s.len);
+      ctx.closePath();ctx.fill();
+      /* Reflet humide */
+      ctx.fillStyle='rgba(180,140,70,0.10)';
+      ctx.beginPath();
+      ctx.moveTo(s.x-s.w*0.12,0);
+      ctx.lineTo(s.x-s.w*0.05,0);
+      ctx.lineTo(s.x-s.w*0.08,s.len*0.65);
+      ctx.closePath();ctx.fill();
+     }
     }
 
     function drawTorches(){
      for(const [tx2,ty2,side] of [[W*0.195,H*0.30,-1],[W*0.805,H*0.30,1]]){
       const fl=0.55+Math.sin(t*11.3+tx2*0.01)*0.28+Math.sin(t*17.7+tx2*0.02)*0.12;
-      const tg=ctx.createRadialGradient(tx2,ty2,2,tx2,ty2,W*0.18);
-      tg.addColorStop(0,`rgba(255,155,35,${fl*0.55})`);
-      tg.addColorStop(0.35,`rgba(210,90,15,${fl*0.18})`);
+      /* Grande aureole murale */
+      const tgW=ctx.createRadialGradient(tx2,ty2,2,tx2,ty2,W*0.38);
+      tgW.addColorStop(0,`rgba(255,160,40,${fl*0.70})`);
+      tgW.addColorStop(0.20,`rgba(220,110,20,${fl*0.38})`);
+      tgW.addColorStop(0.55,`rgba(160,70,8,${fl*0.14})`);
+      tgW.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=tgW; ctx.fillRect(tx2-W*0.38,ty2-W*0.25,W*0.76,W*0.55);
+      /* Halo serré très brillant */
+      const tg=ctx.createRadialGradient(tx2,ty2,1,tx2,ty2,W*0.10);
+      tg.addColorStop(0,`rgba(255,220,120,${fl*0.92})`);
+      tg.addColorStop(0.45,`rgba(255,155,35,${fl*0.55})`);
       tg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=tg; ctx.fillRect(tx2-W*0.18,ty2-W*0.18,W*0.36,W*0.36);
+      ctx.fillStyle=tg; ctx.fillRect(tx2-W*0.10,ty2-W*0.10,W*0.20,W*0.20);
       ctx.fillStyle='rgba(80,50,20,0.95)';
       ctx.fillRect(tx2-2,ty2,4,H*0.042);
       ctx.save(); ctx.translate(tx2,ty2);
@@ -147,13 +231,15 @@ window._splashRegistry["Les Goonies"]={
     function frame(){
      if(stop.v)return;
 
-     ctx.fillStyle='rgba(5,3,1,0.22)'; ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='rgba(18,11,4,1)'; ctx.fillRect(0,0,W,H);
 
-     const skyG=ctx.createRadialGradient(cx,0,0,cx,0,H*0.35);
-     skyG.addColorStop(0,'rgba(8,12,28,0.55)');
-     skyG.addColorStop(0.5,'rgba(5,8,18,0.35)');
+     /* Ciel nocturne dans l'ouverture — plus lumineux et bleuté */
+     const skyG=ctx.createRadialGradient(cx,H*0.08,0,cx,H*0.08,H*0.38);
+     skyG.addColorStop(0,'rgba(22,32,65,0.88)');
+     skyG.addColorStop(0.35,'rgba(12,18,42,0.65)');
+     skyG.addColorStop(0.70,'rgba(5,8,18,0.35)');
      skyG.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=skyG; ctx.fillRect(W*0.22,0,W*0.56,H*0.35);
+     ctx.fillStyle=skyG; ctx.fillRect(W*0.22,0,W*0.56,H*0.38);
 
      for(const s of stars){
       s.tw+=s.tf;
@@ -166,11 +252,19 @@ window._splashRegistry["Les Goonies"]={
      drawTorches();
      drawTreasureChest(cx, H*0.46);
 
-     const tg=ctx.createRadialGradient(cx,H*0.50,8,cx,H*0.50,W*0.42);
-     tg.addColorStop(0,`rgba(230,165,22,${0.22+Math.sin(t*1.6)*0.08})`);
-     tg.addColorStop(0.4,'rgba(160,105,12,0.09)');
+     /* Lueur du coffre — plus forte et plus large */
+     const tg=ctx.createRadialGradient(cx,H*0.50,8,cx,H*0.50,W*0.65);
+     tg.addColorStop(0,`rgba(255,190,35,${0.42+Math.sin(t*1.6)*0.10})`);
+     tg.addColorStop(0.18,`rgba(210,145,18,${0.28+Math.sin(t*1.4)*0.07})`);
+     tg.addColorStop(0.42,'rgba(140,90,8,0.14)');
+     tg.addColorStop(0.70,'rgba(60,35,2,0.06)');
      tg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=tg; ctx.fillRect(0,H*0.25,W,H*0.5);
+     ctx.fillStyle=tg; ctx.fillRect(0,H*0.15,W,H*0.65);
+     /* Lumière ambiante douce sur tout le bas de la grotte */
+     const ambG=ctx.createLinearGradient(0,H*0.55,0,H*0.90);
+     ambG.addColorStop(0,'rgba(120,75,10,0.10)');
+     ambG.addColorStop(1,'rgba(0,0,0,0)');
+     ctx.fillStyle=ambG;ctx.fillRect(0,H*0.55,W,H*0.35);
 
      for(const c of coins){
       c.y+=c.vy; c.x+=c.vx; c.rot+=c.vrot;
