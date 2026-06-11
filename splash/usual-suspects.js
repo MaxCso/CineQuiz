@@ -14,7 +14,7 @@ window._splashRegistry["Usual Suspects"]={
     let _s=document.getElementById('_us_s');
     if(!_s){_s=document.createElement('style');_s.id='_us_s';document.head.appendChild(_s);}
     _s.textContent=[
-     '#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}',
+     '#splash-content-wrap{top:27%!important;transform:translateY(0)!important;}',
      '#splash-content-wrap.reveal{transform:translateY(0)!important;}',
      '#splash-quote-text{color:#000000!important;text-shadow:none!important;}',
     ].join('');

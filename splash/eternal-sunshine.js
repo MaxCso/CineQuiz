@@ -11,7 +11,7 @@ window._splashRegistry["Eternal Sunshine"]={
 
     /* ── CSS ── */
     let _es=document.getElementById('_es_s');if(!_es){_es=document.createElement('style');_es.id='_es_s';document.head.appendChild(_es);}
-    _es.textContent='#splash-content-wrap{top:65%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 1px 12px rgba(100,160,220,0.60)!important;}';
+    _es.textContent='#splash-content-wrap{top:25%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}#splash-quote-text{color:rgba(255,255,255,0.95)!important;text-shadow:0 1px 12px rgba(100,160,220,0.60)!important;}';
     const _esW=setInterval(()=>{if(stop.v){_es.textContent='';clearInterval(_esW);}},200);
 
     /* ── Image de fond ESOTSM.png ── */

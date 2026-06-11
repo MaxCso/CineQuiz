@@ -25,7 +25,7 @@ window._splashRegistry["Boyz n the Hood"]={
     /* ── Voiture ── */
     const car = {
      x: W * 1.40,          /* démarre hors champ à droite */
-     spd: W * 0.0018,      /* vitesse de base, lente */
+     spd: W * 0.0045,      /* vitesse de base */
      flash: 0,
      flashAngle: -Math.PI * 0.65,
      shotTimer: 0,
@@ -307,13 +307,13 @@ window._splashRegistry["Boyz n the Hood"]={
      for(const g of guys){
       g.ph  += cadence;
       g.x   -= walkSpd;
-      if(g.x < -W*0.15) g.x = W*1.10;
+      /* Les personnages disparaissent à gauche et ne reviennent qu'au reset global */
       drawGuy(g.x, g.ph, runFactor, personSize);
      }
 
      /* ── VOITURE ── */
      /* La voiture accélère légèrement quand les persos courent */
-     const carSpd = W*(0.0018 + runFactor*0.0010);
+     const carSpd = W*(0.0045 + runFactor*0.0025);
      car.x -= carSpd;
      if(car.x < -W*0.25){
       car.x = W*1.40;
