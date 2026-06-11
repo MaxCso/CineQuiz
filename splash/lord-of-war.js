@@ -14,7 +14,7 @@ window._splashRegistry["Lord of War"]={
     /* ── Position citation/logo en haut + neutralise splash-bg ── */
     let _lowPos=document.getElementById('_low_pos_s');
     if(!_lowPos){_lowPos=document.createElement('style');_lowPos.id='_low_pos_s';document.head.appendChild(_lowPos);}
-    _lowPos.textContent='#splash-content-wrap{top:35%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _lowPos.textContent='#splash-content-wrap{top:22%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     const _lowW=setInterval(()=>{if(stop.v){_lowPos.textContent='';clearInterval(_lowW);}},200);
 
     /* ── Nuages ── */

@@ -9,7 +9,7 @@ window._splashRegistry["The Mask"]={
     cv.style.opacity='1.0';let t=0;const cx=W/2,cy=H*0.42;
     let _s=document.getElementById('_msk_s');
     if(!_s){_s=document.createElement('style');_s.id='_msk_s';document.head.appendChild(_s);}
-    _s.textContent='#splash-content-wrap{top:72%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
+    _s.textContent='#splash-content-wrap{top:67%!important;transform:translateY(0)!important;}#splash-content-wrap.reveal{transform:translateY(0)!important;}';
     function _mskCleanup(){
       _s.textContent='';
       ['_msk_hat','_msk_vig','_msk_hat_s'].forEach(id=>{const el=document.getElementById(id);if(el&&el.parentNode)el.parentNode.removeChild(el);});

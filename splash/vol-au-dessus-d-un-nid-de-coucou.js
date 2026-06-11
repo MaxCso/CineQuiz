@@ -13,8 +13,8 @@ window._splashRegistry["Vol au-dessus d’un nid de coucou"]={
     let _s=document.getElementById('_cuckoo_s');
     if(!_s){_s=document.createElement('style');_s.id='_cuckoo_s';document.head.appendChild(_s);}
     _s.textContent=`
-      
-
+      #splash-content-wrap{top:25%!important;transform:translateY(0)!important;}
+      #splash-content-wrap.reveal{transform:translateY(0)!important;}
     `;
     const _w=setInterval(()=>{if(stop.v){_s.textContent='';clearInterval(_w);}},200);
 

@@ -116,7 +116,7 @@ window._splashRegistry["Orange Mécanique"]={
     function drawAlex(){
      const sc=H*0.28;
      const swayX=Math.sin(t*0.8)*sc*0.012;
-     ctx.save();ctx.translate(cx+swayX,H*0.85);
+     ctx.save();ctx.translate(cx+swayX,H*0.88);
      /* Chaussures noires */
      ctx.fillStyle='rgba(5,3,0,0.98)';
      ctx.beginPath();ctx.ellipse(-sc*0.14,sc*0.008,sc*0.08,sc*0.030,0.15,0,Math.PI*2);ctx.fill();
@@ -191,7 +191,7 @@ window._splashRegistry["Orange Mécanique"]={
      }
 
      /* Halo orange — plus intense */
-     const eyeY=H*0.43+Math.sin(t*0.45)*H*0.006;
+     const eyeY=H*0.46+Math.sin(t*0.45)*H*0.006;
      const halo=ctx.createRadialGradient(cx,eyeY,0,cx,eyeY,W*0.62);
      halo.addColorStop(0,`rgba(220,90,5,${0.22+Math.sin(t*0.2)*0.05})`);
      halo.addColorStop(0.35,`rgba(150,45,0,${0.10+Math.sin(t*0.15)*0.03})`);
@@ -209,12 +209,12 @@ window._splashRegistry["Orange Mécanique"]={
      drawAlex();
 
      /* Ombre sol + flaque de lait */
-     const sg=ctx.createRadialGradient(cx,H*0.82,0,cx,H*0.82,W*0.26);
+     const sg=ctx.createRadialGradient(cx,H*0.85,0,cx,H*0.85,W*0.26);
      sg.addColorStop(0,'rgba(0,0,0,0.55)');sg.addColorStop(1,'rgba(0,0,0,0)');
-     ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(cx,H*0.82,W*0.26,H*0.020,0,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(cx,H*0.85,W*0.26,H*0.020,0,0,Math.PI*2);ctx.fill();
      /* Flaque de lait au sol */
      ctx.fillStyle=`rgba(240,238,230,${0.08+Math.sin(t*0.5)*0.02})`;
-     ctx.beginPath();ctx.ellipse(cx-W*0.18,H*0.825,W*0.065,H*0.009,0.1,0,Math.PI*2);ctx.fill();
+     ctx.beginPath();ctx.ellipse(cx-W*0.18,H*0.855,W*0.065,H*0.009,0.1,0,Math.PI*2);ctx.fill();
 
      /* Gouttes de lait */
      for(const d of milkDrops){
