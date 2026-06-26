@@ -3899,11 +3899,11 @@ const THEMES=[
   {id:'neon',    name:'Néon',     emoji:'⚡', dot:'linear-gradient(135deg,#c466ff,#00e5ff)',          cond:s=>(s.xp||0)>=2800,                            hint:'2 800 XP',            desc:'Atteins 2 800 XP pour débloquer ce thème cyberpunk.',                  prog:s=>Math.min(1,(s.xp||0)/2800)},
   {id:'crimson', name:'Crimson',  emoji:'🔥', dot:'linear-gradient(135deg,#ff3a5c,#2a0008)',          cond:s=>(s.best||0)>=3000,                          hint:'3 000 pts en une partie', desc:'Réalise un score de 3 000 pts en une seule partie.',           prog:s=>Math.min(1,(s.best||0)/3000)},
   {id:'ocean',   name:'Océan',    emoji:'🌊', dot:'linear-gradient(135deg,#00d4ff,#000a14)',          cond:s=>(s.games||0)>=50,                           hint:'50 parties',          desc:'Joue 50 parties au total.',                                            prog:s=>Math.min(1,(s.games||0)/50)},
-  {id:'sunset',  name:'Sunset',   emoji:'🌅', dot:'linear-gradient(135deg,#ff8c38,#e55e00,#ff4e6a)', cond:s=>(s.streak||0)>=3,                           hint:'Série 3 jours',       desc:'Joue 3 jours consécutifs.',                                            prog:s=>Math.min(1,(s.streak||0)/3)},
+  {id:'sunset',  name:'Sunset',   emoji:'🌅', dot:'linear-gradient(135deg,#ff8c38,#e55e00,#ff4e6a)', cond:s=>(s.maxStreak||0)>=3,                        hint:'Série 3 jours',       desc:'Joue 3 jours consécutifs.',                                            prog:s=>Math.min(1,(s.maxStreak||0)/3)},
   {id:'ice',     name:'Glace',    emoji:'❄️', dot:'linear-gradient(135deg,#c8eeff,#45a8e0,#00204a)', cond:s=>(s.perfects||0)>=10,                        hint:'10 parties parfaites',desc:'Réalise 10 parties parfaites (10/10).',                                 prog:s=>Math.min(1,(s.perfects||0)/10)},
   {id:'aurora',  name:'Aurora',   emoji:'✨', dot:'linear-gradient(135deg,#4ade80,#c084fc,#f472b6)', cond:s=>(s.xp||0)>=25000,                           hint:'25 000 XP',           desc:'Atteins 25 000 XP de progression.',                                    prog:s=>Math.min(1,(s.xp||0)/25000)},
   {id:'galaxy',  name:'Galaxie',  emoji:'🌌', dot:'linear-gradient(135deg,#a78bfa,#6d28d9,#00e5ff)', cond:s=>(s.games||0)>=100,                         hint:'100 parties',         desc:'Joue 100 parties pour explorer les confins de la galaxie.',            prog:s=>Math.min(1,(s.games||0)/100)},
-  {id:'emerald', name:'Émeraude', emoji:'💎', dot:'linear-gradient(135deg,#10f07c,#00b85a,#002e14)', cond:s=>(s.streak||0)>=5,                           hint:'Série 5 jours',       desc:'Joue 5 jours consécutifs pour débloquer ce joyau.',                    prog:s=>Math.min(1,(s.streak||0)/5)},
+  {id:'emerald', name:'Émeraude', emoji:'💎', dot:'linear-gradient(135deg,#10f07c,#00b85a,#002e14)', cond:s=>(s.maxStreak||0)>=5,                        hint:'Série 5 jours',       desc:'Joue 5 jours consécutifs pour débloquer ce joyau.',                    prog:s=>Math.min(1,(s.maxStreak||0)/5)},
   {id:'inferno', name:'Inferno',  emoji:'🌋', dot:'linear-gradient(135deg,#ffdd00,#ff9500,#ff3000)', cond:s=>(s.perfects||0)>=30,                        hint:'30 parties parfaites',desc:'Réalise 30 parties parfaites pour entrer dans l\'enfer du cinéma.',    prog:s=>Math.min(1,(s.perfects||0)/30)},
   {id:'matrix',  name:'Matrix',   emoji:'🟢', dot:'linear-gradient(135deg,#88ff00,#00ff41,#002200)', cond:s=>(s.unlocked||[]).length>=50,                hint:'50 badges',           desc:'Débloque 50 badges pour entrer dans la Matrice.',                      prog:s=>Math.min(1,(s.unlocked||[]).length/50)},
   {id:'rose',    name:'Rose',     emoji:'🌸', dot:'linear-gradient(135deg,#ffaadd,#ff6eb4,#d4006c)', cond:s=>(s.ee||[]).length>=15,                      hint:'15 easter eggs',      desc:'Découvre 15 easter eggs pour révéler ce thème.',                       prog:s=>Math.min(1,(s.ee||[]).length/15)},
@@ -4179,9 +4179,8 @@ function loadTheme(){
   const s=ls();
   if(s.theme){
     const t=THEMES.find(t=>t.id===s.theme);
-    // Vérifier que le thème est toujours déverrouillé
-    if(t&&t.cond(s))applyTheme(s.theme,null);
-    else{s.theme='';ss(s);}
+    // Un thème débloqué reste acquis définitivement
+    if(t)applyTheme(s.theme,null);
   }
 }
 
@@ -18231,7 +18230,7 @@ if(!_s.onboardingDone){
     _pwaPrompt = e;
     // Expose pour le bouton dans les paramètres si besoin
     window._pwaPrompt = e;
-    setTimeout(showBanner, 3500);
+    setTimeout(showBanner, 1000);
   });
 
   window.addEventListener('appinstalled', function () {
@@ -18274,13 +18273,13 @@ if(!_s.onboardingDone){
       '<div class="pwa-step"><div class="pwa-step-num">2</div><div class="pwa-step-text">Fais défiler et appuie sur <b>Sur l\'écran d\'accueil</b></div><div class="pwa-step-icon">' + svgAdd + '</div></div>' +
       '<div class="pwa-step"><div class="pwa-step-num">3</div><div class="pwa-step-text">Confirme en appuyant sur <b>Ajouter</b></div><div class="pwa-step-icon">✅</div></div>';
     stepsEl.classList.add('show');
-    setTimeout(showBanner, 4000);
+    setTimeout(showBanner, 1000);
   } else {
     // Android/desktop : si beforeinstallprompt n'est pas venu après 6s,
     // afficher quand même la bannière avec instructions génériques
     setTimeout(function() {
       if (!_pwaPrompt) showBanner();
-    }, 6000);
+    }, 1000);
   }
 
   // ── Expose pour usage externe (ex: bouton dans les settings) ──
