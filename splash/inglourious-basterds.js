@@ -28,7 +28,7 @@ window._splashRegistry["Inglourious Basterds"]={
      const tgtH=H*0.38;
      const tgtW=tgtH*(205/375);
      const sx=cx-tgtW/2;
-     const sy=H*0.88-tgtH; /* pieds à 88% de l'écran */
+     const sy=H*0.90-tgtH; /* pieds à 90% de l'écran */
      const scaleX=tgtW/205, scaleY=tgtH/375;
      ctx.save();
      ctx.translate(sx,sy);
