@@ -10,6 +10,14 @@
   window._splashRegistry["The Place Beyond the Pines"] = {
     run: function(cv, ctx, W, H, stop){
 
+      // ── Position citation + logo : remontée de 10% pour ce splash ──
+      (function(){
+        var wrap = document.getElementById('splash-content-wrap');
+        if(wrap){
+          wrap.style.top = '40%';
+        }
+      })();
+
       // ── Chargement du fond ──
       var bg = new Image();
       var bgReady = false;
