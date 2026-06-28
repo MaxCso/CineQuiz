@@ -5943,7 +5943,7 @@ async function fetchVersusQuestions(count){
 // ══════════════════════════════════════════════
 // MODE BLIND TEST
 // ══════════════════════════════════════════════
-let _btAudio=null,_btProgTimer=null,_btRevealTimer=null;
+let _btAudio=null,_btProgTimer=null,_btRevealTimer=null,_btStopTimer=null;
 
 // Résolution locale uniquement — fichier MP3 présent à la racine du site
 function fetchBlindTestPreview(entry){
@@ -5974,11 +5974,10 @@ function _btStopAudio(){
   /* Coupe la musique — appelé uniquement quand le joueur tape l'affiche */
   if(_btAudio){
     var a=_btAudio;
-    _btAudio=null; // nullifier immédiatement : la prochaine question ne doit pas réutiliser cet objet pendant le fade
     var v=a.volume||1,st=0,tot=12;
     var fo=setInterval(function(){
       st++;a.volume=Math.max(0,v*(1-st/tot));
-      if(st>=tot){clearInterval(fo);try{a.pause();a.src='';}catch(e){}}
+      if(st>=tot){clearInterval(fo);try{a.pause();a.src='';}catch(e){}  _btAudio=null;}
     },200/tot);
   }
 }
@@ -12887,7 +12886,7 @@ function handleAnswer(idx){
     if(combo>=3)haptic('combo');else haptic('ok');
     const toastExtra=q.type==='replique'?`${q.film} · ${q.year}`:null;
     sndOk(m);showToast(true,100*m,m,toastExtra);
-    if(q.type==='blindtest')setTimeout(_btStop,800);
+    if(q.type==='blindtest'){if(_btStopTimer)clearTimeout(_btStopTimer);_btStopTimer=setTimeout(_btStop,800);}
   }else{
     combo=0;haptic('no');
     if(idx>=0)btns[idx].classList.add('no');btns[q.correct].classList.add('ok');
@@ -12900,7 +12899,7 @@ function handleAnswer(idx){
     }
     sndNo();
     if(q.type==='blindtest'){
-      setTimeout(_btStop,800);
+      if(_btStopTimer)clearTimeout(_btStopTimer);_btStopTimer=setTimeout(_btStop,800);
       // Blind Test mauvaise réponse : pas de wrong-sheet, on passe directement
       // au showToast qui va déclencher le timer (ou le bouton Suivant dans bt-player)
       showToast(false,0,m,wrongAns);
@@ -13246,6 +13245,8 @@ function _updateSurvieHearts(lives){
   }).join('');
 }
 function advanceQ(){
+  // Annuler le setTimeout(_btStop) différé — s'il se déclenche après loadQ il écrase _btToggle avec noop
+  if(_btStopTimer){clearTimeout(_btStopTimer);_btStopTimer=null;}
   // Arrêter l'audio blind test si actif (cas quitte sans taper l'affiche)
   if(selMode==='blindtest'){_btStop();_btStopAudio();}
   // Verrou : bloquer tout avancement si la partie survie est terminée
